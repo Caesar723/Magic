@@ -1,0 +1,11 @@
+{
+    "Name": "Igni the Pyromancer",
+    "Rarity": "Rare",
+    "Type": "Human Shaman",
+    "Power": 2,
+    "Toughness": 2,
+    "Cost": "2R",
+    "Story Background": "Igni was once an apprentice to a powerful fire mage, until a tragic accident led him to harness the flames within himself.",
+    "Ability": "Whenever Igni the Pyromancer deals damage to a player, you may cast an instant or sorcery spell from your graveyard without paying its mana cost.",
+    "Appearance Description": "Igni is a tall, muscular figure with fiery red hair and eyes that seem to flicker with inner flames. He wears robes adorned with intricate runes that seem to glow with heat."
+}

@@ -1,0 +1,11 @@
+{
+    "Name": "Luminous Guardian",
+    "Rarity": "Rare",
+    "Type": "Angel Creature - Angel",
+    "Power": 3,
+    "Toughness": 3,
+    "Cost": "2WW",
+    "Story Background": "The Luminous Guardian is a celestial protector, embodying the ideals of valor, compassion, and unwavering courage. It watches over the realms, bringing hope and light to those in need.",
+    "Ability": "Flying, Lifelink (Damage dealt by this creature also causes you to gain that much life), When Luminous Guardian enters the battlefield, you may exile target creature with power 3 or greater an opponent controls until Luminous Guardian leaves the battlefield.",
+    "Appearance Description": "The Luminous Guardian is a radiant figure, glistening with golden armor and adorned with luminous, opalescent wings. Its eyes shine with an inner light, and its presence brings a sense of calm and strength to all who behold it."
+}

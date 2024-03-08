@@ -1,0 +1,3 @@
+Please design a new Sorcery card for Magic: The Gathering. Each cards are different. The Cost must be ?U (? should be integer or no ?). The Rarity must be Uncommon
+Name: [Name]#Rarity: Uncommon#Cost: 1U#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Mindful Manipulation#Rarity: Uncommon#Cost: 1U#Story Background: In the midst of battle, a skilled mage knows that victory often lies in subtle manipulations.#Ability: Draw two cards, then put one card from your hand on top of your library.#Appearance Description: The card depicts an enigmatic figure casting a spell, surrounded by shimmering threads of energy as they subtly manipulate the fabric of reality.

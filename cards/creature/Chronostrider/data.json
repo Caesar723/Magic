@@ -1,0 +1,11 @@
+{
+    "Name": "Chronostrider",
+    "Rarity": "Mythic Rare",
+    "Type": "Human Wizard",
+    "Power": 2,
+    "Toughness": 4,
+    "Cost": "3G",
+    "Story Background": "Once a renowned chronomancer, now an eternal wanderer between time streams.",
+    "Ability": "Flash, Haste. When Chronostrider enters the battlefield, you may take an extra turn after this one.",
+    "Appearance Description": "Clad in shimmering robes that seem to shift through various colors of the spectrum, with eyes that betray a deep understanding of time's secrets."
+}

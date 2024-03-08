@@ -1,0 +1,11 @@
+{
+    "Name": "Oblivion Devourer",
+    "Rarity": "Rare",
+    "Type": "Eldrazi Creature - Eldrazi",
+    "Power": 6,
+    "Toughness": 6,
+    "Cost": "5BB",
+    "Story Background": "The Oblivion Devourer is an insatiable entity from the blind eternities, drawn to consume the essence of entire worlds. Its colossal form looms ominously, a harbinger of inexorable oblivion.",
+    "Ability": "Menace (This creature can't be blocked except by two or more creatures), When Oblivion Devourer attacks, you may sacrifice another creature. If you do, target player discards two cards.",
+    "Appearance Description": "The Oblivion Devourer is a colossal, tentacled horror with a maw of swirling oblivion and tendrils that writhe and thrash with unfathomable hunger. Its gaze radiates an abyssal emptiness, and its very presence distorts reality and exudes an aura of impending, ravenous annihilation."
+}

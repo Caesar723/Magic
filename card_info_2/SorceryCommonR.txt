@@ -1,0 +1,3 @@
+Please design a new Sorcery card for Magic: The Gathering. Each cards are different. The Cost must be ?R (? should be integer or no ?). The Rarity must be Common
+Name: [Name]#Rarity: Common#Cost: 1R#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Fiery Burst#Rarity: Common#Cost: 1R#Story Background: In the heat of battle, the fiery burst spell can turn the tides in an instant, scorching everything in its path.#Ability: Fiery Burst deals 2 damage to target creature or player.#Appearance Description: The card depicts a swirling vortex of flames engulfing a hapless creature in its fiery grasp.

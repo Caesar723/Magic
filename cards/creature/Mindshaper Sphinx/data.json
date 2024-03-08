@@ -1,0 +1,11 @@
+{
+    "Name": "Mindshaper Sphinx",
+    "Rarity": "Rare",
+    "Type": "Sphinx Creature - Sphinx",
+    "Power": 4,
+    "Toughness": 4,
+    "Cost": "3UU",
+    "Story Background": "Revered as the custodian of endless knowledge, the Mindshaper Sphinx is an enigmatic being of unparalleled wisdom, its keen intellect piercing through the veils of existence to unravel the secrets of the cosmos.",
+    "Ability": "Flying, When Mindshaper Sphinx enters the battlefield, scry 3, then draw a card. (To scry 3, look at the top three cards of your library, then put any number of them on the bottom of your library and the rest on top in any order.)",
+    "Appearance Description": "The Mindshaper Sphinx embodies an aura of profound intelligence, its form adorned with cryptic symbols and inscriptions that seem to shift and rearrange with each enigmatic gaze. Its eyes gleam with an insatiable thirst for knowledge, and its graceful wings bear it aloft with an air of sublime omniscience."
+}

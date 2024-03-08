@@ -1,0 +1,3 @@
+Please design a new Instant card for Magic: The Gathering. Each cards are different. The Cost must be ?B (? should be integer or no ?). The Rarity must be Common
+Name: [Name]#Rarity: Common#Cost: 1B#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Shadow Snare#Rarity: Common#Cost: 2B#Story Background: In the depths of the swamp, shadows twist and coil, ready to ensnare any who dare trespass.#Ability: Target creature gets -3/-3 until end of turn.#Appearance Description: The art depicts dark, shadowy tendrils wrapping around the targeted creature, draining its strength and vitality.

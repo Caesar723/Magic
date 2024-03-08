@@ -1,0 +1,11 @@
+{
+    "Name": "Sage of the Ancient Grove",
+    "Rarity": "Rare",
+    "Type": "Treefolk Creature - Treefolk",
+    "Power": 4,
+    "Toughness": 4,
+    "Cost": "2GG",
+    "Story Background": "The Sage of the Ancient Grove is a venerable guardian of the primeval forests, its roots intertwined with the wisdom of the ages. It is a font of ancient knowledge and an arbiter of balance in the natural world.",
+    "Ability": "Reach, When Sage of the Ancient Grove enters the battlefield, you may search your library for a basic land card, put it onto the battlefield tapped, then shuffle your library.",
+    "Appearance Description": "The Sage of the Ancient Grove is a towering treefolk whose gnarled form is adorned with verdant foliage and moss. Its eyes convey an ageless wisdom, and its presence emanates the tranquil strength of the ancient groves it calls home."
+}

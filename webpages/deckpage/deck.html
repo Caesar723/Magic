@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <title>Deck Page</title>
+    <link href="https://fonts.googleapis.com/css?family=Merriweather:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="webpages/deckpage/style.css">
+    
+    <script src="webpages/deck_cards.js"></script>
+    <script src="webpages/button.js"></script>
+    <script src="packet/math.min.js"></script>
+    <script src="webpages/block.js"></script>
+    <script src="webpages/rotation.js"></script>
+    <script src="webpages/card.js"></script>
+    <script src="webpages/cards_main.js"></script>
+    <script src="webpages/deckpage/book.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    
+    
+    
+    
+
+    
+    
+    
+</head>
+<body>
+    <div class="overlay">
+        <div id="canvasContainer">
+            <div id="box">
+                <div id="text_box"></div>
+            </div>
+            <canvas id="myCanvas"></canvas>
+            <div id="exit" class="triangle-button" style="--rotate: 270deg; --size: 3vw; --color: #FF8C00; bottom: 3vw; left: 4vw;">
+                <span class="button-text">Exit</span>
+            </div>
+            <div id="build" class="rect-button" style="--width: 14vw; --height: 5vw; --color: #FF8C00; bottom: 3vw; left: 65vw; --radius: 0.5vw;--size: 5vw;">
+                <span class="button-text">Build Deck</span>
+            </div>
+            <input type="text" id="deck_name" placeholder="Deck Name">
+            <div id="deck">
+                <canvas id="deckCanvas"></canvas>
+            </div>
+        </div>
+        
+        
+        <script src="webpages/deckpage/deck.js"></script>
+        
+    </div>
+
+</body>
+</html>

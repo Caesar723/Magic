@@ -1,0 +1,24 @@
+
+from game.type_cards.sorcery import Sorcery
+
+
+class Righteous_Conviction(Sorcery):
+    
+    
+    def __init__(self) -> None:
+        super().__init__()
+
+        self.name:str="Righteous Conviction"
+
+        self.type:str="Sorcery"
+
+        self.mana_cost:str="1W"
+        self.color:str="gold"
+        self.type_card:str="Sorcery"
+        self.rarity:str="Uncommon"
+        self.content:str="Choose a creature you control. Until end of turn, that creature gets +2/+2 and gains lifelink."
+        self.image_path:str="cards/sorcery/Righteous Conviction/image.jpg"
+
+
+
+        

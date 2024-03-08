@@ -1,0 +1,23 @@
+#box {
+    width: 50vw;
+    height: 25vw;
+    background-color: rgb(27, 27, 24);
+    position: absolute;
+    top: 25vw;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%; /* 开始时为完全圆形 */
+    opacity: 0; /* 初始透明度为0 */
+    
+    transition: opacity 1s,  linear 1s, border-radius 1s, transform 1s; /* 渐变效果 */
+    z-index: 10;
+    position:fixed;
+    display: flex;
+    justify-content: center; /* 水平居中 */
+    align-items: center; /* 垂直居中 */
+  }
+
+#text_box {
+    font-size: 3vw; /* 文字大小 */
+    color: white; /* 文字颜色 */
+}

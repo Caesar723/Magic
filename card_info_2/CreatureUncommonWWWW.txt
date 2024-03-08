@@ -1,0 +1,2 @@
+Please design a new Creature card for Magic: The Gathering. Each cards are different. The Cost must be ?WWWW (? should be integer or no ?). The Rarity must be Uncommon
+Name: [Name]#Rarity: Uncommon#Type: [Human/Skeleton/Beast/Angel/Goblin/Demon/Artifact Creature/Elemental/etc.]#Power/Toughness: [Value]#Cost: 1WWWW#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].

@@ -1,0 +1,11 @@
+{
+    "Name": "Thornroot Druid",
+    "Rarity": "Uncommon",
+    "Type": "Elf Druid",
+    "Power": 2,
+    "Toughness": 2,
+    "Cost": "1G",
+    "Story Background": "The Thornroot Druids are attuned to the ancient magic of the forests, using their connection to nature to protect their homes from harm.",
+    "Ability": "When Thornroot Druid enters the battlefield, you may search your library for a basic land card, reveal it, put it into your hand, then shuffle your library.",
+    "Appearance Description": "The Thornroot Druid is a tall, slender elf with emerald eyes and a cloak made of woven thorns and leaves. They carry a gnarled staff crowned with a glowing green gem."
+}

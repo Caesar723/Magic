@@ -1,0 +1,11 @@
+{
+    "Name": "Mistweaver Drake",
+    "Rarity": "Common",
+    "Type": "Creature - Elemental",
+    "Power": 2,
+    "Toughness": 1,
+    "Cost": "1U",
+    "Story Background": "Born from the mists that shroud the Dimir city, the Mistweaver Drakes are elusive creatures that glide through the air with uncanny agility, delivering messages and secrets with silent grace.",
+    "Ability": "Flash (You may cast this spell any time you could cast an instant)",
+    "Appearance Description": "The Mistweaver Drake is a sleek, serpent-like creature with opalescent scales that shimmer with an otherworldly glow. Its wings are translucent like mist, allowing it to blend seamlessly into the fog-covered landscape."
+}

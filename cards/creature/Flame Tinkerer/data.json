@@ -1,0 +1,11 @@
+{
+    "Name": "Flame Tinkerer",
+    "Rarity": "Common",
+    "Type": "Goblin Creature",
+    "Power": 2,
+    "Toughness": 1,
+    "Cost": "1R",
+    "Story Background": "Flame Tinkerers are mischievous goblins who harness the power of fire to craft intricate mechanical contraptions.",
+    "Ability": "When Flame Tinkerer enters the battlefield, you may pay R. If you do, it deals 1 damage to target creature.",
+    "Appearance Description": "Flame Tinkerer is a small, red-skinned goblin with wild hair, wielding a sputtering torch in one hand and a collection of gears and tools in the other."
+}

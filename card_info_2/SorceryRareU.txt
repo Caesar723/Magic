@@ -1,0 +1,3 @@
+Please design a new Sorcery card for Magic: The Gathering. Each cards are different. The Cost must be ?U (? should be integer or no ?). The Rarity must be Rare
+Name: [Name]#Rarity: Rare#Cost: 1U#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Mind's Insight#Rarity: Rare#Cost: 4U#Story Background: Delving into the depths of the subconscious, a mage draws forth hidden knowledge to outwit their adversaries.#Ability: Draw three cards, then discard two cards unless you discard an island.#Appearance Description: A mage in deep concentration, surrounded by swirling blue and silver energy, reaching out to grasp intangible thoughts and visions.

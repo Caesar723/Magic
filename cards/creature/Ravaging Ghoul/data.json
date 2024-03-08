@@ -1,0 +1,11 @@
+{
+    "Name": "Ravaging Ghoul",
+    "Rarity": "Uncommon",
+    "Type": "Zombie Creature",
+    "Power": 2,
+    "Toughness": 2,
+    "Cost": "1B",
+    "Story Background": "Once a fearsome warrior, now cursed to wander the night in search of fresh blood to sate its eternal hunger.",
+    "Ability": "When Ravaging Ghoul enters the battlefield, target opponent loses 2 life unless they sacrifice a creature.",
+    "Appearance Description": "The Ravaging Ghoul is a hunched figure draped in tattered rags, its eyes glowing with a malevolent hunger as it shambles forward, claws outstretched."
+}

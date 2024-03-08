@@ -1,0 +1,2 @@
+Please design a new Sorcery card for Magic: The Gathering. Each cards are different. The Cost must be ?GG (? should be integer or no ?). The Rarity must be Uncommon
+Name: [Name]#Rarity: Uncommon#Cost: 1GG#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].

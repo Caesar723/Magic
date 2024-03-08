@@ -1,0 +1,205 @@
+body {
+    background-color: rgb(44, 51, 56,0.5);
+    
+    color: #606468;
+    margin: 0;
+    min-height: 100vh;
+    width: 100vw;
+    height: 60vw;
+    background-size: cover; /* 背景图片铺满整个屏幕 */
+    background-attachment: fixed;
+    background-repeat: no-repeat; /* 禁止背景图片重复 */
+    overflow: hidden;
+  }
+  .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(44, 51, 56,0.9);
+}
+#canvasContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 60vw;
+    background-color: transparent; /* 设置容器的背景为透明 */
+    z-index: 1;
+    
+}
+
+#myCanvas {
+    
+    width: 100vw;
+    height: 60vw;
+    aspect-ratio: 1 / 1; /* 保持正方形形状的关键 */
+    background-color: transparent; /* 设置Canvas的背景为透明 */
+    z-index: 1;
+}
+#deck{
+    position: fixed;
+    width: 20vw;
+    height: 60vw;
+    aspect-ratio: 1 / 1; /* 保持正方形形状的关键 */
+    background-color: transparent; /* 设置Canvas的背景为透明 */
+    left: 80%;
+    top:0;
+    z-index: -1; /* 设置 canvas 元素的 z-index */
+}
+#deckCanvas{
+    width: 100%;
+    height: 60vw;
+    aspect-ratio: 1 / 1; /* 保持正方形形状的关键 */
+    background-color: transparent; /* 设置Canvas的背景为透明 */
+    right: 0;
+}
+
+#exitButton {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    padding: 10px 20px;
+    background-color: #ffffff; /* 设置退出按钮的背景颜色 */
+    border: 1px solid #000000; /* 设置退出按钮的边框 */
+    cursor: pointer;
+}
+
+#deck_name{
+    background-color: rgb(83,53,39,1); /* 灰色背景 */
+    position: fixed;
+    font-family: 'Merriweather', serif; /* 应用Merriweather字体 */
+    right: 0;
+    top:0;
+    outline: none;
+    border: none; /* 无边框 */
+    border-radius: 1vw; /* 圆角边框 */
+    padding: 1vw; /* 内边距 */
+    font-size: 2vw; /* 增加字体大小 */
+    width: 20%; /* 宽度 */
+    height: 5vw;
+    box-sizing: border-box; /* 盒模型 */
+    color: #d4d1d1; /* 文字颜色 */
+    z-index: 2;
+    text-align: center; /* 使文字居中 */
+}
+#deck_name::placeholder {
+    color: rgb(197, 190, 174); /* 占位符文字颜色 */
+  }
+
+.triangle-button {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: var(--size) solid transparent; /* 三角形的左边，大小可调整 */
+    border-right: var(--size) solid transparent; /* 三角形的右边，大小可调整 */
+    border-bottom: calc(var(--size) * 1.73) solid var(--color); /* 三角形的底边，高度根据勾股定理计算，颜色可调整 */
+    cursor: pointer;
+    transition: transform 0.3s ease, filter 0.3s ease; /* 过渡效果 */
+    transform: rotate(var(--rotate)); /* 旋转角度可调整 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%); /* 剪切可点击区域为三角形 */
+    transform-origin: center; /* 旋转的基点在三角形的底部中心*/
+    
+
+}
+
+.rect-button {
+    position: absolute;
+    width: var(--width); /* 按钮的宽度 */
+    height: var(--height); /* 按钮的高度 */
+    background-color: var(--color); /* 按钮的背景颜色 */
+    cursor: pointer;
+    transition: transform 0.3s ease, filter 0.3s ease; /* 过渡效果 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: var(--radius); /* 设置圆角的大小 */
+}
+
+.button-text {
+    
+    z-index: 30;
+    color: white; /* 文本颜色 */
+    transition: filter 0.3s ease; /* 过渡效果 */
+    position: absolute;
+    font-size: calc(0.4 * var(--size)); /* 使用相对单位来定义文字大小 */
+    width: calc(1 * var(--size));
+    transform:translate(0,var(--size)) rotate(calc(-1 * var(--rotate)))  ;
+    transform-origin: 50% 50%;
+    /* 加粗字体 */
+    font-weight: bold;
+    text-align: center; /* 文字水平居中 */
+}
+.triangle-button:hover {
+    transform: scale(1.2) rotate(var(--rotate)); /* 变大和保持旋转 */
+    filter: brightness(1.5); /* 变亮 */
+}
+.rect-button:hover {
+    transform: scale(1.2) ; /* 变大和保持旋转 */
+    filter: brightness(1.5); /* 变亮 */
+}
+
+.button-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+body {
+    background-color: #2c3338;
+    
+    color: #606468;
+    color: var(--bodyColor);
+    font-family: "Open Sans", sans-serif;
+    font-family: var(--bodyFontFamily), var(--bodyFontFamilyFallback);
+    font-size: 0.875rem;
+    font-size: var(--bodyFontSize);
+    font-weight: 400;
+    font-weight: var(--bodyFontWeight);
+    line-height: 1.5;
+    line-height: var(--bodyLineHeight);
+    margin: 0;
+    min-height: 100vh;
+  }
+
+#img_coin{
+    width: 1.5vw;
+    height: 1.5vw;
+}
+
+@keyframes breathEffect {
+    0%, 100% { background-color: rgb(83,53,39,1); }
+    50% { background-color: rgb(141, 119, 108); }
+}
+
+.breath {
+    animation: breathEffect 0.5s ease-in-out infinite; /* 动画名称，持续时间，动画方式，重复模式 */
+}
+#box {
+    width: 50vw;
+    height: 25vw;
+    background-color: rgb(27, 27, 24);
+    position: absolute;
+    top: 25vw;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%; /* 开始时为完全圆形 */
+    opacity: 0; /* 初始透明度为0 */
+    
+    transition: opacity 1s,  linear 1s, border-radius 1s, transform 1s; /* 渐变效果 */
+    z-index: 5;
+    position:fixed;
+    display: flex;
+    justify-content: center; /* 水平居中 */
+    align-items: center; /* 垂直居中 */
+  }
+
+#text_box {
+    font-size: 3vw; /* 文字大小 */
+    color: white; /* 文字颜色 */
+}

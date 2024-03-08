@@ -1,0 +1,11 @@
+{
+    "Name": "Mystic Tidecaller",
+    "Rarity": "Mythic Rare",
+    "Type": "Merfolk Wizard",
+    "Power": 2,
+    "Toughness": 3,
+    "Cost": "3U",
+    "Story Background": "Hailing from the depths of the turbulent sea, the Mystic Tidecaller channels the ancient powers of the ocean to shape and control the ebb and flow of magic.",
+    "Ability": "Flash, When Mystic Tidecaller enters the battlefield, you may return target nonland permanent to its owner's hand.",
+    "Appearance Description": "The Mystic Tidecaller appears as a majestic figure with flowing azure robes and hair resembling cresting waves, surrounded by an aura of shimmering water."
+}

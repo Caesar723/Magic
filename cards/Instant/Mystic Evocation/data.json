@@ -1,0 +1,8 @@
+{
+    "Name": "Mystic Evocation",
+    "Rarity": "Uncommon",
+    "Cost": "1U",
+    "Story Background": "In times of need, the mages of Azorius call upon ancestral incantations to bend the fabric of reality to their will.",
+    "Ability": "Counter target noncreature spell unless its controller pays 1. If that spell is countered this way, scry 1.",
+    "Appearance Description": "The card depicts an Azorius mage invoking an ancient sigil, as the air around them shimmers with arcane energy."
+}

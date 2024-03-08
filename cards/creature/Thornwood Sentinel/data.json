@@ -1,0 +1,11 @@
+{
+    "Name": "Thornwood Sentinel",
+    "Rarity": "Common",
+    "Type": "Elemental Creature",
+    "Power": 2,
+    "Toughness": 3,
+    "Cost": "1G",
+    "Story Background": "Created from the heart of the densest forest, the Thornwood Sentinel serves as a guardian of the natural world.",
+    "Ability": "Reach (This creature can block creatures with flying)",
+    "Appearance Description": "A towering figure made of intertwining branches, adorned with vibrant, blooming foliage, and emanating an aura of protective energy."
+}

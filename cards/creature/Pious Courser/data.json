@@ -1,0 +1,11 @@
+{
+    "Name": "Pious Courser",
+    "Rarity": "Common",
+    "Type": "Human Cleric",
+    "Power": 2,
+    "Toughness": 2,
+    "Cost": "1W",
+    "Story Background": "Pious Courser is a humble traveler, dedicated to aiding the sick and wounded in the war-torn lands.",
+    "Ability": "When Pious Courser enters the battlefield, you gain 2 life.",
+    "Appearance Description": "Pious Courser is adorned in simple white robes, carrying a staff adorned with healing runes, and is accompanied by a faithful steed."
+}

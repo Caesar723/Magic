@@ -1,0 +1,3 @@
+Please design a new Sorcery card for Magic: The Gathering. Each cards are different. The Cost must be ?G (? should be integer or no ?). The Rarity must be Uncommon
+Name: [Name]#Rarity: Uncommon#Cost: 1G#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Wild Growth#Rarity: Uncommon#Cost: 1G#Story Background: In the heart of the untamed forests, the magic of nature thrives, empowering those who harness its energy.#Ability: Search your library for a basic land card and put it onto the battlefield tapped. Then shuffle your library.#Appearance Description: A vibrant green tendril of energy erupts from the ground, wrapping around the land and infusing it with life.

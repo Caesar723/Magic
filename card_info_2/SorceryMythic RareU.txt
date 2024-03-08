@@ -1,0 +1,3 @@
+Please design a new Sorcery card for Magic: The Gathering. Each cards are different. The Cost must be ?U (? should be integer or no ?). The Rarity must be Mythic Rare
+Name: [Name]#Rarity: Mythic Rare#Cost: 1U#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Temporal Flux#Rarity: Mythic Rare#Cost: 3U#Story Background: In the heart of an arcane storm, time warps and bends to the will of the most powerful mages.#Ability: Take an extra turn after this one.#Appearance Description: The art depicts a swirling vortex of shimmering energy, with figures caught in its grasp as time distorts around them.

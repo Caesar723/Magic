@@ -1,0 +1,11 @@
+{
+    "Name": "Sunlit Priestess",
+    "Rarity": "Common",
+    "Type": "Human Cleric",
+    "Power": 2,
+    "Toughness": 2,
+    "Cost": "1W",
+    "Story Background": "The Sunlit Priestess is a devout follower of the light, offering prayers for protection and guidance to her fellow allies.",
+    "Ability": "When Sunlit Priestess enters the battlefield, you gain 3 life.",
+    "Appearance Description": "The Sunlit Priestess is cloaked in golden robes, with her face illuminated by a gentle glow, representing her devotion to the forces of light."
+}

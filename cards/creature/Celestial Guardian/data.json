@@ -1,0 +1,11 @@
+{
+    "Name": "Celestial Guardian",
+    "Rarity": "Rare",
+    "Type": "Angel Creature",
+    "Power": 3,
+    "Toughness": 3,
+    "Cost": "3W",
+    "Story Background": "Celestial Guardians are revered for their unwavering dedication to protecting the realms of light and justice.",
+    "Ability": "Flying, Vigilance",
+    "Appearance Description": "A majestic angel with shimmering wings, radiant armor, and a glowing halo, exuding an aura of divine protection."
+}

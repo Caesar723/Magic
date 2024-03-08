@@ -1,0 +1,3 @@
+Please design a new Instant card for Magic: The Gathering. Each cards are different. The Cost must be ?U (? should be integer or no ?). The Rarity must be Common
+Name: [Name]#Rarity: Common#Cost: 1U#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Aquatic Evasion#Rarity: Common#Cost: 1U#Story Background: In the depths of the ocean, merfolk warriors utilize elusive tactics to outmaneuver their foes.#Ability: Target creature you control gains hexproof until end of turn. Draw a card.#Appearance Description: The artwork depicts a sleek, shimmering fish-like creature darting through the water with grace and agility, evading enemy attacks.

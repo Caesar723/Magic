@@ -1,0 +1,11 @@
+{
+    "Name": "Verdant Wyrm",
+    "Rarity": "Rare",
+    "Type": "Dragon Creature - Dragon",
+    "Power": 4,
+    "Toughness": 4,
+    "Cost": "3GG",
+    "Story Background": "The Verdant Wyrm is a guardian of the ancient forests, its scales shimmering with the vibrant hues of nature. It protects the woodland realms with ferocious devotion, ensuring the harmonious balance of the natural world.",
+    "Ability": "Trample, When Verdant Wyrm enters the battlefield, you may search your library for a land card, put it onto the battlefield tapped, then shuffle your library.",
+    "Appearance Description": "The Verdant Wyrm is an imposing dragon, its emerald scales dappled with patterns of moss and foliage. Its eyes gleam with primal wisdom, and its powerful wings stir the scents of earth and flora with each majestic beat."
+}

@@ -1,0 +1,11 @@
+{
+    "Name": "Eternal Phoenix",
+    "Rarity": "Rare",
+    "Type": "Phoenix Creature - Phoenix",
+    "Power": 3,
+    "Toughness": 3,
+    "Cost": "2RR",
+    "Story Background": "Born from the flames of the eternal cycle, the Eternal Phoenix is a magnificent symbol of rebirth and resilience. Its fiery form signifies the unyielding spirit and enduring vitality of those who rise from the ashes.",
+    "Ability": "Flying, When Eternal Phoenix dies, if it didn't have a feather counter on it, return it to the battlefield with a feather counter on it instead of putting it into your graveyard.",
+    "Appearance Description": "The Eternal Phoenix is a majestic bird engulfed in vibrant, ever-burning flames that illuminate the surrounding skies. Its radiant plumage ignites with hues of crimson and gold, and its piercing eyes exude an unquenchable determination and unyielding spirit."
+}

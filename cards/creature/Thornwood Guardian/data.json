@@ -1,0 +1,11 @@
+{
+    "Name": "Thornwood Guardian",
+    "Rarity": "Rare",
+    "Type": "Elemental Creature - Elemental",
+    "Power": 5,
+    "Toughness": 4,
+    "Cost": "3GG",
+    "Story Background": "Legends speak of the ancient guardians of the primal forests, massive elemental beings that protect the sanctity of nature with unyielding determination.",
+    "Ability": "Reach, Trample (This creature can block creatures with flying, and it can deal excess combat damage to the player or planeswalker it's attacking.)",
+    "Appearance Description": "The Thornwood Guardian resembles a towering humanoid figure composed entirely of living, intertwined vines and branches. Its eyes glow with a serene green light, and its presence exudes an aura of untamed wilderness and potent natural magic."
+}

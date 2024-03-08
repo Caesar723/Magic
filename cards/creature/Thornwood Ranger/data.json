@@ -1,0 +1,11 @@
+{
+    "Name": "Thornwood Ranger",
+    "Rarity": "Common",
+    "Type": "Human Warrior",
+    "Power": 2,
+    "Toughness": 1,
+    "Cost": "1G",
+    "Story Background": "Thornwood Rangers are skilled trackers who specialize in navigating the dense and perilous Thornwood forest.",
+    "Ability": "Reach (This creature can block creatures with flying.)",
+    "Appearance Description": "The Thornwood Ranger is a rugged and capable warrior, clad in earth-toned leathers and armed with a keen bow. They are often accompanied by a loyal wolf companion, which aids them in their hunting and scouting expeditions."
+}

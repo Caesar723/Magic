@@ -1,0 +1,11 @@
+{
+    "Name": "Elite Squire",
+    "Rarity": "Uncommon",
+    "Type": "Human Knight",
+    "Power": 2,
+    "Toughness": 2,
+    "Cost": "1W",
+    "Story Background": "Trained in the royal academy, the elite squires serve as protectors of the kingdom, upholding honor and justice.",
+    "Ability": "Vigilance (This creature doesn't tap when it attacks)",
+    "Appearance Description": "Clad in shining armor adorned with the kingdom's crest, the elite squire stands tall and vigilant, ready to defend the realm at a moment's notice."
+}

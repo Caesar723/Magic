@@ -1,0 +1,11 @@
+{
+    "Name": "Merfolk Wayfinder",
+    "Rarity": "Common",
+    "Type": "Merfolk Creature",
+    "Power": 1,
+    "Toughness": 1,
+    "Cost": "U",
+    "Story Background": "The Wayfinders are dedicated to exploring new seas and charting uncharted waters for the betterment of all merfolk.",
+    "Ability": "Whenever Merfolk Wayfinder enters the battlefield, you may scry 1. (Look at the top card of your library. You may put that card on the bottom of your library.)",
+    "Appearance Description": "A sleek, blue-scaled merfolk with a trident, adorned with seaweed and coral, and carrying a satchel of maps and navigation tools."
+}

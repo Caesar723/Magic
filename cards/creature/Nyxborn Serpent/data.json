@@ -1,0 +1,11 @@
+{
+    "Name": "Nyxborn Serpent",
+    "Rarity": "Uncommon",
+    "Type": "Enchantment Creature - Serpent",
+    "Power": 3,
+    "Toughness": 3,
+    "Cost": "4U",
+    "Story Background": "Born from the celestial energies of Nyx, the Nyxborn Serpent embodies the untamed power of the starlit heavens, its sinuous form weaving through the constellations with graceful ferocity.",
+    "Ability": "Constellation - Whenever Nyxborn Serpent or another enchantment enters the battlefield under your control, you may tap target creature an opponent controls.",
+    "Appearance Description": "The Nyxborn Serpent is a sleek, serpentine creature with iridescent scales that shimmer like scattered stardust. Its eyes gleam with the radiant light of the cosmos, and its sinuous movements echo the celestial dance of the night sky."
+}

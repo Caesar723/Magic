@@ -1,0 +1,11 @@
+{
+    "Name": "Essence Channeler",
+    "Rarity": "Rare",
+    "Type": "Human Shaman",
+    "Power": 2,
+    "Toughness": 2,
+    "Cost": "1G",
+    "Story Background": "Born with a rare connection to the elemental forces of nature, the Essence Channelers are revered among their tribe for their ability to harness the raw power of the world itself.",
+    "Ability": "Whenever you cast a creature spell, you may add G to your mana pool.",
+    "Appearance Description": "The Essence Channeler is a tall figure draped in flowing robes made of leaves and vines. Their eyes glow with an otherworldly light, and small motes of energy dance around their outstretched hand."
+}

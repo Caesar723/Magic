@@ -1,0 +1,3 @@
+Please design a new Instant card for Magic: The Gathering. Each cards are different. The Cost must be ?G (? should be integer or no ?). The Rarity must be Common
+Name: [Name]#Rarity: Common#Cost: 1G#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Nature's Reprisal#Rarity: Common#Cost: 1G#Story Background: As the forests were being destroyed by dark forces, the spirits of nature rose up to defend their home.#Ability: Destroy target artifact or enchantment.#Appearance Description: The artwork shows a group of ethereal woodland spirits surrounded by glowing energy, reaching out to disintegrate a looming metallic structure.

@@ -1,0 +1,11 @@
+{
+    "Name": "Vorinclex, Apex of Mutation",
+    "Rarity": "Mythic Rare",
+    "Type": "Legendary Creature - Phyrexian Mutant",
+    "Power": 6,
+    "Toughness": 6,
+    "Cost": "3GG",
+    "Story Background": "Vorinclex is a nightmarish fusion of Phyrexian and natural life, created by the insidious forces of New Phyrexia to be the ultimate predator on the plane of Mirrodin.",
+    "Ability": "Trample, Infect, and whenever you cast a spell, proliferate. Whenever an opponent proliferates, they must pay 2 life for each permanent type they've chose (Artifact, creature, enchantment, land, planeswalker, or any combination thereof).",
+    "Appearance Description": "Vorinclex is a towering, grotesque humanoid figure with twisted metal protrusions and glowing green, mutating veins pulsating through its corrupted flesh."
+}

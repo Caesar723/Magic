@@ -1,0 +1,11 @@
+{
+    "Name": "Harbinger of the Eternal Tides",
+    "Rarity": "Rare",
+    "Type": "Merfolk Creature - Merfolk",
+    "Power": 2,
+    "Toughness": 4,
+    "Cost": "2UU",
+    "Story Background": "Born from the whispering depths, the Harbinger of the Eternal Tides is a mystical envoy of the ocean's ancient wisdom, its presence heralding the ebb and flow of primordial secrets and unfathomable mysteries.",
+    "Ability": "Flash, When Harbinger of the Eternal Tides enters the battlefield, tap target creature an opponent controls. It doesn't untap during its controller's next untap step.",
+    "Appearance Description": "The Harbinger of the Eternal Tides exudes an aura of ethereal grace, its form adorned with shimmering scales that echo the iridescence of the ocean's depths. Its eyes reflect the tranquil depths of the sea, and its movements mirror the undulating rhythm of the eternal tides."
+}

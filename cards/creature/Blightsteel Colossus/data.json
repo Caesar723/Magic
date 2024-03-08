@@ -1,0 +1,11 @@
+{
+    "Name": "Blightsteel Colossus",
+    "Rarity": "Mythic Rare",
+    "Type": "Artifact Creature - Golem",
+    "Power": 11,
+    "Toughness": 11,
+    "Cost": "12",
+    "Story Background": "Forged in the heart of ancient Phyrexia, the Blightsteel Colossus is a nightmarish creation of dark sorcery and destructive ambition, an unyielding force of unstoppable annihilation.",
+    "Ability": "Trample, Infect (This creature deals damage to creatures in the form of -1/-1 counters and to players in the form of poison counters.), Indestructible (This creature can't be destroyed by damage or effects that say \"destroy.\")",
+    "Appearance Description": "The Blightsteel Colossus is an immense, towering golem constructed of jet-black metal and adorned with menacing, razor-sharp spikes and coils of noxious, green-tinged mist. Its eyes gleam with malevolent intent, and its every movement radiates an aura of inevitable doom."
+}

@@ -1,0 +1,228 @@
+
+
+.triangle-button {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: var(--size) solid transparent; /* 三角形的左边，大小可调整 */
+    border-right: var(--size) solid transparent; /* 三角形的右边，大小可调整 */
+    border-bottom: calc(var(--size) * 1.73) solid var(--color); /* 三角形的底边，高度根据勾股定理计算，颜色可调整 */
+    cursor: pointer;
+    transition: transform 0.3s ease, filter 0.3s ease; /* 过渡效果 */
+    transform: rotate(var(--rotate)); /* 旋转角度可调整 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%); /* 剪切可点击区域为三角形 */
+    transform-origin: center; /* 旋转的基点在三角形的底部中心*/
+    
+
+}
+
+
+.button-text {
+    
+    z-index: 30;
+    color: white; /* 文本颜色 */
+    transition: filter 0.3s ease; /* 过渡效果 */
+    position: absolute;
+    font-size: calc(0.2 * var(--size)); /* 使用相对单位来定义文字大小 */
+    width: calc(1 * var(--size));
+    transform:translate(0,var(--size)) rotate(calc(-1 * var(--rotate)))  ;
+    transform-origin: 50% 50%;
+    /* 加粗字体 */
+    font-weight: bold;
+    text-align: center; /* 文字水平居中 */
+}
+.triangle-button:hover {
+    transform: scale(1.2) rotate(var(--rotate)); /* 变大和保持旋转 */
+    filter: brightness(1.5); /* 变亮 */
+}
+
+.button-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transition: filter 0.3s ease; /* 平滑过渡效果 */
+}
+body {
+    background-color: #2c3338;
+    
+    color: #606468;
+    color: var(--bodyColor);
+    font-family: "Open Sans", sans-serif;
+    font-family: var(--bodyFontFamily), var(--bodyFontFamilyFallback);
+    font-size: 0.875rem;
+    font-size: var(--bodyFontSize);
+    font-weight: 400;
+    font-weight: var(--bodyFontWeight);
+    line-height: 1.5;
+    line-height: var(--bodyLineHeight);
+    margin: 0;
+    min-height: 100vh;
+  }
+
+#img_coin{
+    width: 1.5vw;
+    height: 1.5vw;
+}
+
+#box_decks {
+    width: 17vw;
+    overflow-y: auto;
+    
+    height:100%;
+    background-color: rgb(240, 183, 39);
+    color: white;
+    position: fixed;
+    left: -20vw; /* 初始状态在屏幕外 */
+    top: 0;
+    border-top-right-radius: 2vw;
+    border-bottom-right-radius: 2vw;
+    
+    transition: left 0.5s ease, border-top-right-radius 0.4s,border-bottom-right-radius 0.4s; /* 平滑过渡效果 */
+    z-index: 4;
+    
+    flex-direction: column; 
+    align-items: center; /* 在交叉轴上居中对齐子元素，对于列布局即水平居中 */
+    
+    gap: 20px; /* 设置子元素之间的间隔 */
+  }
+  
+  /* 用于切换方框状态的类 */
+.box_decks-visible {
+    position: fixed;
+}
+
+.hidden {
+    display: none;
+}
+.blur {
+    filter: blur(5px);
+}
+
+.box_cards{
+    width: 30vw;
+    height:100%;
+    top: 0;
+    border-top-right-radius: 2vw;
+    border-bottom-right-radius: 2vw;
+    background-color: rgb(240, 139, 39);
+    position: fixed;
+    
+    transition: left 0.5s ease, border-top-right-radius 0.4s,border-bottom-right-radius 0.4s; /* 平滑过渡效果 */
+    left: -31vw; /* 初始状态在屏幕外 */
+    
+    
+
+}
+#box_cards_1{
+    z-index: 2;
+}
+
+#box_cards_2{
+    z-index: 3;
+}
+
+.box_cards_front{
+    left:5vw;
+}
+
+.button_deck{
+    width: 15vw;
+    height:5vw;
+    border-radius: 1vw;
+    left: 1vw;
+    
+    position: relative;
+    cursor: pointer;
+    justify-content: center; /* 水平居中方框内的内容 */
+    align-items: center; /* 垂直居中方框内的内容 */
+    text-align: center; /* 文本居中（对于多行文本） */
+    background-color: rgb(224, 157, 90);
+
+
+    transition: transform 0.3s ease, filter 0.3s ease; /* 过渡效果 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1vw;
+    
+}
+.button_deck:hover {
+    transform: scale(1.1) ; /* 变大和保持旋转 */
+    filter: brightness(1.5); /* 变亮 */
+}
+.text_deck{
+    position: absolute;
+    font-weight: bold;
+    text-align: center; /* 文字水平居中 */
+}
+
+.canvas_deck{
+    position: relative;
+    right:  -12.5vw;
+    height:100%;
+    width: 17vw;
+}
+
+
+.button_process_deck{
+    width: 15vw;
+    height:5vw;
+    border-radius: 1vw;
+    display: flex; /* 启用Flexbox以便在方框内居中内容 */
+    
+    cursor: pointer;
+    justify-content: center; /* 水平居中方框内的内容 */
+    align-items: center; /* 垂直居中方框内的内容 */
+    text-align: center; /* 文本居中（对于多行文本） */
+    /* background-color: rgb(224, 157, 90); */
+
+    position: absolute;
+    transition: transform 0.3s ease, filter 0.3s ease; /* 过渡效果 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3;
+
+    
+}
+.button_process_deck:hover {
+    transform: scale(1.1) ; /* 变大和保持旋转 */
+    filter: brightness(1.5); /* 变亮 */
+}
+.button_process_deck_click {
+    transform: scale(1.1) ; /* 变大和保持旋转 */
+    filter: brightness(1.5); /* 变亮 */
+}
+#choose_deck {
+    
+    bottom: 0;
+    background-repeat: no-repeat;
+    background-position: center; /* 或者其他你希望的位置 */
+}
+#delete_deck {
+    top: 0;
+    background-repeat: no-repeat;
+    background-position: center; /* 或者其他你希望的位置 */
+}
+
+#button_process{
+    width:20vw;
+    height:30vw;
+    left:40vw;
+    top:-40vw;
+    display: flex; /* 启用 Flexbox 布局 */
+    position: fixed;
+    z-index: 3;
+    transition: top 0.5s ease; /* 平滑过渡效果 */
+}
+
+.show_button_process{
+
+    top:20vw !important;
+    
+}

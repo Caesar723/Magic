@@ -1,0 +1,11 @@
+{
+    "Name": "Spectral Harbinger",
+    "Rarity": "Rare",
+    "Type": "Spirit Creature - Spirit",
+    "Power": 2,
+    "Toughness": 3,
+    "Cost": "2WW",
+    "Story Background": "Born from the echoes of forgotten sorrows, the Spectral Harbinger is an ethereal guardian that watches over lost souls and mournful spirits, its presence offering solace and guidance to those trapped in the realm between life and death.",
+    "Ability": "Flying, Lifelink (Damage dealt by this creature also causes you to gain that much life), When Spectral Harbinger enters the battlefield, you may exile target creature card from a graveyard. If you do, you gain 2 life.",
+    "Appearance Description": "The Spectral Harbinger appears as a luminous figure cloaked in shimmering, ghostly raiments that billow and flow like mist. Its gentle gaze carries an otherworldly serenity, and its touch brings a fleeting warmth to the hearts of the bereaved and the forlorn."
+}

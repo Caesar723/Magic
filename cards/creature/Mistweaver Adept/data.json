@@ -1,0 +1,11 @@
+{
+    "Name": "Mistweaver Adept",
+    "Rarity": "Uncommon",
+    "Type": "Human Wizard",
+    "Power": 2,
+    "Toughness": 1,
+    "Cost": "1U",
+    "Story Background": "Trained in the ancient art of mist magic, the Mistweaver Adepts are revered for their ability to bend and manipulate the very essence of the atmosphere.",
+    "Ability": "When Mistweaver Adept enters the battlefield, you may return target creature to its owner's hand. If you do, scry 2.",
+    "Appearance Description": "The Mistweaver Adept is cloaked in a flowing robe crafted from shimmering mist, and their eyes shimmer with a faint blue glow. They carry a staff adorned with swirling mist that exudes a tranquil aura."
+}

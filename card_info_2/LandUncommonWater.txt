@@ -1,0 +1,2 @@
+Please design a new Land card for Magic: The Gathering. Each cards are different. The Rarity must be Uncommon. The Type must be Water.
+Name: [Name]#Rarity: Uncommon#Type: [Water/Light/Dark/Fire/Forest]#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].

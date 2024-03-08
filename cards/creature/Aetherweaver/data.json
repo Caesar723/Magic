@@ -1,0 +1,11 @@
+{
+    "Name": "Aetherweaver",
+    "Rarity": "Mythic Rare",
+    "Type": "Human Wizard",
+    "Power": 2,
+    "Toughness": 2,
+    "Cost": "3U",
+    "Story Background": "A young mage who discovered the secrets of harnessing the power of the aether.",
+    "Ability": "When Aetherweaver enters the battlefield, you may return target artifact or enchantment from your graveyard to your hand.",
+    "Appearance Description": "Aetherweaver is cloaked in flowing robes adorned with intricate symbols of energy, with crackling arcs of aether energy emanating from their fingertips."
+}

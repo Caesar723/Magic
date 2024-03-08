@@ -1,0 +1,11 @@
+{
+    "Name": "Shadowtide Leviathan",
+    "Rarity": "Mythic Rare",
+    "Type": "Leviathan Creature - Leviathan",
+    "Power": 8,
+    "Toughness": 8,
+    "Cost": "5UUU",
+    "Story Background": "From the depths of the abyss, the Shadowtide Leviathan rises, a colossal behemoth steeped in primal darkness. Its presence heralds impending cataclysm, drawing power from the shadows of the ocean's abyssal depths.",
+    "Ability": "Islandwalk (This creature can't be blocked as long as defending player controls an Island), When Shadowtide Leviathan enters the battlefield, you may return target nonland permanent an opponent controls to its owner's hand.",
+    "Appearance Description": "The Shadowtide Leviathan is a towering leviathan wreathed in swirling shadows and dark, glimmering scales. Its eyes gleam with an unsettling, eldritch glow, and its form exudes a palpable aura of forbidding menace, resonating with the boundless mysteries of the ocean's abyss."
+}

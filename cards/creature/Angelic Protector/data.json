@@ -1,0 +1,11 @@
+{
+    "Name": "Angelic Protector",
+    "Rarity": "Uncommon",
+    "Type": "Angel Creature",
+    "Power": 2,
+    "Toughness": 2,
+    "Cost": "1W",
+    "Story Background": "Born from the purest of intentions, these celestial beings are charged with safeguarding the innocent and maintaining balance in the multiverse.",
+    "Ability": "When Angelic Protector enters the battlefield, you may tap target creature. It doesn't untap during its controller's next untap step.",
+    "Appearance Description": "Angelic Protector is a radiant figure with shimmering wings and a stoic expression, wielding a sword that glows with a divine light."
+}

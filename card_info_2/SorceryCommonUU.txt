@@ -1,0 +1,3 @@
+Please design a new Sorcery card for Magic: The Gathering. Each cards are different. The Cost must be ?UU (? should be integer or no ?). The Rarity must be Common
+Name: [Name]#Rarity: Common#Cost: 1UU#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Call of the Tides#Rarity: Common#Cost: 3UU#Story Background: As the full moon rises, ancient sea creatures heed the call of the tides.#Ability: Draw two cards, then discard a card.#Appearance Description: A mystical shell horn echoes through the waves, summoning creatures from the depths to the surface.

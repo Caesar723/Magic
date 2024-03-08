@@ -1,0 +1,8 @@
+{
+    "Name": "Treasure Hunt",
+    "Rarity": "Common",
+    "Cost": "U",
+    "Story Background": "In search of hidden riches, the explorer delves deep into uncharted territories, hoping to stumble upon a cache of valuable artifacts.",
+    "Ability": "Reveal the top X cards of your library. Put all land cards revealed this way into your hand and the rest on the bottom of your library in any order.",
+    "Appearance Description": "A lone adventurer with a tattered map, eagerly scanning the horizon for signs of buried treasure amidst a lush, unexplored landscape."
+}

@@ -1,0 +1,2 @@
+Please design a new Instant card for Magic: The Gathering. Each cards are different. The Cost must be ?RRR (? should be integer or no ?). The Rarity must be Mythic Rare
+Name: [Name]#Rarity: Mythic Rare#Cost: 1RRR#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].

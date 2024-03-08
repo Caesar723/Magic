@@ -1,0 +1,11 @@
+{
+    "Name": "Dreamweaver Archivist",
+    "Rarity": "Rare",
+    "Type": "Human Wizard",
+    "Power": 2,
+    "Toughness": 2,
+    "Cost": "1U",
+    "Story Background": "In the ancient libraries of the arcane, a select few are chosen to unravel the secrets of reality itself. The Dreamweaver Archivist is one of these chosen scholars, who delves into the dreams of the multiverse to uncover forbidden knowledge.",
+    "Ability": "When Dreamweaver Archivist enters the battlefield, you may draw a card. If you do, discard a card.",
+    "Appearance Description": "A robed figure with shimmering, ethereal tendrils of energy weaving through their fingers, their eyes filled with visions of distant realms."
+}

@@ -1,0 +1,3 @@
+Please design a new Sorcery card for Magic: The Gathering. Each cards are different. The Cost must be ?G (? should be integer or no ?). The Rarity must be Common
+Name: [Name]#Rarity: Common#Cost: 1G#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Natural Growth#Rarity: Common#Cost: 1G#Story Background: In the heart of the lush forests, magic flows abundantly, empowering the growth of all living things.#Ability: Target creature gets +2/+2 until end of turn.#Appearance Description: The artwork depicts a vibrant green aura surrounding a majestic tree, with tendrils of magic extending to strengthen a nearby creature.

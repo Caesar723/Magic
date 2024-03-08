@@ -1,0 +1,11 @@
+{
+    "Name": "Raging Firekin",
+    "Rarity": "Uncommon",
+    "Type": "Elemental Creature - Elemental",
+    "Power": 3,
+    "Toughness": 2,
+    "Cost": "1R",
+    "Story Background": "Born from the fury of a volcanic eruption, the Raging Firekin embodies the chaos and destruction of the molten earth.",
+    "Ability": "Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)",
+    "Appearance Description": "The Raging Firekin appears as a humanoid figure made entirely of swirling, molten lava and burning embers. Its fiery form exudes intense heat and leaves a trail of scorched earth in its wake."
+}

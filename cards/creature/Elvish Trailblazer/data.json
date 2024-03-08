@@ -1,0 +1,11 @@
+{
+    "Name": "Elvish Trailblazer",
+    "Rarity": "Uncommon",
+    "Type": "Elf Creature",
+    "Power": 2,
+    "Toughness": 2,
+    "Cost": "1G",
+    "Story Background": "Born from the ancient forests, the Elvish Trailblazers are tasked with protecting their sacred lands from any intruders.",
+    "Ability": "Reach. When Elvish Trailblazer enters the battlefield, you may search your library for a basic land card, reveal it, and put it into your hand. If you do, shuffle your library.",
+    "Appearance Description": "Elvish Trailblazer stands tall and agile, adorned in intricate green and gold armor crafted from the bark of the oldest trees. Its piercing green eyes survey the forests with unwavering vigilance."
+}

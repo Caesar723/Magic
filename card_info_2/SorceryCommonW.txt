@@ -1,0 +1,3 @@
+Please design a new Sorcery card for Magic: The Gathering. Each cards are different. The Cost must be ?W (? should be integer or no ?). The Rarity must be Common
+Name: [Name]#Rarity: Common#Cost: 1W#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Divine Offering#Rarity: Common#Cost: 1W#Story Background: In times of need, the devout offer their artifacts to the divine for protection and guidance.#Ability: Destroy target artifact. Its controller gains 3 life.#Appearance Description: An outstretched hand holding a glowing artifact, with rays of light emanating from it as if offering it up to the heavens.

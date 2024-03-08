@@ -1,0 +1,8 @@
+{
+    "Name": "Ephemeral Eruption",
+    "Rarity": "Rare",
+    "Cost": "2RR",
+    "Story Background": "When the volatility of magic reaches its peak, an ephemeral eruption bursts forth, unleashing a surge of fleeting but devastating power upon the world.",
+    "Ability": "Ephemeral Eruption deals 4 damage to each creature. At the beginning of the next end step, sacrifice Ephemeral Eruption and return all creatures dealt damage this way to the battlefield under their owner's control.",
+    "Appearance Description": "A sudden explosion of crackling red energy, engulfing the battlefield and vanishing just as swiftly, as creatures emerge unharmed from the dissipating remnants of the eruption."
+}

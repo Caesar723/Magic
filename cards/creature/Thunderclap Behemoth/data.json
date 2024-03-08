@@ -1,0 +1,11 @@
+{
+    "Name": "Thunderclap Behemoth",
+    "Rarity": "Rare",
+    "Type": "Beast Creature - Beast",
+    "Power": 6,
+    "Toughness": 6,
+    "Cost": "4GG",
+    "Story Background": "Born from the heart of storms, the Thunderclap Behemoth is a primal force of nature, its thunderous footsteps shaking the earth and its electrified hide crackling with the power of tempests.",
+    "Ability": "Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.), Whenever Thunderclap Behemoth attacks, it deals 3 damage to each creature defending player controls if you control another creature with power 4 or greater.",
+    "Appearance Description": "The Thunderclap Behemoth is a massive, hulking beast with fur matted by rain and sparks of lightning arcing across its imposing form. Its eyes gleam with feral intensity, and its every movement resounds with the distant rumble of thunder."
+}

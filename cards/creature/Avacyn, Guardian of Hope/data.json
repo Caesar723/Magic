@@ -1,0 +1,11 @@
+{
+    "Name": "Avacyn, Guardian of Hope",
+    "Rarity": "Mythic Rare",
+    "Type": "Angel Creature",
+    "Power": 5,
+    "Toughness": 4,
+    "Cost": "3W",
+    "Story Background": "Avacyn, once the guardian of Innistrad, has returned from her slumber to protect the innocents and restore hope to the embattled plane.",
+    "Ability": "Flying, Vigilance, Lifelink. When Avacyn, Guardian of Hope enters the battlefield, creatures you control gain indestructible until end of turn.",
+    "Appearance Description": "Avacyn is depicted as a majestic angel with shimmering wings, radiating a warm, protective light to those around her. Her presence exudes strength and hope, inspiring those who fight for justice."
+}

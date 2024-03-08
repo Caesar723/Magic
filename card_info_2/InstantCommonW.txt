@@ -1,0 +1,3 @@
+Please design a new Instant card for Magic: The Gathering. Each cards are different. The Cost must be ?W (? should be integer or no ?). The Rarity must be Common
+Name: [Name]#Rarity: Common#Cost: 1W#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Swift Ward#Rarity: Common#Cost: 1W#Story Background: In the heat of battle, a swift flicker of protective magic can mean the difference between victory and defeat.#Ability: Target creature gets +1/+1 until end of turn and gains hexproof until end of turn.#Appearance Description: The art depicts a mage in the midst of casting a quick protective spell, with a burst of ethereal energy surrounding a charging warrior.

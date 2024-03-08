@@ -1,0 +1,11 @@
+{
+    "Name": "Celestial Sentinel",
+    "Rarity": "Rare",
+    "Type": "Angel Creature",
+    "Power": 3,
+    "Toughness": 3,
+    "Cost": "1W",
+    "Story Background": "Celestial Sentinels are charged with protecting the sacred temples of the realm, their piercing gaze ever watchful for signs of corruption or intrusion.",
+    "Ability": "Flying, Vigilance",
+    "Appearance Description": "A majestic angel with radiant, outstretched wings, wielding a gleaming sword and emanating a halo of golden light."
+}

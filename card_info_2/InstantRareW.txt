@@ -1,0 +1,3 @@
+Please design a new Instant card for Magic: The Gathering. Each cards are different. The Cost must be ?W (? should be integer or no ?). The Rarity must be Rare
+Name: [Name]#Rarity: Rare#Cost: 1W#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Avenging Light#Rarity: Rare#Cost: 3W#Story Background: In the darkest hour, a radiant light pierces through the shadows, bringing hope to the downtrodden.#Ability: Exile target nonland permanent. If it was a creature, you gain life equal to its power.#Appearance Description: The artwork shows a blinding burst of divine light emanating from the heavens, enveloping the target in a joyful, warm glow.

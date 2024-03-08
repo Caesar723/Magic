@@ -1,0 +1,3 @@
+Please design a new Sorcery card for Magic: The Gathering. Each cards are different. The Cost must be ?B (? should be integer or no ?). The Rarity must be Common
+Name: [Name]#Rarity: Common#Cost: 1B#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Dark Offering#Rarity: Common#Cost: 1B#Story Background: In the dark depths of the swamp, a sinister ritual is performed to appease an ancient entity.#Ability: Target player loses 2 life and you gain 2 life.#Appearance Description: The card art depicts a hooded figure standing before an ominous altar, surrounded by flickering candles and eerie shadows.
