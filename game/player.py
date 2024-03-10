@@ -73,13 +73,24 @@ class Player:
         #游戏还没有开始
         self.deck:list[Card]=[]
         self.initinal_decks(decks_detail)
+        self.initinal_card_dict()
     
+    def set_socket(self,socket):
+        pass
+
+    def send_message(self,type:str,content:str):# the type of content and content
+        pass
+
     def initinal_decks(self,decks_detail:str):#generate cards
         for element in decks_detail.split("|"):
             name,type,number=element.split("+")
             number=int(number)
             self.deck+=[CARD_DICTION[f"{name}_{type}"]() for i in range(number)]
 
+    def initinal_card_dict(self):# 回合开始，回合结束卡牌，光环。。。
+        self.cards_store_dict["upkeep_step"]=[]
+        self.cards_store_dict["end_step"]=[]
+        self.cards_store_dict["aura"]=[]
         
 
     def put_card_to_dict(self,key:str,card:Card)->None:# put a card to self.cards_store_dict
@@ -108,12 +119,7 @@ class Player:
     def change_live(self,change_of_live:int):
         pass
 
-    def beginning_phase(self):# when this player start his turn(解除操控步骤，维持步骤，抓牌步骤)
-        pass
-        
-
-    def ending_phase(self):# when this player end his turn(结束步骤，清理步骤[卡牌])
-        pass
+    
 
     def select_attacker(self):# select_creature_as_attacker
         pass
@@ -134,6 +140,33 @@ class Player:
         pass
 
     def play_a_card(self,card:Card):# player 打出一张牌
+        pass
+
+    def beginning_phase(self,player:"Player"):#开始阶段
+        self.untap_step()
+        self.upkeep_step(player)
+        self.draw_step()
+
+    def untap_step(self):#解除操控步骤:土地被横置以产生法术力（Mana），生物被横置以攻击等
+        pass
+
+    def upkeep_step(self,player:"Player"):#保持步骤（Upkeep Step）：某些卡牌效果会在这个时候触发。
+        pass
+
+    def draw_step(self):#抓牌步骤（Draw Step）通常情况下，玩家在这一步抓一张牌。
+        self.draw_card(1)
+
+
+    def inGame_state(self):# 切换到inGame_state
+        pass
+
+    def ending_phase(self,player:"Player"):#结束阶段
+        pass
+
+    def end_step(self,player:"Player"):#结束步骤（End Step）：某些卡牌效果会在这个时候触发。
+        pass
+
+    def cleanup_step(self):#清理步骤（Cleanup Step）：玩家将手牌调整至最大手牌限制，移除所有“直到回合结束”类的效果，并移除所有受到的伤害。
         pass
 
 if __name__=="__main__":

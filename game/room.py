@@ -38,7 +38,8 @@ class Room:
         self.counter_dict:dict={}
 
         #store current player which is in his turn
-        self.current_player_turn:Player
+        self.active_player:Player#进行操作的玩家
+        self.non_active_player:Player
 
         #stack
         self.stack:list[tuple]=[]#(preparend_function,card)
