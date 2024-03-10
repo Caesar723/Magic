@@ -1,3 +1,12 @@
+from typing import TYPE_CHECKING
+
+from game.player import Player
+if TYPE_CHECKING:
+    from game.player import Player
+
+
+
+
 from game.card import Card
 
 
@@ -58,8 +67,25 @@ class Creature(Card):
     def when_loss_buff(self):#当失去+1+1的buff时
         pass
 
+    def loss_buff(self,buff):
+        pass
+
+    def gain_buff(self,buff):
+        pass
+
     def when_targeted(self):#When this creature is targeted
         pass
+
+    # def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card
+    #     pass
+
+    def when_play_this_card(self, player: Player = None, opponent: Player = None):# when player use the card
+        super().when_play_this_card(player, opponent)
+
+        player.remove_card(self,"hand")
+        player.append_card(self,"battlefield")
+        # player.hand.remove(self)
+        # player.battlefield.append(self)
 
 
 

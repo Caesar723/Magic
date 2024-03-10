@@ -44,11 +44,11 @@ def select_object(type:Literal['all_roles',#分为两个阶段，准备阶段和
     key_word="selected_object"
 
     def new_decorator(func):
-        def new_func(*args, **kwargs):
+        def new_func(self,*args, **kwargs):
             objects=send_select_request(type,number) if type else []
             kwargs[key_word] = objects
             def prepared_function():
-                func(*args,**kwargs)
+                func(self,*args,**kwargs)
             return prepared_function
         return new_func
     return new_decorator

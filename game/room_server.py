@@ -14,6 +14,12 @@ class RoomServer:
 
         self.database=database
 
+    def find_player_room(self,player_name:str):
+        if player_name in self.client_room:
+            return self.client_room[player_name]
+        else:
+            return "no room found"
+
     def create_new_room(self,client_1:tuple,client_2:tuple):
         room=Room([client_1,client_2])
 
@@ -51,7 +57,7 @@ class RoomServer:
 
 
 
-    def matching(self,client_detail:tuple):# name id username
+    def matching(self,client_detail:tuple):# deck_detail username
 
         self.check_matching()
         if self.check_client_in_room(client_detail[1]):

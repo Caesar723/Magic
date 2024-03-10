@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Body,Depends, Form, HTTPException, Response, Request, status,APIRouter
+from fastapi import FastAPI, Body,Depends, Form, HTTPException, Response, Request, status,APIRouter,WebSocket
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -108,8 +108,28 @@ async def get_five_random_image()->Image_login_slider:
     return Image_login_slider(image_url=urls,image_story=stories)
      
 
+def get_current_user_socket(database):
+    async def get_current_user_actural(websocket: WebSocket):
+        
+        encrypted_data = websocket.cookies.get("mycookie")
+       
+        cookie_mess=decrypt_data_by_StaticFiles_server(encrypted_data)
+        
+        if not cookie_mess or cookie_mess==None:
+            return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+        
+        dic_mess=json.loads(cookie_mess)
+        username=dic_mess["username"]
+        password=dic_mess["password"]
+        if await database.check_username_exists(username,password):# type: ignore
+            return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+            
+        return username
+    return get_current_user_actural
+
 def get_current_user(database):
     async def get_current_user_actural(request: Request):
+       
         encrypted_data = request.cookies.get("mycookie")
         cookie_mess=decrypt_data_by_StaticFiles_server(encrypted_data)
         

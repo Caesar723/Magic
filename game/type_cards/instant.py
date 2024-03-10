@@ -1,3 +1,10 @@
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game.player import Player
+
+
+
+
 from game.card import Card
 
 
@@ -15,4 +22,5 @@ class Instant(Card):
     def when_select_target(self):
         pass
 
-   
+    def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):# when player use the card
+        pass

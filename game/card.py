@@ -1,8 +1,14 @@
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game.player import Player
+
+
+
 from game.game_function_tool import validate_all_methods
 
 
 
-@validate_all_methods
+
 class Card:
 
     def __init__(self) -> None:
@@ -23,7 +29,7 @@ class Card:
     def cost(self)->list[int]:# colorless,red, green, blue,black,white
         return 
 
-    def check_can_use(self)->tuple[bool, str]:# check whether user can use this card , bool and reason
+    def check_can_use(self,player:'Player')->tuple[bool, str]:# check whether user can use this card , bool and reason
         pass
 
     def attact_to_object(self,object):# it won't get hurt object can be card ot player
@@ -32,8 +38,18 @@ class Card:
     def cure_to_object(self,object):# it won't get hurt
         pass
     
-    def when_play_this_card(self):# when player use the card
+    def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card
         pass
+        
+    def when_use_this_card(self,player:'Player',opponent:'Player'):# 先use check cost再play
+        checked_result=self.check_can_use(player)
+        if not checked_result[0]:
+            return checked_result
+        else:
+            self.when_play_this_card(player,opponent)
+            return (True,'')
+        
+            
 
     # def when_enter_battlefield(self):# 可以检查时候要用when_play_this_card如果是打出的可以用，如果是召唤的不用
     #     用在creature

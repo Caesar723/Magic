@@ -17,6 +17,9 @@ from game.card import Card
 class Player:
 
     def __init__(self,name:str,decks_detail:str) -> None:
+        self.name=name
+
+        self.opponent:Player#opponent player
 
         #the life of player
         self.ini_life:int=30
@@ -75,6 +78,10 @@ class Player:
         self.initinal_decks(decks_detail)
         self.initinal_card_dict()
     
+    def set_opponent_player(self,opponent:"Player"):
+        self.opponent=opponent
+
+
     def set_socket(self,socket):
         pass
 
@@ -121,7 +128,7 @@ class Player:
 
     
 
-    def select_attacker(self):# select_creature_as_attacker
+    def select_attacker(self,index:int):# select_creature_as_attacker, the index of battlefield
         pass
 
     def select_defender(self):# select_creature_as_defender
@@ -168,6 +175,44 @@ class Player:
 
     def cleanup_step(self):#清理步骤（Cleanup Step）：玩家将手牌调整至最大手牌限制，移除所有“直到回合结束”类的效果，并移除所有受到的伤害。
         pass
+
+    def get_card_index(self,index:int,type:str):# get card by index,type:battlefield,hand,land_area
+        deck_type={
+            'battlefield':self.battlefield,
+            'hand':self.hand,
+            'land_area':self.land_area
+        }
+        if type in deck_type and index>=len(deck_type[type]):
+            return deck_type[type][index]
+        else:
+            return False
+
+    def remove_card(self,card:Card,type:str):#会发送消息给client
+        deck_type={
+            'battlefield':self.battlefield,
+            'hand':self.hand,
+            'land_area':self.land_area,
+            'graveyard':self.graveyard,
+            'library':self.library
+        }
+        if type in deck_type and card in deck_type[type]:
+            deck_type[type].remove(card)
+
+        """
+        还没有写完代码，要发消息给client，让client做此动作
+        """
+
+    def append_card(self,card:Card,type:str):#会发送消息给client
+        deck_type={
+            'battlefield':self.battlefield,
+            'hand':self.hand,
+            'land_area':self.land_area,
+            'graveyard':self.graveyard,
+            'library':self.library
+        }
+        if type in deck_type and card in deck_type[type]:
+            deck_type[type].append(card)
+
 
 if __name__=="__main__":
 

@@ -1,3 +1,10 @@
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game.player import Player
+
+
+
+
 from game.card import Card
 
 
@@ -25,6 +32,9 @@ class Land(Card):
         pass
 
     def when_clicked(self):#当地牌被电击时
+        pass
+
+    def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):# when player use the card
         pass
 
     

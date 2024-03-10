@@ -26,10 +26,20 @@ class Room:
         self.max_bullet_time:int=5
 
         # used to store the players
+        player_1,player_2=Player(players[0][1],players[0][0]),Player(players[1][1],players[1][0])
+        player_1.set_opponent_player(player_2)
+        player_2.set_opponent_player(player_1)
         self.players:dict={
+            players[0][1]:player_1,
+            players[1][1]:player_2
+        }
+
+        #用来发送消息
+        self.players_socket:dict={
             players[0]:None,
             players[1]:None
         }
+
 
         #used to store the each flag like whether is bullet_time
         self.flag_dict:dict={}
@@ -49,6 +59,18 @@ class Room:
 
         #defenders
         self.defenders:list[Card]=None
+
+
+        self.message_process_dict={
+            "select_attacker":self.select_attacker,
+            "select_defender":self.select_defender,
+            "play_card":self.play_card,
+            "end_step":self.end_step,
+            "discard":self.discard,
+            "activate_ability":self.activate_ability,
+            "concede":self.concede,
+
+        }
 
     
 
@@ -70,4 +92,63 @@ class Room:
 
     def reset_bullet_timer(self):
         pass
+
+    def change_turn(self):# when active_player end turn
+        pass
+
+    async def message_receiver(self,message:str):# process all message
+        """
+        username|type|content
+
+        ...|select_attacker|index
+        ...|select_defender|index
+        ...|play_card|index(在手牌的index)
+        ##...|select_object|
+        ...|end_step|
+        ...|discard|[list of numbers]
+        ...|activate_ability|区域;index
+        ...|concede(投降)|
+        
+        """
+        username,type,content=message.split("|")
+        if type in self.message_process_dict:
+            self.message_process_dict[type](username,content)
+
+        
+    
+    def select_attacker(self,username:str,content:str):
+        player:Player=self.players[username]
+        if player==self.active_player:
+            player.select_attacker(int(content))
+            return (True,"success")
+        else:
+            return (False,"You must attack in your turn")
+
+    def select_defender(self,username:str,content:str):
+        pass
+
+    def play_card(self,username:str,content:str):
+        player:Player=self.players[username]
+        index=int(content)
+        if player==self.active_player:
+            card=player.get_card_index(index,"hand")
+            player.play_a_card(card)
+            return (True,"success")
+        else:
+            return (False,"You must attack in your turn")
+
+    def end_step(self,username:str,content:str):
+        pass
+
+    def discard(self,username:str,content:str):
+        pass
+
+    def activate_ability(self,username:str,content:str):
+        pass
+
+    def concede(self,username:str,content:str):
+        pass
+
+    def set_socket(self,socket,username:str):#用来初始化socket
+        self.players_socket[username]=socket
 

@@ -8,7 +8,7 @@ import os
 from server_function_tool import *
 from database import DataBase
 from security import Security
-from game.room_server import RoomServer
+from game.room_server import RoomServer,Room
 
 from packs import *
 
@@ -39,7 +39,7 @@ async def login(username: str = Body(...), password: str = Body(...), response: 
         if result=="matched":
             cookie_mess=json.dumps({"username":username,"password":password})
             encrypted_data=encrypt_data_by_StaticFiles_server(cookie_mess)
-            response.set_cookie(key="mycookie", value=encrypted_data, max_age=1800)
+            response.set_cookie(key="mycookie",httponly=True, value=encrypted_data, max_age=1800, path='/')
             return {"message": "Login successful"}
         elif result=="passward error":
             return {"message": "passward error"}
@@ -233,16 +233,28 @@ async def matching_delete(username: str = Depends(get_current_user(database))):
     
     return room_server.delete_matching(username)
 
-@app.post("/gaming") 
-async def game_page():
-    pass
+@app.get("/gaming") 
+async def game_page(request: Request, username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        print(username)
+        return username
+    return templates.TemplateResponse(f"webpages/gaming_page/gaming.html", {"request": request, "username": username})
+
 
 
 @app.websocket("/entering_game")
-async def entering_game(websocket: WebSocket,username: str = Depends(get_current_user(database))):#
+async def entering_game(websocket: WebSocket,username: str = Depends(get_current_user_socket(database))):#
     if type(username)==RedirectResponse:
         return username
-    pass
+    
+    await websocket.accept()
+    room:Room=room_server.find_player_room(username)
+    room.set_socket(websocket,username)
+    while True:
+        data = await websocket.receive_text()
+        print(data)
+        await room.message_receiver(data)
+        
 
 
 
