@@ -1,4 +1,15 @@
+if __name__=="__main__":
+    import sys
+    sys.path.append("/Users/xuanpeichen/Desktop/code/python/openai/")
+    
+    
 
+
+
+
+
+
+import asyncio
 
 
 
@@ -14,6 +25,8 @@ class Room:
     
     
     def __init__(self,players:list[tuple]) -> None:#((deck,user_name1),...)
+        self.gamming=True #如果在游戏的话就是True，没有就是False
+
         #used to store all action
         self.action_store_list:list[Action]=[]
 
@@ -71,6 +84,8 @@ class Room:
             "concede":self.concede,
 
         }
+        self.message_process_condition=asyncio.Condition()#当list是空的时候就会调用这个，让程序有序运行
+        self.message_process_queue=[]
 
     
 
@@ -96,6 +111,8 @@ class Room:
     def change_turn(self):# when active_player end turn
         pass
 
+    
+
     async def message_receiver(self,message:str):# process all message
         """
         username|type|content
@@ -112,43 +129,79 @@ class Room:
         """
         username,type,content=message.split("|")
         if type in self.message_process_dict:
-            self.message_process_dict[type](username,content)
+            async with self.message_process_condition:
+                self.message_process_queue.append((self.message_process_dict[type],(username,content)))
+                self.message_process_condition.notify()  # 通知等待的协程条件已满足
+            
 
-        
-    
-    def select_attacker(self,username:str,content:str):
+    async def message_process(self):# 为了让每一个步骤变得有序
+        while self.gamming:
+            if not self.message_process_queue:
+                async with self.message_process_condition:
+                    await self.message_process_condition.wait_for(lambda: len(self.message_process_queue) > 0)  # 等待队列不为空
+            func=self.message_process_queue.pop(0)
+            func[0](*func[1])
+
+    async def select_attacker(self,username:str,content:str):
         player:Player=self.players[username]
         if player==self.active_player:
             player.select_attacker(int(content))
             return (True,"success")
         else:
-            return (False,"You must attack in your turn")
+            return (False,"You must do it in your turn")
 
-    def select_defender(self,username:str,content:str):
-        pass
+    async def select_defender(self,username:str,content:str):
+        player:Player=self.players[username]
+        if player==self.active_player:
+            player.select_defender(int(content))
+            return (True,"success")
+        else:
+            return (False,"You must do it in your turn")
 
-    def play_card(self,username:str,content:str):
+    async def play_card(self,username:str,content:str):
         player:Player=self.players[username]
         index=int(content)
-        if player==self.active_player:
-            card=player.get_card_index(index,"hand")
+        card=player.get_card_index(index,"hand")
+        if player==self.active_player:# 如果card 的类型是instant，可以直接释放
+            
             player.play_a_card(card)
+            return (True,"success")
+        else:
+            return (False,"You must do it in your turn")
+
+    async def end_step(self,username:str,content:str):
+        player:Player=self.players[username]
+        if player==self.active_player:
+            
             return (True,"success")
         else:
             return (False,"You must attack in your turn")
 
-    def end_step(self,username:str,content:str):
+    async def discard(self,username:str,content:str):
         pass
 
-    def discard(self,username:str,content:str):
+    async def activate_ability(self,username:str,content:str):
         pass
 
-    def activate_ability(self,username:str,content:str):
-        pass
-
-    def concede(self,username:str,content:str):
+    async def concede(self,username:str,content:str):
         pass
 
     def set_socket(self,socket,username:str):#用来初始化socket
         self.players_socket[username]=socket
+
+    async def timer_task(self):# 每一秒 更新时间
+        while self.gamming:
+            await asyncio.sleep(1)
+            self.update_timer()
+            print("update_timer")
+            
+if __name__=="__main__":
+    async def main():
+        test="Mystic Tides+Instant+1|Mystic Reflection+Instant+1|Mystic Evasion+Instant+2|Mindful Manipulation+Sorcery+1|Nyxborn Serpent+Creature+1|Mistweaver Drake+Creature+1"
+        room=Room([(test,"1"),(test,"2")])
+        await room.message_receiver("1|play_card|0")
+        await asyncio.sleep(5)
+    asyncio.run(main())
+    
+    
 

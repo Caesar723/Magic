@@ -2,19 +2,22 @@
 if __name__=="__main__":
     import sys
     sys.path.append("/Users/xuanpeichen/Desktop/code/python/openai/")
+    
 
 
 
 
 from game.action import Action
 from game.card import Card
+from initinal_file import CARD_DICTION
 
 
 
-
-
+  
 
 class Player:
+
+    
 
     def __init__(self,name:str,decks_detail:str) -> None:
         self.name=name
@@ -216,7 +219,8 @@ class Player:
 
 if __name__=="__main__":
 
-    from pycards import *
-    from initinal_file import CARD_DICTION
+    
+    
     player=Player("caesar","Mystic Tides+Instant+1|Mystic Reflection+Instant+1|Mystic Evasion+Instant+2|Mindful Manipulation+Sorcery+1|Nyxborn Serpent+Creature+1|Mistweaver Drake+Creature+1")
+    print(player.deck)
     

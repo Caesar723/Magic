@@ -2,7 +2,6 @@ import os
 import json
 
 from game.game_function_tool import get_cards_diction
-from pycards import *
 
 
 CARD_DICTION=get_cards_diction()

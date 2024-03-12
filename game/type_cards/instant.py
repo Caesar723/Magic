@@ -23,4 +23,6 @@ class Instant(Card):
         pass
 
     def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):# when player use the card
-        pass
+        super().when_play_this_card(player, opponent)
+
+        player.remove_card(self,"hand")

@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING
 
-from game.player import Player
 if TYPE_CHECKING:
     from game.player import Player
 
@@ -79,7 +78,7 @@ class Creature(Card):
     # def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card
     #     pass
 
-    def when_play_this_card(self, player: Player = None, opponent: Player = None):# when player use the card
+    def when_play_this_card(self, player: "Player" = None, opponent: "Player" = None):# when player use the card
         super().when_play_this_card(player, opponent)
 
         player.remove_card(self,"hand")

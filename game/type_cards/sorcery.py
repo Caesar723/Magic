@@ -28,5 +28,8 @@ class Sorcery(Card):
                             player:'Player'=None,
                             opponent:'Player'=None,
                             ):# when player use the card
+        super().when_play_this_card(player, opponent)
+
+        player.remove_card(self,"hand")
         self.card_ability(self,player,opponent)
     

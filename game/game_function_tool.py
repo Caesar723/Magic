@@ -6,7 +6,7 @@ import json
 
 from pydantic import validate_call,BaseModel
 from typing_extensions import Literal
-
+#from pycards import *
 
 
 
@@ -65,6 +65,7 @@ def get_dir_names(path):
 def get_cards_diction():
     
     from game.card import Card
+    import pycards
     
     types=["creature","Instant","land","sorcery"]
     class_dict={}
