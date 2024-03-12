@@ -96,6 +96,8 @@ class Player:
             name,type,number=element.split("+")
             number=int(number)
             self.deck+=[CARD_DICTION[f"{name}_{type}"]() for i in range(number)]
+        self.hand=self.deck[:2]# get 2 card to hand
+        self.library=self.deck[2:]# the rest is in the library
 
     def initinal_card_dict(self):# 回合开始，回合结束卡牌，光环。。。
         self.cards_store_dict["upkeep_step"]=[]

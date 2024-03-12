@@ -10,7 +10,7 @@ if __name__=="__main__":
 
 
 import asyncio
-
+import random
 
 
 from game.player import Player
@@ -39,12 +39,12 @@ class Room:
         self.max_bullet_time:int=5
 
         # used to store the players
-        player_1,player_2=Player(players[0][1],players[0][0]),Player(players[1][1],players[1][0])
-        player_1.set_opponent_player(player_2)
-        player_2.set_opponent_player(player_1)
+        self.player_1,self.player_2=Player(players[0][1],players[0][0]),Player(players[1][1],players[1][0])
+        self.player_1.set_opponent_player(self.player_2)
+        self.player_2.set_opponent_player(self.player_1)
         self.players:dict={
-            players[0][1]:player_1,
-            players[1][1]:player_2
+            players[0][1]:self.player_1,
+            players[1][1]:self.player_2
         }
 
         #用来发送消息
@@ -87,7 +87,20 @@ class Room:
         self.message_process_condition=asyncio.Condition()#当list是空的时候就会调用这个，让程序有序运行
         self.message_process_queue=[]
 
+        #start executing message_process
+        asyncio.create_task(self.message_process())
+
     
+    async def game_start(self):# start the game
+        players=[self.player_1,self.player_2]
+        player1=random.choice(players)
+        players.remove(player1)
+        player2=players[0]
+        
+        self.active_player=player1
+        self.non_active_player=player2
+        asyncio.create_task(self.timer_task())
+        
 
     def start_attack(self):# attacker and defenders start attack
         pass
@@ -140,7 +153,7 @@ class Room:
                 async with self.message_process_condition:
                     await self.message_process_condition.wait_for(lambda: len(self.message_process_queue) > 0)  # 等待队列不为空
             func=self.message_process_queue.pop(0)
-            func[0](*func[1])
+            await func[0](*func[1])
 
     async def select_attacker(self,username:str,content:str):
         player:Player=self.players[username]
@@ -191,14 +204,16 @@ class Room:
 
     async def timer_task(self):# 每一秒 更新时间
         while self.gamming:
+            print("update_timer")
             await asyncio.sleep(1)
             self.update_timer()
-            print("update_timer")
+            
             
 if __name__=="__main__":
     async def main():
         test="Mystic Tides+Instant+1|Mystic Reflection+Instant+1|Mystic Evasion+Instant+2|Mindful Manipulation+Sorcery+1|Nyxborn Serpent+Creature+1|Mistweaver Drake+Creature+1"
         room=Room([(test,"1"),(test,"2")])
+        await room.game_start()
         await room.message_receiver("1|play_card|0")
         await asyncio.sleep(5)
     asyncio.run(main())
