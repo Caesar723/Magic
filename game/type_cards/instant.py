@@ -26,3 +26,5 @@ class Instant(Card):
         super().when_play_this_card(player, opponent)
 
         player.remove_card(self,"hand")
+
+        self.card_ability()

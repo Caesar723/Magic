@@ -28,6 +28,7 @@ class Room:
         self.gamming=True #如果在游戏的话就是True，没有就是False
 
         #used to store all action
+        self.action_store_list_cache:list[Action]=[]#先存cache 然后转移给list，cache清空
         self.action_store_list:list[Action]=[]
 
         #used to count the time for a turn
@@ -39,7 +40,8 @@ class Room:
         self.max_bullet_time:int=5
 
         # used to store the players
-        self.player_1,self.player_2=Player(players[0][1],players[0][0]),Player(players[1][1],players[1][0])
+        self.player_1,self.player_2=Player(players[0][1],players[0][0],self.action_store_list_cache),\
+                                    Player(players[1][1],players[1][0],self.action_store_list_cache)
         self.player_1.set_opponent_player(self.player_2)
         self.player_2.set_opponent_player(self.player_1)
         self.players:dict={
@@ -153,13 +155,13 @@ class Room:
                 async with self.message_process_condition:
                     await self.message_process_condition.wait_for(lambda: len(self.message_process_queue) > 0)  # 等待队列不为空
             func=self.message_process_queue.pop(0)
-            await func[0](*func[1])
+            await func[0](*func[1]) 
 
     async def select_attacker(self,username:str,content:str):
         player:Player=self.players[username]
         if player==self.active_player:
             player.select_attacker(int(content))
-            return (True,"success")
+            return (True,"success")# bool, reason
         else:
             return (False,"You must do it in your turn")
 
@@ -175,8 +177,8 @@ class Room:
         player:Player=self.players[username]
         index=int(content)
         card=player.get_card_index(index,"hand")
+        
         if player==self.active_player:# 如果card 的类型是instant，可以直接释放
-            
             player.play_a_card(card)
             return (True,"success")
         else:
@@ -214,6 +216,9 @@ if __name__=="__main__":
         test="Mystic Tides+Instant+1|Mystic Reflection+Instant+1|Mystic Evasion+Instant+2|Mindful Manipulation+Sorcery+1|Nyxborn Serpent+Creature+1|Mistweaver Drake+Creature+1"
         room=Room([(test,"1"),(test,"2")])
         await room.game_start()
+        room.active_player=room.players["1"]
+        room.non_active_player=room.players["2"]
+        
         await room.message_receiver("1|play_card|0")
         await asyncio.sleep(5)
     asyncio.run(main())

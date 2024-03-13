@@ -6,8 +6,8 @@ if __name__=="__main__":
 
 
 
-
 from game.action import Action
+from game.type_action import actions
 from game.card import Card
 from initinal_file import CARD_DICTION
 
@@ -19,7 +19,7 @@ class Player:
 
     
 
-    def __init__(self,name:str,decks_detail:str) -> None:
+    def __init__(self,name:str,decks_detail:str,action_stroe:list[Action]) -> None:
         self.name=name
 
         self.opponent:Player#opponent player
@@ -65,7 +65,7 @@ class Player:
 
 
         #action store
-        self.action_store:list[Action]=[]
+        self.action_store:list[Action]=action_stroe
 
         #state of player Beginning Phase,In-Game State,Ending Phase
         self.state_of_gaming:str=""
@@ -152,7 +152,7 @@ class Player:
         pass
 
     def play_a_card(self,card:Card):# player 打出一张牌
-        pass
+        print(card)
 
     def beginning_phase(self,player:"Player"):#开始阶段
         self.untap_step()
@@ -187,7 +187,8 @@ class Player:
             'hand':self.hand,
             'land_area':self.land_area
         }
-        if type in deck_type and index>=len(deck_type[type]):
+        
+        if type in deck_type and index<len(deck_type[type]):
             return deck_type[type][index]
         else:
             return False
@@ -207,6 +208,9 @@ class Player:
         还没有写完代码，要发消息给client，让client做此动作
         """
 
+        self.action_store.append(actions.Lose_Card(self,self,card,False))# 一定是需要的，这个动作
+
+
     def append_card(self,card:Card,type:str):#会发送消息给client
         deck_type={
             'battlefield':self.battlefield,
@@ -217,6 +221,8 @@ class Player:
         }
         if type in deck_type and card in deck_type[type]:
             deck_type[type].append(card)
+
+        self.action_store.append(actions.Gain_Card(self,self,card,False))
 
 
 if __name__=="__main__":

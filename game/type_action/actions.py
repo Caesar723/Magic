@@ -1,4 +1,10 @@
 
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game.card import Card
+    from game.player import Player
+
 from game.action import Action
 
 
@@ -17,7 +23,12 @@ class Activate_Ability(Action):
     pass
 
 class Select_Object(Action):
-    pass
+    def __init__(self,object_hold:"Card|Player",player:"Player",selected_object:"Card|Player",show_hide:bool) -> None:
+        self.show_hide:bool=show_hide # true show ,false hide
+        self.object_hold:"Card|Player"=object_hold # store the controled card
+        self.player:"Player"=player # who use the card
+        self.object_selected:"Card|Player"=selected_object # store the selected_object card
+
 
 class Add_Buff(Select_Object):
     pass
@@ -30,6 +41,9 @@ class Cure_To_Object(Select_Object):
     pass
 
 class Gain_Card(Select_Object):
+    pass
+
+class Lose_Card(Select_Object):
     pass
 
 class Die(Action):
