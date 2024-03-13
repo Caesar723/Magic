@@ -17,6 +17,7 @@ import time
 
 from game.player import Player
 from game.action import Action
+from game.type_action import actions
 from game.card import Card
 
 
@@ -69,7 +70,7 @@ class Room:
         self.non_active_player:Player
 
         #stack
-        self.stack:list[tuple]=[]#(preparend_function,card)
+        self.stack:list[tuple]=[]#(preparend_function,card) 这个很重要
 
         #attacker
         self.attacker:Card=None
@@ -107,30 +108,40 @@ class Room:
         asyncio.create_task(self.timer_task())
 
         self.flag_dict["bullet_time"]=False
+        self.flag_dict["attacker_defenders"]=False
+        self.reset_turn_timer()
         
 
     def start_attack(self):# attacker and defenders start attack
         pass
 
     async def update_timer(self):# update turn_timer and bullet_time_timer
-        self.turn_timer:int=self.max_turn_time-round(time.perf_counter(),self.initinal_turn_timer)
+        self.turn_timer:int=self.max_turn_time-round(time.perf_counter()-self.initinal_turn_timer)
+        print(self.turn_timer)
         if self.turn_timer<=0:
-            await self.end_step()
+            await self.end_turn_time()
 
         if self.flag_dict["bullet_time"]:
             self.bullet_timer:int=self.max_bullet_time-round(time.perf_counter(),self.initinal_bullet_timer)
             if self.bullet_timer<=0:
-                await self.end_step()
+                await self.end_bullet_time()
         
 
     def end_turn_time(self):#turn_timer is 0
-        pass
+        self.change_turn()
+        self.reset_turn_timer()
 
     def end_bullet_time(self):#bullet_time is 0
-        pass
+        if self.flag_dict["attacker_defenders"]:
+            pass#让cards 进行攻击阻挡
+            self.flag_dict["attacker_defenders"]=False
+        #self.stack 用pop(0)把每一个函数调用
+        self.reset_bullet_timer(self)
+
 
     def reset_turn_timer(self):
         self.initinal_turn_timer=time.perf_counter()
+        self.action_store_list_cache.append(actions.Turn(self.active_player,self.active_player,True))
         
 
     def reset_bullet_timer(self):
@@ -138,7 +149,8 @@ class Room:
 
 
     def change_turn(self):# when active_player end turn
-        pass
+        self.active_player,self.non_active_player=self.non_active_player,self.active_player
+        #触发一些回合开始的东西
 
     
 
@@ -202,7 +214,7 @@ class Room:
     async def end_step(self,username:str,content:str):
         player:Player=self.players[username]
         if player==self.active_player:
-            
+            self.end_turn_time()
             return (True,"success")
         else:
             return (False,"You must attack in your turn")
@@ -210,8 +222,14 @@ class Room:
     async def discard(self,username:str,content:str):
         pass
 
-    async def end_bullet_time(self,username:str,content:str):
-        pass
+    async def end_bullet(self,username:str,content:str):
+        player:Player=self.players[username]
+        if player==self.active_player:
+            self.end_bullet_time()
+            return (True,"success")
+        else:
+            return (False,"You must attack in your turn")
+
 
     async def activate_ability(self,username:str,content:str):
         pass
@@ -225,7 +243,7 @@ class Room:
     async def timer_task(self):# 每一秒 更新时间
         while self.gamming:
             print("update_timer")
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.5)
             await self.update_timer()
             
             

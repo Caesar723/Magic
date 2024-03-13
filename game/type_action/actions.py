@@ -52,3 +52,6 @@ class Die(Action):
 
 class Summon(Action):
     pass
+
+class Turn(Action):# your turn!
+    pass
