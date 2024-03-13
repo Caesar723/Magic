@@ -11,6 +11,8 @@ if __name__=="__main__":
 
 import asyncio
 import random
+import time
+
 
 
 from game.player import Player
@@ -84,6 +86,7 @@ class Room:
             "discard":self.discard,
             "activate_ability":self.activate_ability,
             "concede":self.concede,
+            "end_bullet_time":self.end_bullet_time
 
         }
         self.message_process_condition=asyncio.Condition()#当list是空的时候就会调用这个，让程序有序运行
@@ -102,13 +105,22 @@ class Room:
         self.active_player=player1
         self.non_active_player=player2
         asyncio.create_task(self.timer_task())
+
+        self.flag_dict["bullet_time"]=False
         
 
     def start_attack(self):# attacker and defenders start attack
         pass
 
-    def update_timer(self):# update turn_timer and bullet_time_timer
-        pass
+    async def update_timer(self):# update turn_timer and bullet_time_timer
+        self.turn_timer:int=self.max_turn_time-round(time.perf_counter(),self.initinal_turn_timer)
+        if self.turn_timer<=0:
+            await self.end_step()
+
+        if self.flag_dict["bullet_time"]:
+            self.bullet_timer:int=self.max_bullet_time-round(time.perf_counter(),self.initinal_bullet_timer)
+            if self.bullet_timer<=0:
+                await self.end_step()
         
 
     def end_turn_time(self):#turn_timer is 0
@@ -118,10 +130,12 @@ class Room:
         pass
 
     def reset_turn_timer(self):
-        pass
+        self.initinal_turn_timer=time.perf_counter()
+        
 
     def reset_bullet_timer(self):
-        pass
+        self.initinal_bullet_timer=time.perf_counter()
+
 
     def change_turn(self):# when active_player end turn
         pass
@@ -140,6 +154,7 @@ class Room:
         ...|discard|[list of numbers]
         ...|activate_ability|区域;index
         ...|concede(投降)|
+        ...|end_bullet_time|...
         
         """
         username,type,content=message.split("|")
@@ -195,6 +210,9 @@ class Room:
     async def discard(self,username:str,content:str):
         pass
 
+    async def end_bullet_time(self,username:str,content:str):
+        pass
+
     async def activate_ability(self,username:str,content:str):
         pass
 
@@ -208,7 +226,7 @@ class Room:
         while self.gamming:
             print("update_timer")
             await asyncio.sleep(1)
-            self.update_timer()
+            await self.update_timer()
             
             
 if __name__=="__main__":

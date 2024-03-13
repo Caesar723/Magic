@@ -5,7 +5,7 @@ if TYPE_CHECKING:
 
 
 from game.game_function_tool import validate_all_methods
-
+from game.type_action import actions
 
 
 

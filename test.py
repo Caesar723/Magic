@@ -1,35 +1,15 @@
-import asyncio
+import time
+time.sleep(1) 
+# 开始计时
+start_time = time.perf_counter()
+print(start_time)
+print(start_time)
+# 执行一些代码
+# 例如，模拟一段代码的运行，这里我们简单地使用 sleep 来模拟
+time.sleep(1) # 模拟代码运行，暂停2秒
 
-class AsyncGameTimer:
-    def __init__(self):
-        self._time = 0  # 计时器时间，单位为秒
-        self._running = False
+# 结束计时
+end_time = time.perf_counter()
 
-    async def start(self):
-        self._running = True
-        while self._running:
-            await asyncio.sleep(1)
-            self._time += 1
-            print(f"Timer: {self._time} seconds")
-
-    def stop(self):
-        self._running = False
-
-async def game_logic(timer):
-    # 异步启动计时器
-    asyncio.create_task(timer.start())
-
-    # 模拟其他游戏逻辑
-    print("Game started")
-    await asyncio.sleep(5)  # 假设游戏逻辑运行了5秒
-    print("Game ended")
-
-    # 停止计时器
-    timer.stop()
-    
-
-async def main():
-    timer = AsyncGameTimer()
-    await game_logic(timer)
-
-asyncio.run(main())
+# 计算并打印执行时间
+print(f"代码执行时间：{end_time - start_time}秒")
