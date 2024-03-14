@@ -26,6 +26,9 @@ class Mystic_Tides(Instant):
         self.content:str="Counter target creature spell unless its controller pays 2."
         self.image_path:str="cards/Instant/Mystic Tides/image.jpg"
 
+    @select_object("",1)
+    def card_ability(self, player: Player = None, opponent: Player = None, selected_object: tuple[Card] = ()):
+        print("Mystic_Tides")
 
 
         

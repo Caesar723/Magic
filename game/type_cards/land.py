@@ -34,7 +34,7 @@ class Land(Card):
     def when_sacrificed(self):#当牺牲时
         pass
 
-    def when_clicked(self):#当地牌被电击时
+    def when_clicked(self):#当地牌被点击时   #启动式能力（Activated Abilities）：玩家可以在任何时候支付成本来使用的能力，通常格式为“[成本]：[效果]”。
         pass
 
     def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card

@@ -107,23 +107,32 @@ class Room:
         self.non_active_player=player2
         asyncio.create_task(self.timer_task())
 
-        self.flag_dict["bullet_time"]=False
-        self.flag_dict["attacker_defenders"]=False
+        # self.flag_dict["bullet_time"]=False
+        # self.flag_dict["attacker_defenders"]=False
         self.reset_turn_timer()
         
 
     def start_attack(self):# attacker and defenders start attack
         pass
 
+    def get_flag(self,flag_name:str):
+        
+        if flag_name in self.flag_dict:
+            
+            return self.flag_dict[flag_name]
+        else:
+            return False
+
+    
     async def update_timer(self):# update turn_timer and bullet_time_timer
         self.turn_timer:int=self.max_turn_time-round(time.perf_counter()-self.initinal_turn_timer)
         
         if self.turn_timer<=0:
             await self.end_turn_time()
-
-        if self.flag_dict["bullet_time"]:
-            self.bullet_timer:int=self.max_bullet_time-round(time.perf_counter(),self.initinal_bullet_timer)
-            print(self.bullet_timer)
+        print(self.bullet_timer)
+        
+        if self.get_flag("bullet_time"):
+            self.bullet_timer:int=self.max_bullet_time-round(time.perf_counter()-self.initinal_bullet_timer)
             if self.bullet_timer<=0:
                 await self.end_bullet_time()
         
@@ -132,13 +141,22 @@ class Room:
         self.change_turn()
         self.reset_turn_timer()
 
-    def end_bullet_time(self):#bullet_time is 0
+    async def end_bullet_time(self):#bullet_time is 0
         
-        #self.stack 用pop(0)把每一个函数调用
-        self.reset_bullet_timer(self)
-        if self.flag_dict["attacker_defenders"]:
+        while self.stack:
+            func,card=self.stack.pop()
+            func()
+
+        #self.stack 用pop()把每一个函数调用
+        self.reset_bullet_timer()
+       
+        if self.get_flag("attacker_defenders"):
             pass#让cards 进行攻击阻挡
             self.flag_dict["attacker_defenders"]=False
+            print(self.flag_dict["attacker_defenders"])
+        self.flag_dict["bullet_time"]=False
+
+        
 
 
     def reset_turn_timer(self):
@@ -211,10 +229,10 @@ class Room:
             return (False,"no card")
         
         
-        if player==self.active_player or isinstance(card,Instant):# 如果card 的类型是instant，可以直接释放
+        if player==self.active_player or isinstance(card,Instant) or card.check_keyword("Flash"):# 如果card 的类型是instant，可以直接释放,或者card有flash
             result=player.play_a_card(card)
             if result[0]:
-                pass
+                self.put_prepared_function_to_stack(result[1],card)
             else:
                 return result
         else:
@@ -235,7 +253,7 @@ class Room:
     async def end_bullet(self,username:str,content:str):
         player:Player=self.players[username]
         if player==self.active_player:
-            self.end_bullet_time()
+            await self.end_bullet_time()
             return (True,"success")
         else:
             return (False,"You must attack in your turn")
@@ -253,11 +271,11 @@ class Room:
     async def timer_task(self):# 每一秒 更新时间
         while self.gamming:
             print("update_timer")
-            await asyncio.sleep(0.8)
+            await asyncio.sleep(0.5)
             await self.update_timer()
             
-    def put_prepared_function_to_stack(self,prepared_function:function,card:Card):
-        if self.flag_dict["bullet_time"]:
+    def put_prepared_function_to_stack(self,prepared_function,card:Card):
+        if self.get_flag("bullet_time"):
             self.stack.append((prepared_function,card))
             self.reset_bullet_timer()
         else:
@@ -278,7 +296,7 @@ if __name__=="__main__":
         asyncio.create_task(room.message_receiver("1|play_card|0"))
         
         await asyncio.sleep(5)
-        asyncio.create_task(room.message_receiver("1|play_card|0"))
+        #asyncio.create_task(room.message_receiver("1|play_card|0"))
         await asyncio.sleep(2)
     asyncio.run(main())
     

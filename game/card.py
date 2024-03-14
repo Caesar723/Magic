@@ -63,8 +63,8 @@ class Card:
     def when_discard(self):#当卡牌被弃置
         pass
 
-    def check_keyword(self,keyword:str):#检查关键词条,比如检查是否有吸血，key是吸血
-        pass
+    def check_keyword(self,keyword:str)->bool:#检查关键词条,比如检查是否有吸血，key是吸血
+        return True
 
     def when_a_creature_die(self,creature):#当随从死亡时（放入一个死亡随从的参数）
         pass
