@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from game.card import Card
  
 from game.type_cards.instant import Instant
+from game.game_function_tool import select_object
 
 
 class Arcane_Reflection(Instant):

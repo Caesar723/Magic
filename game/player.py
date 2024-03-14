@@ -96,8 +96,8 @@ class Player:
             name,type,number=element.split("+")
             number=int(number)
             self.deck+=[CARD_DICTION[f"{name}_{type}"]() for i in range(number)]
-        self.hand=self.deck[:2]# get 2 card to hand
-        self.library=self.deck[2:]# the rest is in the library
+        self.hand=self.deck[:7]# get 7 card to hand
+        self.library=self.deck[7:]# the rest is in the library
 
     def initinal_card_dict(self):# 回合开始，回合结束卡牌，光环。。。
         self.cards_store_dict["upkeep_step"]=[]
@@ -152,8 +152,10 @@ class Player:
         pass
 
     def play_a_card(self,card:Card):# player 打出一张牌
-        card.when_use_this_card(self,self.opponent)
-        print(card)
+        result=card.when_use_this_card(self,self.opponent)
+        print(result)
+        #result[1]()
+        return result
 
     def beginning_phase(self,player:"Player"):#开始阶段
         self.untap_step()

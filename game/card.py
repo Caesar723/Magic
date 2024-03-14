@@ -38,7 +38,7 @@ class Card:
     def cure_to_object(self,object):# it won't get hurt
         pass
     
-    def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card
+    def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card return prepared function
         pass
         
     def when_use_this_card(self,player:'Player',opponent:'Player'):# 先use check cost再play
@@ -46,8 +46,8 @@ class Card:
         if not checked_result[0]:
             return checked_result
         else:
-            self.when_play_this_card(player,opponent)
-            return checked_result
+            prepared_function=self.when_play_this_card(player,opponent)
+            return (True,prepared_function)
         
             
 

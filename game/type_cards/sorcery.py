@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 from game.card import Card
 from game.type_action import actions
-
+from game.game_function_tool import select_object
 
 
 class Sorcery(Card):
@@ -16,6 +16,7 @@ class Sorcery(Card):
     def __init__(self) -> None:
         super().__init__()
 
+    @select_object("",1)
     def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):# when player use the card
         pass
 
@@ -32,5 +33,6 @@ class Sorcery(Card):
         super().when_play_this_card(player, opponent)
 
         player.remove_card(self,"hand")
-        self.card_ability(self,player,opponent)
+        prepared_function=self.card_ability(player,opponent)
+        return prepared_function
     

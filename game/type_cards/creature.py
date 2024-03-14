@@ -5,7 +5,7 @@ if TYPE_CHECKING:
 
 
 
-
+from game.game_function_tool import select_object
 from game.card import Card
 from game.type_action import actions
 
@@ -29,11 +29,12 @@ class Creature(Card):
         pass
 
 
-    def check_dead(self):#check whether creature die
+    def check_dead(self):#check whether creature die,or whether appear at battle field
         pass
 
     #Here are listeners
-    def when_enter_battlefield(self):# when creature enter battlefield
+    @select_object("",1)
+    def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
         pass
 
     def when_leave_battlefield(self):# when creature leave battlefield
@@ -80,12 +81,16 @@ class Creature(Card):
 
     # def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card
     #     pass
+    
+    
 
     def when_play_this_card(self, player: "Player" = None, opponent: "Player" = None):# when player use the card
         super().when_play_this_card(player, opponent)
 
         player.remove_card(self,"hand")
         player.append_card(self,"battlefield")
+        prepared_function=self.when_enter_battlefield(player,opponent)
+        return prepared_function
         # player.hand.remove(self)
         # player.battlefield.append(self)
 

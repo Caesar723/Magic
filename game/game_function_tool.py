@@ -45,7 +45,8 @@ def select_object(type:Literal['all_roles',#分为两个阶段，准备阶段和
 
     def new_decorator(func):
         def new_func(self,*args, **kwargs):
-            objects=send_select_request(type,number) if type else []
+            objects=send_select_request(type,number) if type else ()
+            print(objects)
             kwargs[key_word] = objects
             def prepared_function():
                 func(self,*args,**kwargs)

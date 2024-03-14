@@ -79,6 +79,7 @@ if TYPE_CHECKING:
     from game.card import Card
  
 from game.type_cards.creature import Creature
+from game.game_function_tool import select_object
 
 
 class {class_name}(Creature):
@@ -129,6 +130,7 @@ if TYPE_CHECKING:
     from game.card import Card
  
 from game.type_cards.instant import Instant
+from game.game_function_tool import select_object
 
 
 class {class_name}(Instant):
@@ -176,6 +178,7 @@ if TYPE_CHECKING:
     from game.card import Card
  
 from game.type_cards.sorcery import Sorcery
+from game.game_function_tool import select_object
 
 
 class {class_name}(Sorcery):
@@ -222,6 +225,7 @@ if TYPE_CHECKING:
     from game.card import Card
  
 from game.type_cards.land import Land
+from game.game_function_tool import select_object
 
 
 class {class_name}(Land):

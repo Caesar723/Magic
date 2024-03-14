@@ -19,7 +19,7 @@ from game.player import Player
 from game.action import Action
 from game.type_action import actions
 from game.card import Card
-
+from game.type_cards.instant import Instant
 
 
 
@@ -70,7 +70,7 @@ class Room:
         self.non_active_player:Player
 
         #stack
-        self.stack:list[tuple]=[]#(preparend_function,card) 这个很重要
+        self.stack:list[tuple]=[]#(preparend_function,card) 这个很重要 card 是英文需要检查card 的类型
 
         #attacker
         self.attacker:Card=None
@@ -117,12 +117,13 @@ class Room:
 
     async def update_timer(self):# update turn_timer and bullet_time_timer
         self.turn_timer:int=self.max_turn_time-round(time.perf_counter()-self.initinal_turn_timer)
-        print(self.turn_timer)
+        
         if self.turn_timer<=0:
             await self.end_turn_time()
 
         if self.flag_dict["bullet_time"]:
             self.bullet_timer:int=self.max_bullet_time-round(time.perf_counter(),self.initinal_bullet_timer)
+            print(self.bullet_timer)
             if self.bullet_timer<=0:
                 await self.end_bullet_time()
         
@@ -132,11 +133,12 @@ class Room:
         self.reset_turn_timer()
 
     def end_bullet_time(self):#bullet_time is 0
+        
+        #self.stack 用pop(0)把每一个函数调用
+        self.reset_bullet_timer(self)
         if self.flag_dict["attacker_defenders"]:
             pass#让cards 进行攻击阻挡
             self.flag_dict["attacker_defenders"]=False
-        #self.stack 用pop(0)把每一个函数调用
-        self.reset_bullet_timer(self)
 
 
     def reset_turn_timer(self):
@@ -166,7 +168,7 @@ class Room:
         ...|discard|[list of numbers]
         ...|activate_ability|区域;index
         ...|concede(投降)|
-        ...|end_bullet_time|...
+        ...|end_bullet_time|...#当两个玩家都end bullet time 的时候，他们才会真正的结束bullet time
         
         """
         username,type,content=message.split("|")
@@ -205,12 +207,20 @@ class Room:
         index=int(content)
         card=player.get_card_index(index,"hand")
         
-        if player==self.active_player:# 如果card 的类型是instant，可以直接释放
-            player.play_a_card(card)
-            return (True,"success")
+        if not card:
+            return (False,"no card")
+        
+        
+        if player==self.active_player or isinstance(card,Instant):# 如果card 的类型是instant，可以直接释放
+            result=player.play_a_card(card)
+            if result[0]:
+                pass
+            else:
+                return result
         else:
             return (False,"You must do it in your turn")
-
+    
+    
     async def end_step(self,username:str,content:str):
         player:Player=self.players[username]
         if player==self.active_player:
@@ -243,9 +253,18 @@ class Room:
     async def timer_task(self):# 每一秒 更新时间
         while self.gamming:
             print("update_timer")
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.8)
             await self.update_timer()
             
+    def put_prepared_function_to_stack(self,prepared_function:function,card:Card):
+        if self.flag_dict["bullet_time"]:
+            self.stack.append((prepared_function,card))
+            self.reset_bullet_timer()
+        else:
+            self.reset_bullet_timer()
+            self.flag_dict["bullet_time"]=True
+            self.stack.append((prepared_function,card))
+
             
 if __name__=="__main__":
     async def main():
@@ -257,7 +276,10 @@ if __name__=="__main__":
         
         asyncio.create_task(room.message_receiver("1|play_card|0"))
         asyncio.create_task(room.message_receiver("1|play_card|0"))
+        
         await asyncio.sleep(5)
+        asyncio.create_task(room.message_receiver("1|play_card|0"))
+        await asyncio.sleep(2)
     asyncio.run(main())
     
     

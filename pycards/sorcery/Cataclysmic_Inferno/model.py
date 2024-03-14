@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from game.card import Card
  
 from game.type_cards.sorcery import Sorcery
+from game.game_function_tool import select_object
 
 
 class Cataclysmic_Inferno(Sorcery):
