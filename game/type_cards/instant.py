@@ -16,7 +16,7 @@ class Instant(Card):
     def __init__(self) -> None:
         super().__init__()
 
-    def card_ability(self):
+    def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
         pass
 
     def calculate_spell_power(self):
@@ -30,4 +30,4 @@ class Instant(Card):
 
         player.remove_card(self,"hand")
 
-        self.card_ability()
+        self.card_ability(self,player,opponent)

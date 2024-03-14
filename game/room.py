@@ -255,7 +255,8 @@ if __name__=="__main__":
         room.active_player=room.players["1"]
         room.non_active_player=room.players["2"]
         
-        await room.message_receiver("1|play_card|0")
+        asyncio.create_task(room.message_receiver("1|play_card|0"))
+        asyncio.create_task(room.message_receiver("1|play_card|0"))
         await asyncio.sleep(5)
     asyncio.run(main())
     

@@ -30,7 +30,7 @@ class Card:
         return 
 
     def check_can_use(self,player:'Player')->tuple[bool, str]:# check whether user can use this card , bool and reason
-        pass
+        return (True,"")
 
     def attact_to_object(self,object):# it won't get hurt object can be card ot player
         pass
@@ -47,7 +47,7 @@ class Card:
             return checked_result
         else:
             self.when_play_this_card(player,opponent)
-            return (True,'')
+            return checked_result
         
             
 

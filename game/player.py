@@ -152,6 +152,7 @@ class Player:
         pass
 
     def play_a_card(self,card:Card):# player 打出一张牌
+        card.when_use_this_card(self,self.opponent)
         print(card)
 
     def beginning_phase(self,player:"Player"):#开始阶段

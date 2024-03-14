@@ -168,4 +168,3 @@ from .sorcery.Call_to_Unity.model import Call_to_Unity as Call_to_Unity_SORCERY
 from .sorcery.Cataclysmic_Surge.model import Cataclysmic_Surge as Cataclysmic_Surge_SORCERY  
 from .sorcery.Eldritch_Rebirth.model import Eldritch_Rebirth as Eldritch_Rebirth_SORCERY  
 from .sorcery.Verdant_Genesis.model import Verdant_Genesis as Verdant_Genesis_SORCERY  
-

@@ -72,6 +72,12 @@ def creature_creater():
         color=check_color(data["Cost"])
         ability=data["Ability"].replace("\"","\\\"")
         content=f"""
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game.player import Player
+    from game.card import Card
+ 
 from game.type_cards.creature import Creature
 
 
@@ -116,6 +122,12 @@ def instant_creater():
         color=check_color(data["Cost"])
         ability=data["Ability"].replace("\"","\\\"")
         content=f"""
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game.player import Player
+    from game.card import Card
+ 
 from game.type_cards.instant import Instant
 
 
@@ -157,6 +169,12 @@ def sorcery_creater():
         color=check_color(data["Cost"])
         ability=data["Ability"].replace("\"","\\\"")
         content=f"""
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game.player import Player
+    from game.card import Card
+ 
 from game.type_cards.sorcery import Sorcery
 
 
@@ -185,7 +203,7 @@ class {class_name}(Sorcery):
             os.makedirs(path)
             with open(f"{path}/model.py",'w') as f:
                 f.write(content) 
-    
+
 def land_creater():
     directory_path=f"{ORGPATH}/cards/land"
     for name in get_dir_names(directory_path):
@@ -197,6 +215,12 @@ def land_creater():
         color=check_type(data["Type"])
         ability=data["Ability"].replace("\"","\\\"")
         content=f"""
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game.player import Player
+    from game.card import Card
+ 
 from game.type_cards.land import Land
 
 
@@ -235,10 +259,10 @@ def name_replace(name:str):
 if __name__=="__main__":
     #remove_py()
 
-    # creature_creater()
-    # land_creater()
-    # sorcery_creater()
-    # instant_creater()
+    creature_creater()
+    land_creater()
+    sorcery_creater()
+    instant_creater()
 
     
     initinal_init_file()
