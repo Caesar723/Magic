@@ -12,8 +12,8 @@ from game.game_function_tool import select_object
 class Avacyn__Guardian_of_Hope(Creature):
     
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,player) -> None:
+        super().__init__(player)
 
         self.name:str="Avacyn, Guardian of Hope"
         self.live:int=4

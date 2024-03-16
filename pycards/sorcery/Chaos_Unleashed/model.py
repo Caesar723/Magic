@@ -12,8 +12,8 @@ from game.game_function_tool import select_object
 class Chaos_Unleashed(Sorcery):
     
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,player) -> None:
+        super().__init__(player)
 
         self.name:str="Chaos Unleashed"
 

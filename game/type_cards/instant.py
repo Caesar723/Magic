@@ -13,8 +13,8 @@ from game.game_function_tool import select_object
 
 class Instant(Card):
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,player) -> None:
+        super().__init__(player)
 
     @select_object("",1)
     def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):

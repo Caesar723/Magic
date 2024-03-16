@@ -12,8 +12,8 @@ from game.game_function_tool import select_object
 class Flame_Tinkerer(Creature):
     
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,player) -> None:
+        super().__init__(player)
 
         self.name:str="Flame Tinkerer"
         self.live:int=1

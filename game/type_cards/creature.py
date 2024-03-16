@@ -15,8 +15,8 @@ from game.type_action import actions
 
 class Creature(Card):
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,player) -> None:
+        super().__init__(player)
 
         self.flag_dick:dict={}
 
@@ -34,10 +34,25 @@ class Creature(Card):
     def state(self):
         return (self.actual_power,self.actual_live)
     
-    def take_damage_attack(self,card:"Creature"):#当两个creature 对战的时候
+    #card1-start attack->card1-deal damage->card2-take_damage
+    #card2-start defense->card2-deal damage->card1-take_damage
+    def start_attack(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#当两个creature 对战的时候,这个creature是attacter
+        self.deal_damage(card,player,opponent)
+        self.when_harm_is_done()
+        
+
+    def start_defense(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#当两个creature 对战的时候,这个creature是defender
         pass
 
-    def take_damage(self,damage:int):# 用在所有受伤的功能
+    def deal_damage(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):# 用在所有造成伤害的功能
+        power,life=self.state
+        
+        card.take_damage(self,power,opponent,player)
+        self.when_harm_is_done()
+
+        
+
+    def take_damage(self,card:Card,value:int,player: "Player" = None, opponent: "Player" = None)->int:# 用在所有受伤的功能,返回所造成的实际伤害
         pass
 
     def grt_current_power_live(self)->tuple:# calculate power_live
@@ -64,10 +79,10 @@ class Creature(Card):
     def when_end_turn(self,player: "Player" = None, opponent: "Player" = None):
         pass
 
-    def when_harm_is_done(self,player: "Player" = None, opponent: "Player" = None):#当造成伤害时
+    def when_harm_is_done(self,value:int,card:"Creature",player: "Player" = None, opponent: "Player" = None):#当造成伤害时
         pass
 
-    def when_hurt(self,player: "Player" = None, opponent: "Player" = None):#当受到伤害时
+    def when_hurt(self,value:int,card:"Creature",player: "Player" = None, opponent: "Player" = None):#当受到伤害时
         pass
 
     def when_being_treated(self,player: "Player" = None, opponent: "Player" = None):#当受到治疗时
@@ -83,6 +98,9 @@ class Creature(Card):
         pass
 
     def when_loss_buff(self,player: "Player" = None, opponent: "Player" = None):#当失去+1+1的buff时
+        pass
+
+    def when_kill_creature(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):
         pass
 
     def loss_buff(self,buff):

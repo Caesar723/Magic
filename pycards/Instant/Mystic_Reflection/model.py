@@ -12,8 +12,8 @@ from game.game_function_tool import select_object
 class Mystic_Reflection(Instant):
     
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,player) -> None:
+        super().__init__(player)
 
         self.name:str="Mystic Reflection"
 
@@ -28,6 +28,4 @@ class Mystic_Reflection(Instant):
 
 
 
-    @select_object("",1)
-    def card_ability(self, player: Player = None, opponent: Player = None, selected_object: tuple[Card] = ()):
-        print("Mystic_Reflection")
+        

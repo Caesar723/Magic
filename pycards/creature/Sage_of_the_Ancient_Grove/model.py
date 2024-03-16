@@ -12,8 +12,8 @@ from game.game_function_tool import select_object
 class Sage_of_the_Ancient_Grove(Creature):
     
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,player) -> None:
+        super().__init__(player)
 
         self.name:str="Sage of the Ancient Grove"
         self.live:int=4

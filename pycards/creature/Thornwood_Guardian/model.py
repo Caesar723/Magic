@@ -12,8 +12,8 @@ from game.game_function_tool import select_object
 class Thornwood_Guardian(Creature):
     
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,player) -> None:
+        super().__init__(player)
 
         self.name:str="Thornwood Guardian"
         self.live:int=4

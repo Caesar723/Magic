@@ -85,8 +85,8 @@ from game.game_function_tool import select_object
 class {class_name}(Creature):
     
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,player) -> None:
+        super().__init__(player)
 
         self.name:str="{data["Name"]}"
         self.live:int={data["Toughness"]}
@@ -138,8 +138,8 @@ from game.game_function_tool import select_object
 class {class_name}(Instant):
     
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,player) -> None:
+        super().__init__(player)
 
         self.name:str="{data["Name"]}"
 
@@ -186,8 +186,8 @@ from game.game_function_tool import select_object
 class {class_name}(Sorcery):
     
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,player) -> None:
+        super().__init__(player)
 
         self.name:str="{data["Name"]}"
 
@@ -233,8 +233,8 @@ from game.game_function_tool import select_object
 class {class_name}(Land):
     
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,player) -> None:
+        super().__init__(player)
 
         self.name:str="{data["Name"]}"
 

@@ -12,8 +12,8 @@ from game.game_function_tool import select_object
 class Essence_Channeler(Creature):
     
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,player) -> None:
+        super().__init__(player)
 
         self.name:str="Essence Channeler"
         self.live:int=2

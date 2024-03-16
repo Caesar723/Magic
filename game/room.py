@@ -162,9 +162,9 @@ class Room:
 
         #self.stack 用pop()把每一个函数调用
         self.reset_bullet_timer()
-       
+
         if self.get_flag("attacker_defenders"):#如果attacker_defenders还是True 那attacker 就去攻击敌方英雄
-            self.start_attack(card)
+            self.start_attack(self.non_active_player)
             self.flag_dict["attacker_defenders"]=False
             print(self.flag_dict["attacker_defenders"])
         self.flag_dict["bullet_time"]=False
@@ -227,7 +227,7 @@ class Room:
     async def select_attacker(self,username:str,content:str):
         player:Player=self.players[username]
         index=int(content)
-        card=player.get_card_index(index,"battlefield")
+        card:Creature=player.get_card_index(index,"battlefield")
 
         if not card:
             return (False,"no card")
@@ -236,6 +236,7 @@ class Room:
             player.select_attacker(card)
             self.flag_dict['attacker_defenders']=True
             self.attacker=card
+            card.when_become_attacker(player,player.opponent)
             self.start_bullet_time()
             
             
@@ -246,7 +247,7 @@ class Room:
     async def select_defender(self,username:str,content:str):
         player:Player=self.players[username]
         index=int(content)
-        card=player.get_card_index(index,"battlefield")
+        card:Creature=player.get_card_index(index,"battlefield")
         if not card:
             return (False,"no card")
         
@@ -254,6 +255,7 @@ class Room:
             player.select_defender(card)
             prepared_function=lambda: None
             self.put_prepared_function_to_stack(prepared_function,card)
+            card.when_become_defender(player,player.opponent)
             return (True,"success")
         else:
             return (False,"You must do it in your turn")
@@ -290,12 +292,19 @@ class Room:
         pass
 
     async def end_bullet(self,username:str,content:str):
-        player:Player=self.players[username]
-        if player==self.active_player:
+        key="{}_bullet_time_flag"
+        #player:Player=self.players[key.format(username)]
+        self.flag_dict[key.format(username)]=True
+
+        start=True
+        for un in self.players:#username
+            if not self.get_flag(key.format(un)):
+                start=False
+        if start:
             await self.end_bullet_time()
-            return (True,"success")
-        else:
-            return (False,"You must attack in your turn")
+        
+        return (True,"success")
+        
 
 
     async def activate_ability(self,username:str,content:str):

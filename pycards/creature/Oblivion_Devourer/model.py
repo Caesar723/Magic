@@ -12,8 +12,8 @@ from game.game_function_tool import select_object
 class Oblivion_Devourer(Creature):
     
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,player) -> None:
+        super().__init__(player)
 
         self.name:str="Oblivion Devourer"
         self.live:int=6

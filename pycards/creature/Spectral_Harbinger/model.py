@@ -12,8 +12,8 @@ from game.game_function_tool import select_object
 class Spectral_Harbinger(Creature):
     
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,player) -> None:
+        super().__init__(player)
 
         self.name:str="Spectral Harbinger"
         self.live:int=3

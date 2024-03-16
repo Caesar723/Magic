@@ -12,8 +12,8 @@ from game.game_function_tool import select_object
 class Celestial_Herald(Creature):
     
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,player) -> None:
+        super().__init__(player)
 
         self.name:str="Celestial Herald"
         self.live:int=3

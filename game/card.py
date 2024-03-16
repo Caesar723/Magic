@@ -11,7 +11,8 @@ from game.type_action import actions
 
 class Card:
 
-    def __init__(self) -> None:
+    def __init__(self,player) -> None:
+        self.player:"Player"=player
         self.name:str=""
         self.keyword_list:list=[]
         self.type:str
