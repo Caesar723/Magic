@@ -18,6 +18,8 @@ class Elite_Squire(Creature):
         self.name:str="Elite Squire"
         self.live:int=2
         self.power:int=2
+        self.actual_live:int=2
+        self.actual_power:int=2
 
         self.type_creature:str="Human Knight"
         self.type:str="Creature"

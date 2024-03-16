@@ -18,6 +18,8 @@ class Tidal_Sprite(Creature):
         self.name:str="Tidal Sprite"
         self.live:int=1
         self.power:int=1
+        self.actual_live:int=1
+        self.actual_power:int=1
 
         self.type_creature:str="Merfolk Creature"
         self.type:str="Creature"

@@ -18,6 +18,8 @@ class Sylvan_Warden(Creature):
         self.name:str="Sylvan Warden"
         self.live:int=4
         self.power:int=2
+        self.actual_live:int=4
+        self.actual_power:int=2
 
         self.type_creature:str="Elf Shaman"
         self.type:str="Creature"

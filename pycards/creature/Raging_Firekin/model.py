@@ -18,6 +18,8 @@ class Raging_Firekin(Creature):
         self.name:str="Raging Firekin"
         self.live:int=2
         self.power:int=3
+        self.actual_live:int=2
+        self.actual_power:int=3
 
         self.type_creature:str="Elemental Creature - Elemental"
         self.type:str="Creature"

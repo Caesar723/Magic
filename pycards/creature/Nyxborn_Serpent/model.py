@@ -18,6 +18,8 @@ class Nyxborn_Serpent(Creature):
         self.name:str="Nyxborn Serpent"
         self.live:int=3
         self.power:int=3
+        self.actual_live:int=3
+        self.actual_power:int=3
 
         self.type_creature:str="Enchantment Creature - Serpent"
         self.type:str="Creature"

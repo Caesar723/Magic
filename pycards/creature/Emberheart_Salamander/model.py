@@ -18,6 +18,8 @@ class Emberheart_Salamander(Creature):
         self.name:str="Emberheart Salamander"
         self.live:int=2
         self.power:int=4
+        self.actual_live:int=2
+        self.actual_power:int=4
 
         self.type_creature:str="Salamander Creature - Salamander"
         self.type:str="Creature"

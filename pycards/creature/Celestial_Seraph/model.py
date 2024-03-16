@@ -18,6 +18,8 @@ class Celestial_Seraph(Creature):
         self.name:str="Celestial Seraph"
         self.live:int=5
         self.power:int=5
+        self.actual_live:int=5
+        self.actual_power:int=5
 
         self.type_creature:str="Angel Creature - Angel"
         self.type:str="Creature"

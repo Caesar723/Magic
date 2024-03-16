@@ -12,7 +12,9 @@ if __name__=="__main__":
 import asyncio
 import random
 import time
-
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from fastapi import WebSocket
 
 
 from game.player import Player
@@ -20,7 +22,7 @@ from game.action import Action
 from game.type_action import actions
 from game.card import Card
 from game.type_cards.instant import Instant
-
+from game.type_cards.creature import Creature
 
 
 
@@ -47,13 +49,13 @@ class Room:
                                     Player(players[1][1],players[1][0],self.action_store_list_cache)
         self.player_1.set_opponent_player(self.player_2)
         self.player_2.set_opponent_player(self.player_1)
-        self.players:dict={
+        self.players:dict[Player]={
             players[0][1]:self.player_1,
             players[1][1]:self.player_2
         }
 
         #用来发送消息
-        self.players_socket:dict={
+        self.players_socket:dict["WebSocket"]={
             players[0]:None,
             players[1]:None
         }
@@ -76,7 +78,7 @@ class Room:
         self.attacker:Card=None
 
         #defenders
-        self.defenders:list[Card]=None
+        #self.defenders:list[Card]=None
 
 
         self.message_process_dict={
@@ -112,7 +114,7 @@ class Room:
         self.reset_turn_timer()
         
 
-    def start_attack(self):# attacker and defenders start attack
+    def start_attack(self,defender:Creature):# attacker and defenders start attack
         pass
 
     def get_flag(self,flag_name:str):
@@ -129,15 +131,17 @@ class Room:
         
         if self.turn_timer<=0:
             await self.end_turn_time()
-        print(self.bullet_timer)
+        
         
         if self.get_flag("bullet_time"):
             self.bullet_timer:int=self.max_bullet_time-round(time.perf_counter()-self.initinal_bullet_timer)
+            print(self.bullet_timer)
             if self.bullet_timer<=0:
                 await self.end_bullet_time()
         
 
     def end_turn_time(self):#turn_timer is 0
+        #self.non_active_player.
         self.change_turn()
         self.reset_turn_timer()
 
@@ -145,16 +149,24 @@ class Room:
         
         while self.stack:
             func,card=self.stack.pop()
+            if type(card)==Creature:#如果是有Menace 就记数，有两个才会让attacker_defenders变false
+                max_defender_number=1
+                self.add_counter_dict("defender_number",1)
+                if self.counter_dict["defender_number"]>=max_defender_number:
+                    self.flag_dict["attacker_defenders"]=False
+                self.start_attack(card)
             func()
 
         #self.stack 用pop()把每一个函数调用
         self.reset_bullet_timer()
        
-        if self.get_flag("attacker_defenders"):
+        if self.get_flag("attacker_defenders"):#如果attacker_defenders还是True 那attacker 就去攻击敌方英雄
             pass#让cards 进行攻击阻挡
             self.flag_dict["attacker_defenders"]=False
             print(self.flag_dict["attacker_defenders"])
         self.flag_dict["bullet_time"]=False
+
+        self.attacker=None
 
         
 
@@ -187,6 +199,7 @@ class Room:
         ...|activate_ability|区域;index
         ...|concede(投降)|
         ...|end_bullet_time|...#当两个玩家都end bullet time 的时候，他们才会真正的结束bullet time
+        ...|start_attack|#当敌方用start_attack才有用
         
         """
         username,type,content=message.split("|")
@@ -206,16 +219,31 @@ class Room:
 
     async def select_attacker(self,username:str,content:str):
         player:Player=self.players[username]
+        index=int(content)
+        card=player.get_card_index(index,"battlefield")
+
+        if not card:
+            return (False,"no card")
+
         if player==self.active_player:
-            player.select_attacker(int(content))
+            player.select_attacker(card)
+            self.flag_dict['attacker_defenders']=True
+            self.attacker=card
             return (True,"success")# bool, reason
         else:
             return (False,"You must do it in your turn")
 
     async def select_defender(self,username:str,content:str):
         player:Player=self.players[username]
-        if player==self.active_player:
-            player.select_defender(int(content))
+        index=int(content)
+        card=player.get_card_index(index,"battlefield")
+        if not card:
+            return (False,"no card")
+        
+        if player==self.non_active_player and self.get_flag("attacker_defenders"):
+            player.select_defender(card)
+            prepared_function=lambda: None
+            self.put_prepared_function_to_stack(prepared_function,card)
             return (True,"success")
         else:
             return (False,"You must do it in your turn")
@@ -229,12 +257,13 @@ class Room:
             return (False,"no card")
         
         
-        if player==self.active_player or isinstance(card,Instant) or card.check_keyword("Flash"):# 如果card 的类型是instant，可以直接释放,或者card有flash
-            result=player.play_a_card(card)
+        if (player==self.active_player and not self.get_flag("bullet_time")) or isinstance(card,Instant) or card.check_keyword("Flash"):# 如果card 的类型是instant，可以直接释放,或者card有flash
+            result=await player.play_a_card(card)
             if result[0]:
                 self.put_prepared_function_to_stack(result[1],card)
             else:
                 return result
+        
         else:
             return (False,"You must do it in your turn")
     
@@ -265,39 +294,96 @@ class Room:
     async def concede(self,username:str,content:str):
         pass
 
-    def set_socket(self,socket,username:str):#用来初始化socket
+    def set_socket(self,socket:"WebSocket",username:str):#用来初始化socket
         self.players_socket[username]=socket
+
+    def set_select_socket(self,socket:"WebSocket",username:str):
+        self.players[username].socket_select_object=socket
 
     async def timer_task(self):# 每一秒 更新时间
         while self.gamming:
-            print("update_timer")
+            #print("update_timer")
             await asyncio.sleep(0.5)
             await self.update_timer()
             
     def put_prepared_function_to_stack(self,prepared_function,card:Card):
-        if self.get_flag("bullet_time"):
-            self.stack.append((prepared_function,card))
-            self.reset_bullet_timer()
-        else:
-            self.reset_bullet_timer()
-            self.flag_dict["bullet_time"]=True
-            self.stack.append((prepared_function,card))
+        
+        self.reset_bullet_timer()
+        self.flag_dict["bullet_time"]=True
+        self.stack.append((prepared_function,card))
 
+
+    def add_counter_dict(self,key:str,number:int)->None:# change the numebr of counter_dict
+        if key in self.counter_dict:
+            self.counter_dict[key]+=number
+        else:
+            self.counter_dict[key]=number
+
+
+    def __repr__(self):
+        player1,player2=[key for key in self.players]
+        if self.players[player1]==self.active_player:
+            active_player_name=player1
+            non_active_player_name=player2
+        else:
+            active_player_name=player2
+            non_active_player_name=player1
+        
+        content=f"""
+
+
+#########################################################################################
+active_player:{active_player_name}
+non_active_player:{non_active_player_name}
+
+-----------------------------------------------------------------------------------
+bullet_time:{str(self.get_flag("bullet_time"))}
+
+-----------------------------------------------------------------------------------
+player1:{player1}
+    battle_field:{self.players[player1].battlefield}
+    hand:{self.players[player1].hand}
+    graveyard:{self.players[player1].graveyard}
+
+player2:{player2}
+    battle_field:{self.players[player2].battlefield}
+    hand:{self.players[player2].hand}
+    graveyard:{self.players[player2].graveyard}
+#########################################################################################
+        
+
+"""
+        return content
+    
             
 if __name__=="__main__":
     async def main():
         test="Mystic Tides+Instant+1|Mystic Reflection+Instant+1|Mystic Evasion+Instant+2|Mindful Manipulation+Sorcery+1|Nyxborn Serpent+Creature+1|Mistweaver Drake+Creature+1"
         room=Room([(test,"1"),(test,"2")])
+        
         await room.game_start()
+        print(room)
         room.active_player=room.players["1"]
         room.non_active_player=room.players["2"]
         
-        asyncio.create_task(room.message_receiver("1|play_card|0"))
+        asyncio.create_task(room.message_receiver("1|play_card|5"))
         asyncio.create_task(room.message_receiver("1|play_card|0"))
         
         await asyncio.sleep(5)
-        #asyncio.create_task(room.message_receiver("1|play_card|0"))
+        print(room)
         await asyncio.sleep(2)
+        asyncio.create_task(room.message_receiver("1|play_card|0"))
+        await asyncio.sleep(5)
+        
+        await asyncio.sleep(2)
+        asyncio.create_task(room.message_receiver("1|end_step|"))
+        await asyncio.sleep(2)
+        asyncio.create_task(room.message_receiver("2|play_card|5"))
+        asyncio.create_task(room.message_receiver("2|play_card|0"))
+        await asyncio.sleep(5)
+        print(room)
+        await asyncio.sleep(2)
+        
     asyncio.run(main())
     
     

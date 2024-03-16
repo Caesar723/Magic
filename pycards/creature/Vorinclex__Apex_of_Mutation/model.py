@@ -18,6 +18,8 @@ class Vorinclex__Apex_of_Mutation(Creature):
         self.name:str="Vorinclex, Apex of Mutation"
         self.live:int=6
         self.power:int=6
+        self.actual_live:int=6
+        self.actual_power:int=6
 
         self.type_creature:str="Legendary Creature - Phyrexian Mutant"
         self.type:str="Creature"

@@ -18,6 +18,8 @@ class Thornroot_Druid(Creature):
         self.name:str="Thornroot Druid"
         self.live:int=2
         self.power:int=2
+        self.actual_live:int=2
+        self.actual_power:int=2
 
         self.type_creature:str="Elf Druid"
         self.type:str="Creature"

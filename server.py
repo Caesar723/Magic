@@ -254,6 +254,13 @@ async def entering_game(websocket: WebSocket,username: str = Depends(get_current
         data = await websocket.receive_text()
         print(data)
         await room.message_receiver(data)
+
+@app.websocket("/select_object")
+async def select_object(websocket: WebSocket,username: str = Depends(get_current_user_socket(database))):#
+    if type(username)==RedirectResponse:
+        return username
+    await websocket.accept()
+    room:Room=room_server.find_player_room(username)
         
 
 

@@ -18,6 +18,8 @@ class Thornwood_Guardian(Creature):
         self.name:str="Thornwood Guardian"
         self.live:int=4
         self.power:int=5
+        self.actual_live:int=4
+        self.actual_power:int=5
 
         self.type_creature:str="Elemental Creature - Elemental"
         self.type:str="Creature"

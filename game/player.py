@@ -2,14 +2,18 @@
 if __name__=="__main__":
     import sys
     sys.path.append("/Users/xuanpeichen/Desktop/code/python/openai/")
-    
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from fastapi import WebSocket
+    
 
 
 from game.action import Action
 from game.type_action import actions
 from game.card import Card
 from initinal_file import CARD_DICTION
+from game.type_cards.creature import Creature
 
 
 
@@ -71,10 +75,13 @@ class Player:
         self.state_of_gaming:str=""
 
         #attacker
-        self.attacker:Card=None
+        #self.attacker:Card=None
 
         #defenders
-        self.defenders:list[Card]=None
+        #self.defenders:list[Card]=None
+
+        #the socket used to select object
+        self.socket_select_object:"WebSocket"
 
         #游戏还没有开始
         self.deck:list[Card]=[]
@@ -119,6 +126,8 @@ class Player:
         else:
             self.cards_store_dict[key]=[]
 
+
+
     def add_counter_dict(self,key:str,number:int)->None:# change the numebr of counter_dict
         if key in self.counter_dict:
             self.counter_dict[key]+=number
@@ -133,11 +142,12 @@ class Player:
 
     
 
-    def select_attacker(self,index:int):# select_creature_as_attacker, the index of battlefield
-        pass
+    def select_attacker(self,card:Creature):# select_creature_as_attacker, the index of battlefield
+        
+        card.when_become_attacker()
 
-    def select_defender(self):# select_creature_as_defender
-        pass
+    def select_defender(self,card:Creature):# select_creature_as_defender
+        card.when_become_defender()
 
     def deal_damage_player(self):# Deal damage to player
         pass
@@ -151,9 +161,9 @@ class Player:
     def when_gaining_life(self):#when players live increase
         pass
 
-    def play_a_card(self,card:Card):# player 打出一张牌
-        result=card.when_use_this_card(self,self.opponent)
-        print(result)
+    async def play_a_card(self,card:Card):# player 打出一张牌
+        result=await card.when_use_this_card(self,self.opponent)
+        print(card)
         #result[1]()
         return result
 
@@ -222,9 +232,10 @@ class Player:
             'graveyard':self.graveyard,
             'library':self.library
         }
-        if type in deck_type and card in deck_type[type]:
+        
+        if type in deck_type:
             deck_type[type].append(card)
-
+        
         self.action_store.append(actions.Gain_Card(self,self,card,False))
 
 

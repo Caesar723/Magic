@@ -18,6 +18,8 @@ class Inferno_Titan(Creature):
         self.name:str="Inferno Titan"
         self.live:int=6
         self.power:int=6
+        self.actual_live:int=6
+        self.actual_power:int=6
 
         self.type_creature:str="Elemental Creature"
         self.type:str="Creature"

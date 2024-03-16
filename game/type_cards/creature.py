@@ -21,10 +21,25 @@ class Creature(Card):
         self.flag_dick:dict={}
 
         #the CreaturePara for js
+        
         self.live:int
         self.power:int
+
+        self.actual_live:int
+        self.actual_power:int
+        
         self.type_creature:str
     
+    @property
+    def state(self):
+        return (self.actual_power,self.actual_live)
+    
+    def take_damage_attack(self,card:"Creature"):#当两个creature 对战的时候
+        pass
+
+    def take_damage(self,damage:int):# 用在所有受伤的功能
+        pass
+
     def grt_current_power_live(self)->tuple:# calculate power_live
         pass
 
@@ -37,37 +52,37 @@ class Creature(Card):
     def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
         pass
 
-    def when_leave_battlefield(self):# when creature leave battlefield
+    def when_leave_battlefield(self,player: "Player" = None, opponent: "Player" = None):# when creature leave battlefield
         pass
 
-    def when_die(self):
+    def when_die(self,player: "Player" = None, opponent: "Player" = None):
         pass
 
-    def when_start_turn(self):
+    def when_start_turn(self,player: "Player" = None, opponent: "Player" = None):
         pass
 
-    def when_end_turn(self):
+    def when_end_turn(self,player: "Player" = None, opponent: "Player" = None):
         pass
 
-    def when_harm_is_done(self):#当造成伤害时
+    def when_harm_is_done(self,player: "Player" = None, opponent: "Player" = None):#当造成伤害时
         pass
 
-    def when_hurt(self):#当受到伤害时
+    def when_hurt(self,player: "Player" = None, opponent: "Player" = None):#当受到伤害时
         pass
 
-    def when_being_treated(self):#当受到治疗时
+    def when_being_treated(self,player: "Player" = None, opponent: "Player" = None):#当受到治疗时
         pass
 
-    def when_become_attacker(self):
+    def when_become_attacker(self,player: "Player" = None, opponent: "Player" = None):
         pass
 
-    def when_become_defender(self):
+    def when_become_defender(self,player: "Player" = None, opponent: "Player" = None):
         pass
 
-    def when_gain_buff(self):#当获得+1+1的buff时
+    def when_gain_buff(self,player: "Player" = None, opponent: "Player" = None):#当获得+1+1的buff时
         pass
 
-    def when_loss_buff(self):#当失去+1+1的buff时
+    def when_loss_buff(self,player: "Player" = None, opponent: "Player" = None):#当失去+1+1的buff时
         pass
 
     def loss_buff(self,buff):
@@ -84,15 +99,20 @@ class Creature(Card):
     
     
 
-    def when_play_this_card(self, player: "Player" = None, opponent: "Player" = None):# when player use the card
-        super().when_play_this_card(player, opponent)
+    async def when_play_this_card(self, player: "Player" = None, opponent: "Player" = None):# when player use the card
+        await super().when_play_this_card(player, opponent)
 
         player.remove_card(self,"hand")
         player.append_card(self,"battlefield")
-        prepared_function=self.when_enter_battlefield(player,opponent)
+        prepared_function=await self.when_enter_battlefield(player,opponent)
+        print(1)
         return prepared_function
         # player.hand.remove(self)
         # player.battlefield.append(self)
+    
+    def __repr__(self):
+        content=f"({self.name},{self.type},{self.live}/{self.power},{id(self)})"
+        return content
 
 
 

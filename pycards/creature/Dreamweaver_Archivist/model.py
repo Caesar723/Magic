@@ -18,6 +18,8 @@ class Dreamweaver_Archivist(Creature):
         self.name:str="Dreamweaver Archivist"
         self.live:int=2
         self.power:int=2
+        self.actual_live:int=2
+        self.actual_power:int=2
 
         self.type_creature:str="Human Wizard"
         self.type:str="Creature"

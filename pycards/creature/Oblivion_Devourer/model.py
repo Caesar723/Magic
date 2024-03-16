@@ -18,6 +18,8 @@ class Oblivion_Devourer(Creature):
         self.name:str="Oblivion Devourer"
         self.live:int=6
         self.power:int=6
+        self.actual_live:int=6
+        self.actual_power:int=6
 
         self.type_creature:str="Eldrazi Creature - Eldrazi"
         self.type:str="Creature"

@@ -91,6 +91,8 @@ class {class_name}(Creature):
         self.name:str="{data["Name"]}"
         self.live:int={data["Toughness"]}
         self.power:int={data["Power"]}
+        self.actual_live:int={data["Toughness"]}
+        self.actual_power:int={data["Power"]}
 
         self.type_creature:str="{data["Type"]}"
         self.type:str="Creature"

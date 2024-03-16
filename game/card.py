@@ -38,15 +38,15 @@ class Card:
     def cure_to_object(self,object):# it won't get hurt
         pass
     
-    def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card return prepared function
+    async def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card return prepared function
         pass
         
-    def when_use_this_card(self,player:'Player',opponent:'Player'):# 先use check cost再play
+    async def when_use_this_card(self,player:'Player',opponent:'Player'):# 先use check cost再play
         checked_result=self.check_can_use(player)
         if not checked_result[0]:
             return checked_result
         else:
-            prepared_function=self.when_play_this_card(player,opponent)
+            prepared_function=await self.when_play_this_card(player,opponent)
             return (True,prepared_function)
         
             

@@ -18,6 +18,8 @@ class Thalassian_Tidecaller(Creature):
         self.name:str="Thalassian Tidecaller"
         self.live:int=2
         self.power:int=2
+        self.actual_live:int=2
+        self.actual_power:int=2
 
         self.type_creature:str="Merfolk Creature"
         self.type:str="Creature"

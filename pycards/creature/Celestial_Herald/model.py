@@ -18,6 +18,8 @@ class Celestial_Herald(Creature):
         self.name:str="Celestial Herald"
         self.live:int=3
         self.power:int=3
+        self.actual_live:int=3
+        self.actual_power:int=3
 
         self.type_creature:str="Angel Creature"
         self.type:str="Creature"

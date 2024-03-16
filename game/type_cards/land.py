@@ -37,15 +37,17 @@ class Land(Card):
     def when_clicked(self):#当地牌被点击时   #启动式能力（Activated Abilities）：玩家可以在任何时候支付成本来使用的能力，通常格式为“[成本]：[效果]”。
         pass
 
-    def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card
-        super().when_play_this_card(player, opponent)
+    async def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card
+        await super().when_play_this_card(player, opponent)
 
         player.remove_card(self,"hand")
         player.append_card(self,"land_area")
 
-        prepared_function=self.when_enter_battlefield(player,opponent)
+        prepared_function=await self.when_enter_battlefield(player,opponent)
         return prepared_function
 
 
-    
+    def __repr__(self):
+        content=f"({self.name},{self.type},{id(self)})"
+        return content
 

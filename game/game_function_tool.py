@@ -21,7 +21,7 @@ def validate_all_methods(cls):
 
 
 @validate_call
-def send_select_request(type:str,number:int):
+async def send_select_request(type:str,number:int):
     return type
 
 def check_select_valid(selected_object):
@@ -44,9 +44,9 @@ def select_object(type:Literal['all_roles',#分为两个阶段，准备阶段和
     key_word="selected_object"
 
     def new_decorator(func):
-        def new_func(self,*args, **kwargs):
-            objects=send_select_request(type,number) if type else ()
-            print(objects)
+        async def new_func(self,*args, **kwargs):
+            objects=await send_select_request(type,number) if type else ()
+            
             kwargs[key_word] = objects
             def prepared_function():
                 func(self,*args,**kwargs)

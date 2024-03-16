@@ -18,6 +18,8 @@ class Celestial_Skyweaver(Creature):
         self.name:str="Celestial Skyweaver"
         self.live:int=5
         self.power:int=2
+        self.actual_live:int=5
+        self.actual_power:int=2
 
         self.type_creature:str="Spirit Creature - Spirit"
         self.type:str="Creature"

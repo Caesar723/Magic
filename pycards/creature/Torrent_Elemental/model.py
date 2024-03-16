@@ -18,6 +18,8 @@ class Torrent_Elemental(Creature):
         self.name:str="Torrent Elemental"
         self.live:int=3
         self.power:int=2
+        self.actual_live:int=3
+        self.actual_power:int=2
 
         self.type_creature:str="Elemental"
         self.type:str="Creature"

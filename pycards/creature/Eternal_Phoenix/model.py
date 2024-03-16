@@ -18,6 +18,8 @@ class Eternal_Phoenix(Creature):
         self.name:str="Eternal Phoenix"
         self.live:int=3
         self.power:int=3
+        self.actual_live:int=3
+        self.actual_power:int=3
 
         self.type_creature:str="Phoenix Creature - Phoenix"
         self.type:str="Creature"

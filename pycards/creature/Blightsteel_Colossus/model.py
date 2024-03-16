@@ -18,6 +18,8 @@ class Blightsteel_Colossus(Creature):
         self.name:str="Blightsteel Colossus"
         self.live:int=11
         self.power:int=11
+        self.actual_live:int=11
+        self.actual_power:int=11
 
         self.type_creature:str="Artifact Creature - Golem"
         self.type:str="Creature"

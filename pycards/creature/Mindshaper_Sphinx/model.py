@@ -18,6 +18,8 @@ class Mindshaper_Sphinx(Creature):
         self.name:str="Mindshaper Sphinx"
         self.live:int=4
         self.power:int=4
+        self.actual_live:int=4
+        self.actual_power:int=4
 
         self.type_creature:str="Sphinx Creature - Sphinx"
         self.type:str="Creature"

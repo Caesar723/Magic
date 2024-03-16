@@ -18,6 +18,8 @@ class Thornwood_Sentinel(Creature):
         self.name:str="Thornwood Sentinel"
         self.live:int=3
         self.power:int=2
+        self.actual_live:int=3
+        self.actual_power:int=2
 
         self.type_creature:str="Elemental Creature"
         self.type:str="Creature"

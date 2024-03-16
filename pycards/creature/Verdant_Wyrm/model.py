@@ -18,6 +18,8 @@ class Verdant_Wyrm(Creature):
         self.name:str="Verdant Wyrm"
         self.live:int=4
         self.power:int=4
+        self.actual_live:int=4
+        self.actual_power:int=4
 
         self.type_creature:str="Dragon Creature - Dragon"
         self.type:str="Creature"

@@ -18,6 +18,8 @@ class Sage_of_the_Ancient_Grove(Creature):
         self.name:str="Sage of the Ancient Grove"
         self.live:int=4
         self.power:int=4
+        self.actual_live:int=4
+        self.actual_power:int=4
 
         self.type_creature:str="Treefolk Creature - Treefolk"
         self.type:str="Creature"

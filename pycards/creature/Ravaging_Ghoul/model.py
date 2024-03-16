@@ -18,6 +18,8 @@ class Ravaging_Ghoul(Creature):
         self.name:str="Ravaging Ghoul"
         self.live:int=2
         self.power:int=2
+        self.actual_live:int=2
+        self.actual_power:int=2
 
         self.type_creature:str="Zombie Creature"
         self.type:str="Creature"

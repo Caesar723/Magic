@@ -18,6 +18,8 @@ class Thunderclap_Behemoth(Creature):
         self.name:str="Thunderclap Behemoth"
         self.live:int=6
         self.power:int=6
+        self.actual_live:int=6
+        self.actual_power:int=6
 
         self.type_creature:str="Beast Creature - Beast"
         self.type:str="Creature"

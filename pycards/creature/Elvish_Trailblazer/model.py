@@ -18,6 +18,8 @@ class Elvish_Trailblazer(Creature):
         self.name:str="Elvish Trailblazer"
         self.live:int=2
         self.power:int=2
+        self.actual_live:int=2
+        self.actual_power:int=2
 
         self.type_creature:str="Elf Creature"
         self.type:str="Creature"

@@ -18,6 +18,8 @@ class Mistweaver_Drake(Creature):
         self.name:str="Mistweaver Drake"
         self.live:int=1
         self.power:int=2
+        self.actual_live:int=1
+        self.actual_power:int=2
 
         self.type_creature:str="Creature - Elemental"
         self.type:str="Creature"

@@ -18,6 +18,8 @@ class Night_Stalker__(Creature):
         self.name:str="Night Stalker  "
         self.live:int=1
         self.power:int=2
+        self.actual_live:int=1
+        self.actual_power:int=2
 
         self.type_creature:str="Vampire Creature  "
         self.type:str="Creature"

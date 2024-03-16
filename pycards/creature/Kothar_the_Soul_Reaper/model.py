@@ -18,6 +18,8 @@ class Kothar_the_Soul_Reaper(Creature):
         self.name:str="Kothar the Soul Reaper"
         self.live:int=5
         self.power:int=5
+        self.actual_live:int=5
+        self.actual_power:int=5
 
         self.type_creature:str="Demon Creature"
         self.type:str="Creature"

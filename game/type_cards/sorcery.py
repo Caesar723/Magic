@@ -26,13 +26,16 @@ class Sorcery(Card):
     def when_select_target(self):
         pass
 
-    def when_play_this_card(self,
+    async def when_play_this_card(self,
                             player:'Player'=None,
                             opponent:'Player'=None,
                             ):# when player use the card
-        super().when_play_this_card(player, opponent)
+        await super().when_play_this_card(player, opponent)
 
         player.remove_card(self,"hand")
-        prepared_function=self.card_ability(player,opponent)
+        prepared_function=await self.card_ability(player,opponent)
         return prepared_function
     
+    def __repr__(self):
+        content=f"({self.name},{self.type},{id(self)})"
+        return content

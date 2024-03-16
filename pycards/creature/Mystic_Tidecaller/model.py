@@ -18,6 +18,8 @@ class Mystic_Tidecaller(Creature):
         self.name:str="Mystic Tidecaller"
         self.live:int=3
         self.power:int=2
+        self.actual_live:int=3
+        self.actual_power:int=2
 
         self.type_creature:str="Merfolk Wizard"
         self.type:str="Creature"

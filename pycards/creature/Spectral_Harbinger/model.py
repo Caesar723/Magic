@@ -18,6 +18,8 @@ class Spectral_Harbinger(Creature):
         self.name:str="Spectral Harbinger"
         self.live:int=3
         self.power:int=2
+        self.actual_live:int=3
+        self.actual_power:int=2
 
         self.type_creature:str="Spirit Creature - Spirit"
         self.type:str="Creature"

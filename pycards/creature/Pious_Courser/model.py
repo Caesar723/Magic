@@ -18,6 +18,8 @@ class Pious_Courser(Creature):
         self.name:str="Pious Courser"
         self.live:int=2
         self.power:int=2
+        self.actual_live:int=2
+        self.actual_power:int=2
 
         self.type_creature:str="Human Cleric"
         self.type:str="Creature"

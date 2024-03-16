@@ -18,6 +18,8 @@ class Essence_Channeler(Creature):
         self.name:str="Essence Channeler"
         self.live:int=2
         self.power:int=2
+        self.actual_live:int=2
+        self.actual_power:int=2
 
         self.type_creature:str="Human Shaman"
         self.type:str="Creature"

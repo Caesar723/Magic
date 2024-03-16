@@ -18,6 +18,8 @@ class Luminous_Guardian(Creature):
         self.name:str="Luminous Guardian"
         self.live:int=3
         self.power:int=3
+        self.actual_live:int=3
+        self.actual_power:int=3
 
         self.type_creature:str="Angel Creature - Angel"
         self.type:str="Creature"

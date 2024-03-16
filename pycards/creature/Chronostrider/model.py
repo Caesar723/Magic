@@ -18,6 +18,8 @@ class Chronostrider(Creature):
         self.name:str="Chronostrider"
         self.live:int=4
         self.power:int=2
+        self.actual_live:int=4
+        self.actual_power:int=2
 
         self.type_creature:str="Human Wizard"
         self.type:str="Creature"

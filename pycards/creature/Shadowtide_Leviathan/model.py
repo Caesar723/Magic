@@ -18,6 +18,8 @@ class Shadowtide_Leviathan(Creature):
         self.name:str="Shadowtide Leviathan"
         self.live:int=8
         self.power:int=8
+        self.actual_live:int=8
+        self.actual_power:int=8
 
         self.type_creature:str="Leviathan Creature - Leviathan"
         self.type:str="Creature"

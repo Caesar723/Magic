@@ -18,6 +18,8 @@ class Avacyn__Guardian_of_Hope(Creature):
         self.name:str="Avacyn, Guardian of Hope"
         self.live:int=4
         self.power:int=5
+        self.actual_live:int=4
+        self.actual_power:int=5
 
         self.type_creature:str="Angel Creature"
         self.type:str="Creature"
