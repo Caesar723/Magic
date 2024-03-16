@@ -114,8 +114,11 @@ class Room:
         self.reset_turn_timer()
         
 
-    def start_attack(self,defender:Creature):# attacker and defenders start attack
-        pass
+    def start_attack(self,defender:Creature|Player):# attacker and defenders start attack
+        if type(defender)==Creature:
+            pass
+        elif type(defender)==Player:
+            pass
 
     def get_flag(self,flag_name:str):
         
@@ -161,7 +164,7 @@ class Room:
         self.reset_bullet_timer()
        
         if self.get_flag("attacker_defenders"):#如果attacker_defenders还是True 那attacker 就去攻击敌方英雄
-            pass#让cards 进行攻击阻挡
+            self.start_attack(card)
             self.flag_dict["attacker_defenders"]=False
             print(self.flag_dict["attacker_defenders"])
         self.flag_dict["bullet_time"]=False
@@ -178,6 +181,10 @@ class Room:
 
     def reset_bullet_timer(self):
         self.initinal_bullet_timer=time.perf_counter()
+
+    def start_bullet_time(self):
+        self.reset_bullet_timer()
+        self.flag_dict["bullet_time"]=True
 
 
     def change_turn(self):# when active_player end turn
@@ -229,6 +236,9 @@ class Room:
             player.select_attacker(card)
             self.flag_dict['attacker_defenders']=True
             self.attacker=card
+            self.start_bullet_time()
+            
+            
             return (True,"success")# bool, reason
         else:
             return (False,"You must do it in your turn")
@@ -308,8 +318,7 @@ class Room:
             
     def put_prepared_function_to_stack(self,prepared_function,card:Card):
         
-        self.reset_bullet_timer()
-        self.flag_dict["bullet_time"]=True
+        self.start_bullet_time()
         self.stack.append((prepared_function,card))
 
 
