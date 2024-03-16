@@ -36,24 +36,27 @@ class Creature(Card):
     
     #card1-start attack->card1-deal damage->card2-take_damage
     #card2-start defense->card2-deal damage->card1-take_damage
-    def start_attack(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#当两个creature 对战的时候,这个creature是attacter
-        self.deal_damage(card,player,opponent)
-        self.when_harm_is_done()
+    # def start_attack(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#当两个creature 对战的时候,这个creature是attacter
+    #     self.deal_damage(card,player,opponent)
         
 
-    def start_defense(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#当两个creature 对战的时候,这个creature是defender
-        pass
+    # def start_defense(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#当两个creature 对战的时候,这个creature是defender
+    #     self.deal_damage(card,player,opponent)
 
     def deal_damage(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):# 用在所有造成伤害的功能
         power,life=self.state
         
-        card.take_damage(self,power,opponent,player)
-        self.when_harm_is_done()
+        card.take_damage(self,power,card.player,card.player.opponent) 
+        self.when_harm_is_done(card,power,player,opponent)
+        
 
         
 
-    def take_damage(self,card:Card,value:int,player: "Player" = None, opponent: "Player" = None)->int:# 用在所有受伤的功能,返回所造成的实际伤害
-        pass
+    def take_damage(self,card:Card,value:int,player: "Player" = None, opponent: "Player" = None)->int:# 可以受到来自各种卡牌的伤害
+        print(value,card)
+        self.actual_live-=value
+        self.when_hurt(card,value,player,opponent)
+        return value
 
     def grt_current_power_live(self)->tuple:# calculate power_live
         pass
@@ -79,11 +82,11 @@ class Creature(Card):
     def when_end_turn(self,player: "Player" = None, opponent: "Player" = None):
         pass
 
-    def when_harm_is_done(self,value:int,card:"Creature",player: "Player" = None, opponent: "Player" = None):#当造成伤害时
-        pass
+    def when_harm_is_done(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当造成伤害时
+        return value
 
-    def when_hurt(self,value:int,card:"Creature",player: "Player" = None, opponent: "Player" = None):#当受到伤害时
-        pass
+    def when_hurt(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当受到伤害时
+        return value
 
     def when_being_treated(self,player: "Player" = None, opponent: "Player" = None):#当受到治疗时
         pass
@@ -101,6 +104,12 @@ class Creature(Card):
         pass
 
     def when_kill_creature(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):
+        pass
+
+    def when_start_attcak(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):
+        pass
+
+    def when_start_defend(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):
         pass
 
     def loss_buff(self,buff):
@@ -129,7 +138,8 @@ class Creature(Card):
         # player.battlefield.append(self)
     
     def __repr__(self):
-        content=f"({self.name},{self.type},{self.live}/{self.power},{id(self)})"
+        power,live=self.state
+        content=f"({self.name},{self.type},{power}/{live},{id(self)})"
         return content
 
 

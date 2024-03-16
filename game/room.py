@@ -12,7 +12,7 @@ if __name__=="__main__":
 import asyncio
 import random
 import time
-from typing import TYPE_CHECKING
+from typing import Union,TYPE_CHECKING
 if TYPE_CHECKING:
     from fastapi import WebSocket
 
@@ -75,7 +75,7 @@ class Room:
         self.stack:list[tuple]=[]#(preparend_function,card) 这个很重要 card 是英文需要检查card 的类型
 
         #attacker
-        self.attacker:Card=None
+        self.attacker:Creature=None
 
         #defenders
         #self.defenders:list[Card]=None
@@ -114,11 +114,18 @@ class Room:
         self.reset_turn_timer()
         
 
-    def start_attack(self,defender:Creature|Player):# attacker and defenders start attack
-        if type(defender)==Creature:
+    def start_attack(self,defender:Union[Creature,Player]):# attacker and defenders start attack
+        if isinstance(defender,Creature):
+            self.attacker.when_start_attcak(defender,self.attacker.player,self.attacker.player.opponent)
+            defender.when_start_defend(self.attacker,defender.player,defender.player.opponent)
+            self.attacker.deal_damage(defender,self.attacker.player,self.attacker.player.opponent)
+            defender.deal_damage(self.attacker,defender.player,defender.player.opponent)
+
+
+        elif isinstance(defender,Player):
             pass
-        elif type(defender)==Player:
-            pass
+
+        self.attacker=None
 
     def get_flag(self,flag_name:str):
         
@@ -152,13 +159,14 @@ class Room:
         
         while self.stack:
             func,card=self.stack.pop()
-            if type(card)==Creature:#如果是有Menace 就记数，有两个才会让attacker_defenders变false
+            result=func()
+            if result=="defender" and isinstance(card,Creature):#如果是有Menace 就记数，有两个才会让attacker_defenders变false
                 max_defender_number=1
                 self.add_counter_dict("defender_number",1)
                 if self.counter_dict["defender_number"]>=max_defender_number:
                     self.flag_dict["attacker_defenders"]=False
                 self.start_attack(card)
-            func()
+            
 
         #self.stack 用pop()把每一个函数调用
         self.reset_bullet_timer()
@@ -253,7 +261,7 @@ class Room:
         
         if player==self.non_active_player and self.get_flag("attacker_defenders"):
             player.select_defender(card)
-            prepared_function=lambda: None
+            prepared_function=lambda: "defender"
             self.put_prepared_function_to_stack(prepared_function,card)
             card.when_become_defender(player,player.opponent)
             return (True,"success")
@@ -356,7 +364,7 @@ non_active_player:{non_active_player_name}
 
 -----------------------------------------------------------------------------------
 bullet_time:{str(self.get_flag("bullet_time"))}
-
+attacter:{self.attacker}
 -----------------------------------------------------------------------------------
 player1:{player1}
     battle_field:{self.players[player1].battlefield}
@@ -397,10 +405,16 @@ if __name__=="__main__":
         asyncio.create_task(room.message_receiver("1|end_step|"))
         await asyncio.sleep(2)
         asyncio.create_task(room.message_receiver("2|play_card|5"))
-        asyncio.create_task(room.message_receiver("2|play_card|0"))
+        
         await asyncio.sleep(5)
         print(room)
         await asyncio.sleep(2)
+        asyncio.create_task(room.message_receiver("2|select_attacker|0"))
+        print(room)
+        await asyncio.sleep(2)
+        asyncio.create_task(room.message_receiver("1|select_defender|0"))
+        await asyncio.sleep(6)
+        print(room)
         
     asyncio.run(main())
     

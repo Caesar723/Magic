@@ -89,7 +89,7 @@ class Player:
         self.initinal_card_dict()
     
     def set_opponent_player(self,opponent:"Player"):
-        self.opponent=opponent
+        self.opponent:"Player"=opponent
 
 
     def set_socket(self,socket):
@@ -102,7 +102,7 @@ class Player:
         for element in decks_detail.split("|"):
             name,type,number=element.split("+")
             number=int(number)
-            self.deck+=[CARD_DICTION[f"{name}_{type}"]() for i in range(number)]
+            self.deck+=[CARD_DICTION[f"{name}_{type}"](self) for i in range(number)]
         self.hand=self.deck[:7]# get 7 card to hand
         self.library=self.deck[7:]# the rest is in the library
 
