@@ -1,52 +1,26 @@
-
-
-import os
-import json
-
-
-
-from pydantic import validate_call,BaseModel
-from typing_extensions import Literal
-
-
-
-
-@validate_call
-def select_object(type:Literal['all_roles',#分为两个阶段，准备阶段和使用阶段，询问选择对象为准备阶段，会返回一个function，调用这个function为使用阶段
-                               'opponent_roles', #只有在creature的战吼，sorcery的打出的能力，和instant 打出能力时，会用到
-                               'your_roles',
-                               'all_creatures',
-                               'opponent_creatures',
-                               'your_creatures',
-                               'all_lands',
-                               'opponent_lands',
-                               'your_lands',
-                               ''],
-                  number:int):
+class MyClass:
+    def method(self):
+        return "原始方法"
     
-    
-    key_word="selected_object"
+    @property
+    def value(self):
+        return 1
 
-    def new_decorator(func):
-        def new_func(self,*args, **kwargs):
-            objects= ()
-            print(objects)
-            kwargs[key_word] = objects
-            def prepared_function():
-                func(self,*args,**kwargs)
-            return prepared_function
-        return new_func
-    return new_decorator
+def new_method(self):
+    return "new method"
 
 
-class A:
-    @select_object("",1)
-    def a(self,b=None,selected_object=()):
-        pass
+# 使用types.MethodType
+import types
 
-class B(A):
-    pass
+# 重新创建一个实例
+obj2 = MyClass()
 
-a=B()
-r=a.a(1)
-r()
+# 只修改obj2的method方法，不影响类或其他实例
+print(isinstance(obj2.__class__.value, property))
+setattr(obj2, "method", new_method)
+#obj2.method = types.MethodType(new_method, obj2)
+print(obj2.method())  # 输出: 新方法
+
+obj3= MyClass()
+print(obj3.method())  # 输出: 新方法

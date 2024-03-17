@@ -166,6 +166,14 @@ class Player:
         print(card)
         #result[1]()
         return result
+    
+    async def check_creature_die(self,card:Creature):
+        result=await card.check_dead()
+        if result:
+            await card.when_move_to_graveyard(self,self.opponent)
+            # card.when_die(self,self.opponent)
+            # card.when_leave_battlefield(self,self.opponent,'graveyard')
+        return result
 
     def beginning_phase(self,player:"Player"):#开始阶段
         self.untap_step()
@@ -238,7 +246,7 @@ class Player:
         
         self.action_store.append(actions.Gain_Card(self,self,card,False))
 
-
+    
 if __name__=="__main__":
 
     

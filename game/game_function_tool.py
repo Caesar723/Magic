@@ -91,7 +91,24 @@ def name_replace(name:str):
         name=name.replace(char,"_")
     return name
 
+def backup_instance_methods(instance):
+    """备份对象中的所有方法"""
+    #instance._original_properties = {}
+    instance._original_methods = {}
+    for attr_name in dir(instance.__class__):
+        #attr = getattr(instance.__class__, attr_name)
+        attr = getattr(instance.__class__, attr_name)
+        print(attr_name,callable(attr))
+        if callable(attr) and not attr_name.startswith("__"):
+            ins_attr = getattr(instance, attr_name)
+            instance._original_methods[attr_name] = ins_attr
+       
 
+def reset_instance_methods(instance):
+    """重置对象的方法到原始状态"""
+    for attr_name, attr_value in instance._original_methods.items():
+        setattr(instance, attr_name, attr_value)
+   
 
 if __name__=="__main__":
 

@@ -29,6 +29,9 @@ class Card:
     @property
     def cost(self)->list[int]:# colorless,red, green, blue,black,white
         return 
+    
+    def calculate_cost(self)->list[int]:# colorless,red, green, blue,black,white
+        return 
 
     def check_can_use(self,player:'Player')->tuple[bool, str]:# check whether user can use this card , bool and reason
         return (True,"")

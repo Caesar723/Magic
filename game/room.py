@@ -160,7 +160,7 @@ class Room:
         while self.stack:
             func,card=self.stack.pop()
             result=func()
-            if result=="defender" and isinstance(card,Creature):#如果是有Menace 就记数，有两个才会让attacker_defenders变false
+            if result=="defender" and isinstance(card,Creature) and not await card.check_dead() and not await self.attacker.check_dead():#如果是有Menace 就记数，有两个才会让attacker_defenders变false
                 max_defender_number=1
                 self.add_counter_dict("defender_number",1)
                 if self.counter_dict["defender_number"]>=max_defender_number:
@@ -175,6 +175,7 @@ class Room:
             self.start_attack(self.non_active_player)
             self.flag_dict["attacker_defenders"]=False
             print(self.flag_dict["attacker_defenders"])
+        await self.check_death()
         self.flag_dict["bullet_time"]=False
 
         self.attacker=None
@@ -231,6 +232,7 @@ class Room:
                     await self.message_process_condition.wait_for(lambda: len(self.message_process_queue) > 0)  # 等待队列不为空
             func=self.message_process_queue.pop(0)
             await func[0](*func[1]) 
+            await self.check_death()
 
     async def select_attacker(self,username:str,content:str):
         player:Player=self.players[username]
@@ -345,6 +347,10 @@ class Room:
         else:
             self.counter_dict[key]=number
 
+    async def check_death(self):
+        for name in self.players:
+            for creature in self.players[name].battlefield:
+                await self.players[name].check_creature_die(creature)
 
     def __repr__(self):
         player1,player2=[key for key in self.players]

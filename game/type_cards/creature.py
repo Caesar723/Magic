@@ -5,7 +5,7 @@ if TYPE_CHECKING:
 
 
 
-from game.game_function_tool import select_object
+from game.game_function_tool import select_object,backup_instance_methods,reset_instance_methods
 from game.card import Card
 from game.type_action import actions
 
@@ -19,6 +19,7 @@ class Creature(Card):
         super().__init__(player)
 
         self.flag_dick:dict={}
+        self.buffs=[]
 
         #the CreaturePara for js
         
@@ -29,9 +30,15 @@ class Creature(Card):
         self.actual_power:int
         
         self.type_creature:str
+
+        backup_instance_methods(self)#用在buff的，因为buff会改变函数，所以需要重置函数
     
     @property
     def state(self):
+        state=self.calculate_state()
+        return state
+    
+    def calculate_state(self):
         return (self.actual_power,self.actual_live)
     
     #card1-start attack->card1-deal damage->card2-take_damage
@@ -62,16 +69,16 @@ class Creature(Card):
         pass
 
 
-    def check_dead(self):#check whether creature die,or whether appear at battle field
-        pass
+    
 
     #Here are listeners
     @select_object("",1)
     def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
         pass
 
-    def when_leave_battlefield(self,player: "Player" = None, opponent: "Player" = None):# when creature leave battlefield
-        pass
+    def when_leave_battlefield(self,player: "Player" = None, opponent: "Player" = None,name:str='battlefield'):# when creature leave battlefield
+        player.remove_card(self,"battlefield")
+        player.append_card(self,name)
 
     def when_die(self,player: "Player" = None, opponent: "Player" = None):
         pass
@@ -114,8 +121,17 @@ class Creature(Card):
 
     def loss_buff(self,buff):
         pass
+        self.update_buff()
 
     def gain_buff(self,buff):
+        pass
+        self.update_buff()
+
+    def update_buff(self):
+        reset_instance_methods(self)
+        self.change_function_by_buff()
+        
+    def change_function_by_buff(self):#遍历buffs，改变函数
         pass
 
     def when_targeted(self):#When this creature is targeted
@@ -123,6 +139,20 @@ class Creature(Card):
 
     # def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card
     #     pass
+    async def check_dead(self):#check whether creature die,or whether appear at battle field
+        power,live=self.state
+        if live<=0:
+            return True
+        else:
+            return False
+        
+    async def when_move_to_graveyard(self, player: "Player" = None, opponent: "Player" = None):#移入墓地
+        self.when_die(player,opponent)
+        self.when_leave_battlefield(player,opponent,'graveyard')
+        self.reset_to_orginal_state()
+        
+        # player.remove_card(self,"battlefield")
+        # player.append_card(self,"graveyard")
     
     
 
@@ -136,6 +166,11 @@ class Creature(Card):
         return prepared_function
         # player.hand.remove(self)
         # player.battlefield.append(self)
+    
+    def reset_to_orginal_state(self):
+        self.actual_live=self.live
+        self.actual_power=self.power
+        reset_instance_methods(self)
     
     def __repr__(self):
         power,live=self.state
