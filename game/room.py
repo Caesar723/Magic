@@ -105,8 +105,8 @@ class Room:
         players.remove(player1)
         player2=players[0]
         
-        self.active_player=player1
-        self.non_active_player=player2
+        self.active_player:Player=player1
+        self.non_active_player:Player=player2
         asyncio.create_task(self.timer_task())
 
         # self.flag_dict["bullet_time"]=False
@@ -160,12 +160,17 @@ class Room:
         while self.stack:
             func,card=self.stack.pop()
             result=func()
-            if result=="defender" and isinstance(card,Creature) and not await card.check_dead() and not await self.attacker.check_dead():#如果是有Menace 就记数，有两个才会让attacker_defenders变false
-                max_defender_number=1
-                self.add_counter_dict("defender_number",1)
-                if self.counter_dict["defender_number"]>=max_defender_number:
-                    self.flag_dict["attacker_defenders"]=False
-                self.start_attack(card)
+            if result=="defender" and isinstance(card,Creature) :
+
+                await card.check_dead()
+                await self.attacker.check_dead()
+
+                if not card.get_flag("die") and not self.attacker.get_flag("die"):#如果是有Menace 就记数，有两个defender才会让attacker_defenders变false 
+                    max_defender_number=1
+                    self.add_counter_dict("defender_number",1)
+                    if self.counter_dict["defender_number"]>=max_defender_number:
+                        self.flag_dict["attacker_defenders"]=False
+                    self.start_attack(card)
             
 
         #self.stack 用pop()把每一个函数调用
@@ -389,6 +394,7 @@ player2:{player2}
     
             
 if __name__=="__main__":
+    from game.buffs import StateBuff
     async def main():
         test="Mystic Tides+Instant+1|Mystic Reflection+Instant+1|Mystic Evasion+Instant+2|Mindful Manipulation+Sorcery+1|Nyxborn Serpent+Creature+1|Mistweaver Drake+Creature+1"
         room=Room([(test,"1"),(test,"2")])
@@ -413,11 +419,18 @@ if __name__=="__main__":
         asyncio.create_task(room.message_receiver("2|play_card|5"))
         
         await asyncio.sleep(5)
+        card=room.active_player.battlefield[0]
+        buff=StateBuff(card,2,2)
+        card.gain_buff(buff)
         print(room)
+        card.loss_buff(buff)
+        print(room)
+
         await asyncio.sleep(2)
         asyncio.create_task(room.message_receiver("2|select_attacker|0"))
-        print(room)
+        
         await asyncio.sleep(2)
+        print(room)
         asyncio.create_task(room.message_receiver("1|select_defender|0"))
         await asyncio.sleep(6)
         print(room)

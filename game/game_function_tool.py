@@ -93,12 +93,9 @@ def name_replace(name:str):
 
 def backup_instance_methods(instance):
     """备份对象中的所有方法"""
-    #instance._original_properties = {}
     instance._original_methods = {}
     for attr_name in dir(instance.__class__):
-        #attr = getattr(instance.__class__, attr_name)
         attr = getattr(instance.__class__, attr_name)
-        print(attr_name,callable(attr))
         if callable(attr) and not attr_name.startswith("__"):
             ins_attr = getattr(instance, attr_name)
             instance._original_methods[attr_name] = ins_attr

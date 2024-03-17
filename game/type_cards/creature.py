@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 from game.game_function_tool import select_object,backup_instance_methods,reset_instance_methods
 from game.card import Card
 from game.type_action import actions
-
+from game.buffs import Buff
 
 
 
@@ -18,8 +18,8 @@ class Creature(Card):
     def __init__(self,player) -> None:
         super().__init__(player)
 
-        self.flag_dick:dict={}
-        self.buffs=[]
+        self.flag_dict:dict={}
+        self.buffs:list[Buff]=[]
 
         #the CreaturePara for js
         
@@ -41,6 +41,11 @@ class Creature(Card):
     def calculate_state(self):
         return (self.actual_power,self.actual_live)
     
+    def get_flag(self,flag_name:str):
+        if flag_name in self.flag_dict:
+            return self.flag_dict[flag_name]
+        else:
+            return False
     #card1-start attack->card1-deal damage->card2-take_damage
     #card2-start defense->card2-deal damage->card1-take_damage
     # def start_attack(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#当两个creature 对战的时候,这个creature是attacter
@@ -120,11 +125,12 @@ class Creature(Card):
         pass
 
     def loss_buff(self,buff):
-        pass
+        if buff in self.buffs:
+            self.buffs.remove(buff)
         self.update_buff()
 
     def gain_buff(self,buff):
-        pass
+        self.buffs.append(buff)
         self.update_buff()
 
     def update_buff(self):
@@ -132,7 +138,8 @@ class Creature(Card):
         self.change_function_by_buff()
         
     def change_function_by_buff(self):#遍历buffs，改变函数
-        pass
+        for buff in self.buffs:
+            buff.change_function(self)
 
     def when_targeted(self):#When this creature is targeted
         pass
@@ -142,6 +149,7 @@ class Creature(Card):
     async def check_dead(self):#check whether creature die,or whether appear at battle field
         power,live=self.state
         if live<=0:
+            self.flag_dict["die"]=True
             return True
         else:
             return False
