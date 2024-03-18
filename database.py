@@ -116,7 +116,8 @@ def reset_all_card():
                 session.add(new_card)
     session.commit()
     session.close()     
-            
+
+
 
 def reset_packs():
     from packs import Pack_Database
@@ -430,7 +431,7 @@ class DataBase:
 
 if __name__=="__main__":
     
-    reset_table()
+    #reset_table()
     reset_all_card()
-    reset_packs()
+    #reset_packs()
     pass

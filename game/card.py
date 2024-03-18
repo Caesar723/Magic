@@ -52,9 +52,31 @@ class Card:
             color_dict["colorless"]=int(number_part)
         return color_dict
 
-    def check_can_use(self,player:'Player')->tuple[bool, str]:# check whether user can use this card , bool and reason
-        print(self.cost)
-        return (True,"")
+    def check_can_use(self,player:'Player')->tuple[bool]:# check whether user can use this card , bool and reason
+        player_mana=dict(self.player.mana)
+        cost=self.cost
+        difference={key:cost[key]-player_mana[key] for key in player_mana}
+
+        land_store=[]
+
+        for land in player.land_area:
+            mana=land.generate_mana()
+            for key in mana:
+                if difference[key]>0:
+                    difference[key]-=mana[key]
+                    land_store.append(land)
+
+        all_values_less_than_zero = all(value <= 0 for value in difference.values())
+        if all_values_less_than_zero:
+            return (True,land_store)#第二个list是如果用[。。。]这些就可以打出这个牌
+        else:
+            return (False,"not enough cost")
+
+
+       
+        
+
+    
 
     def attact_to_object(self,object):# it won't get hurt object can be card ot player
         pass
@@ -66,12 +88,12 @@ class Card:
         pass
         
     async def when_use_this_card(self,player:'Player',opponent:'Player'):# 先use check cost再play
-        checked_result=self.check_can_use(player)
-        if not checked_result[0]:
-            return checked_result
-        else:
-            prepared_function=await self.when_play_this_card(player,opponent)
-            return (True,prepared_function)
+        # checked_result=self.check_can_use(player)
+        # if not checked_result[0]:
+        #     return checked_result
+        # else:
+        prepared_function=await self.when_play_this_card(player,opponent)
+        return (True,prepared_function)
         
             
 

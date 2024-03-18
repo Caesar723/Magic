@@ -55,3 +55,6 @@ class Summon(Action):
 
 class Turn(Action):# your turn!
     pass
+
+class Change_Mana(Action):
+    pass

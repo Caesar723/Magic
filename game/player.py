@@ -14,6 +14,7 @@ from game.type_action import actions
 from game.card import Card
 from initinal_file import CARD_DICTION
 from game.type_cards.creature import Creature
+from game.type_cards.land import Land
 
 
 
@@ -167,10 +168,19 @@ class Player:
         pass
 
     async def play_a_card(self,card:Card):# player 打出一张牌
-        result=await card.when_use_this_card(self,self.opponent)
-        print(card)
-        #result[1]()
-        return result
+        checked_result=card.check_can_use(self)
+        print(checked_result)
+        if checked_result[0]:
+            for land in checked_result[1]:
+                if not land.when_clicked(self,self.opponent):
+                    return (False,"Can't use land")
+            self.mana_consumed(card)
+            result=await card.when_use_this_card(self,self.opponent)
+            print(card)
+            #result[1]()
+            return result
+        else:
+            return checked_result
     
     async def check_creature_die(self,card:Creature):
         result=await card.check_dead()
@@ -255,6 +265,11 @@ class Player:
             deck_type[type].append(card)
         
         self.action_store.append(actions.Gain_Card(self,self,card,False))
+
+    def mana_consumed(self,card:"Card"):#自己的魔力池减少
+        cost=card.cost
+        for key in cost:
+            self.mana[key]-=cost[key]
 
     
 if __name__=="__main__":
