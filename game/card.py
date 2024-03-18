@@ -3,6 +3,8 @@ if TYPE_CHECKING:
     from game.player import Player
 
 
+import re
+
 
 from game.game_function_tool import validate_all_methods
 from game.type_action import actions
@@ -27,13 +29,31 @@ class Card:
         self.image_path:str
 
     @property
-    def cost(self)->list[int]:# colorless,red, green, blue,black,white
-        return 
+    def cost(self)->dict[int]:# colorless,red, green, blue,black,white
+        return self.calculate_cost()
     
-    def calculate_cost(self)->list[int]:# colorless,red, green, blue,black,white
-        return 
+    def calculate_cost(self)->dict[int]:# colorless,red, green, blue,black,white
+        number_part=""
+        
+        color_dict={
+            "colorless":0,
+            "U":0,
+            "W":0,
+            "B":0,
+            "R":0,
+            "G":0
+        }
+        for word in self.mana_cost:
+            if word.isdigit():
+                number_part+=word
+            else:
+                color_dict[word]+=1
+        if number_part:
+            color_dict["colorless"]=int(number_part)
+        return color_dict
 
     def check_can_use(self,player:'Player')->tuple[bool, str]:# check whether user can use this card , bool and reason
+        print(self.cost)
         return (True,"")
 
     def attact_to_object(self,object):# it won't get hurt object can be card ot player

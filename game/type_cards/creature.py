@@ -60,6 +60,8 @@ class Creature(Card):
         
         card.take_damage(self,power,card.player,card.player.opponent) 
         self.when_harm_is_done(card,power,player,opponent)
+        if card.check_dead():
+            self.when_kill_creature(card,player,opponent)
         
 
         
@@ -70,8 +72,8 @@ class Creature(Card):
         self.when_hurt(card,value,player,opponent)
         return value
 
-    def grt_current_power_live(self)->tuple:# calculate power_live
-        pass
+    # def grt_current_power_live(self)->tuple:# calculate power_live
+    #     pass
 
 
     
@@ -85,53 +87,58 @@ class Creature(Card):
         player.remove_card(self,"battlefield")
         player.append_card(self,name)
 
-    def when_die(self,player: "Player" = None, opponent: "Player" = None):
+    def when_die(self,player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
-    def when_start_turn(self,player: "Player" = None, opponent: "Player" = None):
+    def when_start_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
-    def when_end_turn(self,player: "Player" = None, opponent: "Player" = None):
+    def when_end_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
-    def when_harm_is_done(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当造成伤害时
+    def when_harm_is_done(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当造成伤害时 OK
         return value
 
-    def when_hurt(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当受到伤害时
+    def when_hurt(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当受到伤害时 OK
         return value
 
     def when_being_treated(self,player: "Player" = None, opponent: "Player" = None):#当受到治疗时
         pass
 
-    def when_become_attacker(self,player: "Player" = None, opponent: "Player" = None):
+    def when_become_attacker(self,player: "Player" = None, opponent: "Player" = None):# OK
         pass
 
-    def when_become_defender(self,player: "Player" = None, opponent: "Player" = None):
+    def when_become_defender(self,player: "Player" = None, opponent: "Player" = None):# OK
         pass
 
-    def when_gain_buff(self,player: "Player" = None, opponent: "Player" = None):#当获得+1+1的buff时
+    def when_gain_buff(self,player: "Player" = None, opponent: "Player" = None):#当获得+1+1的buff时 OK
         pass
 
-    def when_loss_buff(self,player: "Player" = None, opponent: "Player" = None):#当失去+1+1的buff时
+    def when_loss_buff(self,player: "Player" = None, opponent: "Player" = None):#当失去+1+1的buff时 OK
         pass
 
-    def when_kill_creature(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):
+    def when_kill_creature(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
-    def when_start_attcak(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):
+    def when_start_attcak(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
-    def when_start_defend(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):
+    def when_start_defend(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
     def loss_buff(self,buff):
         if buff in self.buffs:
             self.buffs.remove(buff)
-        self.update_buff()
+            self.update_buff()
+            self.when_loss_buff(self.player,self.player.opponent)
+        else:
+            self.update_buff()
+        
 
     def gain_buff(self,buff):
         self.buffs.append(buff)
         self.update_buff()
+        self.when_gain_buff(self.player,self.player.opponent)
 
     def update_buff(self):
         reset_instance_methods(self)
@@ -154,7 +161,7 @@ class Creature(Card):
         else:
             return False
         
-    async def when_move_to_graveyard(self, player: "Player" = None, opponent: "Player" = None):#移入墓地
+    async def when_move_to_graveyard(self, player: "Player" = None, opponent: "Player" = None):#移入墓地 OK
         self.when_die(player,opponent)
         self.when_leave_battlefield(player,opponent,'graveyard')
         self.reset_to_orginal_state()
@@ -164,7 +171,7 @@ class Creature(Card):
     
     
 
-    async def when_play_this_card(self, player: "Player" = None, opponent: "Player" = None):# when player use the card
+    async def when_play_this_card(self, player: "Player" = None, opponent: "Player" = None):# when player use the card OK
         await super().when_play_this_card(player, opponent)
 
         player.remove_card(self,"hand")
@@ -179,6 +186,8 @@ class Creature(Card):
         self.actual_live=self.live
         self.actual_power=self.power
         reset_instance_methods(self)
+
+    
     
     def __repr__(self):
         power,live=self.state

@@ -150,9 +150,9 @@ class Room:
                 await self.end_bullet_time()
         
 
-    def end_turn_time(self):#turn_timer is 0
+    async def end_turn_time(self):#turn_timer is 0
         #self.non_active_player.
-        self.change_turn()
+        await self.change_turn()
         self.reset_turn_timer()
 
     async def end_bullet_time(self):#bullet_time is 0
@@ -201,8 +201,11 @@ class Room:
         self.flag_dict["bullet_time"]=True
 
 
-    def change_turn(self):# when active_player end turn
+    async def change_turn(self):# when active_player end turn
+        await self.active_player.ending_phase()
         self.active_player,self.non_active_player=self.non_active_player,self.active_player
+        
+        self.active_player.beginning_phase()
         #触发一些回合开始的东西
 
     
@@ -217,10 +220,11 @@ class Room:
         ##...|select_object|
         ...|end_step|
         ...|discard|[list of numbers]
-        ...|activate_ability|区域;index
+        ...|activate_ability|区域;index   #大部分是用在land，点击land激活能力产生法力
         ...|concede(投降)|
         ...|end_bullet_time|...#当两个玩家都end bullet time 的时候，他们才会真正的结束bullet time
         ...|start_attack|#当敌方用start_attack才有用
+       
         
         """
         username,type,content=message.split("|")
@@ -298,7 +302,7 @@ class Room:
     async def end_step(self,username:str,content:str):
         player:Player=self.players[username]
         if player==self.active_player:
-            self.end_turn_time()
+            await self.end_turn_time()
             return (True,"success")
         else:
             return (False,"You must attack in your turn")
@@ -381,11 +385,13 @@ player1:{player1}
     battle_field:{self.players[player1].battlefield}
     hand:{self.players[player1].hand}
     graveyard:{self.players[player1].graveyard}
+    mana:{self.players[player1].mana}
 
 player2:{player2}
     battle_field:{self.players[player2].battlefield}
     hand:{self.players[player2].hand}
     graveyard:{self.players[player2].graveyard}
+    mana:{self.players[player2].mana}
 #########################################################################################
         
 

@@ -18,6 +18,11 @@ class Land(Card):
 
         self.flag_dick:dict={}
 
+
+    def check_can_use(self,player:'Player')->tuple[bool, str]:# check whether user can use this card , bool and reason
+        return (True,"")
+    
+
     def generate_mana(self):
         pass
 
@@ -34,8 +39,11 @@ class Land(Card):
     def when_sacrificed(self):#当牺牲时
         pass
 
-    def when_clicked(self):#当地牌被点击时   #启动式能力（Activated Abilities）：玩家可以在任何时候支付成本来使用的能力，通常格式为“[成本]：[效果]”。
+    def when_clicked(self):#当地牌被点击时横置，有一些是获得mana，有一些是别的能力   #启动式能力（Activated Abilities）：玩家可以在任何时候支付成本来使用的能力，通常格式为“[成本]：[效果]”。
         pass
+
+    def check_ability_can_be_used(self):#有一些是“仅在你的回合”、“仅在主要阶段”、或“仅当堆栈为空时”能够激活
+        return True
 
     async def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card
         await super().when_play_this_card(player, opponent)

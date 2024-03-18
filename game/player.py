@@ -47,8 +47,8 @@ class Player:
         #hand area
         self.hand:list[Card]=[]
 
-        #mana cost [colorless,red, green, blue,black,white]
-        self.mana:list=[]
+        #mana cost [colorless, blue,white,black,red,green]
+        self.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
 
         #counter dict like number of turns, number of cards used
         self.counter_dict:dict={}
@@ -111,7 +111,12 @@ class Player:
         self.cards_store_dict["end_step"]=[]
         self.cards_store_dict["aura"]=[]
         
-
+    def get_cards_from_dict(self,key:str):
+        if key in self.cards_store_dict:
+            return self.cards_store_dict[key]
+        else:
+            return []
+        
     def put_card_to_dict(self,key:str,card:Card)->None:# put a card to self.cards_store_dict
         if key in self.cards_store_dict:
             self.cards_store_dict[key].append(card)
@@ -175,16 +180,17 @@ class Player:
             # card.when_leave_battlefield(self,self.opponent,'graveyard')
         return result
 
-    def beginning_phase(self,player:"Player"):#开始阶段
+    def beginning_phase(self):#开始阶段
         self.untap_step()
-        self.upkeep_step(player)
+        self.upkeep_step()
         self.draw_step()
 
     def untap_step(self):#解除操控步骤:土地被横置以产生法术力（Mana），生物被横置以攻击等
         pass
 
-    def upkeep_step(self,player:"Player"):#保持步骤（Upkeep Step）：某些卡牌效果会在这个时候触发。
-        pass
+    def upkeep_step(self):#保持步骤（Upkeep Step）：某些卡牌效果会在这个时候触发。
+        for card in self.get_cards_from_dict("upkeep_step"):
+            card.when_start_turn(self,self.opponent)
 
     def draw_step(self):#抓牌步骤（Draw Step）通常情况下，玩家在这一步抓一张牌。
         self.draw_card(1)
@@ -193,14 +199,18 @@ class Player:
     def inGame_state(self):# 切换到inGame_state
         pass
 
-    def ending_phase(self,player:"Player"):#结束阶段
-        pass
+    async def ending_phase(self):#结束阶段 清空法术力（包括敌方）
+        self.end_step()
+        await self.cleanup_step()
+        
 
-    def end_step(self,player:"Player"):#结束步骤（End Step）：某些卡牌效果会在这个时候触发。
-        pass
+    def end_step(self):#结束步骤（End Step）：某些卡牌效果会在这个时候触发。
+        for card in self.get_cards_from_dict("end_step"):
+            card.when_end_turn(self,self.opponent)
 
-    def cleanup_step(self):#清理步骤（Cleanup Step）：玩家将手牌调整至最大手牌限制，移除所有“直到回合结束”类的效果，并移除所有受到的伤害。
-        pass
+    async def cleanup_step(self):#清理步骤（Cleanup Step）：玩家将手牌调整至最大手牌限制，移除所有“直到回合结束”类的效果，并移除所有受到的伤害。清空法术力（包括敌方）
+        self.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
+        self.opponent.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
 
     def get_card_index(self,index:int,type:str):# get card by index,type:battlefield,hand,land_area
         deck_type={
