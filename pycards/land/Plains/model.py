@@ -27,5 +27,6 @@ class Plains(Land):
         self.image_path:str="cards/land/Plains/image.jpg"
 
 
-
+    def generate_mana(self) -> dict:
+        return {"W":1}
         

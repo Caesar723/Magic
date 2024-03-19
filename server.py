@@ -64,7 +64,7 @@ async def signup_form(request: Request):
 async def signup(username: str = Body(...), password: str = Body(...), response: Response = None):
         #print(await database.check_username_exists(username))
         
-        if await database.check_username_exists(username):
+        if await database.check_username_exists(username,password):
             
             result=await database.store_users_password_new_player(username,password)
             if result=="signup successful":
@@ -73,6 +73,12 @@ async def signup(username: str = Body(...), password: str = Body(...), response:
                 await database.add_packs("Blue",username,1)
                 
                 await database.add_packs("Legend",username,3)
+
+                await database.store_card(username,"Island","land",30)
+                await database.store_card(username,"Forest","land",30)
+                await database.store_card(username,"Mountain","land",30)
+                await database.store_card(username,"Plains","land",30)
+                await database.store_card(username,"Swamp","land",30)
                 #await database.show_all_tables_info()
                 return {"message": "Sign up successful"}
 

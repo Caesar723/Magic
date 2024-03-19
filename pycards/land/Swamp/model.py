@@ -26,6 +26,7 @@ class Swamp(Land):
         self.content:str=""
         self.image_path:str="cards/land/Swamp/image.jpg"
 
-
+    def generate_mana(self) -> dict:
+        return {"B":1}
 
         

@@ -36,5 +36,5 @@ class Instant(Card):
         return prepared_function
 
     def __repr__(self):
-        content=f"({self.name},{self.type},{id(self)})"
+        content=f"({self.name},{self.type},{id(self)},{self.mana_cost})"
         return content

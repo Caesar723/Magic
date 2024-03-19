@@ -55,12 +55,12 @@ class Creature(Card):
     # def start_defense(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#当两个creature 对战的时候,这个creature是defender
     #     self.deal_damage(card,player,opponent)
 
-    def deal_damage(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):# 用在所有造成伤害的功能
+    async def deal_damage(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):# 用在所有造成伤害的功能
         power,life=self.state
         
         card.take_damage(self,power,card.player,card.player.opponent) 
         self.when_harm_is_done(card,power,player,opponent)
-        if card.check_dead():
+        if await card.check_dead():
             self.when_kill_creature(card,player,opponent)
         
 
@@ -177,7 +177,7 @@ class Creature(Card):
         player.remove_card(self,"hand")
         player.append_card(self,"battlefield")
         prepared_function=await self.when_enter_battlefield(player,opponent)
-        print(1)
+        print("battlefield")
         return prepared_function
         # player.hand.remove(self)
         # player.battlefield.append(self)
@@ -191,7 +191,7 @@ class Creature(Card):
     
     def __repr__(self):
         power,live=self.state
-        content=f"({self.name},{self.type},{power}/{live},{id(self)})"
+        content=f"({self.name},{self.type},{power}/{live},{id(self)},{self.mana_cost})"
         return content
 
 

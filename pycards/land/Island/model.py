@@ -26,6 +26,7 @@ class Island(Land):
         self.content:str=""
         self.image_path:str="cards/land/Island/image.jpg"
 
-
+    def generate_mana(self) -> dict:
+        return {"U":1}
 
         

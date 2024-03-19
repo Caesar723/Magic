@@ -60,11 +60,15 @@ class Card:
         land_store=[]
 
         for land in player.land_area:
-            mana=land.generate_mana()
-            for key in mana:
-                if difference[key]>0:
-                    difference[key]-=mana[key]
-                    land_store.append(land)
+            if land.check_can_use(player)[0]:
+                mana=land.generate_mana()
+                for key in mana:
+                    if difference[key]>0:
+                        difference[key]-=mana[key]
+                        land_store.append(land)
+                    elif difference["colorless"]>0:
+                        difference["colorless"]-=mana[key]
+                        land_store.append(land)
 
         all_values_less_than_zero = all(value <= 0 for value in difference.values())
         if all_values_less_than_zero:

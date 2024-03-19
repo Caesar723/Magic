@@ -27,5 +27,10 @@ class Forest(Land):
         self.image_path:str="cards/land/Forest/image.jpg"
 
 
+    def generate_mana(self) -> dict:
+        return {"G":1}
+    
+
+
 
         

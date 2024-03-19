@@ -6,7 +6,8 @@ if __name__=="__main__":
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from fastapi import WebSocket
-    
+import random
+
 
 
 from game.action import Action
@@ -104,6 +105,7 @@ class Player:
             name,type,number=element.split("+")
             number=int(number)
             self.deck+=[CARD_DICTION[f"{name}_{type}"](self) for i in range(number)]
+        #random.shuffle(self.deck)
         self.hand=self.deck[:7]# get 7 card to hand
         self.library=self.deck[7:]# the rest is in the library
 
@@ -176,7 +178,7 @@ class Player:
                     return (False,"Can't use land")
             self.mana_consumed(card)
             result=await card.when_use_this_card(self,self.opponent)
-            print(card)
+            print(result)
             #result[1]()
             return result
         else:
@@ -270,6 +272,13 @@ class Player:
         cost=card.cost
         for key in cost:
             self.mana[key]-=cost[key]
+        if self.mana["colorless"]<0:
+            for key in self.mana:
+                if key!="colorless":
+                    while self.mana[key]>0 and self.mana["colorless"]<0:
+                        self.mana[key]-=1
+                        self.mana["colorless"]+=1
+
 
     
 if __name__=="__main__":

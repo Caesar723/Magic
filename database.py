@@ -178,8 +178,9 @@ class DataBase:
             
             user = result.fetchall()
             
+        print(user)
         
-        return not user and bcrypt.checkpw(password.encode(), user[0][0].password_hash.encode())
+        return not (user and bcrypt.checkpw(password.encode(), user[0][0].password_hash.encode()))
         return not bool(user)
 
     async def check_password_match(self,username:str,password:str):#username error, passward error,matched
@@ -298,6 +299,30 @@ class DataBase:
         result = await session.execute(stmt)
         element = result.scalars().first()
         return element
+    
+    async def store_card(self,username,card_name,card_type,quantity):
+        async with self.AsyncSessionLocal() as session:
+            user= await self.find_user(session,username)
+            stmt = select(Card).where(Card.name == card_name,Card.type_card==card_type)
+            result = await session.execute(stmt)
+            card = result.scalars().first()
+
+            stmt = select(PlayerCard).where(PlayerCard.user_id == user.id,PlayerCard.card_id==card.id)
+            result = await session.execute(stmt)
+            playerCard = result.scalars().first()
+
+            if playerCard:
+                # 如果元素存在，增加quantity
+                playerCard.quantity += quantity
+                await session.commit()
+                return 'Updated', playerCard,user
+            else:
+                # 如果元素不存在，创建并添加新元素
+                new_card = PlayerCard(user_id=user.id, card_id=card.id,quantity=quantity)
+                session.add(new_card)
+                await session.commit()
+                return 'Created', new_card
+
     
     async def add_card_to_player(self,session,username,card):
         user= await self.find_user(session,username)

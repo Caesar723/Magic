@@ -23,7 +23,7 @@ from game.type_action import actions
 from game.card import Card
 from game.type_cards.instant import Instant
 from game.type_cards.creature import Creature
-
+from game.type_cards.land import Land
 
 
 class Room:
@@ -114,12 +114,12 @@ class Room:
         self.reset_turn_timer()
         
 
-    def start_attack(self,defender:Union[Creature,Player]):# attacker and defenders start attack
+    async def start_attack(self,defender:Union[Creature,Player]):# attacker and defenders start attack
         if isinstance(defender,Creature):
             self.attacker.when_start_attcak(defender,self.attacker.player,self.attacker.player.opponent)
             defender.when_start_defend(self.attacker,defender.player,defender.player.opponent)
-            self.attacker.deal_damage(defender,self.attacker.player,self.attacker.player.opponent)
-            defender.deal_damage(self.attacker,defender.player,defender.player.opponent)
+            await self.attacker.deal_damage(defender,self.attacker.player,self.attacker.player.opponent)
+            await defender.deal_damage(self.attacker,defender.player,defender.player.opponent)
 
 
         elif isinstance(defender,Player):
@@ -170,14 +170,14 @@ class Room:
                     self.add_counter_dict("defender_number",1)
                     if self.counter_dict["defender_number"]>=max_defender_number:
                         self.flag_dict["attacker_defenders"]=False
-                    self.start_attack(card)
+                    await self.start_attack(card)
             
 
         #self.stack 用pop()把每一个函数调用
         self.reset_bullet_timer()
 
         if self.get_flag("attacker_defenders"):#如果attacker_defenders还是True 那attacker 就去攻击敌方英雄
-            self.start_attack(self.non_active_player)
+            await self.start_attack(self.non_active_player)
             self.flag_dict["attacker_defenders"]=False
             print(self.flag_dict["attacker_defenders"])
         await self.check_death()
@@ -327,7 +327,19 @@ class Room:
 
 
     async def activate_ability(self,username:str,content:str):
-        pass
+        area,index=content.split(";")
+        player:Player=self.players[username]
+        index=int(index)
+        card=player.get_card_index(index,area)
+        
+        if not card:
+            return (False,"no card")
+        
+        if isinstance(card,Land) or card.check_can_use(player):# 如果card 的类型是instant，可以直接释放,或者card有flash
+            card.when_clicked(player,player.opponent)
+
+        else:
+            return (False,"You can't activate ability")
 
     async def concede(self,username:str,content:str):
         pass
@@ -384,12 +396,14 @@ attacter:{self.attacker}
 player1:{player1}
     battle_field:{self.players[player1].battlefield}
     hand:{self.players[player1].hand}
+    land:{self.players[player1].land_area}
     graveyard:{self.players[player1].graveyard}
     mana:{self.players[player1].mana}
 
 player2:{player2}
     battle_field:{self.players[player2].battlefield}
     hand:{self.players[player2].hand}
+    land:{self.players[player2].land_area}
     graveyard:{self.players[player2].graveyard}
     mana:{self.players[player2].mana}
 #########################################################################################
@@ -402,7 +416,7 @@ player2:{player2}
 if __name__=="__main__":
     from game.buffs import StateBuff
     async def main():
-        test="Mystic Tides+Instant+1|Mystic Reflection+Instant+1|Mystic Evasion+Instant+2|Mindful Manipulation+Sorcery+1|Nyxborn Serpent+Creature+1|Mistweaver Drake+Creature+1"
+        test="Mistweaver Drake+Creature+1|Island+Land+4|Mystic Reflection+Instant+1|Mystic Evasion+Instant+2|Mindful Manipulation+Sorcery+1|Mistweaver Drake+Creature+1|Forest+Land+7|Aetheric Nexus+Land+1|Plains+Land+7|Swamp+Land+7|Mountain+Land+7|Mystic Tides+Instant+1"
         room=Room([(test,"1"),(test,"2")])
         
         await room.game_start()
@@ -410,27 +424,48 @@ if __name__=="__main__":
         room.active_player=room.players["1"]
         room.non_active_player=room.players["2"]
         
-        asyncio.create_task(room.message_receiver("1|play_card|5"))
-        asyncio.create_task(room.message_receiver("1|play_card|0"))
+        asyncio.create_task(room.message_receiver("1|play_card|1"))
+        await asyncio.sleep(6)
+        print(room)
         
-        await asyncio.sleep(5)
+        asyncio.create_task(room.message_receiver("1|play_card|1"))
+        await asyncio.sleep(6)
+        asyncio.create_task(room.message_receiver("1|play_card|1"))
+        
+        await asyncio.sleep(6)
+        asyncio.create_task(room.message_receiver("1|activate_ability|land_area;0"))
+        await asyncio.sleep(1)
         print(room)
         await asyncio.sleep(2)
         asyncio.create_task(room.message_receiver("1|play_card|0"))
-        await asyncio.sleep(5)
-        
+        await asyncio.sleep(6)
+        print(room)
         await asyncio.sleep(2)
         asyncio.create_task(room.message_receiver("1|end_step|"))
         await asyncio.sleep(2)
-        asyncio.create_task(room.message_receiver("2|play_card|5"))
+        asyncio.create_task(room.message_receiver("2|play_card|1"))
+        await asyncio.sleep(6)
+        print(room)
+        
+        asyncio.create_task(room.message_receiver("2|play_card|1"))
+        await asyncio.sleep(6)
+        asyncio.create_task(room.message_receiver("2|play_card|1"))
+        
+        await asyncio.sleep(6)
+        print(room)
+        await asyncio.sleep(2)
+        asyncio.create_task(room.message_receiver("2|play_card|0"))
+        await asyncio.sleep(6)
+        print(room)
+        await asyncio.sleep(2)
         
         await asyncio.sleep(5)
         card=room.active_player.battlefield[0]
         buff=StateBuff(card,2,2)
         card.gain_buff(buff)
         print(room)
-        card.loss_buff(buff)
-        print(room)
+        #card.loss_buff(buff)
+        #print(room)
 
         await asyncio.sleep(2)
         asyncio.create_task(room.message_receiver("2|select_attacker|0"))
