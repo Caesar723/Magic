@@ -1,0 +1,9 @@
+class Hand{
+    constructor(){
+        
+    }
+
+    draw(){
+        
+    }
+}

@@ -214,6 +214,7 @@ class Plane{
         return light_middle-(max_light-light_middle)
     }
     draw(camera){
+        
         const angle=this.angle_from_cam(camera);
         const light=(100-255*angle/360).toString();
         const new_points_pos=[];
@@ -264,13 +265,31 @@ class Camera{
         this.vector_y=0
         this.vector_z=1
 
+        this.angle_x=0
+        this.angle_y=0
+
         this.position=position
 
         this.dis_from_screen=900
+
+
+        this.rotate_prescent=0
+
+        
+        
     }
 
     get_vector(){
         return [this.vector_x,this.vector_y,this.vector_z]
+    }
+
+    get_matrix_position(matrixA){
+        
+        this.matrix_position=math.matrix([[this.position[0]],[this.position[1]],[this.position[2]]])
+        this.matrixExpanded = math.map(matrixA, (value, index, matrix)=> {
+            return this.matrix_position.get([index[0], 0]); // Use the row index to access matrixB and repeat its values
+        });
+        return this.matrixExpanded
     }
 
     set_vector(x,y,z){
@@ -283,9 +302,33 @@ class Camera{
         return x_or_y*(this.dis_from_screen/(z-this.position[2]))
     }
 
+    
+
     similar_tri_reverse(x_screen,y_screen,z_expect){
         return [x_screen*(z_expect-this.position[2])/this.dis_from_screen,y_screen*(z_expect-this.position[2])/this.dis_from_screen]
     }
+    add_rotate_prescent(num){
+        this.rotate_prescent=this.rotate_prescent+num
+        if (this.rotate_prescent>100){
+            this.rotate_prescent=100
+        }
+        else if(this.rotate_prescent<0){
+            this.rotate_prescent=0
+        }
+    }
+    update(){
+        const a=35
+        const b=13.59
+        const x=7-this.rotate_prescent/100*7
+        const y=math.sqrt((1-(math.pow(x, 2)/math.pow(b, 2)))*math.pow(a, 2));
+        const angle=math.atan(y/x);
+        this.angle_y=angle
+        this.position[2]=-x*0.7;
+        this.position[1]=-y;
+        console.log(this.angle_y,this.position)
+    }
+
+
 
 
 }

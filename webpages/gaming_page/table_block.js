@@ -1,0 +1,276 @@
+
+
+class Table_graph extends Block{
+    constructor(WIDTH,HEIGHT,LENGTH,position, size,img_path) {
+        super(position, size); // 调用基类的构造函数
+
+        this.image = new Image();
+        this.image.src=img_path;
+        
+        console.log(this.image);
+        this.surface=NaN;
+        this.planes=this.set_plane();
+
+        this.corners=[//x y z
+            [1*WIDTH,1*HEIGHT,1*LENGTH],
+            [1*WIDTH,1*HEIGHT,-1*LENGTH],
+            [1*WIDTH,-1*HEIGHT,1*LENGTH],
+            [1*WIDTH,-1*HEIGHT,-1*LENGTH],
+            [-1*WIDTH,1*HEIGHT,1*LENGTH],
+            [-1*WIDTH,1*HEIGHT,-1*LENGTH],
+            [-1*WIDTH,-1*HEIGHT,1*LENGTH],
+            [-1*WIDTH,-1*HEIGHT,-1*LENGTH],
+
+        ];
+        this.points=this.get_org_position(size);
+
+        
+
+    }
+    get_org_position(size){
+        const arr_x=[];
+        const arr_y=[];
+        const arr_z=[];
+
+        for (const i in this.corners){
+            
+            arr_x.push(this.corners[i][0]*size);
+            arr_y.push(this.corners[i][1]*size);
+            arr_z.push(this.corners[i][2]*size);
+        }
+
+        return math.matrix([arr_x,arr_y,arr_z,])
+    }
+    get_position_points(camera){
+
+        const xy_rotate=math.multiply(rotateX(this.angle_x),rotateY(this.angle_y));
+        const xyz_rotate=math.multiply(xy_rotate,rotateZ(this.angle_z));
+        var pos_rotate=math.multiply(xyz_rotate,this.points);
+
+        const camera_matrix=camera.get_matrix_position(pos_rotate)
+        const position_by_camera=math.subtract(pos_rotate,camera_matrix);
+        const xy_rotate_camera=math.multiply(rotateY(camera.angle_x),rotateX(camera.angle_y));
+        const rotated=math.multiply(xy_rotate_camera,position_by_camera);
+        var pos_rotate=rotated;
+
+
+
+        const final_points=[]
+        for (let col = 0; col <= this.corners.length-1; col++){
+            const final_point=[]
+            for (let row = 0; row <= 2; row++){
+                
+                final_point.push(pos_rotate.get([row,col])+this.position[row]);
+            }
+            final_points.push(final_point);
+            
+        }
+        
+        return final_points;
+
+    }
+    update(camera){
+        
+        this.arr_poses=this.get_position_points(camera);
+        for (const plane_index in this.planes){
+            this.planes[plane_index].arr=this.arr_poses;
+        
+        }
+    }
+    set_plane(){
+        const planes=[];
+        for (const plane_index in plane_indexs){
+            
+            if (plane_index==3){
+                const plane=new Table_surface(plane_indexs[plane_index],this.image);
+                
+                planes.push(plane);
+                this.surface=plane;
+                
+            }
+            // else{
+            //     const plane=new Table_side(plane_indexs[plane_index]);
+            //     planes.push(plane);
+            // }
+            
+            
+        }
+        return planes;
+    }
+    get_position_in_screen(){
+        return this.surface.position_in_screen;
+    }
+    draw(camera,canvas,ctx){
+        this.planes.sort(function(a,b){
+            const b_mid=b.mid_point();
+            const a_mid=a.mid_point()
+            const b_dis=Math.sqrt((camera.position[0]-b_mid[0])**2 + (camera.position[1]-b_mid[1])**2+ (camera.position[2]-b_mid[2])**2) 
+            const a_dis=Math.sqrt((camera.position[0]-a_mid[0])**2 + (camera.position[1]-a_mid[1])**2+ (camera.position[2]-a_mid[2])**2) 
+            return b_dis-a_dis;
+        })
+        
+        for (const plane_index in this.planes){
+            this.planes[plane_index].draw(camera,canvas,ctx);
+        }
+    }
+}
+
+
+class Table_side extends Plane{
+    draw(camera,canvas,ctx){
+        
+        const angle=this.angle_from_cam(camera);
+        const light=(100-255*angle/360).toString();
+        const new_points_pos=[];
+        
+        
+        
+        ctx.beginPath();
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;       
+        for (const index_plane in this.indexs_plane){
+            const x_start=this.arr[this.indexs_plane[index_plane]][0]
+            const y_start=this.arr[this.indexs_plane[index_plane]][1]
+            const z_start=this.arr[this.indexs_plane[index_plane]][2]
+
+            const end_x=cx + camera.similar_tri(x_start,z_start)
+            const end_y=cy + camera.similar_tri(y_start,z_start)
+            if (index_plane==0) {
+                ctx.moveTo(end_x, end_y); 
+            }
+            else{
+                ctx.lineTo(end_x, end_y);    
+            }
+            new_points_pos.push([end_x, end_y])
+        }
+        ctx.closePath();  
+
+        const max_min_points=this.most_close_far_points();
+        
+        var gradient = ctx.createLinearGradient(...new_points_pos[max_min_points[0][0]], ...new_points_pos[max_min_points[1][0]]);
+        
+        const light_max=this.light_bright(max_min_points[0][1][2]);
+        const light_min=this.light_bright(max_min_points[1][1][2]);
+        
+        gradient.addColorStop(0, "rgb("+light+","+light+","+light+",1)");
+        gradient.addColorStop(1, "rgb("+light+","+light+","+light+",1)");
+        ctx.fillStyle = gradient;
+        ctx.fill();
+    }
+
+
+}
+class Table_surface extends Plane{
+    constructor(indexs,image){
+        super(indexs);
+        this.image=image;
+        this.position_in_screen=[[0,0],[0,0],[0,0],[0,0]]
+        
+
+    }
+    draw_half_img_1(points_pos,new_points_pos,ctx){
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(points_pos[0][0], points_pos[0][1]); // 右下角
+        ctx.lineTo(points_pos[3][0], points_pos[3][1]); // 右上角
+        ctx.lineTo(points_pos[2][0], points_pos[2][1]); // 左上角
+        ctx.lineTo(points_pos[1][0], points_pos[1][1]);
+        ctx.closePath();
+        ctx.clip();
+        ctx.setTransform(
+            (points_pos[0][0] - points_pos[3][0]) / this.image.width,
+            (points_pos[0][1] - points_pos[3][1]) / this.image.width,
+            (points_pos[3][0] - points_pos[2][0]) / (this.image.height),
+            (points_pos[3][1] - points_pos[2][1]) / (this.image.height),
+            points_pos[2][0],
+            points_pos[2][1]
+        );
+        ctx.drawImage(this.image,new_points_pos[0], new_points_pos[1], this.image.width/4, this.image.height/4, 0,0, this.image.width, this.image.height);
+        //ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height/4);
+        ctx.restore();
+    }
+    draw_half_img_2(points_pos,new_points_pos,ctx){
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(points_pos[2][0], points_pos[2][1]); // 左上角
+        ctx.lineTo(points_pos[1][0], points_pos[1][1]); // 右上角
+        ctx.lineTo(points_pos[0][0], points_pos[0][1]); // 右下角
+        
+        ctx.closePath();
+        ctx.clip();
+        ctx.setTransform(
+            (points_pos[1][0] - points_pos[2][0]) / this.image.width,
+            (points_pos[1][1] - points_pos[2][1]) / this.image.width,
+            (points_pos[0][0] - points_pos[1][0]) / this.image.height,
+            (points_pos[0][1] - points_pos[1][1]) / this.image.height,
+            points_pos[2][0],
+            points_pos[2][1]
+        );
+        ctx.drawImage(this.image,new_points_pos[0], new_points_pos[1], this.image.width/4, this.image.height/4, 0,0, this.image.width, this.image.height);
+        //ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height);
+        ctx.restore();
+    }
+    draw(camera,canvas,ctx){
+        
+        
+        const new_points_pos=[];
+        
+        
+        //ctx.beginPath();
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;       
+        for (const index_plane in this.indexs_plane){
+            const x_start=this.arr[this.indexs_plane[index_plane]][0]
+            const y_start=this.arr[this.indexs_plane[index_plane]][1]
+            const z_start=this.arr[this.indexs_plane[index_plane]][2]
+
+            const end_x=cx + camera.similar_tri(x_start,z_start)
+            const end_y=cy + camera.similar_tri(y_start,z_start)
+            new_points_pos.push([end_x, end_y])
+        }
+        //ctx.closePath();
+        const COL=4;
+        const ROW=4;
+
+        let col_left_up=this.average_p(new_points_pos[2],new_points_pos[3],COL-0,COL);
+        let col_right_up=this.average_p(new_points_pos[1],new_points_pos[0],COL-0,COL);
+        
+        for (let col=0;col<COL;col++){
+            let col_left_down=this.average_p(new_points_pos[2],new_points_pos[3],COL-col-1,COL);
+            let col_right_down=this.average_p(new_points_pos[1],new_points_pos[0],COL-col-1,COL);
+
+            
+            
+            for (let row=0;row<ROW;row++){
+                const new_points_pos_1=[
+                    this.average_p(col_left_down,col_right_down,ROW-row-1,ROW),
+                    this.average_p(col_left_up,col_right_up,ROW-row-1,ROW),
+                    this.average_p(col_left_up,col_right_up,ROW-row,ROW), 
+                    this.average_p(col_left_down,col_right_down,ROW-row,ROW), 
+                ]
+                this.draw_half_img_1(new_points_pos_1,[row*this.image.width/ROW,col*this.image.height/COL],ctx);
+                this.draw_half_img_2(new_points_pos_1,[row*this.image.width/ROW,col*this.image.height/COL],ctx);
+            }
+            col_left_up=col_left_down;
+            col_right_up=col_right_down;
+        }
+        this.position_in_screen=new_points_pos;
+        
+             
+
+        
+        
+        
+    }
+    average_p(p_1,p_2,n,t){
+        const x=p_2[0]+n*(p_1[0]-p_2[0])/t
+        const y=p_2[1]+n*(p_1[1]-p_2[1])/t
+        return [x,y]
+    }
+}
+
+
+
+

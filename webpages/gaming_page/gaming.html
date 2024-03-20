@@ -9,10 +9,14 @@
     <link href="https://fonts.googleapis.com/css?family=Merriweather:400,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="webpages/deckpage/style.css">
     
-    
+    <script src="webpages/block.js"></script>
+    <script src="webpages/gaming_page/hand.js"></script>
+    <script src="webpages/gaming_page/player.js"></script>
+    <script src="webpages/gaming_page/table_block.js"></script>
+    <script src="webpages/gaming_page/table.js"></script>
     <script src="webpages/button.js"></script>
     <script src="packet/math.min.js"></script>
-    <script src="webpages/block.js"></script>
+    
     <script src="webpages/rotation.js"></script>
     <script src="webpages/card.js"></script>
     <script src="webpages/cards_main.js"></script>
@@ -21,8 +25,8 @@
     
     
     
-    <script src=""></script>
-    <script src=""></script>
+    
+   
     
 
     
@@ -31,8 +35,18 @@
 </head>
 <body>
     
+    <div class="overlay">
+        <div id="canvasContainer">
+            <canvas id="myCanvas"></canvas>
+        </div>
         
-    <script src="webpages/gaming_page/gaming.js"></script>
+        <!-- <div id="exit" class="triangle-button" style="--rotate: 270deg; --size: 3vw; --color: #FF8C00; bottom: 3vw; left: 4vw;">
+            <span class="button-text">Exit</span>
+        </div> -->
+        <script src="webpages/gaming_page/gaming.js"></script>
+        
+    </div>
+    
 
 </body>
 </html>
