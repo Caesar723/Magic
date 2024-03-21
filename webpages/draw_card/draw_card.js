@@ -192,16 +192,16 @@ class Draw_card{
             )
             var card=NaN;
             if (data[card_i]["Type_card"]=="Instant"){
-                card=new Instant(4,5.62,[0,0,40],3,image,data[card_i]['Cost'],this.ctx)
+                card=new Instant(4,5.62,[0,0,40],3,image,data[card_i]['Cost'],data[card_i]["Name"])
             }
             else if(data[card_i]["Type_card"]=="land"){
-                card=new Land(4,5.62,[0,0,40],3,image,this.ctx)
+                card=new Land(4,5.62,[0,0,40],3,image,data[card_i]["Name"])
             }
             else if(data[card_i]["Type_card"]=="sorcery"){
-                card=new Sorcery(4,5.62,[0,0,40],3,image,data[card_i]['Cost'],this.ctx)
+                card=new Sorcery(4,5.62,[0,0,40],3,image,data[card_i]['Cost'],data[card_i]["Name"])
             }
             else{
-                card=new Creature(4,5.62,[0,0,40],3,image,data[card_i]['Cost'],data[card_i]["Power"],data[card_i]["Toughness"],this.ctx)
+                card=new Creature(4,5.62,[0,0,40],3,image,data[card_i]['Cost'],data[card_i]["Power"],data[card_i]["Toughness"],data[card_i]["Name"])
             }
 
             this.card_in_pack.push(card)

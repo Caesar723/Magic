@@ -417,6 +417,8 @@ class Card{
         const b=position1[1]-k*position1[0];
         return mouse_pos[1]-(mouse_pos[0])*k-b
     }
+
+    
 }
 
 class Card_frame{
@@ -463,6 +465,10 @@ class Card_frame{
 
         const canvas_orginal_image = document.createElement('canvas');
         const ctx_orginal_image = canvas_orginal_image.getContext('2d');
+
+        const canvas_battle=document.createElement('canvas');
+        
+        const ctx_canvas_battle = canvas_battle.getContext('2d');
         
         
         Promise.all([
@@ -478,6 +484,7 @@ class Card_frame{
 
         ]).then(images => {
             const rato=0.1
+            
             canvas_orginal_image.width = images[1].width*rato;
             canvas_orginal_image.height = images[1].height*rato;
             ctx_orginal_image.drawImage(images[1],0,20,images[1].width,images[1].height,0,0,canvas_orginal_image.width,canvas_orginal_image.height)
@@ -522,6 +529,11 @@ class Card_frame{
             this.fill_text_title(name,ctx,canvas.width/8,canvas.height*4.4/8);
             this.fill_text_body(canvas,content,ctx,canvas.width/8,canvas.height*4.4/8)
 
+            console.log(1)
+            
+            console.log(2)
+            this.create_canvas_battle(canvas_battle,ctx_canvas_battle,images[0],name,images[1])
+
             //this.create_fee(ctx,color_fee,...Array.from({length: 6}, (_, i) => images[3+i]));
             
         }).catch(error => {
@@ -530,7 +542,7 @@ class Card_frame{
         
         
     
-        return [canvas_dynamic,ctx_dynamic,canvas,canvas_orginal_image]
+        return [canvas_dynamic,ctx_dynamic,canvas,canvas_orginal_image,canvas_battle]
     }
     fill_text_type(type,ctx,startX,startY){
         ctx.setTransform(1, 0, 0, -1, 
@@ -691,6 +703,77 @@ class Card_frame{
             "Uncommon":Uncommon,
 
         }
+    }
+
+    create_canvas_battle(canvas,ctx,background,name,image){
+        
+        const blank_color="rgb(233,233,233,0.8)"
+        const startX=50
+        const startY=35
+        
+        canvas.width = 700;  // 例如，500 像素宽
+        canvas.height =500;
+        console.log(canvas,ctx,background,name,image,background.width,background.height)
+        // canvas.width=background.width;
+        // canvas.height=background.height;
+        
+        const width_img=canvas.width*9.5/10;
+        const height_img=canvas.height*4/5*0.97;
+        
+
+        const swidth=image.width
+        const sheight=swidth*height_img/width_img
+        this.draw_rect_smooth(ctx,0,0,canvas.width,canvas.height)
+
+        console.log(2)
+        ctx.drawImage(background,0,0,canvas.width,canvas.height);
+        
+        ctx.drawImage(image,0,canvas.height*1/5,swidth,sheight,canvas.width*0.5/20,canvas.height*1/5,width_img,height_img);
+        
+        // console.log(2)
+
+        ctx.fillStyle = blank_color; 
+        ctx.fillRect(canvas.width*0.5/20, 15, width_img, canvas.height*1/5-15);
+
+        ctx.font = '32px Georgia';
+        ctx.fillStyle = 'black';
+        ctx.textAlign = 'left';
+        const lineHeight = 30; // 行间距
+        this.drawTextWithEllipsis(ctx,name,startX, startY+lineHeight,width_img)
+        
+    }
+    drawTextWithEllipsis(ctx, text, x, y, maxWidth) {
+        const metrics = ctx.measureText(text);
+        if (metrics.width <= maxWidth) {
+            ctx.fillText(text, x, y);
+        } else {
+            let adjustedText = text;
+            while (ctx.measureText(adjustedText + '...').width > maxWidth) {
+                adjustedText = adjustedText.slice(0, -1);
+            }
+            ctx.fillText(adjustedText + '...', x, y);
+        }
+    }
+
+    draw_rect_smooth(ctx,x,y,width,height){
+        
+        
+        var radius = 20; // 圆角半径
+
+        // 绘制圆角长方形路径
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.arcTo(x + width, y, x + width, y + radius, radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+        ctx.lineTo(x + radius, y + height);
+        ctx.arcTo(x, y + height, x, y + height - radius, radius);
+        ctx.lineTo(x, y + radius);
+        ctx.arcTo(x, y, x + radius, y, radius);
+        ctx.closePath();
+        // 应用裁剪
+        ctx.clip();
     }
 
     

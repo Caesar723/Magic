@@ -46,12 +46,20 @@ class Table_graph extends Block{
         const xy_rotate=math.multiply(rotateX(this.angle_x),rotateY(this.angle_y));
         const xyz_rotate=math.multiply(xy_rotate,rotateZ(this.angle_z));
         var pos_rotate=math.multiply(xyz_rotate,this.points);
-
+        
+        const posiiton_accurate=math.add(pos_rotate,this.get_matrix_position(pos_rotate))
+        
         const camera_matrix=camera.get_matrix_position(pos_rotate)
-        const position_by_camera=math.subtract(pos_rotate,camera_matrix);
+        
+        const position_by_camera=math.subtract(posiiton_accurate,camera_matrix);
+        
         const xy_rotate_camera=math.multiply(rotateY(camera.angle_x),rotateX(camera.angle_y));
+        
         const rotated=math.multiply(xy_rotate_camera,position_by_camera);
+        
         var pos_rotate=rotated;
+
+
 
 
 
@@ -60,12 +68,12 @@ class Table_graph extends Block{
             const final_point=[]
             for (let row = 0; row <= 2; row++){
                 
-                final_point.push(pos_rotate.get([row,col])+this.position[row]);
+                final_point.push(pos_rotate.get([row,col]));
             }
             final_points.push(final_point);
             
         }
-        
+
         return final_points;
 
     }
@@ -113,6 +121,14 @@ class Table_graph extends Block{
             this.planes[plane_index].draw(camera,canvas,ctx);
         }
     }
+    get_matrix_position(matrixA){
+        
+        const matrix_position=math.matrix([[this.position[0]],[this.position[1]],[this.position[2]]])
+        const matrixExpanded = math.map(matrixA, (value, index, matrix)=> {
+            return matrix_position.get([index[0], 0]); // Use the row index to access matrixB and repeat its values
+        });
+        return matrixExpanded
+    }
 }
 
 
@@ -133,8 +149,8 @@ class Table_side extends Plane{
             const y_start=this.arr[this.indexs_plane[index_plane]][1]
             const z_start=this.arr[this.indexs_plane[index_plane]][2]
 
-            const end_x=cx + camera.similar_tri(x_start,z_start)
-            const end_y=cy + camera.similar_tri(y_start,z_start)
+            const end_x=cx + camera.similar_tri_2(x_start,z_start)
+            const end_y=cy + camera.similar_tri_2(y_start,z_start)
             if (index_plane==0) {
                 ctx.moveTo(end_x, end_y); 
             }
@@ -157,6 +173,7 @@ class Table_side extends Plane{
         ctx.fillStyle = gradient;
         ctx.fill();
     }
+    
 
 
 }
@@ -191,6 +208,7 @@ class Table_surface extends Plane{
         ctx.restore();
     }
     draw_half_img_2(points_pos,new_points_pos,ctx){
+        console.log(points_pos)
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.save();
         ctx.beginPath();
@@ -218,7 +236,6 @@ class Table_surface extends Plane{
         const new_points_pos=[];
         
         
-        //ctx.beginPath();
         const cx = canvas.width / 2;
         const cy = canvas.height / 2;       
         for (const index_plane in this.indexs_plane){
@@ -226,29 +243,34 @@ class Table_surface extends Plane{
             const y_start=this.arr[this.indexs_plane[index_plane]][1]
             const z_start=this.arr[this.indexs_plane[index_plane]][2]
 
-            const end_x=cx + camera.similar_tri(x_start,z_start)
-            const end_y=cy + camera.similar_tri(y_start,z_start)
-            new_points_pos.push([end_x, end_y])
+
+            new_points_pos.push([x_start, y_start,z_start])
         }
-        //ctx.closePath();
+
+
         const COL=4;
         const ROW=4;
 
-        let col_left_up=this.average_p(new_points_pos[2],new_points_pos[3],COL-0,COL);
-        let col_right_up=this.average_p(new_points_pos[1],new_points_pos[0],COL-0,COL);
+        let col_left_up=this.average_3D(new_points_pos[2],new_points_pos[3],COL-0,COL);
+        let col_right_up=this.average_3D(new_points_pos[1],new_points_pos[0],COL-0,COL);
         
         for (let col=0;col<COL;col++){
-            let col_left_down=this.average_p(new_points_pos[2],new_points_pos[3],COL-col-1,COL);
-            let col_right_down=this.average_p(new_points_pos[1],new_points_pos[0],COL-col-1,COL);
+            let col_left_down=this.average_3D(new_points_pos[2],new_points_pos[3],COL-col-1,COL);
+            let col_right_down=this.average_3D(new_points_pos[1],new_points_pos[0],COL-col-1,COL);
 
             
             
             for (let row=0;row<ROW;row++){
+
+                const point1=this.average_3D(col_left_down,col_right_down,ROW-row-1,ROW)
+                const point2=this.average_3D(col_left_up,col_right_up,ROW-row-1,ROW)
+                const point3=this.average_3D(col_left_up,col_right_up,ROW-row,ROW)
+                const point4=this.average_3D(col_left_down,col_right_down,ROW-row,ROW)
                 const new_points_pos_1=[
-                    this.average_p(col_left_down,col_right_down,ROW-row-1,ROW),
-                    this.average_p(col_left_up,col_right_up,ROW-row-1,ROW),
-                    this.average_p(col_left_up,col_right_up,ROW-row,ROW), 
-                    this.average_p(col_left_down,col_right_down,ROW-row,ROW), 
+                    [cx + camera.similar_tri_2(point1[0],point1[2]),cy + camera.similar_tri_2(point1[1],point1[2])],
+                    [cx + camera.similar_tri_2(point2[0],point2[2]),cy + camera.similar_tri_2(point2[1],point2[2])],
+                    [cx + camera.similar_tri_2(point3[0],point3[2]),cy + camera.similar_tri_2(point3[1],point3[2])], 
+                    [cx + camera.similar_tri_2(point4[0],point4[2]),cy + camera.similar_tri_2(point4[1],point4[2])], 
                 ]
                 this.draw_half_img_1(new_points_pos_1,[row*this.image.width/ROW,col*this.image.height/COL],ctx);
                 this.draw_half_img_2(new_points_pos_1,[row*this.image.width/ROW,col*this.image.height/COL],ctx);
@@ -257,17 +279,23 @@ class Table_surface extends Plane{
             col_right_up=col_right_down;
         }
         this.position_in_screen=new_points_pos;
-        
-             
 
-        
-        
-        
     }
+   
     average_p(p_1,p_2,n,t){
+        
         const x=p_2[0]+n*(p_1[0]-p_2[0])/t
         const y=p_2[1]+n*(p_1[1]-p_2[1])/t
+
         return [x,y]
+    }
+
+    average_3D(p_1,p_2,n,t){
+        const x=p_2[0]+n*(p_1[0]-p_2[0])/t
+        const y=p_2[1]+n*(p_1[1]-p_2[1])/t
+        const z=p_2[2]+n*(p_1[2]-p_2[2])/t
+
+        return [x,y,z]
     }
 }
 

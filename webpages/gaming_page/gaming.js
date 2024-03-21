@@ -54,10 +54,35 @@ class Game_Client{
         
 
         this.canvas_table.addEventListener('mousemove', (event) => {
-            console.log(1)
-        });
-        this.canvas_table.addEventListener('mousedown', (event) => {
             
+        });
+        this.canvas_table.focus()
+        this.canvas_table.addEventListener('keydown', (event) => {
+            console.log("A key pressed");
+            if (event.key === "w" || event.key === "W") {
+                // 执行W键按下时的操作
+                this.table.camera.position[2]=this.table.camera.position[2]+1
+            } else if (event.key === "a" || event.key === "A") {
+                // 执行A键按下时的操作
+                this.table.camera.position[0]=this.table.camera.position[0]-1
+            } else if (event.key === "s" || event.key === "S") {
+                // 执行S键按下时的操作
+                this.table.camera.position[2]=this.table.camera.position[2]-1
+            } else if (event.key === "d" || event.key === "D") {
+                // 执行D键按下时的操作
+                this.table.camera.position[0]=this.table.camera.position[0]+1
+            }
+            else if (event.key ===' ') {
+                // 执行D键按下时的操作
+                this.table.camera.position[1]=this.table.camera.position[1]-1
+            }
+            else if (event.shiftKey) {
+                // 执行D键按下时的操作
+                this.table.camera.position[1]=this.table.camera.position[1]+1
+            }
+        });
+        this.canvas_table.addEventListener('mousedown', (event) => { 
+
         });
         this.canvas_table.addEventListener('mouseup', (event) => {
             
@@ -65,6 +90,8 @@ class Game_Client{
 
         this.canvas_table.addEventListener('wheel', (event)=> {
             console.log(event.deltaY);
+            // this.table.camera.angle_x=event.deltaX/40+this.table.camera.angle_x
+            // this.table.camera.angle_y=event.deltaY/40+this.table.camera.angle_y
             this.table.camera.add_rotate_prescent(event.deltaY)
             this.table.camera.update()
            

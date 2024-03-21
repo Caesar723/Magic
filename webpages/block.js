@@ -302,6 +302,10 @@ class Camera{
         return x_or_y*(this.dis_from_screen/(z-this.position[2]))
     }
 
+    similar_tri_2(x_or_y,z){
+        return x_or_y*(this.dis_from_screen/(z))
+    }
+
     
 
     similar_tri_reverse(x_screen,y_screen,z_expect){
@@ -317,15 +321,15 @@ class Camera{
         }
     }
     update(){
-        const a=35
-        const b=13.59
-        const x=7-this.rotate_prescent/100*7
+        const a=70*1.1
+        const b=13.59*2*1.1
+        const x=15-this.rotate_prescent/100*15;
         const y=math.sqrt((1-(math.pow(x, 2)/math.pow(b, 2)))*math.pow(a, 2));
         const angle=math.atan(y/x);
-        this.angle_y=angle
-        this.position[2]=-x*0.7;
+        this.angle_y=angle;
+        this.position[2]=-x*0.2;
         this.position[1]=-y;
-        console.log(this.angle_y,this.position)
+        
     }
 
 
