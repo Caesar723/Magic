@@ -58,8 +58,9 @@ class Card_Battle{
         
         const xy_rotate_camera=math.multiply(rotateY(camera.angle_x),rotateX(camera.angle_y));
         const rotated=math.multiply(xy_rotate_camera,position_by_camera);
-        
+        //this.matrix_pos=rotated
         var pos_rotate=rotated;
+        console.log(posiiton_accurate)
 
 
         const final_points=[]
@@ -240,6 +241,62 @@ class Card_Battle{
         var x = 2*x0 - x1 - x2, y = 2 * y0 - y1 - y2;
         var d = Math.sqrt(DRAW_IMAGE_EXTEND_EX / (x * x + y * y));
         return [x0 + x * d, y0 + y * d];
+    }
+
+    draw_shade(height_table,camera,ctx,canvas){
+        const xy_rotate=math.multiply(rotateX(this.angle_x),rotateY(this.angle_y));
+        const xyz_rotate=math.multiply(xy_rotate,rotateZ(this.angle_z));
+        var pos_rotate=math.multiply(xyz_rotate,this.points);
+        const posiiton_accurate=math.add(pos_rotate,this.get_matrix_position(pos_rotate))
+
+        const Sun_light=math.matrix([[-1],[-1.2],[-1.2]])
+
+        const [rows, cols] =posiiton_accurate.size();
+        const height=math.zeros(rows, cols);
+
+        for (let i=0;i<cols;i++){
+            height.subset(math.index(rows-2, i), height_table);
+
+            //height[rows-2][i]=height_table
+        }
+        const t=math.multiply(math.matrix([[0,1/Sun_light.get([1,0]),0]]),math.subtract(posiiton_accurate,height))
+        const change=math.multiply(Sun_light,t)
+        const sun_result=math.subtract(posiiton_accurate,change)
+
+
+        const camera_matrix=camera.get_matrix_position(sun_result)
+        const position_by_camera=math.subtract(sun_result,camera_matrix);
+        const xy_rotate_camera=math.multiply(rotateY(camera.angle_x),rotateX(camera.angle_y));
+        const rotated=math.multiply(xy_rotate_camera,position_by_camera);
+        //this.matrix_pos=rotated
+        var pos_rotate=rotated;
+
+
+
+        ctx.beginPath();
+        const final_points=[]
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;      
+        for (let col = 0; col <= this.corners.length-1; col++){
+            const final_point=[]
+            const x_start=pos_rotate.get([0,col])
+            const y_start=pos_rotate.get([1,col])
+            const z_start=pos_rotate.get([2,col])
+            const end_x=cx + camera.similar_tri_2(x_start,z_start)
+            const end_y=cy + camera.similar_tri_2(y_start,z_start)
+            if (col==0) {
+                ctx.moveTo(end_x, end_y); 
+            }
+            else{
+                ctx.lineTo(end_x, end_y);    
+            }
+            final_points.push(final_point);
+            
+        }
+        ctx.closePath();  
+        ctx.fillStyle = "rgb(23,23,23,0.6)";
+        ctx.fill();
+
     }
 
 

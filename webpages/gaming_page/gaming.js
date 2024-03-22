@@ -90,10 +90,10 @@ class Game_Client{
 
         this.canvas_table.addEventListener('wheel', (event)=> {
             console.log(event.deltaY);
-            // this.table.camera.angle_x=event.deltaX/40+this.table.camera.angle_x
-            // this.table.camera.angle_y=event.deltaY/40+this.table.camera.angle_y
-            this.table.camera.add_rotate_prescent(event.deltaY)
-            this.table.camera.update()
+            this.table.camera.angle_x=event.deltaX/40+this.table.camera.angle_x
+            this.table.camera.angle_y=event.deltaY/40+this.table.camera.angle_y
+            // this.table.camera.add_rotate_prescent(event.deltaY)
+            // this.table.camera.update()
            
             event.preventDefault();
         });

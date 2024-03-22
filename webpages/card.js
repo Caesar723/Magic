@@ -72,7 +72,7 @@ class Card{
         const canvas=document.createElement('canvas');
         canvas.width=this.image.width;
         canvas.height=this.image.height;
-        console.log([this.image.width,this.image.height])
+        
         return [canvas,canvas.getContext('2d')]
     }
     
@@ -351,10 +351,10 @@ class Card{
         }
     }
     start_move_enlarge(largest_size,move_time_duration_end,target_position){
-        console.log(target_position)
+        
         
         this.ini_position=[...this.position];
-        console.log(this.ini_position)
+        
         this.target_position=target_position
         this.largest_size=largest_size
         this.angle_x=0
@@ -363,7 +363,7 @@ class Card{
         this.move_time_duration=0;
         this.move_enlarge_card_flag=true;
         this.ini_size=this.size
-        console.log(this.move_enlarge_card_flag)
+        
         
     }
     card_move_enlarge_animation(){
@@ -376,7 +376,7 @@ class Card{
             this.position[i]=this.ini_position[i]+(this.target_position[i]-this.ini_position[i])*rate;
             
         }
-        console.log(this.position)
+        
         if (this.move_time_duration>=this.move_time_duration_end){
             this.move_enlarge_card_flag=false;
             this.position=this.target_position;
@@ -529,9 +529,7 @@ class Card_frame{
             this.fill_text_title(name,ctx,canvas.width/8,canvas.height*4.4/8);
             this.fill_text_body(canvas,content,ctx,canvas.width/8,canvas.height*4.4/8)
 
-            console.log(1)
             
-            console.log(2)
             this.create_canvas_battle(canvas_battle,ctx_canvas_battle,images[0],name,images[1])
 
             //this.create_fee(ctx,color_fee,...Array.from({length: 6}, (_, i) => images[3+i]));
@@ -713,7 +711,7 @@ class Card_frame{
         
         canvas.width = 700;  // 例如，500 像素宽
         canvas.height =500;
-        console.log(canvas,ctx,background,name,image,background.width,background.height)
+       
         // canvas.width=background.width;
         // canvas.height=background.height;
         
@@ -725,7 +723,7 @@ class Card_frame{
         const sheight=swidth*height_img/width_img
         this.draw_rect_smooth(ctx,0,0,canvas.width,canvas.height)
 
-        console.log(2)
+        
         ctx.drawImage(background,0,0,canvas.width,canvas.height);
         
         ctx.drawImage(image,0,canvas.height*1/5,swidth,sheight,canvas.width*0.5/20,canvas.height*1/5,width_img,height_img);

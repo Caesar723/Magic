@@ -211,7 +211,7 @@ class Table_surface extends Plane{
         ctx.restore();
     }
     draw_half_img_2(points_pos,new_points_pos,ctx){
-        console.log(points_pos)
+        
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.save();
         ctx.beginPath();
