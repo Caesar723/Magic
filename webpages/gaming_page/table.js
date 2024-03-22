@@ -16,7 +16,7 @@ class Table{
         this.card_frame=new Card_frame()
         const canvas=this.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
         const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U","Caesar",1122334455)
-        const card_battle=new Creature_Battle(6,5,[0,-20,0],1.2,card)
+        const card_battle=new Creature_Battle(6,5,[0,-20,0],0.7,card)
 
         
         this.opponent_battlefield=[]

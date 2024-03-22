@@ -6,9 +6,9 @@ class Creature_Battle extends Card_Battle {
         // this.Org_Damage=card.Org_Damage;
         // this.Damage=card.Damage;
         this.Org_Life=1;
-        this.Life=1;
+        this.Life=20;
         this.Org_Damage=1;
-        this.Damage=1;
+        this.Damage=20;
         this.type="Creature";
         
     }
@@ -25,19 +25,19 @@ class Creature_Battle extends Card_Battle {
         this.create_blank_space(
             this.canvas,
             this.ctx,
-            this.canvas.width*5.5/8,
-            this.canvas.height*19/25
+            this.canvas.width*4.9/8,
+            this.canvas.height*20.5/25
             )
         this.fill_text_life_power(
             this.ctx,
-            this.canvas.width*5.8/8,
-            this.canvas.height*20.6/25
+            this.canvas.width*4.9/8,
+            this.canvas.height*23.8/25
         );
     }
     create_blank_space(canvas,ctx,startX,startY){
         const blank_color="rgb(233,233,233,0.9)"
-        const squareSize_x = canvas.width*2/10; // 正方形的边长
-        const squareSize_y = canvas.height*1/10;
+        const squareSize_x = canvas.width*3/10; // 正方形的边长
+        const squareSize_y = canvas.height*1.5/10;
         const radius = squareSize_y / 2; // 半圆的半径
 
         // 计算绘制的起始位置
@@ -81,10 +81,10 @@ class Creature_Battle extends Card_Battle {
     fill_text_life_power(ctx,startX,startY){
         ctx.save();
         
-        ctx.font = '40px Georgia';
+        ctx.font = '90px Georgia';
         ctx.fillStyle = 'black';
        
-        ctx.fillText(`${this.Damage}  /  ${this.Life}`, startX, startY);
+        ctx.fillText(`${this.Damage}/${this.Life}`, startX, startY);
         ctx.restore();
     }
 

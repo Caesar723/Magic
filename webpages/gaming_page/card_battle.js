@@ -105,10 +105,18 @@ class Card_Battle{
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.save();
         ctx.beginPath();
-        ctx.moveTo(points_pos[0][0], points_pos[0][1]); // 右下角
-        ctx.lineTo(points_pos[3][0], points_pos[3][1]); // 左下角
-        ctx.lineTo(points_pos[2][0], points_pos[2][1]); // 左上角
-        ctx.lineTo(points_pos[1][0], points_pos[1][1]);
+        const p1=this.extendVert(points_pos[0][0], points_pos[0][1],points_pos[2][0], points_pos[2][1],points_pos[3][0], points_pos[3][1])
+        const p2=this.extendVert(points_pos[2][0], points_pos[2][1],points_pos[0][0], points_pos[0][1],points_pos[3][0], points_pos[3][1])
+        const p3=this.extendVert(points_pos[3][0], points_pos[3][1],points_pos[2][0], points_pos[2][1],points_pos[0][0], points_pos[0][1])
+
+        
+        ctx.moveTo(...p1); // 右下角
+        ctx.lineTo(...p2); // 左下角
+        ctx.lineTo(...p3); // 左上角
+        // ctx.moveTo(points_pos[0][0], points_pos[0][1]); // 右下角
+        // ctx.lineTo(points_pos[3][0], points_pos[3][1]); // 左下角
+        // ctx.lineTo(points_pos[2][0], points_pos[2][1]); // 左上角
+        // ctx.lineTo(points_pos[1][0], points_pos[1][1]);
         ctx.closePath();
         ctx.clip();
         ctx.setTransform(
@@ -128,9 +136,12 @@ class Card_Battle{
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.save();
         ctx.beginPath();
-        ctx.moveTo(points_pos[2][0], points_pos[2][1]); // 左上角
-        ctx.lineTo(points_pos[1][0], points_pos[1][1]); // 右上角
-        ctx.lineTo(points_pos[0][0], points_pos[0][1]); // 右下角
+        const p1=this.extendVert(points_pos[0][0], points_pos[0][1],points_pos[1][0], points_pos[1][1],points_pos[2][0], points_pos[2][1])
+        const p2=this.extendVert(points_pos[1][0], points_pos[1][1],points_pos[0][0], points_pos[0][1],points_pos[2][0], points_pos[2][1])
+        const p3=this.extendVert(points_pos[2][0], points_pos[2][1],points_pos[1][0], points_pos[1][1],points_pos[0][0], points_pos[0][1])
+        ctx.moveTo(...p1); // 右下角
+        ctx.lineTo(...p2); // 左下角
+        ctx.lineTo(...p3); // 左上角
         
         ctx.closePath();
         ctx.clip();
@@ -224,7 +235,12 @@ class Card_Battle{
         });
         return matrixExpanded
     }
-
+    extendVert(x0, y0, x1, y1, x2, y2) {
+        const DRAW_IMAGE_EXTEND_EX = 3;
+        var x = 2*x0 - x1 - x2, y = 2 * y0 - y1 - y2;
+        var d = Math.sqrt(DRAW_IMAGE_EXTEND_EX / (x * x + y * y));
+        return [x0 + x * d, y0 + y * d];
+    }
 
 
 }

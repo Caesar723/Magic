@@ -709,7 +709,7 @@ class Card_frame{
         
         const blank_color="rgb(233,233,233,0.8)"
         const startX=50
-        const startY=35
+        const startY=40
         
         canvas.width = 700;  // 例如，500 像素宽
         canvas.height =500;
@@ -735,7 +735,7 @@ class Card_frame{
         ctx.fillStyle = blank_color; 
         ctx.fillRect(canvas.width*0.5/20, 15, width_img, canvas.height*1/5-15);
 
-        ctx.font = '32px Georgia';
+        ctx.font = '60px Georgia';
         ctx.fillStyle = 'black';
         ctx.textAlign = 'left';
         const lineHeight = 30; // 行间距
