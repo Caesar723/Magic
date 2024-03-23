@@ -30,6 +30,26 @@ class Card_Battle{
         this.canvas.width=80*10
         this.canvas.height=60*10
         this.ctx=this.canvas.getContext('2d')
+
+
+        this.moving=false;//用来移动卡牌的开关
+        this.moving_precentage=0;
+        this.moving_dict={
+            "move_to_horizontal":[this.move_to_horizontal.bind(this),this.move_to_horizontal.bind(this),this.move_to_horizontal_finish.bind(this)],
+            "move_to":[this.move_to.bind(this),this.move_to_prepared.bind(this),this.move_to_finish.bind(this)],
+            "attack_to":[this.attack_to.bind(this),this.attack_to_prepared.bind(this),this.attack_to_finish.bind(this)],
+            "rotate_to_point":[this.rotate_to_point.bind(this),this.rotate_to_point_prepared.bind(this),this.rotate_to_finish.bind(this)],
+            "back_to":[this.back_to.bind(this),this.back_to_prepared.bind(this),this.back_to_finish.bind(this)]
+        }
+        console.log([this.move_to,this.move_to_prepared])
+        this.current_moving=null;//this.move_to_horizontal.....
+        this.finish_moving=null;
+        this.moving_parameters=[];
+        this.moving_store=[];
+        this.min_distance_difference=0;
+
+
+        this.accurate_position=[0,-20,0]//这个是通过table计算得出来的相对牌的位置
         
     }
     get_org_position(size){
@@ -60,7 +80,6 @@ class Card_Battle{
         const rotated=math.multiply(xy_rotate_camera,position_by_camera);
         //this.matrix_pos=rotated
         var pos_rotate=rotated;
-        console.log(posiiton_accurate)
 
 
         const final_points=[]
@@ -159,6 +178,7 @@ class Card_Battle{
         ctx.restore();
     }
     update(camera){
+        this.check_moving()
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.ctx.save()
@@ -298,6 +318,181 @@ class Card_Battle{
         ctx.fill();
 
     }
+
+
+    check_moving(){
+        if (this.moving && this.moving_precentage<100){
+            this.current_moving(...this.moving_parameters)
+            
+        }
+        else if(this.moving && this.moving_precentage>=100){
+            this.moving=false
+            this.moving_precentage=0
+            this.finish_moving(...this.moving_parameters)
+        }
+    }
+
+    start_moving(moving_type,parameters){
+        if (this.moving==false && this.moving_precentage<100){
+            this.current_moving=this.moving_dict[moving_type][0]
+            this.finish_moving=this.moving_dict[moving_type][2]
+            console.log(this.moving_dict[moving_type],this.moving_dict[moving_type][1])
+            this.moving_dict[moving_type][1](...parameters)
+            this.moving=true
+            this.moving_precentage=0;
+            this.moving_parameters=parameters;
+            
+        }
+    }
+    move_to_horizontal(target_position){//target_position[x,y,z]
+        
+
+    }
+    move_to_horizontal_prepared(target_position){//target_position[x,y,z]
+        
+
+    }
+    move_to_horizontal_finish(target_position){//target_position[x,y,z]
+        
+
+    }
+    move_to_prepared(target_position){
+        console.log(this,target_position,this.calculate_vector_move)
+        const [unitVector,distance]=this.calculate_vector_move(target_position)
+        this.min_distance_difference=distance;
+        const a=math.sqrt(distance*2/math.pi)
+        const time_consume=1/distance+2
+        this.moving_store=[a,unitVector,time_consume,target_position]
+    }
+    move_to(target_position){//target_position[x,y]
+        const a=this.moving_store[0];
+        const unitVector=this.moving_store[1];
+        const time_consume=this.moving_store[2];
+        console.log(time_consume)
+        const x=(a*math.pi/100)*this.moving_precentage
+        const vel=a*Math.pow(Math.sin(x/a),2)/((100/(TIME_INTERVAL*time_consume))/(a*math.pi))
+        const new_vel=math.multiply(vel,unitVector)
+        const new_pos=math.add(this.position,new_vel);
+        this.position[0]=new_pos[0]
+        this.position[1]=new_pos[1]
+        this.position[2]=new_pos[2]
+        this.moving_precentage+=TIME_INTERVAL*time_consume
+        this.check_distance_to_target(target_position)
+        console.log(this.position)
+        
+    }
+    move_to_finish(target_position){
+        const final_pos=this.moving_store[3];
+        this.position[0]=final_pos[0]
+        this.position[1]=final_pos[1]
+        this.position[2]=final_pos[2]
+        
+    }
+
+
+
+    attack_to_prepared(target_position){//target_position[x,y,z]  撞一下然后返回原来的位置
+        console.log(this,target_position,this.calculate_vector_move)
+        const [unitVector,distance]=this.calculate_vector_move(target_position)
+        this.min_distance_difference=distance;
+        const a=math.sqrt(distance*(4)/math.pi)
+        const time_consume=2.5
+        this.moving_store=[a,unitVector,time_consume]
+    }
+    attack_to(target_position){//target_position[x,y,z]  撞一下然后返回原来的位置
+        const a=this.moving_store[0];
+        const unitVector=this.moving_store[1];
+        const time_consume=this.moving_store[2];
+        
+        console.log(time_consume)
+        const x=((a*math.pi/2)/100)*this.moving_precentage
+        
+        
+        
+        var vel=a*Math.pow(Math.sin(x/a),2)/((100/(TIME_INTERVAL*time_consume))/(a*math.pi/2))
+        
+        const new_vel=math.multiply(vel,unitVector)
+        const new_pos=math.add(this.position,new_vel);
+        this.position[0]=new_pos[0]
+        this.position[1]=new_pos[1]
+        this.position[2]=new_pos[2]
+        this.moving_precentage+=TIME_INTERVAL*time_consume
+
+        this.check_distance_to_target(target_position)
+        console.log(this.position)
+    }
+    attack_to_finish(target_position){//target_position[x,y,z]  撞一下然后返回原来的位置
+        
+        this.position[0]=target_position[0]
+        this.position[1]=target_position[1]
+        this.position[2]=target_position[2]
+        this.start_moving('back_to',[this.accurate_position])
+    }
+
+
+    back_to_prepared(target_position){
+        console.log(this,target_position,this.calculate_vector_move)
+        const [unitVector,distance]=this.calculate_vector_move(target_position)
+        this.min_distance_difference=distance;
+        const a=math.sqrt(distance*(4)/math.pi)
+        const time_consume=2.5
+        this.moving_store=[a,unitVector,time_consume]
+    }
+    back_to(target_position){
+        const a=this.moving_store[0];
+        const unitVector=this.moving_store[1];
+        const time_consume=this.moving_store[2];
+        
+        console.log(time_consume)
+        const x=a*math.pi/2+((a*math.pi/2)/100)*this.moving_precentage
+        
+        var vel=a*Math.pow(Math.sin(x/a),2)/((100/(TIME_INTERVAL*time_consume))/(a*math.pi/2))
+        
+        const new_vel=math.multiply(vel,unitVector)
+        const new_pos=math.add(this.position,new_vel);
+        this.position[0]=new_pos[0]
+        this.position[1]=new_pos[1]
+        this.position[2]=new_pos[2]
+        this.moving_precentage+=TIME_INTERVAL*time_consume
+
+        this.check_distance_to_target(target_position)
+        console.log(this.position)
+    }
+    back_to_finish(target_position){
+        this.position[0]=target_position[0]
+        this.position[1]=target_position[1]
+        this.position[2]=target_position[2]
+    }
+
+
+
+    rotate_to_point_prepared(target_position){//让它指向目标点
+
+    }
+    rotate_to_point(target_position){//让它指向目标点
+
+    }
+    rotate_to_finish(target_position){//让它指向目标点
+
+    }
+
+    calculate_vector_move(target_position){//返回一个unit vector, 总的distance
+        const difference = math.subtract(target_position, this.position);
+        const distance=math.norm(difference);
+        const unitVector = math.divide(difference, distance);
+        return [unitVector,distance]
+
+    }
+    check_distance_to_target(target_position){
+        const [_,distance]=this.calculate_vector_move(target_position)
+        if (distance<=this.min_distance_difference){
+            this.min_distance_difference=distance
+        }
+        else{
+            this.moving_precentage=100
+        }
+    }
+    
 
 
 }

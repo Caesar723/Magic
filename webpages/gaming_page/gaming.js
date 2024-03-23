@@ -80,9 +80,23 @@ class Game_Client{
                 // 执行D键按下时的操作
                 this.table.camera.position[1]=this.table.camera.position[1]+1
             }
+            else if (event.key === "i" || event.key === "I") {
+                // 执行D键按下时的操作
+                this.table.self_battlefield[0].start_moving("move_to",[[5,-20,0]])
+            }
+            else if (event.key === "p" || event.key === "P") {
+                // 执行D键按下时的操作
+                this.table.self_battlefield[0].start_moving("attack_to",[[15,-20,10]])
+            }
+            
         });
         this.canvas_table.addEventListener('mousedown', (event) => { 
-
+            
+            
+            
+                
+            
+            
         });
         this.canvas_table.addEventListener('mouseup', (event) => {
             
