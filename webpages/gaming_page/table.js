@@ -1,4 +1,4 @@
-var TIME_INTERVAL=2
+var TIME_INTERVAL=0.1
 
 
 class Table{

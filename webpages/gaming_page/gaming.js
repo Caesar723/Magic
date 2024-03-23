@@ -86,7 +86,11 @@ class Game_Client{
             }
             else if (event.key === "p" || event.key === "P") {
                 // 执行D键按下时的操作
-                this.table.self_battlefield[0].start_moving("attack_to",[[15,-20,10]])
+                this.table.self_battlefield[0].start_moving("attack_to",[[15,-25,10]])
+            }
+            else if (event.key === "o" || event.key === "O") {
+                // 执行D键按下时的操作
+                this.table.self_battlefield[0].start_moving("rotate_to_point",[[15,-20,10]])
             }
             
         });

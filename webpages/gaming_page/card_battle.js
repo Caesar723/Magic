@@ -321,6 +321,7 @@ class Card_Battle{
 
 
     check_moving(){
+        console.log(this.moving,this.moving_precentage)
         if (this.moving && this.moving_precentage<100){
             this.current_moving(...this.moving_parameters)
             
@@ -334,12 +335,14 @@ class Card_Battle{
 
     start_moving(moving_type,parameters){
         if (this.moving==false && this.moving_precentage<100){
+            this.moving_precentage=0;
+            this.moving=true
             this.current_moving=this.moving_dict[moving_type][0]
             this.finish_moving=this.moving_dict[moving_type][2]
             console.log(this.moving_dict[moving_type],this.moving_dict[moving_type][1])
             this.moving_dict[moving_type][1](...parameters)
-            this.moving=true
-            this.moving_precentage=0;
+            
+            
             this.moving_parameters=parameters;
             
         }
@@ -462,18 +465,64 @@ class Card_Battle{
         this.position[0]=target_position[0]
         this.position[1]=target_position[1]
         this.position[2]=target_position[2]
+        this.start_moving('rotate_to_point',[[0,0,1]])
     }
 
 
 
-    rotate_to_point_prepared(target_position){//让它指向目标点
+    rotate_to_point_prepared(target_position){//让它指向目标点 x,y,z
+        const direction_vector=this.get_vector_point()
+        console.log(direction_vector)
+        const [unitVector,distance]=this.calculate_vector_move(target_position)
+        
+        const a=[direction_vector[0],direction_vector[2]]
+        const b=[unitVector[0],unitVector[2]]
 
+        const angleA = math.atan2(a[1], a[0]);
+        const angleB = math.atan2(b[1], b[0]);
+
+        let angleDifference = angleB - angleA;
+
+        // 标准化结果到 [-π, π] 区间，确定最短旋转路径
+        angleDifference = math.mod(angleDifference + math.pi, 2 * math.pi) - math.pi;
+
+        // 计算夹角（以弧度为单位）
+        
+        const thetaRadians = angleDifference;
+        const abs_thetaRadians=Math.abs(thetaRadians)
+        const A=(thetaRadians/abs_thetaRadians)*math.sqrt(abs_thetaRadians*(2)/math.pi)
+        
+        const target_angle=this.angle_z+thetaRadians
+        const time_consume=2.5
+        if (!A){
+            this.moving_precentage=100
+            this.moving_store=[thetaRadians,A,time_consume,this.angle_z]
+            console.log(A)
+        }
+        else{
+            this.moving_store=[thetaRadians,A,time_consume,target_angle]
+        }
+        
+
+       
+        
     }
     rotate_to_point(target_position){//让它指向目标点
-
+        console.log("rotate")
+        const a=this.moving_store[1];
+        const thetaRadians=this.moving_store[0];
+        const time_consume=this.moving_store[2];
+        
+        
+        const x=((a*math.pi/2)/100)*this.moving_precentage
+        const angle_change=a*Math.pow(Math.sin(x/a),2)/((100/(TIME_INTERVAL*time_consume))/(Math.abs(a)*math.pi))
+        this.angle_z=this.angle_z+angle_change
+        this.moving_precentage+=TIME_INTERVAL*time_consume
+        
     }
     rotate_to_finish(target_position){//让它指向目标点
-
+        this.angle_z=this.moving_store[3]
+        //console.log(this.angle_x,this.angle_y,this.angle_z)
     }
 
     calculate_vector_move(target_position){//返回一个unit vector, 总的distance
@@ -492,7 +541,17 @@ class Card_Battle{
             this.moving_precentage=100
         }
     }
-    
+
+    get_vector_point(){
+        const org_direction=math.matrix([[0],[0],[1]])
+        //const xz_rotate=math.multiply(rotateX(this.angle_x),rotateZ(this.angle_z));
+        //const xyz_rotate=math.multiply(xy_rotate,rotateZ(this.angle_z));
+        
+        var pos_rotate=math.multiply(rotateY(-this.angle_z),org_direction);
+        console.log(rotateY(this.angle_z),pos_rotate)
+        return pos_rotate.toArray().flat();
+    }
+
 
 
 }
