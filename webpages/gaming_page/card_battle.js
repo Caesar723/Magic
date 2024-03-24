@@ -49,7 +49,10 @@ class Card_Battle{
         this.min_distance_difference=0;
 
 
+
+        this.moving_cache=[]//接收["名字"，target position]
         this.accurate_position=[0,-20,0]//这个是通过table计算得出来的相对牌的位置
+        this.orginal_angle=[0,0,1]//初始指向的方向
         
     }
     get_org_position(size){
@@ -65,6 +68,10 @@ class Card_Battle{
         }
 
         return math.matrix([arr_x,arr_y,arr_z,])
+    }
+    change_size(size){
+        this.size=size
+        this.points=this.get_org_position(this.size);
     }
 
     get_position_points(camera){
@@ -321,7 +328,7 @@ class Card_Battle{
 
 
     check_moving(){
-        console.log(this.moving,this.moving_precentage)
+
         if (this.moving && this.moving_precentage<100){
             this.current_moving(...this.moving_parameters)
             
@@ -339,7 +346,7 @@ class Card_Battle{
             this.moving=true
             this.current_moving=this.moving_dict[moving_type][0]
             this.finish_moving=this.moving_dict[moving_type][2]
-            console.log(this.moving_dict[moving_type],this.moving_dict[moving_type][1])
+            
             this.moving_dict[moving_type][1](...parameters)
             
             
@@ -360,18 +367,19 @@ class Card_Battle{
 
     }
     move_to_prepared(target_position){
-        console.log(this,target_position,this.calculate_vector_move)
+        
         const [unitVector,distance]=this.calculate_vector_move(target_position)
         this.min_distance_difference=distance;
         const a=math.sqrt(distance*2/math.pi)
         const time_consume=1/distance+2
+        this.check_distance_to_target(target_position)
         this.moving_store=[a,unitVector,time_consume,target_position]
     }
     move_to(target_position){//target_position[x,y]
         const a=this.moving_store[0];
         const unitVector=this.moving_store[1];
         const time_consume=this.moving_store[2];
-        console.log(time_consume)
+        //console.log(time_consume)
         const x=(a*math.pi/100)*this.moving_precentage
         const vel=a*Math.pow(Math.sin(x/a),2)/((100/(TIME_INTERVAL*time_consume))/(a*math.pi))
         const new_vel=math.multiply(vel,unitVector)
@@ -381,7 +389,7 @@ class Card_Battle{
         this.position[2]=new_pos[2]
         this.moving_precentage+=TIME_INTERVAL*time_consume
         this.check_distance_to_target(target_position)
-        console.log(this.position)
+        //console.log(this.position)
         
     }
     move_to_finish(target_position){
@@ -465,18 +473,19 @@ class Card_Battle{
         this.position[0]=target_position[0]
         this.position[1]=target_position[1]
         this.position[2]=target_position[2]
-        this.start_moving('rotate_to_point',[[0,0,1]])
+        this.start_moving('rotate_to_point',[this.orginal_angle])
     }
 
 
 
     rotate_to_point_prepared(target_position){//让它指向目标点 x,y,z
         const direction_vector=this.get_vector_point()
-        console.log(direction_vector)
+        
         const [unitVector,distance]=this.calculate_vector_move(target_position)
         
         const a=[direction_vector[0],direction_vector[2]]
         const b=[unitVector[0],unitVector[2]]
+        
 
         const angleA = math.atan2(a[1], a[0]);
         const angleB = math.atan2(b[1], b[0]);
@@ -489,6 +498,9 @@ class Card_Battle{
         // 计算夹角（以弧度为单位）
         
         const thetaRadians = angleDifference;
+
+
+        
         const abs_thetaRadians=Math.abs(thetaRadians)
         const A=(thetaRadians/abs_thetaRadians)*math.sqrt(abs_thetaRadians*(2)/math.pi)
         
@@ -497,7 +509,7 @@ class Card_Battle{
         if (!A){
             this.moving_precentage=100
             this.moving_store=[thetaRadians,A,time_consume,this.angle_z]
-            console.log(A)
+            
         }
         else{
             this.moving_store=[thetaRadians,A,time_consume,target_angle]
@@ -534,12 +546,15 @@ class Card_Battle{
     }
     check_distance_to_target(target_position){
         const [_,distance]=this.calculate_vector_move(target_position)
-        if (distance<=this.min_distance_difference){
+        
+        if (distance<=this.min_distance_difference && math.abs(distance)){
             this.min_distance_difference=distance
         }
         else{
             this.moving_precentage=100
+            
         }
+        
     }
 
     get_vector_point(){
@@ -548,7 +563,7 @@ class Card_Battle{
         //const xyz_rotate=math.multiply(xy_rotate,rotateZ(this.angle_z));
         
         var pos_rotate=math.multiply(rotateY(-this.angle_z),org_direction);
-        console.log(rotateY(this.angle_z),pos_rotate)
+        
         return pos_rotate.toArray().flat();
     }
 

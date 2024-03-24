@@ -86,11 +86,17 @@ class Game_Client{
             }
             else if (event.key === "p" || event.key === "P") {
                 // 执行D键按下时的操作
-                this.table.self_battlefield[0].start_moving("attack_to",[[15,-25,10]])
+                this.table.self_battlefield[0].start_moving("attack_to",[[15,-25,-10]])
             }
             else if (event.key === "o" || event.key === "O") {
                 // 执行D键按下时的操作
-                this.table.self_battlefield[0].start_moving("rotate_to_point",[[15,-20,10]])
+                this.table.self_battlefield[0].start_moving("rotate_to_point",[[15,-20,-10]])
+            }
+            else if (event.key === "l" || event.key === "L"){
+                const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
+                const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U","Caesar",1122334455)
+                const card_battle=new Creature_Battle(6,5,[-25,-20,0],0.3,card)
+                this.table.self_battlefield.push(card_battle)
             }
             
         });
