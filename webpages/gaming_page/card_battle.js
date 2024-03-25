@@ -1,7 +1,10 @@
 
 
 class Card_Battle{
-    constructor(width,height,position,size,card,player){//player:self,opponent
+    constructor(width,height,position,size,card,player,table){//player:self,opponent
+        this.table=table
+        this.player=player
+        console.log(player,table)
         this.corners=[//x y z
             [1*width,-1*height,0],
             [1*width,1*height,0],
@@ -42,7 +45,8 @@ class Card_Battle{
             "move_to":[this.move_to.bind(this),this.move_to_prepared.bind(this),this.move_to_finish.bind(this)],
             "attack_to":[this.attack_to.bind(this),this.attack_to_prepared.bind(this),this.attack_to_finish.bind(this)],
             "rotate_to_point":[this.rotate_to_point.bind(this),this.rotate_to_point_prepared.bind(this),this.rotate_to_finish.bind(this)],
-            "back_to":[this.back_to.bind(this),this.back_to_prepared.bind(this),this.back_to_finish.bind(this)]
+            "back_to":[this.back_to.bind(this),this.back_to_prepared.bind(this),this.back_to_finish.bind(this)],
+            "disappear":[this.disappear.bind(this),this.disappear_prepared.bind(this),this.disappear_finish.bind(this)]
         }
         console.log([this.move_to,this.move_to_prepared])
         this.current_moving=null;//this.move_to_horizontal.....
@@ -54,7 +58,7 @@ class Card_Battle{
 
 
         this.moving_cache=[]//接收["名字"，target position]
-        this.accurate_position=[0,-20,0]//这个是通过table计算得出来的相对牌的位置
+        this.accurate_position=[0,position[1],0]//这个是通过table计算得出来的相对牌的位置
         this.orginal_angle=[0,0,1]//初始指向的方向
         
     }
@@ -365,7 +369,9 @@ class Card_Battle{
 
     pick_moving_function(){//FIFO
         if (this.moving_cache.length){
-            const para=this.moving_cache.pop(0)
+            
+            const para=this.moving_cache.shift()
+            
             this.start_moving(...para)
         }
         
@@ -382,6 +388,31 @@ class Card_Battle{
         
 
     }
+    
+    disappear_prepared(target_position){//target_position[x,y,z]
+        this.move_to_prepared(target_position)
+        this.moving_store.push(this.size)
+
+    }
+    disappear(target_position){//target_position[x,y,z]
+        const size=this.moving_store[4]
+        this.move_to(target_position)
+
+        this.change_size(size-this.moving_precentage*size/100)
+        
+    }
+    disappear_finish(target_position){//target_position[x,y,z]
+        console.log(this.player)
+        if (this.player=="opponent"){
+            this.table.opponent_battlefield_delete.push(this);
+            
+        }
+        else{
+            this.table.self_battlefield_delete.push(this);
+        }
+        this.move_to_finish(target_position)
+    }
+
     move_to_prepared(target_position){
         
         const [unitVector,distance]=this.calculate_vector_move(target_position)
@@ -454,6 +485,7 @@ class Card_Battle{
         this.position[0]=target_position[0]
         this.position[1]=target_position[1]
         this.position[2]=target_position[2]
+        console.log(this.accurate_position)
         this.start_moving('back_to',[this.accurate_position])
     }
 
