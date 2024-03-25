@@ -1,7 +1,7 @@
 
 
 class Card_Battle{
-    constructor(width,height,position,size,card){
+    constructor(width,height,position,size,card,player){//player:self,opponent
         this.corners=[//x y z
             [1*width,-1*height,0],
             [1*width,1*height,0],
@@ -12,7 +12,10 @@ class Card_Battle{
         this.position=position;
         this.angle_x=math.pi/2;
         this.angle_y=0;
+        
         this.angle_z=0;
+        
+        
         this.vel_x=0;
         this.vel_y=0;
         this.vel_z=0;
@@ -271,58 +274,60 @@ class Card_Battle{
     }
 
     draw_shade(height_table,camera,ctx,canvas){
-        const xy_rotate=math.multiply(rotateX(this.angle_x),rotateY(this.angle_y));
-        const xyz_rotate=math.multiply(xy_rotate,rotateZ(this.angle_z));
-        var pos_rotate=math.multiply(xyz_rotate,this.points);
-        const posiiton_accurate=math.add(pos_rotate,this.get_matrix_position(pos_rotate))
+        if (this.position[1]!=-20){
+            const xy_rotate=math.multiply(rotateX(this.angle_x),rotateY(this.angle_y));
+            const xyz_rotate=math.multiply(xy_rotate,rotateZ(this.angle_z));
+            var pos_rotate=math.multiply(xyz_rotate,this.points);
+            const posiiton_accurate=math.add(pos_rotate,this.get_matrix_position(pos_rotate))
 
-        const Sun_light=math.matrix([[-1],[-1.2],[-1.2]])
+            const Sun_light=math.matrix([[-0.5],[-1.2],[-0.6]])
 
-        const [rows, cols] =posiiton_accurate.size();
-        const height=math.zeros(rows, cols);
+            const [rows, cols] =posiiton_accurate.size();
+            const height=math.zeros(rows, cols);
 
-        for (let i=0;i<cols;i++){
-            height.subset(math.index(rows-2, i), height_table);
+            for (let i=0;i<cols;i++){
+                height.subset(math.index(rows-2, i), height_table);
 
-            //height[rows-2][i]=height_table
-        }
-        const t=math.multiply(math.matrix([[0,1/Sun_light.get([1,0]),0]]),math.subtract(posiiton_accurate,height))
-        const change=math.multiply(Sun_light,t)
-        const sun_result=math.subtract(posiiton_accurate,change)
-
-
-        const camera_matrix=camera.get_matrix_position(sun_result)
-        const position_by_camera=math.subtract(sun_result,camera_matrix);
-        const xy_rotate_camera=math.multiply(rotateY(camera.angle_x),rotateX(camera.angle_y));
-        const rotated=math.multiply(xy_rotate_camera,position_by_camera);
-        //this.matrix_pos=rotated
-        var pos_rotate=rotated;
-
-
-
-        ctx.beginPath();
-        const final_points=[]
-        const cx = canvas.width / 2;
-        const cy = canvas.height / 2;      
-        for (let col = 0; col <= this.corners.length-1; col++){
-            const final_point=[]
-            const x_start=pos_rotate.get([0,col])
-            const y_start=pos_rotate.get([1,col])
-            const z_start=pos_rotate.get([2,col])
-            const end_x=cx + camera.similar_tri_2(x_start,z_start)
-            const end_y=cy + camera.similar_tri_2(y_start,z_start)
-            if (col==0) {
-                ctx.moveTo(end_x, end_y); 
+                //height[rows-2][i]=height_table
             }
-            else{
-                ctx.lineTo(end_x, end_y);    
+            const t=math.multiply(math.matrix([[0,1/Sun_light.get([1,0]),0]]),math.subtract(posiiton_accurate,height))
+            const change=math.multiply(Sun_light,t)
+            const sun_result=math.subtract(posiiton_accurate,change)
+
+
+            const camera_matrix=camera.get_matrix_position(sun_result)
+            const position_by_camera=math.subtract(sun_result,camera_matrix);
+            const xy_rotate_camera=math.multiply(rotateY(camera.angle_x),rotateX(camera.angle_y));
+            const rotated=math.multiply(xy_rotate_camera,position_by_camera);
+            //this.matrix_pos=rotated
+            var pos_rotate=rotated;
+
+
+
+            ctx.beginPath();
+            const final_points=[]
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;      
+            for (let col = 0; col <= this.corners.length-1; col++){
+                const final_point=[]
+                const x_start=pos_rotate.get([0,col])
+                const y_start=pos_rotate.get([1,col])
+                const z_start=pos_rotate.get([2,col])
+                const end_x=cx + camera.similar_tri_2(x_start,z_start)
+                const end_y=cy + camera.similar_tri_2(y_start,z_start)
+                if (col==0) {
+                    ctx.moveTo(end_x, end_y); 
+                }
+                else{
+                    ctx.lineTo(end_x, end_y);    
+                }
+                final_points.push(final_point);
+                
             }
-            final_points.push(final_point);
-            
+            ctx.closePath();  
+            ctx.fillStyle = "rgb(23,23,23,0.6)";
+            ctx.fill();
         }
-        ctx.closePath();  
-        ctx.fillStyle = "rgb(23,23,23,0.6)";
-        ctx.fill();
 
     }
 
@@ -337,6 +342,9 @@ class Card_Battle{
             this.moving=false
             this.moving_precentage=0
             this.finish_moving(...this.moving_parameters)
+        }
+        else {
+            this.pick_moving_function()
         }
     }
 
@@ -353,6 +361,14 @@ class Card_Battle{
             this.moving_parameters=parameters;
             
         }
+    }
+
+    pick_moving_function(){//FIFO
+        if (this.moving_cache.length){
+            const para=this.moving_cache.pop(0)
+            this.start_moving(...para)
+        }
+        
     }
     move_to_horizontal(target_position){//target_position[x,y,z]
         
@@ -397,6 +413,7 @@ class Card_Battle{
         this.position[0]=final_pos[0]
         this.position[1]=final_pos[1]
         this.position[2]=final_pos[2]
+        this.pick_moving_function()
         
     }
 
@@ -473,7 +490,8 @@ class Card_Battle{
         this.position[0]=target_position[0]
         this.position[1]=target_position[1]
         this.position[2]=target_position[2]
-        this.start_moving('rotate_to_point',[this.orginal_angle])
+        this.pick_moving_function()
+        //this.start_moving('rotate_to_point',[this.orginal_angle])
     }
 
 
@@ -534,6 +552,7 @@ class Card_Battle{
     }
     rotate_to_finish(target_position){//让它指向目标点
         this.angle_z=this.moving_store[3]
+        this.pick_moving_function()
         //console.log(this.angle_x,this.angle_y,this.angle_z)
     }
 

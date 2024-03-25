@@ -95,9 +95,16 @@ class Game_Client{
             else if (event.key === "l" || event.key === "L"){
                 const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
                 const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U","Caesar",1122334455)
-                const card_battle=new Creature_Battle(6,5,[-25,-20,0],0.3,card)
+                const card_battle=new Creature_Battle(6,5,[-25,-20,0],0.3,card,"self")
                 this.table.self_battlefield.push(card_battle)
             }
+            else if (event.key === "k" || event.key === "K"){
+                const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
+                const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U","Caesar",1122334455)
+                const card_battle=new Creature_Battle(6,5,[-25,-20,0],0.3,card,"opponent")
+                this.table.opponent_battlefield.push(card_battle)
+            }
+
             
         });
         this.canvas_table.addEventListener('mousedown', (event) => { 

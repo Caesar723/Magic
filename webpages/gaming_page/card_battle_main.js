@@ -1,6 +1,6 @@
 class Creature_Battle extends Card_Battle {
-    constructor(width,height,position,size,card){
-        super(width,height,position,size,card)
+    constructor(width,height,position,size,card,player){
+        super(width,height,position,size,card,player)
         // this.Org_Life=card.Org_Life;
         // this.Life=card.Life;
         // this.Org_Damage=card.Org_Damage;
@@ -92,8 +92,8 @@ class Creature_Battle extends Card_Battle {
 
 
 class Land_Battle extends Card_Battle {
-    constructor(width,height,position,size,card){
-        super(width,height,position,size,card)
+    constructor(width,height,position,size,card,player){
+        super(width,height,position,size,card,player)
         this.type="Land";
 
     }
