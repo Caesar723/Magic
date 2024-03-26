@@ -169,10 +169,18 @@ class Card{
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.save();
         ctx.beginPath();
-        ctx.moveTo(points_pos[0][0], points_pos[0][1]); // 右下角
-        ctx.lineTo(points_pos[3][0], points_pos[3][1]); // 右上角
-        ctx.lineTo(points_pos[2][0], points_pos[2][1]); // 左上角
-        ctx.lineTo(points_pos[1][0], points_pos[1][1]);
+        const p1=this.extendVert(points_pos[0][0], points_pos[0][1],points_pos[2][0], points_pos[2][1],points_pos[3][0], points_pos[3][1])
+        const p2=this.extendVert(points_pos[2][0], points_pos[2][1],points_pos[0][0], points_pos[0][1],points_pos[3][0], points_pos[3][1])
+        const p3=this.extendVert(points_pos[3][0], points_pos[3][1],points_pos[2][0], points_pos[2][1],points_pos[0][0], points_pos[0][1])
+
+        
+        ctx.moveTo(...p1); // 右下角
+        ctx.lineTo(...p2); // 左下角
+        ctx.lineTo(...p3); // 左上角
+        // ctx.moveTo(points_pos[0][0], points_pos[0][1]); // 右下角
+        // ctx.lineTo(points_pos[3][0], points_pos[3][1]); // 右上角
+        // ctx.lineTo(points_pos[2][0], points_pos[2][1]); // 左上角
+        // ctx.lineTo(points_pos[1][0], points_pos[1][1]);
         ctx.closePath();
         ctx.clip();
         ctx.setTransform(
@@ -191,9 +199,15 @@ class Card{
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.save();
         ctx.beginPath();
-        ctx.moveTo(points_pos[2][0], points_pos[2][1]); // 左上角
-        ctx.lineTo(points_pos[1][0], points_pos[1][1]); // 右上角
-        ctx.lineTo(points_pos[0][0], points_pos[0][1]); // 右下角
+        // ctx.moveTo(points_pos[2][0], points_pos[2][1]); // 左上角
+        // ctx.lineTo(points_pos[1][0], points_pos[1][1]); // 右上角
+        // ctx.lineTo(points_pos[0][0], points_pos[0][1]); // 右下角
+        const p1=this.extendVert(points_pos[0][0], points_pos[0][1],points_pos[1][0], points_pos[1][1],points_pos[2][0], points_pos[2][1])
+        const p2=this.extendVert(points_pos[1][0], points_pos[1][1],points_pos[0][0], points_pos[0][1],points_pos[2][0], points_pos[2][1])
+        const p3=this.extendVert(points_pos[2][0], points_pos[2][1],points_pos[1][0], points_pos[1][1],points_pos[0][0], points_pos[0][1])
+        ctx.moveTo(...p1); // 右下角
+        ctx.lineTo(...p2); // 左下角
+        ctx.lineTo(...p3); // 左上角
         
         ctx.closePath();
         ctx.clip();
@@ -386,7 +400,7 @@ class Card{
     moving_by_mouse(mouse_pos,camera){
         
         const limit=0.9;
-        const next_pos=camera.similar_tri_reverse(...mouse_pos,this.position[2])
+        const next_pos=camera.similar_tri_reverse(...mouse_pos,this.position[2]);
         const x_diff=-(next_pos[0]-this.position[0])/3;
         const y_diff=(next_pos[1]-this.position[1])/3;
         
@@ -416,6 +430,12 @@ class Card{
         const k=(position2[1]-position1[1])/(position2[0]-position1[0]);
         const b=position1[1]-k*position1[0];
         return mouse_pos[1]-(mouse_pos[0])*k-b
+    }
+    extendVert(x0, y0, x1, y1, x2, y2) {
+        const DRAW_IMAGE_EXTEND_EX = 3;
+        var x = 2*x0 - x1 - x2, y = 2 * y0 - y1 - y2;
+        var d = 70*Math.sqrt(DRAW_IMAGE_EXTEND_EX / (x * x + y * y));
+        return [x0 + x * d, y0 + y * d];
     }
 
     
@@ -773,6 +793,6 @@ class Card_frame{
         // 应用裁剪
         ctx.clip();
     }
-
+    
     
 }

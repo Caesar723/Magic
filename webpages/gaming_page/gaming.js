@@ -6,10 +6,15 @@ class Game_Client{
         this.table=new Table()
         this.canvas_table=this.table.canvas
         this.ctx_table=this.table.ctx
+
+        this.self_player=new Self("CC",this.canvas_table,this.ctx_table)
+        this.oppo_player=new Opponent("DD",this.canvas_table,this.ctx_table)
         console.log(this.ctx_table)
 
         this.set_lestener()
 
+        this.mouse_hold=false//判断mouse是否抓住牌
+        this.card_hold=[undefined,false,false]//card click bool,move bool
 
     }
     async init() {
@@ -36,26 +41,22 @@ class Game_Client{
         
     }
 
-    start_drawing(){
-        
-        this.update();
-        this.draw();
-
-        //requestAnimationFrame(this.start_drawing);
-    }
+    
 
     update(){
         this.table.update()
+        this.oppo_player.update()
+        this.self_player.update()
     }
     draw(){
         this.table.draw()
+        this.oppo_player.update()
+        this.self_player.draw()
     }
     set_lestener(){
         
 
-        this.canvas_table.addEventListener('mousemove', (event) => {
-            
-        });
+        
         this.canvas_table.focus()
         this.canvas_table.addEventListener('keydown', (event) => {
             console.log("A key pressed");
@@ -117,19 +118,61 @@ class Game_Client{
                 const card_battle=new Creature_Battle(6,5,[-25,-20,0],0.3,card,"opponent",this.table)
                 this.table.opponent_battlefield.push(card_battle)
             }
+            else if (event.key === "m" || event.key === "M"){
+                this.self_player.cards[0].moving_cache.push(["move_to",[[0,0,0]]])
+            }
+            else if (event.key === "n" || event.key === "N"){
+                this.self_player.cards[0].moving_cache.push(["move_to",[[5,0,0]]])
+            }
+            else if (event.key === "b" || event.key === "B"){
+                const canvas_dynamic=this.self_player.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
+                const card=new Creature_Hand(4,5.62,[0,0,0],1.5,canvas_dynamic,"3U",20,20,"Caesar",1122334455,this)
+        
+                this.self_player.cards.push(card)
+            }
 
             
         });
         this.canvas_table.addEventListener('mousedown', (event) => { 
+            const mouse_pos=this.get_mouse_pos(event,this.canvas_table)
+            const card=this.find_cards_by_mouse(mouse_pos)
+            if (! (card===undefined)){
+                console.log(card)
+                const click_bool=this.judge_click()
+                const move_bool=this.judge_move()
+                this.card_hold=[card,click_bool,move_bool]
+                card.card_hold=[click_bool,move_bool]
+            }
             
-            
-            
-                
             
             
         });
-        this.canvas_table.addEventListener('mouseup', (event) => {
+        this.canvas_table.addEventListener('mousemove', (event) => {
             
+            if (this.card_hold[2]){
+                const mouse_pos=this.get_mouse_pos(event,this.canvas_table)
+                if (this.card_hold[0] instanceof Card_Battle){
+                    //console.log(this.card_hold[0].position[2],this.card_hold[0].position_in_screen_z)
+                    //const next_pos=this.table.camera.similar_tri_reverse_2(...mouse_pos,this.card_hold[0].position[1],this.card_hold[0].position_in_screen_z);
+                    this.card_hold[0].moving_by_mouse(mouse_pos,this.table.camera)
+                    
+                }
+            }
+        });
+        this.canvas_table.addEventListener('mouseup', (event) => {
+            if (!(this.card_hold[0]===undefined)){
+                console.log(1)
+                this.card_hold[0].card_hold=[false,false]
+                this.card_hold=[undefined,false,false]
+            }
+            
+            
+        });
+        this.canvas_table.addEventListener('mouseleave', (event) => {
+            if (!(this.card_hold[0]===undefined)){
+                this.card_hold[0].card_hold=[false,false]
+                this.card_hold=[undefined,false,false]
+            }
         });
 
         this.canvas_table.addEventListener('wheel', (event)=> {
@@ -147,6 +190,47 @@ class Game_Client{
 
        
         
+    }
+    find_cards_by_mouse(mouse_pos){//会检查你点到是哪一张牌
+        const cards_hand_self=this.self_player.cards//先检查hand的，从右往左
+        const cards_hand_oppo=this.oppo_player.cards//
+        const cards_battle_self=this.table.self_battlefield//再检查battle的
+        const cards_battle_oppo=this.table.opponent_battlefield
+
+        const cards=[cards_hand_self,cards_hand_oppo,cards_battle_self,cards_battle_oppo]
+        for (let cards_i in cards){
+            const card=this.check_cards_list(mouse_pos,cards[cards_i])
+            
+            if (! (card===undefined)){
+                return card
+            }
+        }
+
+        return undefined
+    }
+    check_cards_list(mouse_pos,arr){
+        for (let i in arr){
+            const index=arr.length-i-1
+            //console.log(arr[index],arr[index].position_in_screen,arr[index].check_inside(mouse_pos,...arr[index].position_in_screen))
+            if (arr[index].check_inside(mouse_pos,...arr[index].position_in_screen)){
+                return arr[index]
+            }
+        }
+        return undefined
+    }
+    get_mouse_pos(event,canvas){
+        var rect = canvas.getBoundingClientRect();
+        // 计算鼠标相对于canvas的位置
+        var mouseX = (event.clientX - rect.left)*canvas.width/rect.width;
+        var mouseY = (event.clientY - rect.top)*canvas.height/rect.height;
+        return [mouseX,mouseY]
+    }
+
+    judge_move(){
+        return true
+    }
+    judge_click(){
+        return true
     }
 }
 

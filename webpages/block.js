@@ -311,6 +311,26 @@ class Camera{
     similar_tri_reverse(x_screen,y_screen,z_expect){
         return [x_screen*(z_expect-this.position[2])/this.dis_from_screen,y_screen*(z_expect-this.position[2])/this.dis_from_screen]
     }
+
+    similar_tri_reverse_2(x_screen,y_screen,y_expect,z_expect){
+        
+        const pos=math.matrix([
+            [(x_screen-1470/2)*(z_expect)/this.dis_from_screen],
+            [(y_screen-742/2)*(z_expect)/this.dis_from_screen],
+            [z_expect]
+        ])
+        console.log(pos)
+        const camera_matrix=this.get_matrix_position(pos)
+        
+        const xy_rotate_camera=math.multiply(rotateX(-this.angle_y),rotateY(-this.angle_x));
+        const rotated=math.multiply(xy_rotate_camera,pos);
+
+        const k=(y_expect-this.position[1])/rotated.get([1,0])
+        const kd=math.multiply(k,rotated);
+        const intersect=math.add(kd,camera_matrix);
+        return [intersect.get([0,0]),intersect.get([1,0]),intersect.get([2,0])]
+    }
+
     add_rotate_prescent(num){
         this.rotate_prescent=this.rotate_prescent+num
         if (this.rotate_prescent>100){

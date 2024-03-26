@@ -59,7 +59,7 @@ class Table{
                 for (let i =layer*max_len;i<layer*max_len+(arr.length%max_len);i++){
                     const position=[start_point+(i-layer*max_len)*dis_between,arr[i].accurate_position[1],(-5-layer*5)*unit]
                     arr[i].accurate_position=position
-                    console.log(position)
+                    
                     arr[i].start_moving("move_to",[position])
                     arr[i].change_size(size)
                     

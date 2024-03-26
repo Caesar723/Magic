@@ -1,6 +1,6 @@
 class Creature_Hand extends Card_Hand {
-    constructor(width,height,position,size,dynamic_canvas,color_fee,Life,Damage,name,id){
-        super(width,height,position,size,dynamic_canvas,color_fee,name,id)
+    constructor(width,height,position,size,dynamic_canvas,color_fee,Life,Damage,name,id,player){
+        super(width,height,position,size,dynamic_canvas,color_fee,name,id,player)
         this.Org_Life=Life;
         this.Life=Life;
         this.Org_Damage=Damage;
@@ -89,8 +89,8 @@ class Creature_Hand extends Card_Hand {
 
 
 class Land_Hand extends Card_Hand {
-    constructor(width,height,position,size,dynamic_canvas,name,id){
-        super(width,height,position,size,dynamic_canvas,"",name,id)
+    constructor(width,height,position,size,dynamic_canvas,name,id,player){
+        super(width,height,position,size,dynamic_canvas,"",name,id,player)
         this.type="Land";
 
     }
@@ -100,16 +100,16 @@ class Land_Hand extends Card_Hand {
 
 
 class Sorcery_Hand extends Card_Hand {
-    constructor(width,height,position,size,dynamic_canvas,color_fee,name,id){
-        super(width,height,position,size,dynamic_canvas,color_fee,name,id)
+    constructor(width,height,position,size,dynamic_canvas,color_fee,name,id,player){
+        super(width,height,position,size,dynamic_canvas,color_fee,name,id,player)
         this.type="Sorcery";
     }
 }
 
 
 class Instant_Hand extends Card_Hand {
-    constructor(width,height,position,size,dynamic_canvas,color_fee,name,id){
-        super(width,height,position,size,dynamic_canvas,color_fee,name,id);
+    constructor(width,height,position,size,dynamic_canvas,color_fee,name,id,player){
+        super(width,height,position,size,dynamic_canvas,color_fee,name,id,player);
         this.type="Instant";
     }
 

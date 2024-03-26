@@ -60,6 +60,8 @@ class Card_Battle{
         this.moving_cache=[]//接收["名字"，target position]
         this.accurate_position=[0,position[1],0]//这个是通过table计算得出来的相对牌的位置
         this.orginal_angle=[0,0,1]//初始指向的方向
+
+        this.card_hold=[false,false]//click_bool,move_bool
         
     }
     get_org_position(size){
@@ -209,6 +211,8 @@ class Card_Battle{
     draw(camera,ctx,canvas){
         
         const new_points_pos=[];
+
+        const new_points_z=[]
         
         
         this.final_image=this.canvas;
@@ -224,6 +228,7 @@ class Card_Battle{
             const end_x=cx + camera.similar_tri_2(x_start,z_start)
             const end_y=cy + camera.similar_tri_2(y_start,z_start)
             new_points_pos.push([end_x, end_y])
+            new_points_z.push(z_start)
         }
         //ctx.closePath();
         const COL=4;
@@ -254,6 +259,7 @@ class Card_Battle{
             col_right_up=col_right_down;
         }
         this.position_in_screen=new_points_pos;
+        this.position_in_screen_z=(new_points_z[0]+new_points_z[2])/2
     }
     average_p(p_1,p_2,n,t){
         const x=p_2[0]+n*(p_1[0]-p_2[0])/t
@@ -337,19 +343,21 @@ class Card_Battle{
 
 
     check_moving(){
-
-        if (this.moving && this.moving_precentage<100){
-            this.current_moving(...this.moving_parameters)
-            
+        if (!this.card_hold[1]){
+            if (this.moving && this.moving_precentage<100){
+                this.current_moving(...this.moving_parameters)
+                
+            }
+            else if(this.moving && this.moving_precentage>=100){
+                this.moving=false
+                this.moving_precentage=0
+                this.finish_moving(...this.moving_parameters)
+            }
+            else {
+                this.pick_moving_function()
+            }
         }
-        else if(this.moving && this.moving_precentage>=100){
-            this.moving=false
-            this.moving_precentage=0
-            this.finish_moving(...this.moving_parameters)
-        }
-        else {
-            this.pick_moving_function()
-        }
+        
     }
 
     start_moving(moving_type,parameters){
@@ -616,6 +624,41 @@ class Card_Battle{
         var pos_rotate=math.multiply(rotateY(-this.angle_z),org_direction);
         
         return pos_rotate.toArray().flat();
+    }
+    check_inside(mouse_pos,position1,position2,position3,position4){//n shape of points
+        
+        return (
+            this.create_function_x(mouse_pos,position2,position1)<0 &&
+            this.create_function_y(mouse_pos,position4,position1)<0 &&
+            this.create_function_x(mouse_pos,position4,position3)>0 &&
+            this.create_function_y(mouse_pos,position3,position2)>0
+        )
+
+    }
+    create_function_x(mouse_pos,position1,position2){// for x=... position1(lower x) x-...
+        const k=(position2[0]-position1[0])/(position2[1]-position1[1]);
+        const b=position1[0]-k*position1[1];
+        return mouse_pos[0]-(mouse_pos[1])*k-b
+    }
+    create_function_y(mouse_pos,position1,position2){// for y=... position1(lower x) y-....
+        const k=(position2[1]-position1[1])/(position2[0]-position1[0]);
+        const b=position1[1]-k*position1[0];
+        return mouse_pos[1]-(mouse_pos[0])*k-b
+    }
+
+    moving_by_mouse(mouse_pos,camera){
+        
+        const limit=0.9;
+        const next_pos=camera.similar_tri_reverse_2(...mouse_pos,this.position[1],this.position_in_screen_z);
+        const x_diff=(next_pos[0]-this.position[0])/3;
+        const y_diff=-(next_pos[2]-this.position[2])/3;
+        
+
+        this.angle_y = x_diff > limit ? limit : (x_diff < -limit ? -limit :x_diff);
+        this.angle_x = math.pi/2+(y_diff > limit ? limit : (y_diff < -limit ? -limit :y_diff));
+
+        this.position[0]=next_pos[0]
+        this.position[2]=next_pos[2]
     }
 
 
