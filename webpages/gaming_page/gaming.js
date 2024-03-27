@@ -142,7 +142,9 @@ class Game_Client{
                 const move_bool=this.judge_move()
                 this.card_hold=[card,click_bool,move_bool]
                 card.card_hold=[click_bool,move_bool]
+                
             }
+            this.startTime = performance.now();
             
             
             
@@ -151,25 +153,70 @@ class Game_Client{
             
             if (this.card_hold[2]){
                 const mouse_pos=this.get_mouse_pos(event,this.canvas_table)
+                console.log(2)
                 if (this.card_hold[0] instanceof Card_Battle){
                     //console.log(this.card_hold[0].position[2],this.card_hold[0].position_in_screen_z)
                     //const next_pos=this.table.camera.similar_tri_reverse_2(...mouse_pos,this.card_hold[0].position[1],this.card_hold[0].position_in_screen_z);
                     this.card_hold[0].moving_by_mouse(mouse_pos,this.table.camera)
                     
                 }
+                else if(this.card_hold[0] instanceof Card_Hand){
+                    this.card_hold[0].moving_by_mouse(mouse_pos,this.self_player.camera)
+                }
             }
         });
         this.canvas_table.addEventListener('mouseup', (event) => {
             if (!(this.card_hold[0]===undefined)){
-                console.log(1)
+                if (this.card_hold[1]){
+                    if (performance.now()-this.startTime<0.15*1000){
+                        console.log("click")
+                        
+                        this.self_player.change_to_focus()
+                        // if (this.self_player.cards_mode=="ignore"){
+                        //     this.self_player.cards_mode="focus"
+                        // }
+                        
+                    }
+                }
+                
+                if (this.card_hold[0] instanceof Card_Battle){
+                    this.card_hold[0].angle_x=math.pi/2;;
+                    this.card_hold[0].angle_y=0;
+                    this.card_hold[0].angle_z=0;
+                    
+                }
+                else if(this.card_hold[0] instanceof Card_Hand){
+                    this.card_hold[0].angle_x=0;
+                    this.card_hold[0].angle_y=0;
+                    this.card_hold[0].angle_z=0;
+                }
                 this.card_hold[0].card_hold=[false,false]
                 this.card_hold=[undefined,false,false]
+            }
+            else{
+                if (performance.now()-this.startTime<0.15*1000){
+                    this.self_player.change_to_ignore()
+                        
+                    console.log("click")
+                }
             }
             
             
         });
         this.canvas_table.addEventListener('mouseleave', (event) => {
             if (!(this.card_hold[0]===undefined)){
+                
+                if (this.card_hold[0] instanceof Card_Battle){
+                    this.card_hold[0].angle_x=math.pi/2;;
+                    this.card_hold[0].angle_y=0;
+                    this.card_hold[0].angle_z=0;
+                    
+                }
+                else if(this.card_hold[0] instanceof Card_Hand){
+                    this.card_hold[0].angle_x=0;
+                    this.card_hold[0].angle_y=0;
+                    this.card_hold[0].angle_z=0;
+                }
                 this.card_hold[0].card_hold=[false,false]
                 this.card_hold=[undefined,false,false]
             }

@@ -410,6 +410,7 @@ class Card{
 
         this.position[0]=next_pos[0]
         this.position[1]=next_pos[1]
+        console.log(1)
     }
     check_inside(mouse_pos,position1,position2,position3,position4){//n shape of points
         

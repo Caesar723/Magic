@@ -10,7 +10,9 @@ class Card_Hand extends Card{
             "move_to_horizontal":[this.move_to_horizontal.bind(this),this.move_to_horizontal.bind(this),this.move_to_horizontal_finish.bind(this)],
             "move_to":[this.move_to.bind(this),this.move_to_prepared.bind(this),this.move_to_finish.bind(this)],
             "rotate_to_point":[this.rotate_to_point.bind(this),this.rotate_to_point_prepared.bind(this),this.rotate_to_finish.bind(this)],
-            "disappear":[this.disappear.bind(this),this.disappear_prepared.bind(this),this.disappear_finish.bind(this)]
+            "disappear":[this.disappear.bind(this),this.disappear_prepared.bind(this),this.disappear_finish.bind(this)],
+            "small":[this.small.bind(this),this.small_prepared.bind(this),this.small_finish.bind(this)],
+            "enlarge":[this.enlarge.bind(this),this.enlarge_prepared.bind(this),this.enlarge_finish.bind(this)]
         }
         console.log([this.move_to,this.move_to_prepared])
         this.current_moving=null;//this.move_to_horizontal.....
@@ -51,6 +53,10 @@ class Card_Hand extends Card{
             else {
                 this.pick_moving_function()
             }
+        }
+        else{
+            this.moving=false
+            this.moving_precentage=0
         }
         
     }
@@ -112,6 +118,60 @@ class Card_Hand extends Card{
         this.move_to_finish(target_position)
     }
 
+
+
+    small_prepared(target_position){//target_position[x,y,z]
+        this.move_to_prepared(target_position)
+        this.moving_store.push(1.5)
+        console.log(this.size)
+
+    }
+    small(target_position){//target_position[x,y,z]
+        console.log(this.size)
+        const size=this.moving_store[4]
+        this.move_to(target_position)
+
+        this.change_size(size-(1/3)*this.moving_precentage*size/100)
+        
+        console.log(size-(1/3)*this.moving_precentage*size/100)
+        
+        
+    }
+    small_finish(target_position){//target_position[x,y,z]
+        const size=this.moving_store[4]
+        
+        
+        this.change_size(1)
+        console.log(this.size)
+        
+        this.move_to_finish(target_position)
+    }
+
+
+
+    enlarge_prepared(target_position){//target_position[x,y,z]
+        this.move_to_prepared(target_position)
+        this.moving_store.push(1)
+
+    }
+    enlarge(target_position){//target_position[x,y,z]
+        const size=this.moving_store[4]
+        this.move_to(target_position)
+
+        this.change_size(size+0.5*this.moving_precentage*size/100)
+        console.log(size+0.5*this.moving_precentage*size/100)
+        
+    }
+    enlarge_finish(target_position){//target_position[x,y,z]
+        
+        const size=this.moving_store[4]
+        this.change_size(1.5)
+        this.move_to_finish(target_position)
+    }
+
+
+
+
     move_to_prepared(target_position){
         
         const [unitVector,distance]=this.calculate_vector_move(target_position)
@@ -120,6 +180,7 @@ class Card_Hand extends Card{
         const time_consume=1/distance+2
         this.check_distance_to_target(target_position)
         this.moving_store=[a,unitVector,time_consume,target_position]
+        //console.log(321)
     }
     move_to(target_position){//target_position[x,y]
         const a=this.moving_store[0];
@@ -143,7 +204,9 @@ class Card_Hand extends Card{
         this.position[0]=final_pos[0]
         this.position[1]=final_pos[1]
         this.position[2]=final_pos[2]
+        //console.log(123)
         this.pick_moving_function()
+        
         
     }
 
@@ -226,6 +289,7 @@ class Card_Hand extends Card{
         else{
             this.moving_precentage=100
             
+            
         }
         
     }
@@ -241,8 +305,26 @@ class Card_Hand extends Card{
     }
 
     update(){
+        console.log(this.size)
         super.update()
+        console.log(this.size)
         this.check_moving()
+        console.log(this.size)
+    }
+    moving_by_mouse(mouse_pos,camera){
+        
+        const limit=0.9;
+        const next_pos=camera.similar_tri_reverse_middle(...mouse_pos,this.position[2]);
+        const x_diff=-(next_pos[0]-this.position[0])/3;
+        const y_diff=(next_pos[1]-this.position[1])/3;
+        
+
+        this.angle_y = x_diff > limit ? limit : (x_diff < -limit ? -limit :x_diff);
+        this.angle_x = y_diff > limit ? limit : (y_diff < -limit ? -limit :y_diff);
+
+        this.position[0]=next_pos[0]
+        this.position[1]=next_pos[1]
+        
     }
 }
 
@@ -308,4 +390,5 @@ class Card_Hand_Oppo extends Card{
         }
         this.position_in_screen=new_points_pos;
     }
+    
 }

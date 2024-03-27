@@ -357,6 +357,10 @@ class Card_Battle{
                 this.pick_moving_function()
             }
         }
+        else{
+            this.moving=false
+            this.moving_precentage=0
+        }
         
     }
 

@@ -302,14 +302,20 @@ class Camera{
         return x_or_y*(this.dis_from_screen/(z-this.position[2]))
     }
 
+
     similar_tri_2(x_or_y,z){
         return x_or_y*(this.dis_from_screen/(z))
     }
+
+
 
     
 
     similar_tri_reverse(x_screen,y_screen,z_expect){
         return [x_screen*(z_expect-this.position[2])/this.dis_from_screen,y_screen*(z_expect-this.position[2])/this.dis_from_screen]
+    }
+    similar_tri_reverse_middle(x_screen,y_screen,z_expect){
+        return [(x_screen-1470/2)*(z_expect-this.position[2])/this.dis_from_screen,(y_screen-742/2)*(z_expect-this.position[2])/this.dis_from_screen]
     }
 
     similar_tri_reverse_2(x_screen,y_screen,y_expect,z_expect){
