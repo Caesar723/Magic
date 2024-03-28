@@ -12,7 +12,8 @@ class Card_Hand extends Card{
             "rotate_to_point":[this.rotate_to_point.bind(this),this.rotate_to_point_prepared.bind(this),this.rotate_to_finish.bind(this)],
             "disappear":[this.disappear.bind(this),this.disappear_prepared.bind(this),this.disappear_finish.bind(this)],
             "small":[this.small.bind(this),this.small_prepared.bind(this),this.small_finish.bind(this)],
-            "enlarge":[this.enlarge.bind(this),this.enlarge_prepared.bind(this),this.enlarge_finish.bind(this)]
+            "enlarge":[this.enlarge.bind(this),this.enlarge_prepared.bind(this),this.enlarge_finish.bind(this)],
+            "change_size_animation":[this.change_size_animation.bind(this),this.change_size_animation_prepared.bind(this),this.change_size_animation_finish.bind(this)]
         }
         console.log([this.move_to,this.move_to_prepared])
         this.current_moving=null;//this.move_to_horizontal.....
@@ -28,6 +29,10 @@ class Card_Hand extends Card{
         this.orginal_angle=[0,0,1]//初始指向的方向
 
         this.card_hold=[false,false]//click_bool,move_bool
+        this.enlarge_switch=false
+
+
+        this.change_size_cache=undefined
     }
 
 
@@ -36,7 +41,12 @@ class Card_Hand extends Card{
         this.points=this.get_org_position(this.size);
     }
 
-
+    check_change_size(){
+        if (!(this.change_size_cache===undefined)){
+            this.change_size(this.change_size_cache)
+            this.change_size_cache=undefined
+        }
+    }
 
 
     check_moving(){
@@ -62,6 +72,7 @@ class Card_Hand extends Card{
     }
 
     start_moving(moving_type,parameters){
+        console.log(this.moving,parameters)
         if (this.moving==false && this.moving_precentage<100){
             this.moving_precentage=0;
             this.moving=true
@@ -178,8 +189,9 @@ class Card_Hand extends Card{
         this.min_distance_difference=distance;
         const a=math.sqrt(distance*2/math.pi)
         const time_consume=1/distance+2
-        this.check_distance_to_target(target_position)
+        
         this.moving_store=[a,unitVector,time_consume,target_position]
+        this.check_distance_to_target(target_position)
         //console.log(321)
     }
     move_to(target_position){//target_position[x,y]
@@ -273,6 +285,38 @@ class Card_Hand extends Card{
         //console.log(this.angle_x,this.angle_y,this.angle_z)
     }
 
+    change_size_animation_prepared(size_target){
+        console.log(size_target,this.size)
+        const size_diff=math.abs(size_target-this.size)
+        const a=math.sqrt(math.abs(size_diff)*2/math.pi)
+        const time_consume=1/size_diff+2
+        const unit=size_diff/(size_target-this.size)
+        this.min_distance_difference=size_diff
+        this.moving_store=[a,time_consume,this.size,size_target,unit]
+        this.check_size_to_target(size_target)
+    }
+    change_size_animation(size_target){
+        const a=this.moving_store[0];
+        const unit=this.moving_store[4]
+        const time_consume=this.moving_store[1];
+        const org_size=this.moving_store[2];
+        //console.log(time_consume)
+        
+        const x=(a*math.pi/100)*this.moving_precentage
+        const dif_size=unit*a*Math.pow(Math.sin(x/a),2)/((100/(2*time_consume))/(a*math.pi))
+        
+        this.change_size(this.size+dif_size)
+        console.log(this.size,dif_size)
+        
+        this.moving_precentage+=TIME_INTERVAL*time_consume
+        this.check_size_to_target(size_target)
+    }
+    change_size_animation_finish(size_target){
+        
+        this.change_size(this.moving_store[3])
+        this.pick_moving_function()
+    }
+
     calculate_vector_move(target_position){//返回一个unit vector, 总的distance
         const difference = math.subtract(target_position, this.position);
         const distance=math.norm(difference);
@@ -287,11 +331,35 @@ class Card_Hand extends Card{
             this.min_distance_difference=distance
         }
         else{
+            // this.moving=false
+            // this.moving_precentage=0
+            
+            // this.finish_moving(...this.moving_parameters)
+            // this.moving_store=[]
             this.moving_precentage=100
+            
             
             
         }
         
+    }
+    check_size_to_target(target_size){
+
+        const size_diff=math.abs(target_size-this.size)
+        console.log(target_size,this.size)
+        if (size_diff<=this.min_distance_difference && this.size!=target_size){
+            this.min_distance_difference=size_diff
+        }
+        else{
+            //this.moving_precentage=100
+            this.moving=false
+            this.moving_precentage=0
+            
+            this.finish_moving(...this.moving_parameters)
+            this.moving_store=[]
+            
+            
+        }
     }
 
     get_vector_point(){
@@ -305,11 +373,13 @@ class Card_Hand extends Card{
     }
 
     update(){
-        console.log(this.size)
+        //console.log(this.size)
         super.update()
-        console.log(this.size)
+        //console.log(this.size)
         this.check_moving()
-        console.log(this.size)
+        this.check_change_size()
+        
+        //console.log(this.size)
     }
     moving_by_mouse(mouse_pos,camera){
         

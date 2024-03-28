@@ -162,22 +162,44 @@ class Game_Client{
                 }
                 else if(this.card_hold[0] instanceof Card_Hand){
                     this.card_hold[0].moving_by_mouse(mouse_pos,this.self_player.camera)
+                    
+                }
+            }
+            else if(this.card_hold[0]===undefined){
+                const mouse_pos=this.get_mouse_pos(event,this.canvas_table)
+                const card=this.find_cards_by_mouse(mouse_pos)
+                console.log(11)
+                if (card instanceof Card_Hand){
+                    
+                    for (let i in this.self_player.cards){
+                        if (this.self_player.cards[i]!=card){
+                            console.log(this.self_player.get_small_size())
+                            this.self_player.cards[i].start_moving("change_size_animation",[this.self_player.get_small_size()])
+                            console.log(this.self_player.cards[i].size)
+                            
+                        }
+                        
+                    }
+                    card.start_moving("change_size_animation",[this.self_player.get_enlarge_size()])
+                    //card.change_size_cache=this.self_player.get_enlarge_size()
+                }
+                else{
+                    for (let i in this.self_player.cards){
+                        if (this.self_player.cards[i]!=card){
+                            console.log(this.self_player.get_small_size())
+                            this.self_player.cards[i].start_moving("change_size_animation",[this.self_player.get_small_size()])
+                            console.log(this.self_player.cards[i].size)
+                            
+                        }
+                        
+                    }
+                    
                 }
             }
         });
         this.canvas_table.addEventListener('mouseup', (event) => {
             if (!(this.card_hold[0]===undefined)){
-                if (this.card_hold[1]){
-                    if (performance.now()-this.startTime<0.15*1000){
-                        console.log("click")
-                        
-                        this.self_player.change_to_focus()
-                        // if (this.self_player.cards_mode=="ignore"){
-                        //     this.self_player.cards_mode="focus"
-                        // }
-                        
-                    }
-                }
+                
                 
                 if (this.card_hold[0] instanceof Card_Battle){
                     this.card_hold[0].angle_x=math.pi/2;;
@@ -189,6 +211,14 @@ class Game_Client{
                     this.card_hold[0].angle_x=0;
                     this.card_hold[0].angle_y=0;
                     this.card_hold[0].angle_z=0;
+                    if (this.card_hold[1]){
+                        if (performance.now()-this.startTime<0.15*1000){
+                            console.log("click")
+                            
+                            this.self_player.change_to_focus()
+                            
+                        }
+                    }
                 }
                 this.card_hold[0].card_hold=[false,false]
                 this.card_hold=[undefined,false,false]
