@@ -137,7 +137,7 @@ class Game_Client{
             const mouse_pos=this.get_mouse_pos(event,this.canvas_table)
             const card=this.find_cards_by_mouse(mouse_pos)
             if (! (card===undefined)){
-                console.log(card)
+                //console.log(card)
                 const click_bool=this.judge_click()
                 const move_bool=this.judge_move()
                 this.card_hold=[card,click_bool,move_bool]
@@ -153,7 +153,7 @@ class Game_Client{
             
             if (this.card_hold[2]){
                 const mouse_pos=this.get_mouse_pos(event,this.canvas_table)
-                console.log(2)
+                //console.log(2)
                 if (this.card_hold[0] instanceof Card_Battle){
                     //console.log(this.card_hold[0].position[2],this.card_hold[0].position_in_screen_z)
                     //const next_pos=this.table.camera.similar_tri_reverse_2(...mouse_pos,this.card_hold[0].position[1],this.card_hold[0].position_in_screen_z);
@@ -168,27 +168,30 @@ class Game_Client{
             else if(this.card_hold[0]===undefined){
                 const mouse_pos=this.get_mouse_pos(event,this.canvas_table)
                 const card=this.find_cards_by_mouse(mouse_pos)
-                console.log(11)
+                //console.log(11)
                 if (card instanceof Card_Hand){
                     
                     for (let i in this.self_player.cards){
                         if (this.self_player.cards[i]!=card){
-                            console.log(this.self_player.get_small_size())
+                            
                             this.self_player.cards[i].start_moving("change_size_animation",[this.self_player.get_small_size()])
-                            console.log(this.self_player.cards[i].size)
+                            
+                            this.self_player.cards[i].z_index=1;
                             
                         }
                         
                     }
                     card.start_moving("change_size_animation",[this.self_player.get_enlarge_size()])
+                    card.z_index=2;
                     //card.change_size_cache=this.self_player.get_enlarge_size()
                 }
                 else{
                     for (let i in this.self_player.cards){
                         if (this.self_player.cards[i]!=card){
-                            console.log(this.self_player.get_small_size())
+                            //console.log(this.self_player.get_small_size())
                             this.self_player.cards[i].start_moving("change_size_animation",[this.self_player.get_small_size()])
-                            console.log(this.self_player.cards[i].size)
+                            //console.log(this.self_player.cards[i].size)
+                            this.self_player.cards[i].z_index=1;
                             
                         }
                         
@@ -213,7 +216,7 @@ class Game_Client{
                     this.card_hold[0].angle_z=0;
                     if (this.card_hold[1]){
                         if (performance.now()-this.startTime<0.15*1000){
-                            console.log("click")
+                            //console.log("click")
                             
                             this.self_player.change_to_focus()
                             
@@ -227,7 +230,7 @@ class Game_Client{
                 if (performance.now()-this.startTime<0.15*1000){
                     this.self_player.change_to_ignore()
                         
-                    console.log("click")
+                    //console.log("click")
                 }
             }
             
@@ -253,7 +256,7 @@ class Game_Client{
         });
 
         this.canvas_table.addEventListener('wheel', (event)=> {
-            console.log(event.deltaY);
+            //console.log(event.deltaY);
             this.table.camera.angle_x=event.deltaX/40+this.table.camera.angle_x
             this.table.camera.angle_y=event.deltaY/40+this.table.camera.angle_y
             // this.table.camera.add_rotate_prescent(event.deltaY)

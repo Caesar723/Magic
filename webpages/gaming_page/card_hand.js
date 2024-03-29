@@ -33,6 +33,9 @@ class Card_Hand extends Card{
 
 
         this.change_size_cache=undefined
+
+
+        this.z_index=1;
     }
 
 
@@ -72,7 +75,7 @@ class Card_Hand extends Card{
     }
 
     start_moving(moving_type,parameters){
-        console.log(this.moving,parameters)
+        //console.log(this.moving,parameters)
         if (this.moving==false && this.moving_precentage<100){
             this.moving_precentage=0;
             this.moving=true
@@ -134,17 +137,17 @@ class Card_Hand extends Card{
     small_prepared(target_position){//target_position[x,y,z]
         this.move_to_prepared(target_position)
         this.moving_store.push(1.5)
-        console.log(this.size)
+        //console.log(this.size)
 
     }
     small(target_position){//target_position[x,y,z]
-        console.log(this.size)
+        //console.log(this.size)
         const size=this.moving_store[4]
         this.move_to(target_position)
 
         this.change_size(size-(1/3)*this.moving_precentage*size/100)
         
-        console.log(size-(1/3)*this.moving_precentage*size/100)
+        //console.log(size-(1/3)*this.moving_precentage*size/100)
         
         
     }
@@ -153,7 +156,7 @@ class Card_Hand extends Card{
         
         
         this.change_size(1)
-        console.log(this.size)
+        //console.log(this.size)
         
         this.move_to_finish(target_position)
     }
@@ -170,7 +173,7 @@ class Card_Hand extends Card{
         this.move_to(target_position)
 
         this.change_size(size+0.5*this.moving_precentage*size/100)
-        console.log(size+0.5*this.moving_precentage*size/100)
+        //console.log(size+0.5*this.moving_precentage*size/100)
         
     }
     enlarge_finish(target_position){//target_position[x,y,z]
@@ -267,7 +270,7 @@ class Card_Hand extends Card{
         
     }
     rotate_to_point(target_position){//让它指向目标点
-        console.log("rotate")
+        //console.log("rotate")
         const a=this.moving_store[1];
         const thetaRadians=this.moving_store[0];
         const time_consume=this.moving_store[2];
@@ -286,7 +289,7 @@ class Card_Hand extends Card{
     }
 
     change_size_animation_prepared(size_target){
-        console.log(size_target,this.size)
+        //console.log(size_target,this.size)
         const size_diff=math.abs(size_target-this.size)
         const a=math.sqrt(math.abs(size_diff)*2/math.pi)
         const time_consume=1/size_diff+2
@@ -306,7 +309,7 @@ class Card_Hand extends Card{
         const dif_size=unit*a*Math.pow(Math.sin(x/a),2)/((100/(2*time_consume))/(a*math.pi))
         
         this.change_size(this.size+dif_size)
-        console.log(this.size,dif_size)
+        //console.log(this.size,dif_size)
         
         this.moving_precentage+=TIME_INTERVAL*time_consume
         this.check_size_to_target(size_target)
@@ -346,7 +349,7 @@ class Card_Hand extends Card{
     check_size_to_target(target_size){
 
         const size_diff=math.abs(target_size-this.size)
-        console.log(target_size,this.size)
+        //console.log(target_size,this.size)
         if (size_diff<=this.min_distance_difference && this.size!=target_size){
             this.min_distance_difference=size_diff
         }

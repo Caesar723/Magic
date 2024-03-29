@@ -62,6 +62,8 @@ class Card_Battle{
         this.orginal_angle=[0,0,1]//初始指向的方向
 
         this.card_hold=[false,false]//click_bool,move_bool
+
+        this.z_index=1;
         
     }
     get_org_position(size){

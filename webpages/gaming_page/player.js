@@ -107,11 +107,14 @@ class Self extends Player{
         }
         this.cards= this.cards.filter(item => !(this.hand_delete.includes(item)))
         this.hand_delete=[]
+        //this.sort_cards()
     }
 
     draw(){
-        for (let card_i in this.cards){
-            this.cards[card_i].draw(this.camera,this.ctx,this.canvas)
+        const cards_arr=this.sort_cards()
+        for (let card_i in cards_arr){
+            cards_arr[card_i].draw(this.camera,this.ctx,this.canvas)
+            
         }
     }
 
@@ -153,5 +156,10 @@ class Self extends Player{
                 this.cards[card_i].angle_z=start_angle+card_i*angle_between
             }
         }
+    }
+    sort_cards(){
+        return this.cards.slice().sort(function(a, b) {
+            return a.z_index - b.z_index;
+          });
     }
 }

@@ -101,6 +101,8 @@ class Table{
         
         this.self_battlefield_delete=[]
         this.opponent_battlefield_delete=[]
+
+        //this.sort_cards()
         
         
     }
@@ -134,5 +136,13 @@ class Table{
 
     draw_table(){
 
+    }
+    sort_cards(){
+        this.self_battlefield.sort(function(a, b) {
+            return a.z_index - b.z_index;
+        });
+        this.opponent_battlefield.sort(function(a, b) {
+            return a.z_index - b.z_index;
+        });
     }
 }
