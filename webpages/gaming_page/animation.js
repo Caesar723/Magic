@@ -6,28 +6,37 @@ class Animation{//action
 
     }
 
-    set_animate(){
+    set_animate(){//
 
     }
 
-    ability(){
+    ability(){//改变血量之类的
 
     }
+
 
 }
 
 
 class Creature_Start_Attack extends Animation{
-
+    constructor(object_hold,player,attack_obj,state_self,state_attacted){///object can be card and 
+        super(object_hold,player)
+    }
 }
 class Creature_Prepare_Attack extends Animation{
-
+    constructor(object_hold,player){///object can be card and 
+        super(object_hold,player)
+    }
 }
-class Creature_Prepare_Defenseextends extends Animation{
-
+class Creature_Prepare_Defense extends Animation{
+    constructor(object_hold,player){///object can be card and 
+        super(object_hold,player)
+    }
 }
 class Activate_Ability extends Animation{
-
+    constructor(object_hold,player){///object can be card and 
+        super(object_hold,player)
+    }
 }
 
 class Select_Object extends Animation{
@@ -66,15 +75,23 @@ class Lose_Card extends Select_Object{
 }
 
 class Die extends Animation{
-
+    constructor(object_hold,player){///object can be card and 
+        super(object_hold,player)
+    }
 }
 class Summon extends Animation{
-
+    constructor(object_hold,player){///object can be card and 
+        super(object_hold,player)
+    }
 }
 
 class Turn extends Animation{
-
+    constructor(object_hold,player){///object can be card and 
+        super(object_hold,player)
+    }
 }
 class Change_Mana extends Animation{
-
+    constructor(object_hold,player){///object can be card and 
+        super(object_hold,player)
+    }
 }

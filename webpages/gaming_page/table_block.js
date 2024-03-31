@@ -115,8 +115,7 @@ class Table_graph extends Block{
             
             const b_dis=Math.sqrt((camera.position[0]-b_mid[0])**2 + (camera.position[1]+b_mid[1])**2+ (camera.position[2]-b_mid[2])**2) 
             const a_dis=Math.sqrt((camera.position[0]-a_mid[0])**2 + (camera.position[1]+a_mid[1])**2+ (camera.position[2]-a_mid[2])**2) 
-            console.log(camera.position)
-            console.log(a,b,a_mid,b_mid,a_dis,b_dis)
+            
             return b_dis-a_dis;
         })
         
@@ -330,7 +329,7 @@ class Deck_battle extends Table_graph{
     set_height_position(){
         this.height=this.number_of_cards*2/70
         this.position[1]=-(20+this.height*this.size)
-        console.log(this.position[1],this.size,this.height)
+        //console.log(this.position[1],this.size,this.height)
     }
     set_plane(){
         const planes=[];

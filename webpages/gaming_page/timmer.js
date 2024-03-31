@@ -1,17 +1,5 @@
-
-
-
-class Timmer{
-
-
-    constructor(max_time,position,size){
-        this.max_time=max_time
-        this.time=0
-
-
-
-        this.presentage=0
-
+class Ring_Record{
+    constructor(position,size){
         this.position=position
         this.size=size
         const width=1
@@ -35,9 +23,7 @@ class Timmer{
 
         this.text=""
     }
-    update_text(){
-        this.text=Math.round(this.time)
-    }
+
     get_org_position(size){
         const arr_x=[];
         const arr_y=[];
@@ -159,27 +145,6 @@ class Timmer{
         //ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height);
         ctx.restore();
     }
-    update(camera){
-        //this.check_moving()
-        
-        this.time=this.time+0.03
-        this.presentage=100*this.time/this.max_time
-        this.update_text()
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        this.ctx.save()
-        this.print_ring(this.canvas,this.ctx,this.presentage)
-        this.print_text(this.canvas,this.ctx)
-        //this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
-        this.ctx.restore()
-        //this.create_fee(this.dynamic_canvas[1],this.color_fee,...Array.from({length: 6}, (_, i) => this.images_fee[i]));
-        
-        this.arr_poses=this.get_position_points(camera);
-
-        
-        
-        
-    }
     draw(camera,ctx,canvas){
         
         const new_points_pos=[];
@@ -255,13 +220,86 @@ class Timmer{
         return [x0 + x * d, y0 + y * d];
     }
 
+    check_inside(mouse_pos,position1,position2,position3,position4){//n shape of points
+        
+        return (
+            this.create_function_x(mouse_pos,position2,position1)<0 &&
+            this.create_function_y(mouse_pos,position4,position1)<0 &&
+            this.create_function_x(mouse_pos,position4,position3)>0 &&
+            this.create_function_y(mouse_pos,position3,position2)>0
+        )
+
+    }
+    create_function_x(mouse_pos,position1,position2){// for x=... position1(lower x) x-...
+        const k=(position2[0]-position1[0])/(position2[1]-position1[1]);
+        const b=position1[0]-k*position1[1];
+        return mouse_pos[0]-(mouse_pos[1])*k-b
+    }
+    create_function_y(mouse_pos,position1,position2){// for y=... position1(lower x) y-....
+        const k=(position2[1]-position1[1])/(position2[0]-position1[0]);
+        const b=position1[1]-k*position1[0];
+        return mouse_pos[1]-(mouse_pos[0])*k-b
+    }
+
+}
+
+
+class Timmer extends Ring_Record{
+
+
+    constructor(max_time,position,size){
+        super(position,size)
+        this.max_time=max_time
+        this.time=0
+
+
+
+        this.presentage=0
+
+        this.text=""
+        this.text_click="End"
+        this.mode="time"//time, end
+    }
+    update_text(){
+        if (this.mode=="time"){
+            this.text=Math.round(this.time)
+        }
+        else{
+            this.text=this.text_click
+        }   
+        
+    }
+   
+    update(camera){
+        //this.check_moving()
+        
+        this.time=this.time+0.03
+        this.presentage=100*this.time/this.max_time
+        this.update_text()
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        this.ctx.save()
+        this.print_ring(this.canvas,this.ctx,this.presentage)
+        this.print_text(this.canvas,this.ctx)
+        //this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
+        this.ctx.restore()
+        //this.create_fee(this.dynamic_canvas[1],this.color_fee,...Array.from({length: 6}, (_, i) => this.images_fee[i]));
+        
+        this.arr_poses=this.get_position_points(camera);
+
+        
+        
+        
+    }
+    
+
     print_ring(canvas,ctx,progress){
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         const radius = 40;
         const startAngle = 0.5 * Math.PI; // 从顶部开始
         const endAngle =startAngle+ (progress/100)*2* Math.PI; // 计算结束角度
-        console.log(endAngle,startAngle)
+        //console.log(endAngle,startAngle)
         // ctx.beginPath();
         // ctx.arc(centerX, centerY, radius-1, 0, 2 * Math.PI);
         // ctx.fillStyle = '#e5e5e5';
@@ -269,7 +307,7 @@ class Timmer{
 
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-        ctx.lineWidth = 2; // 设置进度条的宽度
+        ctx.lineWidth = 4; // 设置进度条的宽度
         ctx.lineCap = 'round';
         ctx.strokeStyle = '#ffdf38'; // 进度条颜色
         // 设置阴影的颜色
@@ -290,5 +328,91 @@ class Timmer{
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(this.text + '', centerX, centerY);
+    }
+
+    
+}
+
+class Player_Life extends Ring_Record{
+    constructor(position,size){
+        
+        super(position,size)
+
+        this.max_life=20
+        this.life=5
+
+        this.angle=120*(Math.PI/180)
+
+        this.text="10"
+
+
+            
+    }
+    print_ring(canvas,ctx){
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 40;
+        const startAngle = 1.5 * Math.PI-(this.angle/2); // 从顶部开始
+        const endAngle =startAngle+ (this.angle)*this.life/this.max_life; // 计算结束角度
+        //console.log(endAngle,startAngle)
+        // ctx.beginPath();
+        // ctx.arc(centerX, centerY, radius, startAngle, startAngle+Math.PI*2);//this.angle);
+        // ctx.fillStyle = '#000000';
+        // ctx.lineWidth = 4; // 设置进度条的宽度
+        // ctx.lineCap = 'round';
+        // //ctx.strokeStyle = '#8c8c8c'; 
+        // ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, startAngle, startAngle+this.angle);
+        //ctx.fillStyle = '#e5e5e5';
+        ctx.lineWidth = 4; // 设置进度条的宽度
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#8c8c8c'; 
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.lineWidth = 7; // 设置进度条的宽度
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#ff6000'; 
+        ctx.shadowColor = '#ff6000';
+        ctx.shadowBlur = 20;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.stroke();
+
+    }
+    print_text(canvas,ctx){
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        ctx.font = '30px Cinzel';
+        ctx.fillStyle = '#ff6000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.life + '', centerX, centerY);
+    }
+    update_text(){
+        
+    }
+   
+    update(camera){
+        //this.check_moving()
+        
+        this.update_text()
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        this.ctx.save()
+        this.print_ring(this.canvas,this.ctx,this.presentage)
+        this.print_text(this.canvas,this.ctx)
+        //this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
+        this.ctx.restore()
+        //this.create_fee(this.dynamic_canvas[1],this.color_fee,...Array.from({length: 6}, (_, i) => this.images_fee[i]));
+        
+        this.arr_poses=this.get_position_points(camera);
+
+        
+        
+        
     }
 }

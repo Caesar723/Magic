@@ -9,6 +9,7 @@ class Game_Client{
 
         this.self_player=new Self("CC",this.canvas_table,this.ctx_table)
         this.oppo_player=new Opponent("DD",this.canvas_table,this.ctx_table)
+        this.table.set_player(this.self_player,this.oppo_player)
         console.log(this.ctx_table)
 
         this.set_lestener()
@@ -87,7 +88,7 @@ class Game_Client{
             }
             else if (event.key === "p" || event.key === "P") {
                 // 执行D键按下时的操作
-                this.table.self_battlefield[0].moving_cache.push(["attack_to",[[15,-20,-10]]])
+                this.table.self_battlefield[0].moving_cache.push(["attack_to",[[15,-20,-10],[10,10]]])
                 this.table.self_battlefield[0].moving_cache.push(["rotate_to_point",[[
                     this.table.self_battlefield[0].accurate_position[0],
                     this.table.self_battlefield[0].accurate_position[1],
@@ -135,7 +136,7 @@ class Game_Client{
                 this.self_player.cards[0].moving_cache.push(["disappear",[[0,60,-20]]])
             }
             else if (event.key === "c" || event.key === "C") {
-                const card=new Card_Hand_Oppo(4,5.62,[0,60,-20],0.7,1122334455,this.oppo_player)
+                const card=new Card_Hand_Oppo(4,5.62,[0,-60,-20],0.7,1122334455,this.oppo_player)
         
                 this.oppo_player.cards.push(card)
             }
@@ -178,6 +179,13 @@ class Game_Client{
             else if(this.card_hold[0]===undefined){
                 const mouse_pos=this.get_mouse_pos(event,this.canvas_table)
                 const card=this.find_cards_by_mouse(mouse_pos)
+                const timer=this.find_timers_by_mouse(mouse_pos)
+                if (!(card===undefined)||!(timer===undefined)){
+                    this.canvas_table.style.cursor = 'pointer';
+                }
+                else{
+                    this.canvas_table.style.cursor = 'default';
+                }
                 //console.log(11)
                 if (card instanceof Card_Hand){
                     
@@ -193,6 +201,7 @@ class Game_Client{
                     }
                     card.start_moving("change_size_animation",[this.self_player.get_enlarge_size()])
                     card.z_index=2;
+                    //this.canvas_table.style.cursor = 'pointer';             
                     //card.change_size_cache=this.self_player.get_enlarge_size()
                 }
                 else{
@@ -206,8 +215,21 @@ class Game_Client{
                         }
                         
                     }
+                    //this.canvas_table.style.cursor = 'default';
                     
                 }
+
+                
+                if (timer===undefined){
+                    this.table.timmer_turn.mode="time"
+                    this.table.timmer_bullet.mode="time"
+                    
+                }
+                else{
+                    timer.mode="end"
+                    
+                }
+                //console.log(timer)
             }
         });
         this.canvas_table.addEventListener('mouseup', (event) => {
@@ -305,6 +327,17 @@ class Game_Client{
             if (arr[index].check_inside(mouse_pos,...arr[index].position_in_screen)){
                 return arr[index]
             }
+        }
+        return undefined
+    }
+    find_timers_by_mouse(mouse_pos){
+        if (this.table.timmer_turn.check_inside(mouse_pos,...this.table.timmer_turn.position_in_screen)){
+            console.log(12345)
+            return this.table.timmer_turn
+        }
+        else if(this.table.timmer_bullet.check_inside(mouse_pos,...this.table.timmer_bullet.position_in_screen)){
+            console.log(345)
+            return this.table.timmer_bullet
         }
         return undefined
     }

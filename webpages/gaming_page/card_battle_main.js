@@ -5,9 +5,9 @@ class Creature_Battle extends Card_Battle {
         // this.Life=card.Life;
         // this.Org_Damage=card.Org_Damage;
         // this.Damage=card.Damage;
-        this.Org_Life=1;
+        this.Org_Life=20;
         this.Life=20;
-        this.Org_Damage=1;
+        this.Org_Damage=20;
         this.Damage=20;
         this.type="Creature";
         
@@ -86,6 +86,22 @@ class Creature_Battle extends Card_Battle {
        
         ctx.fillText(`${this.Damage}/${this.Life}`, startX, startY);
         ctx.restore();
+    }
+
+    attack_to_prepared(target_position,changed_state){//target_position[x,y,z]  撞一下然后返回原来的位置
+        super.attack_to_prepared(target_position)
+        console.log(changed_state)
+    }
+    attack_to(target_position,changed_state){//target_position[x,y,z]  撞一下然后返回原来的位置
+        super.attack_to(target_position)
+    }
+    attack_to_finish(target_position,changed_state){//target_position[x,y,z]  撞一下然后返回原来的位置
+        super.attack_to_finish(target_position)
+        console.log(changed_state)
+        const [power,life]=changed_state
+        this.Life=life
+        this.Damage=power
+        
     }
 
 }

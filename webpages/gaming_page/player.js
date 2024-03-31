@@ -1,5 +1,7 @@
 class Player{
     constructor(name,canvas,ctx){
+        this.life=20
+        this.max_life=20
         this.canvas=canvas;
         this.ctx=ctx;
         this.name=name;
@@ -17,6 +19,9 @@ class Player{
     update(){
 
     }
+    draw_life(){
+
+    }
 }
 
 class Opponent extends Player{
@@ -26,6 +31,8 @@ class Opponent extends Player{
         const card=new Card_Hand_Oppo(4,5.62,[0,0,0],0.7,1122334455,this)
         this.cards=[card];
         this.hand_delete=[]
+
+        this.player_life_ring=new Player_Life([-0.47,-20,14],6)
 
     }
 
@@ -44,7 +51,7 @@ class Opponent extends Player{
     draw(){
         for (let card_i in this.cards){
             this.cards[card_i].draw(this.camera,this.ctx,this.canvas)
-            console.log(this.cards[card_i].position)
+            //console.log(this.cards[card_i].position)
             
         }
     }
@@ -53,7 +60,7 @@ class Opponent extends Player{
         
         const max_angle=2*math.pi/180
         const lan_angle=15*(math.pi/180)/this.cards.length
-        console.log(lan_angle,max_angle)
+        //console.log(lan_angle,max_angle)
         if (lan_angle>max_angle){
             var angle_between=max_angle
         }
@@ -94,6 +101,8 @@ class Self extends Player{
         this.cards_mode="ignore"//两个模式，第一个是ignore，卡牌缩小，放到右侧，第二个是focus，卡牌放大
         this.focus_size=1.5
         this.ignore_size=1
+
+        this.player_life_ring=new Player_Life([-0.47,-20,-14],6)
     }
     get_enlarge_size(){
         if (this.cards_mode==="ignore"){
@@ -115,7 +124,7 @@ class Self extends Player{
     change_to_ignore(){
         if (this.cards_mode=="focus"){
             this.cards_mode="ignore"
-            console.log(123)
+            //console.log(123)
             const angle_between=3*math.pi/180
             const radius=100
 
@@ -224,3 +233,7 @@ class Self extends Player{
 
     // }
 }
+
+
+
+

@@ -38,6 +38,10 @@ class Table{
         
         
     }
+    set_player(player_self,player_oppo){
+        this.player_self=player_self
+        this.player_oppo=player_oppo
+    }
 
     arrange_cards_battle(arr,unit){//1:self,-1:opponent
         const card_len=6
@@ -92,6 +96,10 @@ class Table{
         this.table_graph.update(this.camera)
         this.timmer_turn.update(this.camera)
         this.timmer_bullet.update(this.camera)
+
+        this.player_self.player_life_ring.update(this.camera)
+        this.player_oppo.player_life_ring.update(this.camera)
+
         this.deck_self_graph.update(this.camera)
         this.deck_oppo_graph.update(this.camera)
         
@@ -117,8 +125,7 @@ class Table{
     
     draw(){//先画背景再画影子最后画图片
         this.table_graph.draw(this.camera,this.canvas,this.ctx)
-        this.timmer_turn.draw(this.camera,this.ctx,this.canvas)
-        this.timmer_bullet.draw(this.camera,this.ctx,this.canvas)
+        
         for (let i_self in this.self_battlefield){
             //this.ctx.drawImage(this.self_battlefield[i_self_battlefield].canvas,100,100,this.self_battlefield[i_self_battlefield].canvas.width,this.self_battlefield[i_self_battlefield].canvas.height)
             this.self_battlefield[i_self].draw_shade(-20,this.camera,this.ctx,this.canvas)
@@ -143,6 +150,10 @@ class Table{
         }
         this.deck_self_graph.draw(this.camera,this.canvas,this.ctx)
         this.deck_oppo_graph.draw(this.camera,this.canvas,this.ctx)
+        this.timmer_turn.draw(this.camera,this.ctx,this.canvas)
+        this.timmer_bullet.draw(this.camera,this.ctx,this.canvas)
+        this.player_self.player_life_ring.draw(this.camera,this.ctx,this.canvas)
+        this.player_oppo.player_life_ring.draw(this.camera,this.ctx,this.canvas)
 
     }
 

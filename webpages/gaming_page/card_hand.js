@@ -481,7 +481,7 @@ class Card_Hand_Oppo extends Card{
                 ]
                 this.draw_half_img_1(new_points_pos_1,[row*this.final_image.width/ROW,col*this.final_image.height/COL],ctx);
                 this.draw_half_img_2(new_points_pos_1,[row*this.final_image.width/ROW,col*this.final_image.height/COL],ctx);
-                console.log(this.final_image.width,this.final_image.height)
+                ///console.log(this.final_image.width,this.final_image.height)
             }
             col_left_up=col_left_down;
             col_right_up=col_right_down;
