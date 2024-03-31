@@ -45,6 +45,7 @@ class Block{
         this.vel_x=0;
         this.vel_y=0;
         this.vel_z=0;
+        this.size=size
         this.points=this.get_org_position(size);
         this.arr_poses=NaN;
         this.planes=this.set_plane()

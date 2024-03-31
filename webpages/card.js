@@ -184,14 +184,14 @@ class Card{
         ctx.closePath();
         ctx.clip();
         ctx.setTransform(
-            (points_pos[0][0] - points_pos[3][0]) / this.image.width,
-            (points_pos[0][1] - points_pos[3][1]) / this.image.width,
-            (points_pos[3][0] - points_pos[2][0]) / (this.image.height),
-            (points_pos[3][1] - points_pos[2][1]) / (this.image.height),
+            (points_pos[0][0] - points_pos[3][0]) / this.final_image.width,
+            (points_pos[0][1] - points_pos[3][1]) / this.final_image.width,
+            (points_pos[3][0] - points_pos[2][0]) / (this.final_image.height),
+            (points_pos[3][1] - points_pos[2][1]) / (this.final_image.height),
             points_pos[2][0],
             points_pos[2][1]
         );
-        ctx.drawImage(this.final_image,new_points_pos[0], new_points_pos[1], this.image.width/4, this.image.height/4, 0,0, this.image.width, this.image.height);
+        ctx.drawImage(this.final_image,new_points_pos[0], new_points_pos[1], this.final_image.width/4, this.final_image.height/4, 0,0, this.final_image.width, this.final_image.height);
         //ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height/4);
         ctx.restore();
     }
@@ -212,14 +212,14 @@ class Card{
         ctx.closePath();
         ctx.clip();
         ctx.setTransform(
-            (points_pos[1][0] - points_pos[2][0]) / this.image.width,
-            (points_pos[1][1] - points_pos[2][1]) / this.image.width,
-            (points_pos[0][0] - points_pos[1][0]) / this.image.height,
-            (points_pos[0][1] - points_pos[1][1]) / this.image.height,
+            (points_pos[1][0] - points_pos[2][0]) / this.final_image.width,
+            (points_pos[1][1] - points_pos[2][1]) / this.final_image.width,
+            (points_pos[0][0] - points_pos[1][0]) / this.final_image.height,
+            (points_pos[0][1] - points_pos[1][1]) / this.final_image.height,
             points_pos[2][0],
             points_pos[2][1]
         );
-        ctx.drawImage(this.final_image,new_points_pos[0], new_points_pos[1], this.image.width/4, this.image.height/4, 0,0, this.image.width, this.image.height);
+        ctx.drawImage(this.final_image,new_points_pos[0], new_points_pos[1], this.final_image.width/4, this.final_image.height/4, 0,0, this.final_image.width, this.final_image.height);
         //ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height);
         ctx.restore();
     }

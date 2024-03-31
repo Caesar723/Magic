@@ -20,7 +20,64 @@ class Player{
 }
 
 class Opponent extends Player{
+    constructor(name,canvas,ctx){
+        super(name,canvas,ctx);
 
+        const card=new Card_Hand_Oppo(4,5.62,[0,0,0],0.7,1122334455,this)
+        this.cards=[card];
+        this.hand_delete=[]
+
+    }
+
+    update(){
+
+        this.arrange_cards()
+        for (let card_i in this.cards){
+            this.cards[card_i].update()
+
+        }
+        this.cards= this.cards.filter(item => !(this.hand_delete.includes(item)))
+        this.hand_delete=[]
+        //this.sort_cards()
+    }
+
+    draw(){
+        for (let card_i in this.cards){
+            this.cards[card_i].draw(this.camera,this.ctx,this.canvas)
+            console.log(this.cards[card_i].position)
+            
+        }
+    }
+
+    arrange_cards(){
+        
+        const max_angle=2*math.pi/180
+        const lan_angle=15*(math.pi/180)/this.cards.length
+        console.log(lan_angle,max_angle)
+        if (lan_angle>max_angle){
+            var angle_between=max_angle
+        }
+        else{
+            var angle_between=lan_angle
+        }
+        //var angle_between=130*(math.pi/180)/this.cards.length//2*math.pi/180
+        const radius=100
+
+        
+        const start_angle=math.pi-angle_between*(this.cards.length-1)/2
+        for (let card_i in this.cards){
+            const position=math.multiply(rotateZ(start_angle+card_i*angle_between),math.matrix([[0],[-radius],[0]]));
+
+            //position=math.multiply(rotateZ(-angle_between),position);
+            
+            const position_arr=[position.get([0,0])-20,position.get([1,0])-radius-20,position.get([2,0])]
+            this.cards[card_i].start_moving("move_to",[position_arr])
+            this.cards[card_i].angle_z=-start_angle-card_i*angle_between
+            //this.cards[card_i].change_size(1)
+
+            
+        }
+    }
 }
 
 class Self extends Player{
@@ -162,4 +219,8 @@ class Self extends Player{
             return a.z_index - b.z_index;
           });
     }
+
+    // draw_player(camera,ctx,){
+
+    // }
 }

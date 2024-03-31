@@ -50,7 +50,7 @@ class Game_Client{
     }
     draw(){
         this.table.draw()
-        this.oppo_player.update()
+        this.oppo_player.draw()
         this.self_player.draw()
     }
     set_lestener(){
@@ -126,10 +126,20 @@ class Game_Client{
             }
             else if (event.key === "b" || event.key === "B"){
                 const canvas_dynamic=this.self_player.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-                const card=new Creature_Hand(4,5.62,[0,0,0],1.5,canvas_dynamic,"3U",20,20,"Caesar",1122334455,this)
+                const card=new Creature_Hand(4,5.62,[0,60,-20],1.5,canvas_dynamic,"3U",20,20,"Caesar",1122334455,this.self_player)
         
                 this.self_player.cards.push(card)
             }
+            else if (event.key === "v" || event.key === "V") {
+                
+                this.self_player.cards[0].moving_cache.push(["disappear",[[0,60,-20]]])
+            }
+            else if (event.key === "c" || event.key === "C") {
+                const card=new Card_Hand_Oppo(4,5.62,[0,60,-20],0.7,1122334455,this.oppo_player)
+        
+                this.oppo_player.cards.push(card)
+            }
+
 
             
         });

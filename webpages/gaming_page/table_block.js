@@ -112,8 +112,11 @@ class Table_graph extends Block{
         this.planes.sort(function(a,b){
             const b_mid=b.mid_point();
             const a_mid=a.mid_point()
-            const b_dis=Math.sqrt((camera.position[0]-b_mid[0])**2 + (camera.position[1]-b_mid[1])**2+ (camera.position[2]-b_mid[2])**2) 
-            const a_dis=Math.sqrt((camera.position[0]-a_mid[0])**2 + (camera.position[1]-a_mid[1])**2+ (camera.position[2]-a_mid[2])**2) 
+            
+            const b_dis=Math.sqrt((camera.position[0]-b_mid[0])**2 + (camera.position[1]+b_mid[1])**2+ (camera.position[2]-b_mid[2])**2) 
+            const a_dis=Math.sqrt((camera.position[0]-a_mid[0])**2 + (camera.position[1]+a_mid[1])**2+ (camera.position[2]-a_mid[2])**2) 
+            console.log(camera.position)
+            console.log(a,b,a_mid,b_mid,a_dis,b_dis)
             return b_dis-a_dis;
         })
         
@@ -310,8 +313,54 @@ class Table_surface extends Plane{
     extendVert(x0, y0, x1, y1, x2, y2) {
         const DRAW_IMAGE_EXTEND_EX = 3;
         var x = 2*x0 - x1 - x2, y = 2 * y0 - y1 - y2;
-        var d = Math.sqrt(DRAW_IMAGE_EXTEND_EX / (x * x + y * y));
+        var d = 30*Math.sqrt(DRAW_IMAGE_EXTEND_EX / (x * x + y * y));
         return [x0 + x * d, y0 + y * d];
+    }
+}
+
+
+
+
+class Deck_battle extends Table_graph{
+    constructor(WIDTH,HEIGHT,LENGTH,position, size,img_path){
+        super(WIDTH,HEIGHT,LENGTH,position, size,img_path)
+        this.height=HEIGHT
+        this.number_of_cards=70
+    }
+    set_height_position(){
+        this.height=this.number_of_cards*2/70
+        this.position[1]=-(20+this.height*this.size)
+        console.log(this.position[1],this.size,this.height)
+    }
+    set_plane(){
+        const planes=[];
+        for (const plane_index in plane_indexs){
+            
+            if (plane_index==3){
+                const plane=new Table_surface(plane_indexs[plane_index],this.image);
+                
+                planes.push(plane);
+                this.surface=plane;
+                
+            }
+            else{
+                const plane=new Table_side(plane_indexs[plane_index]);
+                planes.push(plane);
+            }
+        }
+        return planes;
+    }
+    change_height(height){
+        const arr_unit=[1,1,-1,-1,1,1,-1,-1]
+        for (let i in arr_unit){
+            this.corners[i][1]=arr_unit[i]*height
+        }
+        this.points=this.get_org_position(this.size);
+    }
+    update(camera){
+        super.update(camera)
+        this.set_height_position()
+        this.change_height(this.height)
     }
 }
 
