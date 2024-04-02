@@ -255,11 +255,11 @@ class Game_Client{
                 }
                 
                 if (action){
-                    this.action_bar.mode="show"//show hide
+                    this.action_bar.card_mode="show"//show hide
                     this.action_bar.action_showed=action
                 }
                 else{
-                    this.action_bar.mode="hide"//show hide
+                    this.action_bar.card_mode="hide"//show hide
                     this.action_bar.action_showed=undefined
                 }
                 

@@ -8,6 +8,8 @@ class Action_Bar{
 
         this.actions=[]
         this.position=[0,0]
+        this.target_position_hide=-90
+        this.target_position_show=0
 
         this.canvas=document.createElement('canvas');
         this.canvas.width = 177*(742/807);
@@ -24,7 +26,9 @@ class Action_Bar{
 
 
         this.mode="hide"//show hide
+        this.card_mode="hide"
         this.action_showed=undefined
+        this.moving=false
 
         
 
@@ -49,33 +53,75 @@ class Action_Bar{
         // this.ctx.clip();
     }
     update(){
+        this.update_position()
         this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height)
         this.set_image()
         this.update_graph()
         for (let i in this.actions){
             this.actions[i].draw_image(this.ctx,i)
         }
-        if (this.mode=="show"){
+        if (this.card_mode=="show"){
             this.action_showed.update_cards()
         }
     }
     draw(canvas,ctx,camera){
         ctx.drawImage(this.canvas,this.position[0]-70,0)
 
-        console.log(this.showed_action)
+        //console.log(this.showed_action)
         this.showed_action(ctx,canvas,camera)
     }
 
+    check_move(){
+        if (this.moving){
+            if (this.mode=="hide" && this.position[0]<=this.target_position_hide){
+                this.moving=false
+                this.position[0]=this.target_position_hide
+                return true
+            }
+            else if(this.mode=="show" && this.position[0]>=this.target_position_show){
+                this.moving=false
+                this.position[0]=this.target_position_show
+                return true
+            }
+            else{
+                return false
+            }
+        }
+        else{
+            if (this.mode=="hide" && this.position[0]>this.target_position_hide){
+                this.moving=true
+            }
+            else if(this.mode=="show" && this.position[0]<this.target_position_show){
+                this.moving=true
+            }
+            return false
+        }
+    }
     update_position(){
-
+        //console.log(this.mode)
+        this.check_move()
+        if (this.moving){
+            if (this.mode=="hide"){
+                this.position[0]=this.position[0]-8
+            }
+            else if(this.mode=="show"){
+                this.position[0]=this.position[0]+8
+            }
+        }
     }
 
     check_mouse(mouse_pos){
         
-
+        if (mouse_pos[0]<(this.canvas.width-70)){
+            this.mode="show"//show hide
+        }
+        else{
+            this.mode="hide"//show hide
+        }
         
         if (mouse_pos[0]<(this.canvas.width+this.position[0]-70)){
             
+            console.log(this.mode)
             for (let i in this.actions){
                 
                 const result=this.actions[i].check_mouse(mouse_pos,i)
@@ -86,6 +132,7 @@ class Action_Bar{
             return false
         }
         else{
+            
             return false
         }
     }
@@ -111,7 +158,7 @@ class Action_Bar{
     }
 
     showed_action(ctx,canvas,camera){
-        if (this.mode=="show"){
+        if (this.card_mode=="show"){
             this.action_showed.draw_action(ctx,canvas,camera)
         }
     }
