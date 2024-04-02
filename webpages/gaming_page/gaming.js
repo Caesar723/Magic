@@ -10,6 +10,21 @@ class Game_Client{
         this.self_player=new Self("CC",this.canvas_table,this.ctx_table)
         this.oppo_player=new Opponent("DD",this.canvas_table,this.ctx_table)
         this.table.set_player(this.self_player,this.oppo_player)
+        this.card_frame=new Card_frame()
+
+
+        this.action_bar=new Action_Bar()
+        //////////////////////////////
+        const canvas=this.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
+        const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,"Caesar",1122334455)
+        this.action_bar.actions.push(new Activate_Ability(card.get_copy(),this.self_player))
+        this.action_bar.actions.push(new Die(card.get_copy(),this.self_player))
+        this.action_bar.actions.push(new Summon(card.get_copy(),this.self_player))
+        this.action_bar.actions.push(new Turn(card.get_copy(),this.self_player))
+        this.action_bar.actions.push(new Change_Mana(card.get_copy(),this.self_player))
+        ////////////////////////////////////////
+
+
         console.log(this.ctx_table)
 
         this.set_lestener()
@@ -48,11 +63,17 @@ class Game_Client{
         this.table.update()
         this.oppo_player.update()
         this.self_player.update()
+        this.action_bar.update()
     }
     draw(){
+        //this.ctx_table.filter = 'grayscale(100%)';
         this.table.draw()
         this.oppo_player.draw()
         this.self_player.draw()
+        this.ctx_table.filter = 'none';
+        this.action_bar.draw(this.canvas_table,this.ctx_table,this.self_player.camera)
+
+
     }
     set_lestener(){
         
@@ -180,6 +201,10 @@ class Game_Client{
                 const mouse_pos=this.get_mouse_pos(event,this.canvas_table)
                 const card=this.find_cards_by_mouse(mouse_pos)
                 const timer=this.find_timers_by_mouse(mouse_pos)
+                const action=this.action_bar.check_mouse(mouse_pos)
+
+
+
                 if (!(card===undefined)||!(timer===undefined)){
                     this.canvas_table.style.cursor = 'pointer';
                 }
@@ -227,9 +252,18 @@ class Game_Client{
                 }
                 else{
                     timer.mode="end"
-                    
                 }
-                //console.log(timer)
+                
+                if (action){
+                    this.action_bar.mode="show"//show hide
+                    this.action_bar.action_showed=action
+                }
+                else{
+                    this.action_bar.mode="hide"//show hide
+                    this.action_bar.action_showed=undefined
+                }
+                
+
             }
         });
         this.canvas_table.addEventListener('mouseup', (event) => {
@@ -354,6 +388,24 @@ class Game_Client{
     }
     judge_click(){
         return true
+    }
+
+
+
+    mouse_process(){
+
+    }
+
+    card_hand_mouse_process(){
+
+    }
+
+    timmer_mouse_process(){
+
+    }
+
+    action_mouse_process(){
+
     }
 }
 

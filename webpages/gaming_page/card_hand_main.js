@@ -85,6 +85,11 @@ class Creature_Hand extends Card_Hand {
         ctx.restore();
     }
 
+    get_copy(){
+        const card=new Creature_Hand(4,5.62,[0,0,0],2,this.dynamic_canvas,this.color_fee,this.Org_Life,this.Org_Damage,this.name,this.id,this.player)
+        return card
+    }
+
 }
 
 
@@ -96,6 +101,11 @@ class Land_Hand extends Card_Hand {
     }
     create_fee(ctx,fee_text,color_less,red,blue,green,gold,black){
     }
+
+    get_copy(){
+        const card=new Land_Hand(4,5.62,[0,0,0],2,this.dynamic_canvas,this.color_fee,this.name,this.id,this.player)
+        return card
+    }
 }
 
 
@@ -104,6 +114,10 @@ class Sorcery_Hand extends Card_Hand {
         super(width,height,position,size,dynamic_canvas,color_fee,name,id,player)
         this.type="Sorcery";
     }
+    get_copy(){
+        const card=new Sorcery_Hand(4,5.62,[0,0,0],2,this.dynamic_canvas,this.color_fee,this.name,this.id,this.player)
+        return card
+    }
 }
 
 
@@ -111,6 +125,10 @@ class Instant_Hand extends Card_Hand {
     constructor(width,height,position,size,dynamic_canvas,color_fee,name,id,player){
         super(width,height,position,size,dynamic_canvas,color_fee,name,id,player);
         this.type="Instant";
+    }
+    get_copy(){
+        const card=new Instant_Hand(4,5.62,[0,0,0],2,this.dynamic_canvas,this.color_fee,this.name,this.id,this.player)
+        return card
     }
 
 }

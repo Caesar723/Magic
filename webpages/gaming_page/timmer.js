@@ -334,16 +334,18 @@ class Timmer extends Ring_Record{
 }
 
 class Player_Life extends Ring_Record{
-    constructor(position,size){
+    constructor(position,size,unit){
         
         super(position,size)
 
         this.max_life=20
-        this.life=5
+        this.life=10
 
         this.angle=120*(Math.PI/180)
 
         this.text="10"
+
+        this.unit=unit
 
 
             
@@ -352,8 +354,11 @@ class Player_Life extends Ring_Record{
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         const radius = 40;
-        const startAngle = 1.5 * Math.PI-(this.angle/2); // 从顶部开始
-        const endAngle =startAngle+ (this.angle)*this.life/this.max_life; // 计算结束角度
+        var startAngle = (1+this.unit/2) * Math.PI-(this.angle/2); // 从顶部开始
+        var endAngle =startAngle+ (this.angle)*this.life/this.max_life; // 计算结束角度
+        // if (endAngle<startAngle){
+        //     [startAngle,endAngle]=[endAngle,startAngle]
+        // }
         //console.log(endAngle,startAngle)
         // ctx.beginPath();
         // ctx.arc(centerX, centerY, radius, startAngle, startAngle+Math.PI*2);//this.angle);
@@ -364,7 +369,10 @@ class Player_Life extends Ring_Record{
         // ctx.fill();
 
         ctx.beginPath();
+        
         ctx.arc(centerX, centerY, radius, startAngle, startAngle+this.angle);
+        
+        
         //ctx.fillStyle = '#e5e5e5';
         ctx.lineWidth = 4; // 设置进度条的宽度
         ctx.lineCap = 'round';

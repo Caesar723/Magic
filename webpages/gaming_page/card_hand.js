@@ -399,6 +399,10 @@ class Card_Hand extends Card{
         this.position[1]=next_pos[1]
         
     }
+    get_copy(){
+        const card=new Card_Hand(4,5.62,[0,0,0],2,this.dynamic_canvas,this.color_fee,this.name,this.id,this.player)
+        return card
+    }
 }
 
 
@@ -753,5 +757,7 @@ class Card_Hand_Oppo extends Card{
         
         return pos_rotate.toArray().flat();
     }
+
+    
     
 }

@@ -32,7 +32,7 @@ class Opponent extends Player{
         this.cards=[card];
         this.hand_delete=[]
 
-        this.player_life_ring=new Player_Life([-0.47,-20,14],6)
+        this.player_life_ring=new Player_Life([-0.47,-20,14],6,-1)
 
     }
 
@@ -102,7 +102,7 @@ class Self extends Player{
         this.focus_size=1.5
         this.ignore_size=1
 
-        this.player_life_ring=new Player_Life([-0.47,-20,-14],6)
+        this.player_life_ring=new Player_Life([-0.47,-20,-13],6,1)
     }
     get_enlarge_size(){
         if (this.cards_mode==="ignore"){

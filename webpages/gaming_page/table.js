@@ -9,8 +9,8 @@ class Table{
         this.canvas.height = 742;
         this.time_interval=0.02//每隔0.02秒进行一次刷新
         this.table_graph=new Table_graph(2,1,1,[0,0,0],20,"webpages/image_source/game/background.jpg");
-        this.deck_self_graph=new Deck_battle(4,2,5.62,[28.5,-20-3,-15],0.5,"webpages/image_source/card/back.png")
-        this.deck_oppo_graph=new Deck_battle(4,2,5.62,[-28.5,-20-3,+15],0.5,"webpages/image_source/card/back.png")
+        this.deck_self_graph=new Deck_battle(4,2,5.62,[-28.5,-20-3,-15],0.5,"webpages/image_source/card/back.png")
+        this.deck_oppo_graph=new Deck_battle(4,2,5.62,[28.5,-20-3,+15],0.5,"webpages/image_source/card/back.png")
         this.timmer_turn=new Timmer(60,[34,-22,0],4)
         this.timmer_bullet=new Timmer(60,[-34,-22,0],4)
         this.deck_oppo_graph.angle_y=Math.PI

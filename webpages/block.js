@@ -326,7 +326,7 @@ class Camera{
             [(y_screen-742/2)*(z_expect)/this.dis_from_screen],
             [z_expect]
         ])
-        console.log(pos)
+        //console.log(pos)
         const camera_matrix=this.get_matrix_position(pos)
         
         const xy_rotate_camera=math.multiply(rotateX(-this.angle_y),rotateY(-this.angle_x));
