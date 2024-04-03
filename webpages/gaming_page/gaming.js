@@ -162,6 +162,27 @@ class Game_Client{
                 this.oppo_player.cards.push(card)
             }
 
+            else if (event.key === "x" || event.key === "X") {
+                this.table.timmer_turn.animate_set(this.table.timmer_turn.time-5,this.table.timmer_turn.time)
+        
+                //this.oppo_player.cards.push(card)
+            }
+            else if (event.key === "z" || event.key === "Z") {
+                this.table.timmer_turn.animate_set(this.table.timmer_turn.time+5,this.table.timmer_turn.time)
+        
+                //this.oppo_player.cards.push(card)
+            }
+            else if (event.key === "f" || event.key === "F") {
+                //this.table.timmer_turn.animate_set(this.table.timmer_turn.time+5,this.table.timmer_turn.time)
+                this.self_player.player_life_ring.animate_set(this.self_player.player_life_ring.life+1,this.self_player.player_life_ring.life)
+                //this.oppo_player.cards.push(card)
+            }
+            else if (event.key === "g" || event.key === "G") {
+                //this.table.timmer_turn.animate_set(this.table.timmer_turn.time+5,this.table.timmer_turn.time)
+                this.self_player.player_life_ring.animate_set(this.self_player.player_life_ring.life-3,this.self_player.player_life_ring.life)
+                //this.oppo_player.cards.push(card)
+            }
+
 
             
         });

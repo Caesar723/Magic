@@ -22,7 +22,48 @@ class Ring_Record{
 
 
         this.text=""
+
+        this.moving=false
+        this.interval=2
     }
+
+    animate_set(val,current_val){
+        this.moving_precentage=0
+        const different=val-current_val
+        this.min_distance_difference=math.abs(different)
+        const unit=(different/math.abs(different))
+        const a=math.sqrt(math.abs(different)*2/math.pi)
+        this.moving_store=[a,val,unit]
+        this.moving=true
+    }
+    animate_move(){
+        const a=this.moving_store[0];
+        const unit=this.moving_store[2];
+        const x=(a*math.pi/100)*this.moving_precentage
+        const vel=unit*a*Math.pow(Math.sin(x/a),2)/((100/(this.interval))/(a*math.pi))
+        this.moving_precentage+=this.interval
+        return vel
+    }
+    
+    check_move(){
+        if (this.moving){
+            this.val+=this.animate_move()
+
+        }
+    }
+
+    check_distance(current_val){
+        const val=this.moving_store[1]
+        const difference=math.abs(val-current_val)
+        if (difference<=this.min_distance_difference){
+            this.min_distance_difference=difference
+        }
+        else{
+            this.moving=false
+            this.val=val
+        }
+    }
+    
 
     get_org_position(size){
         const arr_x=[];
@@ -250,7 +291,7 @@ class Timmer extends Ring_Record{
     constructor(max_time,position,size){
         super(position,size)
         this.max_time=max_time
-        this.time=0
+        this.time=60
 
 
 
@@ -259,6 +300,43 @@ class Timmer extends Ring_Record{
         this.text=""
         this.text_click="End"
         this.mode="time"//time, end
+    }
+    animate_set(val,current_val){
+        this.moving_precentage=0
+        const different=val-current_val
+        this.min_distance_difference=math.abs(different)
+        const unit=(different/math.abs(different))
+        const a=math.sqrt(math.abs(different)*2/math.pi)
+        this.moving_store=[a,val,unit]
+        this.moving=true
+    }
+    animate_move(){
+        const a=this.moving_store[0];
+        const unit=this.moving_store[2];
+        const x=(a*math.pi/100)*this.moving_precentage
+        const vel=unit*a*Math.pow(Math.sin(x/a),2)/((100/(this.interval))/(a*math.pi))
+        this.moving_precentage+=this.interval
+        return vel
+    }
+    
+    check_move(){
+        if (this.moving){
+            this.time+=this.animate_move()
+            this.check_distance(this.time)
+
+        }
+    }
+
+    check_distance(current_val){
+        const val=this.moving_store[1]
+        const difference=math.abs(val-current_val)
+        if (difference<=this.min_distance_difference){
+            this.min_distance_difference=difference
+        }
+        else{
+            this.moving=false
+            this.time=val
+        }
     }
     update_text(){
         if (this.mode=="time"){
@@ -273,7 +351,8 @@ class Timmer extends Ring_Record{
     update(camera){
         //this.check_moving()
         
-        this.time=this.time+0.03
+        // this.time=this.time+0.03
+        this.check_move()
         this.presentage=100*this.time/this.max_time
         this.update_text()
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -350,6 +429,26 @@ class Player_Life extends Ring_Record{
 
             
     }
+
+    check_move(){
+        if (this.moving){
+            this.life+=this.animate_move()
+            this.check_distance(this.life)
+
+        }
+    }
+
+    check_distance(current_val){
+        const val=this.moving_store[1]
+        const difference=math.abs(val-current_val)
+        if (difference<=this.min_distance_difference){
+            this.min_distance_difference=difference
+        }
+        else{
+            this.moving=false
+            this.life=val
+        }
+    }
     print_ring(canvas,ctx){
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
@@ -398,7 +497,7 @@ class Player_Life extends Ring_Record{
         ctx.fillStyle = '#ff6000';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(this.life + '', centerX, centerY);
+        ctx.fillText(Math.round(this.life) + '', centerX, centerY);
     }
     update_text(){
         
@@ -406,7 +505,7 @@ class Player_Life extends Ring_Record{
    
     update(camera){
         //this.check_moving()
-        
+        this.check_move()
         this.update_text()
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
