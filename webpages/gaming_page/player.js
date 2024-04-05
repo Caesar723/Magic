@@ -1,7 +1,7 @@
 class Player{
     constructor(name,canvas,ctx){
-        this.life=20
-        this.max_life=20
+        // this.life=20
+        // this.max_life=20
         this.canvas=canvas;
         this.ctx=ctx;
         this.name=name;

@@ -518,8 +518,12 @@ class Player_Life extends Ring_Record{
         
         this.arr_poses=this.get_position_points(camera);
 
-        
-        
-        
+
+    }
+    get_copy(){
+        const new_ring=new Player_Life([0,0,0],this.size+4,this.unit)
+        new_ring.life=this.life
+        new_ring.angle_x=math.pi/2
+        return new_ring
     }
 }

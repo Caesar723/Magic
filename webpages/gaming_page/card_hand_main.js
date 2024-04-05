@@ -87,6 +87,8 @@ class Creature_Hand extends Card_Hand {
 
     get_copy(){
         const card=new Creature_Hand(4,5.62,[0,0,0],2,this.dynamic_canvas,this.color_fee,this.Org_Life,this.Org_Damage,this.name,this.id,this.player)
+        card.battle=this.battle
+        console.log(card.battle)
         return card
     }
 
@@ -104,6 +106,8 @@ class Land_Hand extends Card_Hand {
 
     get_copy(){
         const card=new Land_Hand(4,5.62,[0,0,0],2,this.dynamic_canvas,this.color_fee,this.name,this.id,this.player)
+        card.battle=this.battle
+        
         return card
     }
 }

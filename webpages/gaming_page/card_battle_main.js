@@ -5,10 +5,10 @@ class Creature_Battle extends Card_Battle {
         // this.Life=card.Life;
         // this.Org_Damage=card.Org_Damage;
         // this.Damage=card.Damage;
-        this.Org_Life=20;
-        this.Life=20;
-        this.Org_Damage=20;
-        this.Damage=20;
+        this.Org_Life=card.Org_Life;
+        this.Life=card.Life;
+        this.Org_Damage=card.Org_Damage;
+        this.Damage=card.Damage;
         this.type="Creature";
         
     }
@@ -88,20 +88,39 @@ class Creature_Battle extends Card_Battle {
         ctx.restore();
     }
 
-    attack_to_prepared(target_position,changed_state){//target_position[x,y,z]  撞一下然后返回原来的位置
+    attack_to_prepared(target_position,changed_state,attacted_obj,state_attacted_obj){//target_position[x,y,z]  撞一下然后返回原来的位置
         super.attack_to_prepared(target_position)
         console.log(changed_state)
     }
-    attack_to(target_position,changed_state){//target_position[x,y,z]  撞一下然后返回原来的位置
+    attack_to(target_position,changed_state,attacted_obj,state_attacted_obj){//target_position[x,y,z]  撞一下然后返回原来的位置
         super.attack_to(target_position)
     }
-    attack_to_finish(target_position,changed_state){//target_position[x,y,z]  撞一下然后返回原来的位置
+    attack_to_finish(target_position,changed_state,attacted_obj,state_attacted_obj){//state_attacted_obj[power,life] or [life] for player
         super.attack_to_finish(target_position)
         console.log(changed_state)
         const [power,life]=changed_state
         this.Life=life
         this.Damage=power
+
+        if (attacted_obj instanceof Player){
+            const ring=attacted_obj.player_life_ring
+            ring.animate_set(state_attacted_obj[0],ring.life)
+        }
+        else if (attacted_obj instanceof Creature_Battle){
+            
+            attacted_obj.change_state(...state_attacted_obj)
+            // Life=state_attacted_obj[1]
+            // attacted_obj.Damage=state_attacted_obj[0]
+        }
         
+        
+    }
+
+    change_state(Damage,Life){
+        this.Damage=Damage
+        this.Life=Life
+        this.card.Damage=Damage
+        this.card.Life=Life
     }
 
 }

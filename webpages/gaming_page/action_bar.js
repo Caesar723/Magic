@@ -57,8 +57,11 @@ class Action_Bar{
         this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height)
         this.set_image()
         this.update_graph()
+        const len=this.actions.length
         for (let i in this.actions){
-            this.actions[i].draw_image(this.ctx,i)
+            const index=len-i-1
+            //console.log(i,index)
+            this.actions[index].draw_image(this.ctx,i)
         }
         if (this.card_mode=="show"){
             this.action_showed.update_cards()
@@ -122,11 +125,12 @@ class Action_Bar{
         if (mouse_pos[0]<(this.canvas.width+this.position[0]-70)){
             
             console.log(this.mode)
+            const len=this.actions.length
             for (let i in this.actions){
-                
-                const result=this.actions[i].check_mouse(mouse_pos,i)
+                const index=len-i-1
+                const result=this.actions[index].check_mouse(mouse_pos,i)
                 if (result){
-                    return this.actions[i]
+                    return this.actions[index]
                 }
             }
             return false

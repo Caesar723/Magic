@@ -1,6 +1,7 @@
 class Card_Hand extends Card{
     constructor(width,height,position,size,dynamic_canvas,color_fee,name,id,player){
         super(width,height,position,size,dynamic_canvas,color_fee,name)
+        
         this.player=player
         this.id=id
 
@@ -36,6 +37,8 @@ class Card_Hand extends Card{
 
 
         this.z_index=1;
+
+        this.battle
     }
 
 
@@ -401,6 +404,7 @@ class Card_Hand extends Card{
     }
     get_copy(){
         const card=new Card_Hand(4,5.62,[0,0,0],2,this.dynamic_canvas,this.color_fee,this.name,this.id,this.player)
+        
         return card
     }
 }

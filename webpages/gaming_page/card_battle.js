@@ -2,6 +2,7 @@
 
 class Card_Battle{
     constructor(width,height,position,size,card,player,table){//player:self,opponent
+        card.battle=this
         this.table=table
         this.player=player
         console.log(player,table)
@@ -25,7 +26,7 @@ class Card_Battle{
         this.arr_poses=NaN;
         this.size=size
         this.points=this.get_org_position(this.size);
-
+        this.card=card
         this.image=card.dynamic_canvas[4]
        
         this.id=card.id;
@@ -207,8 +208,7 @@ class Card_Battle{
         this.arr_poses=this.get_position_points(camera);
 
         
-        
-        
+
     }
     draw(camera,ctx,canvas){
         

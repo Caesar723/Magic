@@ -32,13 +32,17 @@ class Game_Client{
         this.mouse_hold=false//判断mouse是否抓住牌
         this.card_hold=[undefined,false,false]//card click bool,move bool
 
+        this.init()
+
+
+
     }
     async init() {
         this.socket_main = await this.get_socket("entering_game");
         this.socket_select = await this.get_socket("select_object");
     }
     async get_socket(name){
-        var socket = new WebSocket("ws://127.0.0.1:8000./"+name);
+        var socket = new WebSocket("ws://127.0.0.1:8000/"+name);
         while (socket.readyState != WebSocket.OPEN){
             await this.sleep(200)
         }
@@ -48,13 +52,44 @@ class Game_Client{
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    async receive_message_main(){
-        while (true){
+    
 
-        }
+    receive_message_main_listener(){
+
+        this.socket_main.addEventListener('message', (event)=> {
+            console.log('收到消息：', event.data);
+            // 在这里处理消息
+            // 你可以根据消息的内容执行不同的操作，比如更新UI、存储数据等
+          });
+        this.socket_main.addEventListener('close', () => {
+
+        });
+        this.socket_main.addEventListener('error', (event) => {
+            
+        });
     }
-    async receive_message_select(){
-        
+    massage_process_main(message){
+
+    }
+
+    receive_message_select_listener(){
+        // while (this.socket_select.readyState === WebSocket.OPEN){
+
+        // }
+        this.socket_select.addEventListener('message', (event)=> {
+            console.log('收到消息：', event.data);
+            // 在这里处理消息
+            // 你可以根据消息的内容执行不同的操作，比如更新UI、存储数据等
+          });
+        this.socket_select.addEventListener('close', () => {
+
+        });
+        this.socket_select.addEventListener('error', (event) => {
+            
+        });
+    }
+    massage_process_select(message){
+
     }
 
     
@@ -107,14 +142,31 @@ class Game_Client{
                 // 执行D键按下时的操作
                 this.table.self_battlefield[0].start_moving("move_to",[[0,-20,-30]])
             }
-            else if (event.key === "p" || event.key === "P") {
+            else if (event.key === "p" ) {
                 // 执行D键按下时的操作
-                this.table.self_battlefield[0].moving_cache.push(["attack_to",[[15,-20,-10],[10,10]]])
-                this.table.self_battlefield[0].moving_cache.push(["rotate_to_point",[[
-                    this.table.self_battlefield[0].accurate_position[0],
-                    this.table.self_battlefield[0].accurate_position[1],
-                    this.table.self_battlefield[0].accurate_position[2]+1,
-                ]]])
+                console.log(this.table.self_battlefield[0].card.get_copy())
+                const action=new Creature_Start_Attack(this.table.self_battlefield[0].card.get_copy(),this.self_player,this.oppo_player,[10,10],[2])
+                action.set_animate()
+                this.action_bar.actions.push(action)
+                // this.table.self_battlefield[0].moving_cache.push(["attack_to",[[15,-20,-10],[10,10]]])
+                // this.table.self_battlefield[0].moving_cache.push(["rotate_to_point",[[
+                //     this.table.self_battlefield[0].accurate_position[0],
+                //     this.table.self_battlefield[0].accurate_position[1],
+                //     this.table.self_battlefield[0].accurate_position[2]+1,
+                // ]]])
+            }
+            else if (event.key === "q") {
+                // 执行D键按下时的操作
+                console.log(this.table.self_battlefield[0].card.get_copy())
+                const action=new Creature_Start_Attack(this.table.self_battlefield[0].card.get_copy(),this.self_player,this.table.opponent_battlefield[0],[10,10],[10,2])
+                action.set_animate()
+                this.action_bar.actions.push(action)
+                // this.table.self_battlefield[0].moving_cache.push(["attack_to",[[15,-20,-10],[10,10]]])
+                // this.table.self_battlefield[0].moving_cache.push(["rotate_to_point",[[
+                //     this.table.self_battlefield[0].accurate_position[0],
+                //     this.table.self_battlefield[0].accurate_position[1],
+                //     this.table.self_battlefield[0].accurate_position[2]+1,
+                // ]]])
             }
             else if (event.key === "o" || event.key === "O") {
                 // 执行D键按下时的操作
@@ -130,7 +182,7 @@ class Game_Client{
             }
             else if (event.key === "l" || event.key === "L"){
                 const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-                const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U","Caesar",1122334455)
+                const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,"Caesar",1122334455)
                 const card_battle=new Creature_Battle(6,5,[-25,-25,0],0.3,card,"self",this.table)
                 this.table.self_battlefield.push(card_battle)
             }

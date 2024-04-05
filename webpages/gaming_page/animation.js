@@ -2,6 +2,7 @@ class Animation{//action
 
     constructor(object_hold,player){///object can be card and 
         this.object_hold=object_hold
+        console.log(object_hold)
         this.player=player
 
         this.width=50
@@ -30,6 +31,7 @@ class Animation{//action
         this.draw_rect_smooth(this.ctx,0,0,this.width,this.height)
         this.ctx.closePath();
         this.ctx.clip();
+        //console.log(this.ctx,this.object_hold.orginal_image,this.object_hold)
         this.ctx.drawImage(this.object_hold.orginal_image,0,0,this.width,this.height)
 
 
@@ -123,6 +125,62 @@ class Creature_Start_Attack extends Animation{
         this.state_self=state_self
         this.state_attacted=state_attacted
 
+        
+        if (this.attacked_obj instanceof Player){
+            this.new_ring=attack_obj.player_life_ring.get_copy()
+            this.new_ring.life=state_attacted[0]
+        }
+        else{
+            this.new_card=this.attacked_obj.card.get_copy()
+            this.new_card.Life=state_attacted[1]
+            this.new_card.Damage=state_attacted[0]
+        }
+
+
+    }
+    set_animate(){//
+
+
+        if (this.attacked_obj instanceof Player){
+            this.object_hold.battle.moving_cache.push(["rotate_to_point",[this.attacked_obj.player_life_ring.position]])
+            this.object_hold.battle.moving_cache.push(["attack_to",[this.attacked_obj.player_life_ring.position,this.state_self,this.attacked_obj,this.state_attacted]])
+        }
+        else if (this.attacked_obj instanceof Creature_Battle){
+            this.object_hold.battle.moving_cache.push(["rotate_to_point",[this.attacked_obj.position]])
+            this.object_hold.battle.moving_cache.push(["attack_to",[this.attacked_obj.position,this.state_self,this.attacked_obj,this.state_attacted]])
+        }
+
+        if (this.player instanceof Opponent){
+            this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
+                this.object_hold.battle.accurate_position[0],
+                this.object_hold.battle.accurate_position[1],
+                this.object_hold.battle.accurate_position[2]-1,
+            ]]])
+        }
+        else{
+            this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
+                this.object_hold.battle.accurate_position[0],
+                this.object_hold.battle.accurate_position[1],
+                this.object_hold.battle.accurate_position[2]+1,
+            ]]])
+        }
+        
+    }
+    draw_action(ctx,canvas,camera){
+        this.object_hold.draw(camera,ctx,canvas)
+        ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
+
+        if (this.attacked_obj instanceof Player){
+            
+            this.new_ring.position[0]=20
+            this.new_ring.update(camera)
+            this.new_ring.draw(camera,ctx,canvas)
+        }
+        else{
+            this.new_card.position[0]=20
+            this.new_card.update()
+            this.new_card.draw(camera,ctx,canvas)
+        }
     }
 }
 class Creature_Prepare_Attack extends Animation{
