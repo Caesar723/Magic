@@ -762,6 +762,12 @@ class Card_Hand_Oppo extends Card{
         return pos_rotate.toArray().flat();
     }
 
+    get_copy(){
+        const card=new Card_Hand_Oppo(4,5.62,[0,0,0],2,this.id,this.player)
+        
+        return card
+    }
+
     
     
 }

@@ -6,6 +6,7 @@ class Creature_Hand extends Card_Hand {
         this.Org_Damage=Damage;
         this.Damage=Damage;
         this.type="Creature";
+        
     }
 
     

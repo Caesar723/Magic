@@ -10,6 +10,9 @@ class Creature_Battle extends Card_Battle {
         this.Org_Damage=card.Org_Damage;
         this.Damage=card.Damage;
         this.type="Creature";
+
+        this.mode="none"//none attack,defence
+        this.flying=false//trur-> flying
         
     }
 
@@ -102,16 +105,19 @@ class Creature_Battle extends Card_Battle {
         this.Life=life
         this.Damage=power
 
+        this.mode="none"
+        
         if (attacted_obj instanceof Player){
             const ring=attacted_obj.player_life_ring
             ring.animate_set(state_attacted_obj[0],ring.life)
         }
         else if (attacted_obj instanceof Creature_Battle){
-            
+            this.attacted_obj.mode="none"
             attacted_obj.change_state(...state_attacted_obj)
             // Life=state_attacted_obj[1]
             // attacted_obj.Damage=state_attacted_obj[0]
         }
+        
         
         
     }

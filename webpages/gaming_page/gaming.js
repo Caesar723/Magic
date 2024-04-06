@@ -202,7 +202,11 @@ class Game_Client{
                 const canvas_dynamic=this.self_player.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
                 const card=new Creature_Hand(4,5.62,[0,60,-20],1.5,canvas_dynamic,"3U",20,20,"Caesar",1122334455,this.self_player)
         
-                this.self_player.cards.push(card)
+                //this.self_player.cards.push(card)
+
+                const action=new Gain_Card(this.self_player,this.self_player,card)
+                action.set_animate()
+                this.action_bar.actions.push(action)
             }
             else if (event.key === "v" || event.key === "V") {
                 
@@ -210,8 +214,11 @@ class Game_Client{
             }
             else if (event.key === "c" || event.key === "C") {
                 const card=new Card_Hand_Oppo(4,5.62,[0,-60,-20],0.7,1122334455,this.oppo_player)
+                const action=new Gain_Card(this.oppo_player,this.oppo_player,card)
+                action.set_animate()
+                this.action_bar.actions.push(action)
         
-                this.oppo_player.cards.push(card)
+                //this.oppo_player.cards.push(card)
             }
 
             else if (event.key === "x" || event.key === "X") {

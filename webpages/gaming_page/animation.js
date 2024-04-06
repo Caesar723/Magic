@@ -2,6 +2,10 @@ class Animation{//action
 
     constructor(object_hold,player){///object can be card and 
         this.object_hold=object_hold
+        if (this.object_hold instanceof Player){
+            this.new_ring=this.object_hold.player_life_ring.get_copy()
+        }
+        
         console.log(object_hold)
         this.player=player
 
@@ -31,8 +35,17 @@ class Animation{//action
         this.draw_rect_smooth(this.ctx,0,0,this.width,this.height)
         this.ctx.closePath();
         this.ctx.clip();
+
+        if (this.object_hold instanceof Player){
+            this.new_ring.update(this.player.camera)
+            this.ctx.drawImage(this.new_ring.canvas,0,0,this.width,this.height)
+            //this.new_ring.draw(camera,ctx,canvas)
+        }
+        else{
+            this.ctx.drawImage(this.object_hold.orginal_image,0,0,this.width,this.height)
+        }
         //console.log(this.ctx,this.object_hold.orginal_image,this.object_hold)
-        this.ctx.drawImage(this.object_hold.orginal_image,0,0,this.width,this.height)
+        
 
 
         this.ctx.beginPath();
@@ -106,12 +119,31 @@ class Animation{//action
     }
 
     update_cards(){
-        this.object_hold.position[0]=-20
-        this.object_hold.update()
+        if (this.object_hold instanceof Player){
+            //this.new_ring=this.object_hold.player_life_ring.get_copy()
+            
+            this.new_ring.position[0]=-20
+            
+            this.new_ring.update(this.player.camera)
+        }
+        else{
+            this.object_hold.position[0]=-20
+            
+            this.object_hold.update()
+        }
+        
     }
     draw_action(ctx,canvas,camera){
-        this.object_hold.draw(camera,ctx,canvas)
-        ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
+        if (this.object_hold instanceof Player){
+            // this.new_ring.update(camera)
+            // this.ctx.drawImage(this.new_ring.canvas,0,0,this.width,this.height)
+            this.new_ring.draw(camera,ctx,canvas)
+        }
+        else{
+            this.object_hold.draw(camera,ctx,canvas)
+        }
+        
+        //ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
     }
 
 
@@ -167,7 +199,8 @@ class Creature_Start_Attack extends Animation{
         
     }
     draw_action(ctx,canvas,camera){
-        this.object_hold.draw(camera,ctx,canvas)
+        super.draw_action(ctx,canvas,camera)
+        
         ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
 
         if (this.attacked_obj instanceof Player){
@@ -187,11 +220,38 @@ class Creature_Prepare_Attack extends Animation{
     constructor(object_hold,player){///object can be card and 
         super(object_hold,player)
     }
+    set_animate(){
+        this.object_hold.battle.mode="attack"
+    }
+    draw_action(ctx,canvas,camera){
+        super.draw_action(ctx,canvas,camera)
+        
+        
+    }
 }
 class Creature_Prepare_Defense extends Animation{
     constructor(object_hold,player,attack_obj){///object can be card and 
         super(object_hold,player)
+        this.attacked_obj=attack_obj
+        this.new_card=this.attacked_obj.card.get_copy()
     }
+    set_animate(){
+        this.object_hold.battle.mode="defence"
+        this.object_hold.battle.moving_cache.push(["rotate_to_point",[this.attacked_obj.position]])
+    }
+
+
+    draw_action(ctx,canvas,camera){
+        super.draw_action(ctx,canvas,camera)
+        ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
+
+        
+        this.new_card.position[0]=20
+        this.new_card.update()
+        this.new_card.draw(camera,ctx,canvas)
+        
+    }
+
 }
 class Activate_Ability extends Animation{
     constructor(object_hold,player){///object can be card and 
@@ -216,7 +276,21 @@ class Select_Object extends Animation{
     }
 }
 class Add_Buff extends Select_Object{
+    constructor(object_hold,player,selected_object,final_state){//selected_object battle
+        super(object_hold,player,selected_object)
+        this.selected_object.change_state(...final_state)
 
+        this.new_card=this.selected_object.card.get_copy()
+        
+    }
+    draw_action(ctx,canvas,camera){
+        super.draw_action(ctx,canvas,camera)
+        ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
+
+        this.new_card.position[0]=20
+        this.new_card.update()
+        this.new_card.draw(camera,ctx,canvas)
+    }
 }
 
 class Attack_To_Object extends Select_Object{
@@ -228,7 +302,26 @@ class Cure_To_Object extends Select_Object{
 
 }
 class Gain_Card extends Select_Object{
+    constructor(object_hold,player,selected_object){//selected_object hand
+        super(object_hold,player,selected_object)
 
+        this.new_card=this.selected_object.get_copy()
+    }
+    set_animate(){
+        this.selected_object.position=[0,60*this.player.unit,-20]
+        this.player.cards.push(this.selected_object)
+        //this.selected_object.moving_cache.push(["rotate_to_point",[this.attacked_obj.position]])
+    }
+    draw_action(ctx,canvas,camera){
+
+        
+        super.draw_action(ctx,canvas,camera)
+        ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
+
+        this.new_card.position[0]=20
+        this.new_card.update()
+        this.new_card.draw(camera,ctx,canvas)
+    }
 }
 class Lose_Card extends Select_Object{
 
