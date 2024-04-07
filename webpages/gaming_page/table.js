@@ -41,6 +41,8 @@ class Table{
     set_player(player_self,player_oppo){
         this.player_self=player_self
         this.player_oppo=player_oppo
+        this.player_self.table=this
+        this.player_oppo.table=this
     }
 
     arrange_cards_battle(arr,unit){//1:self,-1:opponent

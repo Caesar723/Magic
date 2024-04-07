@@ -93,6 +93,11 @@ class Creature_Hand extends Card_Hand {
         return card
     }
 
+    change_state(Damage,Life){
+        this.Damage=Damage
+        this.Life=Life
+    }
+
 }
 
 

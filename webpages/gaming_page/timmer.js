@@ -297,6 +297,8 @@ class Timmer extends Ring_Record{
 
         this.presentage=0
 
+        
+
         this.text=""
         this.text_click="End"
         this.mode="time"//time, end
@@ -418,6 +420,7 @@ class Player_Life extends Ring_Record{
         super(position,size)
 
         this.max_life=20
+        
         this.life=10
 
         this.angle=120*(Math.PI/180)

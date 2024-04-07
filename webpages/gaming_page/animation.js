@@ -5,6 +5,9 @@ class Animation{//action
         if (this.object_hold instanceof Player){
             this.new_ring=this.object_hold.player_life_ring.get_copy()
         }
+        else{
+            this.object_hold_new=this.object_hold.get_copy()
+        }
         
         console.log(object_hold)
         this.player=player
@@ -71,20 +74,34 @@ class Animation{//action
         const y=20+index*(this.height+20)
         const x=80
 
-        ctx.drawImage(this.canvas,x,y,this.width,this.height)
-
-        ctx.beginPath();
+        
         this.draw_rect_smooth(this.ctx,x,y,this.width,this.height)
-        ctx.strokeStyle = 'rgb(22,34,41)';
-        ctx.shadowColor = 'rgb(22,34,41)'; // 半透明的蓝色光晕
+        ctx.beginPath();
+        
+        if (this.player instanceof Opponent){
+            ctx.strokeStyle = 'rgb(22,34,41)';
+            ctx.shadowColor = 'rgb(22,34,41)'; // 半透明的蓝色光晕
+            console.log(this,x,y)
+        }
+        else{
+            ctx.strokeStyle = 'rgb(242,246,252)';
+            ctx.shadowColor = 'rgb(242,246,252)'; // 半透明的蓝色光晕
+        }
+
+        
         // 设置阴影的模糊级别
         ctx.shadowBlur = 10;
         // 设置阴影的偏移量
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
         ctx.lineWidth = 10;
+        
         ctx.stroke(); // 描绘边框
+        
         ctx.closePath();
+
+        ctx.drawImage(this.canvas,x,y,this.width,this.height)
+        
     }
 
     draw_rect_smooth(ctx,x,y,width,height){
@@ -137,10 +154,14 @@ class Animation{//action
         if (this.object_hold instanceof Player){
             // this.new_ring.update(camera)
             // this.ctx.drawImage(this.new_ring.canvas,0,0,this.width,this.height)
+            this.new_ring.position[0]=-20
+            this.new_ring.update(camera)
             this.new_ring.draw(camera,ctx,canvas)
         }
         else{
-            this.object_hold.draw(camera,ctx,canvas)
+            this.object_hold_new.position[0]=-20
+            this.object_hold_new.update()
+            this.object_hold_new.draw(camera,ctx,canvas)
         }
         
         //ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
@@ -253,7 +274,7 @@ class Creature_Prepare_Defense extends Animation{
     }
 
 }
-class Activate_Ability extends Animation{
+class Activate_Ability extends Animation{//就是将卡牌横置
     constructor(object_hold,player){///object can be card and 
         super(object_hold,player)
     }
@@ -276,7 +297,7 @@ class Select_Object extends Animation{
     }
 }
 class Add_Buff extends Select_Object{
-    constructor(object_hold,player,selected_object,final_state){//selected_object battle
+    constructor(object_hold,player,selected_object,final_state){//selected_object hand or battle
         super(object_hold,player,selected_object)
         this.selected_object.change_state(...final_state)
 
@@ -304,7 +325,6 @@ class Cure_To_Object extends Select_Object{
 class Gain_Card extends Select_Object{
     constructor(object_hold,player,selected_object){//selected_object hand
         super(object_hold,player,selected_object)
-
         this.new_card=this.selected_object.get_copy()
     }
     set_animate(){
@@ -324,17 +344,86 @@ class Gain_Card extends Select_Object{
     }
 }
 class Lose_Card extends Select_Object{
+    constructor(object_hold,player,selected_object){//selected_object hand
+        super(object_hold,player,selected_object)
 
+        this.new_card=this.selected_object.get_copy()
+    }
+    set_animate(){
+        //this.selected_object.position=[0,60*this.player.unit,-20]
+        // if (this.selected_object instanceof Card_Battle){
+        //     this.selected_object.moving_cache.push(["disappear",[[0,-20,-20*this.player.unit]]])
+        // }
+        // else{
+        this.selected_object.moving_cache.push(["disappear",[[0,60*this.player.unit,-20]]])
+        //}
+        
+        //this.player.cards.push(this.selected_object)
+        //this.selected_object.moving_cache.push(["rotate_to_point",[this.attacked_obj.position]])
+    }
+    draw_action(ctx,canvas,camera){
+
+        
+        super.draw_action(ctx,canvas,camera)
+        ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
+
+        this.new_card.position[0]=20
+        this.new_card.update()
+        this.new_card.draw(camera,ctx,canvas)
+    }
 }
 
 class Die extends Animation{
-    constructor(object_hold,player){///object can be card and 
+    constructor(object_hold,player){///object can be card and //object_hold battle
         super(object_hold,player)
+        //this.new_card=this.object_hold.get_copy()
+    }
+    set_animate(){
+        
+        this.object_hold.battle.moving_cache.push(["disappear",[[0,-20,-20*this.player.unit]]])
+        
+    }
+    draw_action(ctx,canvas,camera){
+
+        
+        super.draw_action(ctx,canvas,camera)
+        //console.log(this.object_hold.size,position)
+        //ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
+
+        
     }
 }
+
 class Summon extends Animation{
     constructor(object_hold,player){///object can be card and 
         super(object_hold,player)
+    }
+    set_animate(){
+        //this.selected_object.position=[0,60*this.player.unit,-20]
+        
+        this.object_hold.battle.position=[0,-20,-20*this.player.unit]
+        if (this.object_hold instanceof Creature_Hand){
+            if (this.player instanceof Opponent){
+                this.player.table.opponent_battlefield.push(this.object_hold.battle)
+            }
+            else{
+                this.player.table.self_battlefield.push(this.object_hold.battle)
+            }
+            
+        }
+        else if(this.object_hold instanceof Land_Hand){
+
+        }
+        
+
+        //this.player.cards.push(this.selected_object)
+        //this.selected_object.moving_cache.push(["rotate_to_point",[this.attacked_obj.position]])
+    }
+    draw_action(ctx,canvas,camera){
+
+        
+        super.draw_action(ctx,canvas,camera)
+        
     }
 }
 
@@ -344,7 +433,29 @@ class Turn extends Animation{
     }
 }
 class Change_Mana extends Animation{
-    constructor(object_hold,player){///object can be card and 
+    constructor(object_hold,player,mana_cost){///player must be self  mana_cost[blue,white,black,red,green]
         super(object_hold,player)
+        this.mana_cost=mana_cost
+
+        this.new_mana_bar=new Mana_Bar()
+        this.new_mana_bar.set_mana(this.mana_cost)
+        
     }
+    set_animate(){
+        this.player.mana_bar.set_mana(this.mana_cost)
+    }
+    draw_action(ctx,canvas,camera){
+        let index=0
+        for(let color in this.new_mana_bar.bars){
+            this.new_mana_bar.bars[color].position[0]=1470-5*150
+            this.new_mana_bar.bars[color].position[1]=index*15+canvas.height/2-100
+            index++
+        }
+        super.draw_action(ctx,canvas,camera)
+        ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
+        this.new_mana_bar.update()
+        this.new_mana_bar.draw(canvas,ctx,camera)
+        
+    }
+
 }

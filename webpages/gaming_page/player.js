@@ -105,6 +105,8 @@ class Self extends Player{
 
         this.unit=1
         this.player_life_ring=new Player_Life([-0.47,-20,-13],6,this.unit)
+
+        this.mana_bar=new Mana_Bar()
     }
     get_enlarge_size(){
         if (this.cards_mode==="ignore"){
@@ -175,11 +177,13 @@ class Self extends Player{
         }
         this.cards= this.cards.filter(item => !(this.hand_delete.includes(item)))
         this.hand_delete=[]
+        this.mana_bar.update()
         //this.sort_cards()
     }
 
     draw(){
         const cards_arr=this.sort_cards()
+        this.mana_bar.draw(this.canvas,this.ctx,this.camera)
         for (let card_i in cards_arr){
             cards_arr[card_i].draw(this.camera,this.ctx,this.canvas)
             

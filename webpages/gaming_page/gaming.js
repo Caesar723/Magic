@@ -17,11 +17,11 @@ class Game_Client{
         //////////////////////////////
         const canvas=this.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
         const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,"Caesar",1122334455)
-        this.action_bar.actions.push(new Activate_Ability(card.get_copy(),this.self_player))
-        this.action_bar.actions.push(new Die(card.get_copy(),this.self_player))
-        this.action_bar.actions.push(new Summon(card.get_copy(),this.self_player))
-        this.action_bar.actions.push(new Turn(card.get_copy(),this.self_player))
-        this.action_bar.actions.push(new Change_Mana(card.get_copy(),this.self_player))
+        // this.action_bar.actions.push(new Activate_Ability(card.get_copy(),this.self_player))
+        // this.action_bar.actions.push(new Die(card.get_copy(),this.self_player))
+        // this.action_bar.actions.push(new Summon(card.get_copy(),this.self_player))
+        // this.action_bar.actions.push(new Turn(card.get_copy(),this.self_player))
+        // this.action_bar.actions.push(new Change_Mana(card.get_copy(),this.self_player))
         ////////////////////////////////////////
 
 
@@ -33,6 +33,8 @@ class Game_Client{
         this.card_hold=[undefined,false,false]//card click bool,move bool
 
         this.init()
+
+        this.your_turn=true;//判断是不是你的回合
 
 
 
@@ -174,23 +176,39 @@ class Game_Client{
             }
             else if (event.key === "u" || event.key === "U") {
                 // 执行D键按下时的操作
-                this.table.self_battlefield[0].moving_cache.push(["disappear",[[0,-20,-20]]])
+                //this.table.self_battlefield[0].moving_cache.push(["disappear",[[0,-20,-20]]])
+                const action=new Die(this.table.self_battlefield[0].card,this.self_player)
+                action.set_animate()
+                this.action_bar.actions.push(action)
             }
             else if (event.key === "y" || event.key === "Y") {
                 // 执行D键按下时的操作
-                this.table.opponent_battlefield[0].start_moving("disappear",[[0,-20,20]])
+                //this.table.opponent_battlefield[0].start_moving("disappear",[[0,-20,20]])
+                const action=new Die(this.table.opponent_battlefield[0].card,this.oppo_player)
+                action.set_animate()
+                this.action_bar.actions.push(action)
             }
             else if (event.key === "l" || event.key === "L"){
                 const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
                 const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,"Caesar",1122334455)
                 const card_battle=new Creature_Battle(6,5,[-25,-25,0],0.3,card,"self",this.table)
-                this.table.self_battlefield.push(card_battle)
+
+
+                //this.table.self_battlefield.push(card_battle)
+
+                const action=new Summon(card,this.self_player)
+                action.set_animate()
+                this.action_bar.actions.push(action)
             }
             else if (event.key === "k" || event.key === "K"){
                 const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-                const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U","Caesar",1122334455)
+                const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,"Caesar",1122334455)
                 const card_battle=new Creature_Battle(6,5,[-25,-20,0],0.3,card,"opponent",this.table)
-                this.table.opponent_battlefield.push(card_battle)
+
+                const action=new Summon(card,this.oppo_player)
+                action.set_animate()
+                this.action_bar.actions.push(action)
+                //this.table.opponent_battlefield.push(card_battle)
             }
             else if (event.key === "m" || event.key === "M"){
                 this.self_player.cards[0].moving_cache.push(["move_to",[[0,0,0]]])
@@ -210,7 +228,10 @@ class Game_Client{
             }
             else if (event.key === "v" || event.key === "V") {
                 
-                this.self_player.cards[0].moving_cache.push(["disappear",[[0,60,-20]]])
+                //this.self_player.cards[0].moving_cache.push(["disappear",[[0,60,-20]]])
+                const action=new Lose_Card(this.self_player,this.self_player,this.self_player.cards[0])
+                action.set_animate()
+                this.action_bar.actions.push(action)
             }
             else if (event.key === "c" || event.key === "C") {
                 const card=new Card_Hand_Oppo(4,5.62,[0,-60,-20],0.7,1122334455,this.oppo_player)
@@ -239,6 +260,14 @@ class Game_Client{
             else if (event.key === "g" || event.key === "G") {
                 //this.table.timmer_turn.animate_set(this.table.timmer_turn.time+5,this.table.timmer_turn.time)
                 this.self_player.player_life_ring.animate_set(this.self_player.player_life_ring.life-3,this.self_player.player_life_ring.life)
+                //this.oppo_player.cards.push(card)
+            }
+            else if (event.key === "e" || event.key === "E") {
+                //this.table.timmer_turn.animate_set(this.table.timmer_turn.time+5,this.table.timmer_turn.time)
+                const action=new Change_Mana(this.self_player,this.self_player,[0,2,15,6,10])
+                action.set_animate()
+                this.action_bar.actions.push(action)
+                //this.self_player.mana_bar.set_mana([0,2,15,6,10])
                 //this.oppo_player.cards.push(card)
             }
 

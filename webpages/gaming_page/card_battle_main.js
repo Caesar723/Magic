@@ -112,7 +112,7 @@ class Creature_Battle extends Card_Battle {
             ring.animate_set(state_attacted_obj[0],ring.life)
         }
         else if (attacted_obj instanceof Creature_Battle){
-            this.attacted_obj.mode="none"
+            attacted_obj.mode="none"
             attacted_obj.change_state(...state_attacted_obj)
             // Life=state_attacted_obj[1]
             // attacted_obj.Damage=state_attacted_obj[0]
