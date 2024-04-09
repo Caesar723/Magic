@@ -112,7 +112,6 @@ class Card_Battle{
             
         }
         return final_points;
-
     }
     check_surface(camera){//true: forward false: backward
         const vectorA=this.normal_vector()

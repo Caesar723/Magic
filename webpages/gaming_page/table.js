@@ -13,6 +13,7 @@ class Table{
         this.deck_oppo_graph=new Deck_battle(4,2,5.62,[28.5,-20-3,+15],0.5,"webpages/image_source/card/back.png")
         this.timmer_turn=new Timmer(60,[34,-22,0],4)
         this.timmer_bullet=new Timmer(60,[-34,-22,0],4)
+        this.special_effects=new SpecialEffects()
         this.deck_oppo_graph.angle_y=Math.PI
         // this.camera=new Camera([0,-30,-7*0.7])
         // this.camera.angle_y=1.34
@@ -120,6 +121,8 @@ class Table{
         this.self_battlefield_delete=[]
         this.opponent_battlefield_delete=[]
 
+        this.special_effects.update(this.camera)
+
         //this.sort_cards()
         
         
@@ -156,6 +159,7 @@ class Table{
         this.timmer_bullet.draw(this.camera,this.ctx,this.canvas)
         this.player_self.player_life_ring.draw(this.camera,this.ctx,this.canvas)
         this.player_oppo.player_life_ring.draw(this.camera,this.ctx,this.canvas)
+        this.special_effects.draw(this.camera,this.ctx,this.canvas)
 
     }
 

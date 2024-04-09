@@ -359,6 +359,10 @@ class Camera{
         
     }
 
+    distance_from_point(position){
+        return ((position[0]-this.position[0])**2+(position[1]-this.position[1])**2+(position[2]-this.position[2])**2)**0.5
+    }
+
 
 
 

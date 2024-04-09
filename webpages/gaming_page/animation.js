@@ -278,6 +278,18 @@ class Activate_Ability extends Animation{//就是将卡牌横置
     constructor(object_hold,player){///object can be card and 
         super(object_hold,player)
     }
+    set_animate(){
+       this.object_holdbattle.moving_cache.push(["rotate_to_point",[[
+        this.object_hold.battle.accurate_position[0]+1,
+        this.object_hold.battle.accurate_position[1],
+        this.object_hold.battle.accurate_position[2],
+    ]]])
+    }
+    draw_action(ctx,canvas,camera){
+        super.draw_action(ctx,canvas,camera)
+        
+    }
+
 }
 
 class Select_Object extends Animation{
@@ -443,6 +455,7 @@ class Change_Mana extends Animation{
     }
     set_animate(){
         this.player.mana_bar.set_mana(this.mana_cost)
+
     }
     draw_action(ctx,canvas,camera){
         let index=0
@@ -457,5 +470,4 @@ class Change_Mana extends Animation{
         this.new_mana_bar.draw(canvas,ctx,camera)
         
     }
-
 }
