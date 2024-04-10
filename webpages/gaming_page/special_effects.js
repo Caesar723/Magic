@@ -1,27 +1,127 @@
 class SpecialEffects{
 
     constructor(){
+        this.particles=[]
         this.missiles=[]
+        this.delete_missiles=[]
 
-        this.missiles.push(new Magic_Missile([0,-25,0],"rgba(0, 243, 0, 0.9)"))
+        this.missiles.push(new Magic_Missile([0,-25,0],[30,-20,10],"rgba(0, 243, 0, 0.9)"))
     }
 
     update(camera){
+        
         for (let i in this.missiles){
             this.missiles[i].update(camera)
         }
+        this.missiles= this.missiles.filter(item => !(this.delete_missiles.includes(item)))
+        this.delete_missiles=[]
+        this.arr_poses=this.get_position_points(camera);
     }
 
-    draw(camera,ctx,canvas){
+    get_all_particles_pos(){
+        const arr_x=[];
+        const arr_y=[];
+        const arr_z=[];
+        this.particles=[]
         for (let i in this.missiles){
-            this.missiles[i].draw(camera,ctx,canvas)
+            this.particles.push(this.missiles[i]);
+            this.particles=this.particles.concat(this.missiles[i].particles);
         }
+        //console.log(this.missiles,this.particles)
+        for (let part_i in this.particles){
+            arr_x.push(this.particles[part_i].position[0]);
+            arr_y.push(this.particles[part_i].position[1]);
+            arr_z.push(this.particles[part_i].position[2]);
+            //this.particles[part_i]
+        }
+        
+        return math.matrix([arr_x,arr_y,arr_z,])
+    }
+
+    // draw(camera,ctx,canvas){
+    //     for (let i in this.missiles){
+    //         this.missiles[i].draw(camera,ctx,canvas)
+    //     }
+    // }
+
+
+    get_position_points(camera){
+        const posiiton_accurate=this.get_all_particles_pos()
+        const camera_matrix=camera.get_matrix_position(posiiton_accurate)
+        const position_by_camera=math.subtract(posiiton_accurate,camera_matrix);
+        const xy_rotate_camera=math.multiply(rotateY(camera.angle_x),rotateX(camera.angle_y));
+        const rotated=math.multiply(xy_rotate_camera,position_by_camera);
+        //this.matrix_pos=rotated
+        var pos_rotate=rotated;
+        const final_points=[]
+        //console.log(pos_rotate.size())
+        for (let col = 0; col <= pos_rotate.size()[1]-1; col++){
+            const final_point=[]
+            for (let row = 0; row <= 2; row++){
+                //console.log(row,col)
+                final_point.push(pos_rotate.get([row,col]));
+            }
+            final_points.push(final_point);
+            
+        }
+        return final_points;
+        
+    }
+    draw(camera,ctx,canvas){
+        const new_points_pos=[];
+
+        const new_points_z=[]
+        
+        
+        this.final_image=this.canvas;
+        
+        //ctx.beginPath();
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;  
+
+        for (let index in this.arr_poses){
+            const x_start=this.arr_poses[index][0]
+            const y_start=this.arr_poses[index][1]
+            const z_start=this.arr_poses[index][2]
+
+            const end_x=cx + camera.similar_tri_2(x_start,z_start)
+            const end_y=cy + camera.similar_tri_2(y_start,z_start)
+            new_points_pos.push([end_x, end_y])
+            new_points_z.push(z_start)
+        }
+        //console.log(new_points_pos)
+        for (let i_real in new_points_pos){
+            //console.log(this.particles,i_real)
+            const radius=this.calculate_radius(this.particles[i_real].radius,camera,this.particles[i_real].position)
+            this.draw_ball(new_points_pos[i_real][0], new_points_pos[i_real][1],this.particles[i_real].color,radius,ctx)
+            
+            
+        }
+        
+
+
+
+
+    }
+    draw_ball(x,y,color,radius,ctx){
+        ctx.beginPath();
+        ctx.arc(x,y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.closePath();
+    }
+    calculate_radius(radius,camera,position){
+        const dis=camera.distance_from_point(position)
+        const rad=radius*camera.dis_from_screen/dis
+        return rad
     }
 
 
 }
 class Magic_Missile{
-    constructor(position,color){
+    constructor(position,target_position,color){
+        this.bezier_points=[position,[15,-30,10],target_position]
+        this.percentage=0
         this.position=position
         this.arr_poses=NaN;
         this.radius=0.7
@@ -56,40 +156,17 @@ class Magic_Missile{
         //     [this.position[2]]
         // ])
     }
-    // get_matrix_position(matrixA){
-        
-    //     const matrix_position=math.matrix([[this.position[0]],[this.position[1]],[this.position[2]]])
-    //     const matrixExpanded = math.map(matrixA, (value, index, matrix)=> {
-    //         return matrix_position.get([index[0], 0]); // Use the row index to access matrixB and repeat its values
-    //     });
-    //     return matrixExpanded
-    // }
-
-    get_position_points(camera){
-        const posiiton_accurate=this.get_org_position()
-        const camera_matrix=camera.get_matrix_position(posiiton_accurate)
-        const position_by_camera=math.subtract(posiiton_accurate,camera_matrix);
-        const xy_rotate_camera=math.multiply(rotateY(camera.angle_x),rotateX(camera.angle_y));
-        const rotated=math.multiply(xy_rotate_camera,position_by_camera);
-        //this.matrix_pos=rotated
-        var pos_rotate=rotated;
-        const final_points=[]
-        //console.log(pos_rotate.size())
-        for (let col = 0; col <= pos_rotate.size()[1]-1; col++){
-            const final_point=[]
-            for (let row = 0; row <= 2; row++){
-                //console.log(row,col)
-                final_point.push(pos_rotate.get([row,col]));
-            }
-            final_points.push(final_point);
-            
-        }
-        return final_points;
-        
-    }
+    
 
     update(camera){
-        this.position[0]+=0.1
+
+        //this.position[0]+=0.05
+        this.percentage+=1
+        if (this.percentage>=100){
+            this.percentage=100
+        }
+        this.update_position(this.bezier_points)
+        // this.position[1]-=1.1
         this.update_particles()
 
         this.particles= this.particles.filter(item => !(this.delete_particles.includes(item)))
@@ -97,13 +174,15 @@ class Magic_Missile{
 
 
         for (let i=0;i<this.max_particle-this.particles.length;i++){
-            this,this.create_particle()
+            this.create_particle()
+            //console.log(1)
         }
-        this.arr_poses=this.get_position_points(camera);
+        //this.arr_poses=this.get_position_points(camera);
 
     }
     create_particle(){
         const pos_range=0.7/2//-3,3
+        
         const radius_range=0.6
         const color_range=60
         const transparent=0.5
@@ -141,60 +220,31 @@ class Magic_Missile{
             this.particles[i].update(this.delete_particles)
         }
     }
-    draw(camera,ctx,canvas){
-        const new_points_pos=[];
 
-        const new_points_z=[]
+    update_position(bezier_points){
+        const arr=[]
         
-        
-        this.final_image=this.canvas;
-        
-        //ctx.beginPath();
-        const cx = canvas.width / 2;
-        const cy = canvas.height / 2;  
-
-        for (let index in this.arr_poses){
-            const x_start=this.arr_poses[index][0]
-            const y_start=this.arr_poses[index][1]
-            const z_start=this.arr_poses[index][2]
-
-            const end_x=cx + camera.similar_tri_2(x_start,z_start)
-            const end_y=cy + camera.similar_tri_2(y_start,z_start)
-            new_points_pos.push([end_x, end_y])
-            new_points_z.push(z_start)
-        }
-        console.log(new_points_pos)
-        for (let i_real in new_points_pos){
-            
-            if(i_real==0){
-                const radius=this.calculate_radius(this.radius,camera,this.position)
-                this.draw_ball(new_points_pos[0][0], new_points_pos[0][1],this.color,radius,ctx)
-            }
-            else{
-                console.log(this.particles[i_real-1])
-                const radius=this.calculate_radius(this.particles[i_real-1].radius,camera,this.particles[i_real-1].position)
-                this.draw_ball(new_points_pos[i_real][0], new_points_pos[i_real][1],this.particles[i_real-1].color,radius,ctx)
-                
+        for (let i=0 ;i<bezier_points.length-1;i++){
+            const point=this.Bezier(bezier_points[i],bezier_points[i+1],this.percentage)
+            arr.push(point)
+            if (bezier_points.length-2==i){
+                if (bezier_points.length==2){
+                    console.log(point)
+                    this.position=point
+                }
+                else{
+                    this.update_position(arr)
+                }
             }
         }
-        
-
-
-
-
     }
-    calculate_radius(radius,camera,position){
-        const dis=camera.distance_from_point(position)
-        const rad=radius*camera.dis_from_screen/dis
-        return rad
+    Bezier(point1,point2,percentage){
+        const x=point1[0]+percentage*(point2[0]-point1[0])/100
+        const y=point1[1]+percentage*(point2[1]-point1[1])/100
+        const z=point1[2]+percentage*(point2[2]-point1[2])/100
+        return [x,y,z]
     }
-    draw_ball(x,y,color,radius,ctx){
-        ctx.beginPath();
-        ctx.arc(x,y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = color;
-        ctx.fill();
-        ctx.closePath();
-    }
+    
 }
 
 class Particle{
