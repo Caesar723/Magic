@@ -3,7 +3,7 @@ class Animation{//action
     constructor(object_hold,player){///object can be card and 
         this.object_hold=object_hold
         if (this.object_hold instanceof Player){
-            this.new_ring=this.object_hold.player_life_ring.get_copy()
+            this.new_ring_hold=this.object_hold.player_life_ring.get_copy()
         }
         else{
             this.object_hold_new=this.object_hold.get_copy()
@@ -40,8 +40,8 @@ class Animation{//action
         this.ctx.clip();
 
         if (this.object_hold instanceof Player){
-            this.new_ring.update(this.player.camera)
-            this.ctx.drawImage(this.new_ring.canvas,0,0,this.width,this.height)
+            this.new_ring_hold.update(this.player.camera)
+            this.ctx.drawImage(this.new_ring_hold.canvas,0,0,this.width,this.height)
             //this.new_ring.draw(camera,ctx,canvas)
         }
         else{
@@ -81,7 +81,7 @@ class Animation{//action
         if (this.player instanceof Opponent){
             ctx.strokeStyle = 'rgb(22,34,41)';
             ctx.shadowColor = 'rgb(22,34,41)'; // 半透明的蓝色光晕
-            console.log(this,x,y)
+            //console.log(this,x,y)
         }
         else{
             ctx.strokeStyle = 'rgb(242,246,252)';
@@ -139,9 +139,9 @@ class Animation{//action
         if (this.object_hold instanceof Player){
             //this.new_ring=this.object_hold.player_life_ring.get_copy()
             
-            this.new_ring.position[0]=-20
+            this.new_ring_hold.position[0]=-20
             
-            this.new_ring.update(this.player.camera)
+            this.new_ring_hold.update(this.player.camera)
         }
         else{
             this.object_hold.position[0]=-20
@@ -154,9 +154,9 @@ class Animation{//action
         if (this.object_hold instanceof Player){
             // this.new_ring.update(camera)
             // this.ctx.drawImage(this.new_ring.canvas,0,0,this.width,this.height)
-            this.new_ring.position[0]=-20
-            this.new_ring.update(camera)
-            this.new_ring.draw(camera,ctx,canvas)
+            this.new_ring_hold.position[0]=-20
+            this.new_ring_hold.update(camera)
+            this.new_ring_hold.draw(camera,ctx,canvas)
         }
         else{
             this.object_hold_new.position[0]=-20
@@ -311,10 +311,15 @@ class Select_Object extends Animation{
 class Add_Buff extends Select_Object{
     constructor(object_hold,player,selected_object,final_state){//selected_object hand or battle
         super(object_hold,player,selected_object)
-        this.selected_object.change_state(...final_state)
+        this.final_state=final_state
+        
 
         this.new_card=this.selected_object.card.get_copy()
         
+    }
+    set_animate(){
+        this.selected_object.change_state(...this.final_state)
+
     }
     draw_action(ctx,canvas,camera){
         super.draw_action(ctx,canvas,camera)
@@ -327,11 +332,92 @@ class Add_Buff extends Select_Object{
 }
 
 class Attack_To_Object extends Select_Object{
+    constructor(object_hold,player,selected_object,color,type,result_state){//selected_object hand
+        super(object_hold,player,selected_object)
+        this.special_effect=player.table.special_effects
+        this.color=color
+        this.type=type
+        this.result_state=result_state
 
+
+        if (this.selected_object instanceof Player){
+            this.new_ring=this.selected_object.player_life_ring.get_copy()
+            this.new_ring.life=result_state[0]
+        }
+        else{
+            this.new_card=this.selected_object.get_copy()
+            this.new_card.Life=result_state[1]
+            this.new_card.Damage=result_state[0]
+        }
+
+    }
+    set_animate(){
+        
+        
+        this.special_effect.create_missile(this.object_hold,this.selected_object,this.color,this.type,this.result_state)
+
+    }
+    draw_action(ctx,canvas,camera){
+        super.draw_action(ctx,canvas,camera)
+        ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
+
+
+        if (this.selected_object instanceof Player){
+            
+            this.new_ring.position[0]=20
+            this.new_ring.update(camera)
+            this.new_ring.draw(camera,ctx,canvas)
+        }
+        else{
+            this.new_card.position[0]=20
+            this.new_card.update()
+            this.new_card.draw(camera,ctx,canvas)
+        }
+    }
 }
 
 
 class Cure_To_Object extends Select_Object{
+    constructor(object_hold,player,selected_object,color,type,result_state){//selected_object hand
+        super(object_hold,player,selected_object)
+        this.special_effect=player.table.special_effects
+        this.color=color
+        this.type=type
+        this.result_state=result_state
+
+
+        if (this.selected_object instanceof Player){
+            this.new_ring=attack_obj.player_life_ring.get_copy()
+            this.new_ring.life=state_attacted[0]
+        }
+        else{
+            this.new_card=this.attacked_obj.card.get_copy()
+            this.new_card.Life=state_attacted[1]
+            this.new_card.Damage=state_attacted[0]
+        }
+
+    }
+    set_animate(){
+        this.special_effect.create_missile(this.object_hold,this.selected_object,this.color,this.type,this.result_state)
+
+    }
+    draw_action(ctx,canvas,camera){
+        super.draw_action(ctx,canvas,camera)
+        ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
+
+
+        if (this.selected_object instanceof Player){
+            
+            this.new_ring.position[0]=20
+            this.new_ring.update(camera)
+            this.new_ring.draw(camera,ctx,canvas)
+        }
+        else{
+            this.new_card.position[0]=20
+            this.new_card.update()
+            this.new_card.draw(camera,ctx,canvas)
+        }
+    }
 
 }
 class Gain_Card extends Select_Object{

@@ -272,6 +272,26 @@ class Game_Client{
                 //this.self_player.mana_bar.set_mana([0,2,15,6,10])
                 //this.oppo_player.cards.push(card)
             }
+            else if (event.key === "r" || event.key === "R") {
+                
+                const action=new Attack_To_Object(this.self_player,this.self_player,this.oppo_player,"rgba(0, 243, 0, 0.9)","Missile_Hit",[5])
+                action.set_animate()
+                this.action_bar.actions.push(action)
+                
+            }
+            else if (event.key === "t" || event.key === "T") {
+                
+                for (let i in this.table.opponent_battlefield){
+                    const action=new Attack_To_Object(this.table.self_battlefield[0].card,this.self_player,this.table.opponent_battlefield[i].card,"rgba(0, 243, 0, 0.9)","Missile_Hit",[5,5])
+                    action.set_animate()
+                    this.action_bar.actions.push(action)
+                }
+                const action=new Attack_To_Object(this.table.self_battlefield[0].card,this.self_player,this.self_player,"rgba(0, 243, 0, 0.9)","Missile_Hit",[5])
+                action.set_animate()
+                this.action_bar.actions.push(action)
+                
+                
+            }
 
 
             

@@ -54,20 +54,34 @@ class Action_Bar{
     }
     update(){
         this.update_position()
-        this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height)
-        this.set_image()
-        this.update_graph()
-        const len=this.actions.length
-        for (let i in this.actions){
-            const index=len-i-1
-            //console.log(i,index)
-            this.actions[index].draw_image(this.ctx,i)
-        }
-        if (this.card_mode=="show"){
-            this.action_showed.update_cards()
+        if (this.mode=="show"){
+
+        
+            
+            this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height)
+            this.set_image()
+            this.update_graph()
+            const len=this.actions.length
+
+            var last_index=this.actions.length
+            if (last_index>11){
+                last_index=11
+            }
+            for (let i =0;i<last_index;i++){
+                const index=len-i-1
+                //console.log(i,index)
+                
+                this.actions[index].draw_image(this.ctx,i)
+            }
+
+
+            if (this.card_mode=="show"){
+                this.action_showed.update_cards()
+            }
         }
     }
     draw(canvas,ctx,camera){
+
         ctx.drawImage(this.canvas,this.position[0]-70,0)
 
         //console.log(this.showed_action)

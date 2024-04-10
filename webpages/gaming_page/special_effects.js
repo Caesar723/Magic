@@ -5,13 +5,26 @@ class SpecialEffects{
         this.missiles=[]
         this.delete_missiles=[]
 
-        this.missiles.push(new Magic_Missile([0,-25,0],[30,-20,10],"rgba(0, 243, 0, 0.9)"))
+        //this.missiles.push(new Magic_Missile([0,-25,0],[30,-20,10],"rgba(0, 243, 0, 0.9)"))
+
+        this.types={
+            'Missile_Hit':Magic_Missile,
+
+
+        }
     }
+
+    create_missile(object_hold,attacked_obj,color,type,final_state){
+        console.log(object_hold,attacked_obj,color,type,final_state)
+        this.missiles.push(new this.types[type](object_hold,attacked_obj,color,final_state))
+    }
+
+
 
     update(camera){
         
         for (let i in this.missiles){
-            this.missiles[i].update(camera)
+            this.missiles[i].update(camera,this.delete_missiles)
         }
         this.missiles= this.missiles.filter(item => !(this.delete_missiles.includes(item)))
         this.delete_missiles=[]
@@ -119,10 +132,28 @@ class SpecialEffects{
 
 }
 class Magic_Missile{
-    constructor(position,target_position,color){
-        this.bezier_points=[position,[15,-30,10],target_position]
+    constructor(object_hold,attacked_obj,color,state_final){
+        this.object_hold=object_hold
+        this.attacked_obj=attacked_obj
+        this.state_final=state_final
+        if (object_hold instanceof Player){
+            var startpos=object_hold.player_life_ring.position
+        }
+        else{
+            var startpos=object_hold.battle.position
+        }
+
+        if (attacked_obj instanceof Player){
+            var endpos=attacked_obj.player_life_ring.position
+        }
+        else{
+            var endpos=attacked_obj.battle.position
+        }
+
+        console.log(startpos,endpos)
+        this.bezier_points=this.get_bezier_points(startpos,endpos)
         this.percentage=0
-        this.position=position
+        this.position=startpos
         this.arr_poses=NaN;
         this.radius=0.7
         this.points=this.get_org_position()
@@ -135,6 +166,32 @@ class Magic_Missile{
             this,this.create_particle()
         }
         this.delete_particles=[]
+
+        this.speed=3
+
+        this.disappear=false
+        this.transparent=1
+    }
+    get_bezier_points(position,target_position){
+        const new_pos=[
+            (position[0]+target_position[0])/2,
+            -35,
+            (position[2]+target_position[2])/2
+        ]
+        const arr=[position,new_pos,target_position]
+        return arr
+    }
+    when_hit(){
+        if (this.attacked_obj instanceof Player){
+            const ring=this.attacked_obj.player_life_ring
+            ring.animate_set(this.state_final[0],ring.life)
+        }
+        else if (this.attacked_obj instanceof Card_Hand){
+            this.attacked_obj.battle.mode="none"
+            this.attacked_obj.battle.change_state(...this.state_final)
+            // Life=state_attacted_obj[1]
+            // attacted_obj.Damage=state_attacted_obj[0]
+        }
     }
 
     get_org_position(){//也可能会有很多小particle
@@ -158,12 +215,30 @@ class Magic_Missile{
     }
     
 
-    update(camera){
+    update(camera,delete_missiles){
 
         //this.position[0]+=0.05
-        this.percentage+=1
+        this.percentage+=this.speed
         if (this.percentage>=100){
-            this.percentage=100
+            if (this.disappear==false){
+                this.disappear=true
+                this.when_hit()
+            }
+            else if(this.particles.length==0 && this.transparent<=0){
+                delete_missiles.push(this)
+                
+            }
+            else{
+                var parts = this.color.split(",");
+                parts[3] = this.transparent+")";
+                this.color= parts.join(",");
+                this.transparent-=0.1
+                this.percentage=100
+            }
+            
+
+            
+            
         }
         this.update_position(this.bezier_points)
         // this.position[1]-=1.1
@@ -174,7 +249,10 @@ class Magic_Missile{
 
 
         for (let i=0;i<this.max_particle-this.particles.length;i++){
-            this.create_particle()
+            if (this.disappear==false){
+                this.create_particle()
+            }
+            
             //console.log(1)
         }
         //this.arr_poses=this.get_position_points(camera);
