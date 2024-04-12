@@ -14,6 +14,7 @@ class Game_Client{
 
 
         this.action_bar=new Action_Bar()
+        this.show_2d=new Show_2D(this.canvas_table,this.ctx_table)
         
         //////////////////////////////
         const canvas=this.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
@@ -103,6 +104,7 @@ class Game_Client{
         this.oppo_player.update()
         this.self_player.update()
         this.action_bar.update()
+        this.show_2d.update()
     }
     draw(){
         //this.ctx_table.filter = 'grayscale(100%)';
@@ -111,6 +113,7 @@ class Game_Client{
         this.self_player.draw()
         this.ctx_table.filter = 'none';
         this.action_bar.draw(this.canvas_table,this.ctx_table,this.self_player.camera)
+        this.show_2d.draw()
 
 
     }
@@ -274,7 +277,7 @@ class Game_Client{
             }
             else if (event.key === "r" || event.key === "R") {
                 
-                const action=new Attack_To_Object(this.self_player,this.self_player,this.oppo_player,"rgba(0, 243, 0, 0.9)","Missile_Hit",[5])
+                const action=new Attack_To_Object(this.self_player,this.self_player,this.oppo_player,"rgba(0, 243, 0, 0.9)","Cure",[5])
                 action.set_animate()
                 this.action_bar.actions.push(action)
                 
@@ -292,6 +295,15 @@ class Game_Client{
                 
                 
             }
+            else if (event.key === "[" || event.key === "{") {
+                
+                const action=new Play_Cards(this.self_player.cards[0],this.self_player,this.self_player.cards[0],this.show_2d)
+                action.set_animate()
+                this.action_bar.actions.push(action)
+                
+                
+            }
+
 
 
             

@@ -9,14 +9,16 @@ class SpecialEffects{
 
         this.types={
             'Missile_Hit':Magic_Missile,
+            'Cure':Cure
 
 
         }
     }
 
     create_missile(object_hold,attacked_obj,color,type,final_state){
-        console.log(object_hold,attacked_obj,color,type,final_state)
-        this.missiles.push(new this.types[type](object_hold,attacked_obj,color,final_state))
+        const missile=new this.types[type](object_hold,attacked_obj,color,final_state)
+        this.missiles.push(missile)
+        return missile
     }
 
 
@@ -150,7 +152,7 @@ class Magic_Missile{
             var endpos=attacked_obj.battle.position
         }
 
-        console.log(startpos,endpos)
+        //console.log(startpos,endpos)
         this.bezier_points=this.get_bezier_points(startpos,endpos)
         this.percentage=0
         this.position=startpos
@@ -360,5 +362,28 @@ class Particle{
     draw(){
 
         
+    }
+}
+
+
+
+class Cure extends Magic_Missile{
+    constructor(object_hold,attacked_obj,color,state_final){
+        super(object_hold,attacked_obj,color,state_final)
+        this.speed=1
+    }
+    get_bezier_points(position,target_position){
+        const new_pos_1=[
+            (position[0]+target_position[0])/2+10,
+            -20,
+            (position[2]+target_position[2])/2
+        ]
+        const new_pos_2=[
+            (position[0]+target_position[0])/2-10,
+            -30,
+            (position[2]+target_position[2])/2
+        ]
+        const arr=[position,new_pos_1,new_pos_2,target_position]
+        return arr
     }
 }

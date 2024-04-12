@@ -22,6 +22,8 @@ class Animation{//action
         this.set_canvas()
         this.arrow_img=new Image();
 
+        this.action_finished=false
+
     }
 
     set_animate(){//
@@ -243,6 +245,26 @@ class Creature_Prepare_Attack extends Animation{
     }
     set_animate(){
         this.object_hold.battle.mode="attack"
+    }
+    draw_action(ctx,canvas,camera){
+        super.draw_action(ctx,canvas,camera)
+        
+        
+    }
+}
+class Play_Cards extends Animation{
+    constructor(object_hold,player,deleted_card,show_2D){///object can be card and 
+        super(object_hold,player)
+        this.show_2D=show_2D
+        this.deleted_card=deleted_card
+    }
+    set_animate(){
+        this.deleted_card.moving_cache.push(["disappear",[[0,60*this.player.unit,-20]]])
+        this.show_2D.show_a_card(this.object_hold)
+        setTimeout(() => {
+            this.action_finished=true
+            this.show_2D.unshow_a_card()
+          }, 2000); // 将在2秒后打印消息
     }
     draw_action(ctx,canvas,camera){
         super.draw_action(ctx,canvas,camera)
