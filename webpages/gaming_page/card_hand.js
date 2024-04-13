@@ -38,7 +38,8 @@ class Card_Hand extends Card{
 
         this.z_index=1;
 
-        this.battle
+        //this.battle
+        this.used=false
     }
 
 
@@ -406,6 +407,117 @@ class Card_Hand extends Card{
         const card=new Card_Hand(4,5.62,[0,0,0],2,this.dynamic_canvas,this.color_fee,this.name,this.id,this.player)
         
         return card
+    }
+
+    check_weather_can_used(){
+        return true
+    }
+
+    draw(camera,ctx,canvas){
+        const new_points_pos=[];
+        
+        if (this.check_surface(camera)){
+            this.final_image=this.dynamic_canvas[0];
+        }
+        else{
+            this.final_image=this.back_img;
+        }
+        //ctx.beginPath();
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;       
+        for (let index_plane=0; index_plane<4;index_plane++){
+            const x_start=this.arr_poses[index_plane][0]
+            const y_start=this.arr_poses[index_plane][1]
+            const z_start=this.arr_poses[index_plane][2]
+
+            const end_x=cx + camera.similar_tri(x_start,z_start)
+            const end_y=cy + camera.similar_tri(y_start,z_start)
+            new_points_pos.push([end_x, end_y])
+        }
+        //ctx.closePath();
+        const COL=4;
+        const ROW=4;
+
+        this.position_in_screen=new_points_pos;
+        if (this.check_weather_can_used()){
+            this.draw_blur_ring(ctx)
+            this.draw_blur_ring(ctx)
+            //this.draw_blur_ring(ctx)
+        }
+
+        let col_left_up=this.average_p(new_points_pos[2],new_points_pos[3],COL-0,COL);
+        let col_right_up=this.average_p(new_points_pos[1],new_points_pos[0],COL-0,COL);
+        
+        for (let col=0;col<COL;col++){
+            let col_left_down=this.average_p(new_points_pos[2],new_points_pos[3],COL-col-1,COL);
+            let col_right_down=this.average_p(new_points_pos[1],new_points_pos[0],COL-col-1,COL);
+
+            
+            
+            for (let row=0;row<ROW;row++){
+                const new_points_pos_1=[
+                    this.average_p(col_left_down,col_right_down,ROW-row-1,ROW),
+                    this.average_p(col_left_up,col_right_up,ROW-row-1,ROW),
+                    this.average_p(col_left_up,col_right_up,ROW-row,ROW), 
+                    this.average_p(col_left_down,col_right_down,ROW-row,ROW), 
+                ]
+                this.draw_half_img_1(new_points_pos_1,[row*this.image.width/ROW,col*this.image.height/COL],ctx);
+                this.draw_half_img_2(new_points_pos_1,[row*this.image.width/ROW,col*this.image.height/COL],ctx);
+            }
+            col_left_up=col_left_down;
+            col_right_up=col_right_down;
+        }
+        
+        
+        // if (this.check_weather_can_used()){
+        //     this.draw_blur_ring(ctx)
+        // }
+        // super.draw(camera,ctx,canvas)
+        
+        
+
+        
+    }
+    draw_blur_ring(ctx){
+        ctx.save()
+        
+        
+        ctx.beginPath();
+            
+        ctx.moveTo(this.position_in_screen[0][0], this.position_in_screen[0][1]);
+        ctx.lineTo(this.position_in_screen[1][0], this.position_in_screen[1][1]);
+        
+        ctx.lineTo(this.position_in_screen[2][0], this.position_in_screen[2][1]);
+        
+        ctx.lineTo(this.position_in_screen[3][0], this.position_in_screen[3][1]);
+        
+        ctx.lineTo(this.position_in_screen[0][0], this.position_in_screen[0][1]);
+        
+        
+        
+        ctx.closePath();
+        ctx.strokeStyle = 'rgb(83,158,78)';
+        ctx.shadowColor = 'rgba(83,158,78)'; // 半透明的蓝色光晕
+        ctx.fillStyle = 'rgba(83,158,78)';
+        ctx.lineCap = 'round';
+        ctx.shadowBlur = 20;
+        // 设置阴影的偏移量
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.lineWidth = 1;
+        ctx.fill(); // 描绘边框
+        //ctx.stroke()
+        ctx.restore()
+        //ctx.restore()
+        //ctx.stroke(); // 描绘边框
+
+        // ctx.shadowColor = 'transparent';
+        // ctx.shadowBlur = 0;
+        // ctx.shadowOffsetX = 0;
+        // ctx.shadowOffsetY = 0;
+        
+            
+
     }
 }
 

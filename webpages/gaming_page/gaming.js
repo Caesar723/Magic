@@ -286,20 +286,59 @@ class Game_Client{
                 
                 for (let i in this.table.opponent_battlefield){
                     const action=new Attack_To_Object(this.table.self_battlefield[0].card,this.self_player,this.table.opponent_battlefield[i].card,"rgba(0, 243, 0, 0.9)","Missile_Hit",[5,5])
-                    action.set_animate()
-                    this.action_bar.actions.push(action)
+                    //action.set_animate()
+                    this.action_bar.add_actions(action)
+                    //this.action_bar.actions.push(action)
                 }
                 const action=new Attack_To_Object(this.table.self_battlefield[0].card,this.self_player,this.self_player,"rgba(0, 243, 0, 0.9)","Missile_Hit",[5])
-                action.set_animate()
-                this.action_bar.actions.push(action)
+                this.action_bar.add_actions(action)
+                this.action_bar.add_actions(false)
+                // action.set_animate()
+                // this.action_bar.actions.push(action)
                 
                 
             }
             else if (event.key === "[" || event.key === "{") {
+                var action_1=new Attack_To_Object(this.self_player,this.self_player,this.oppo_player,"rgba(0, 243, 0, 0.9)","Cure",[5])
+                //action.set_animate()
+                this.action_bar.add_actions(action_1)
                 
-                const action=new Play_Cards(this.self_player.cards[0],this.self_player,this.self_player.cards[0],this.show_2d)
-                action.set_animate()
-                this.action_bar.actions.push(action)
+                //this.action_bar.actions.push(action)
+
+
+                var action_2=new Play_Cards(this.self_player.cards[0],this.self_player,this.self_player.cards[0],this.show_2d)
+                //action.set_animate()
+                //this.action_bar.actions.push(action)
+                this.action_bar.add_actions(action_2)
+
+                this.action_bar.add_actions(false)
+                var action_1=new Attack_To_Object(this.self_player,this.self_player,this.oppo_player,"rgba(0, 243, 0, 0.9)","Cure",[5])
+                //action.set_animate()
+                this.action_bar.add_actions(action_1)
+                
+                //this.action_bar.actions.push(action)
+
+
+                var action_2=new Play_Cards(this.self_player.cards[1],this.self_player,this.self_player.cards[1],this.show_2d)
+                //action.set_animate()
+                //this.action_bar.actions.push(action)
+                this.action_bar.add_actions(action_2)
+
+                this.action_bar.add_actions(false)
+
+                var action_1=new Attack_To_Object(this.self_player,this.self_player,this.oppo_player,"rgba(0, 243, 0, 0.9)","Cure",[5])
+                //action.set_animate()
+                this.action_bar.add_actions(action_1)
+                
+                //this.action_bar.actions.push(action)
+
+
+                var action_2=new Play_Cards(this.self_player.cards[2],this.self_player,this.self_player.cards[2],this.show_2d)
+                //action.set_animate()
+                //this.action_bar.actions.push(action)
+                this.action_bar.add_actions(action_2)
+
+                this.action_bar.add_actions(false)
                 
                 
             }

@@ -272,6 +272,7 @@ class Card{
             col_right_up=col_right_down;
         }
         this.position_in_screen=new_points_pos;
+        
     }
     average_p(p_1,p_2,n,t){
         const x=p_2[0]+n*(p_1[0]-p_2[0])/t

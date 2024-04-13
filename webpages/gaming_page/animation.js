@@ -169,6 +169,10 @@ class Animation{//action
         //ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
     }
 
+    finished(){
+        return true
+    }
+
 
 }
 
@@ -238,6 +242,10 @@ class Creature_Start_Attack extends Animation{
             this.new_card.draw(camera,ctx,canvas)
         }
     }
+
+    finished(){
+        return !this.object_hold.battle.moving
+    }
 }
 class Creature_Prepare_Attack extends Animation{
     constructor(object_hold,player){///object can be card and 
@@ -257,6 +265,7 @@ class Play_Cards extends Animation{
         super(object_hold,player)
         this.show_2D=show_2D
         this.deleted_card=deleted_card
+        this.action_finished=false
     }
     set_animate(){
         this.deleted_card.moving_cache.push(["disappear",[[0,60*this.player.unit,-20]]])
@@ -270,6 +279,9 @@ class Play_Cards extends Animation{
         super.draw_action(ctx,canvas,camera)
         
         
+    }
+    finished(){
+        return this.action_finished
     }
 }
 class Creature_Prepare_Defense extends Animation{
@@ -294,6 +306,9 @@ class Creature_Prepare_Defense extends Animation{
         this.new_card.draw(camera,ctx,canvas)
         
     }
+    finished(){
+        return !this.object_hold.battle.moving
+    }
 
 }
 class Activate_Ability extends Animation{//就是将卡牌横置
@@ -301,16 +316,19 @@ class Activate_Ability extends Animation{//就是将卡牌横置
         super(object_hold,player)
     }
     set_animate(){
-       this.object_holdbattle.moving_cache.push(["rotate_to_point",[[
-        this.object_hold.battle.accurate_position[0]+1,
-        this.object_hold.battle.accurate_position[1],
-        this.object_hold.battle.accurate_position[2],
-    ]]])
+    //    this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
+    //     this.object_hold.battle.accurate_position[0]+1,
+    //     this.object_hold.battle.accurate_position[1],
+    //     this.object_hold.battle.accurate_position[2],
+    // ]]])
     }
     draw_action(ctx,canvas,camera){
         super.draw_action(ctx,canvas,camera)
         
     }
+    // finished(){
+    //     return !this.object_hold.battle.moving
+    // }
 
 }
 
@@ -337,6 +355,8 @@ class Add_Buff extends Select_Object{
         
 
         this.new_card=this.selected_object.card.get_copy()
+
+        this.action_finished=true
         
     }
     set_animate(){
@@ -350,6 +370,9 @@ class Add_Buff extends Select_Object{
         this.new_card.position[0]=20
         this.new_card.update()
         this.new_card.draw(camera,ctx,canvas)
+    }
+    finished(){
+        return this.action_finished
     }
 }
 
@@ -372,11 +395,14 @@ class Attack_To_Object extends Select_Object{
             this.new_card.Damage=result_state[0]
         }
 
+
+        this.missile=undefined
+
     }
     set_animate(){
         
         
-        this.special_effect.create_missile(this.object_hold,this.selected_object,this.color,this.type,this.result_state)
+        this.missile=this.special_effect.create_missile(this.object_hold,this.selected_object,this.color,this.type,this.result_state)
 
     }
     draw_action(ctx,canvas,camera){
@@ -394,6 +420,14 @@ class Attack_To_Object extends Select_Object{
             this.new_card.position[0]=20
             this.new_card.update()
             this.new_card.draw(camera,ctx,canvas)
+        }
+    }
+    finished(){
+        if (this.missile===undefined){
+            return true;
+        }
+        else{
+            return this.missile
         }
     }
 }
@@ -418,9 +452,12 @@ class Cure_To_Object extends Select_Object{
             this.new_card.Damage=state_attacted[0]
         }
 
+        this.missile=undefined
+
+
     }
     set_animate(){
-        this.special_effect.create_missile(this.object_hold,this.selected_object,this.color,this.type,this.result_state)
+        this.missile=this.special_effect.create_missile(this.object_hold,this.selected_object,this.color,this.type,this.result_state)
 
     }
     draw_action(ctx,canvas,camera){
@@ -438,6 +475,14 @@ class Cure_To_Object extends Select_Object{
             this.new_card.position[0]=20
             this.new_card.update()
             this.new_card.draw(camera,ctx,canvas)
+        }
+    }
+    finished(){
+        if (this.missile===undefined){
+            return true;
+        }
+        else{
+            return this.missile
         }
     }
 
@@ -491,6 +536,9 @@ class Lose_Card extends Select_Object{
         this.new_card.update()
         this.new_card.draw(camera,ctx,canvas)
     }
+    finished(){
+        return !this.selected_object.moving
+    }
 }
 
 class Die extends Animation{
@@ -511,6 +559,9 @@ class Die extends Animation{
         //ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
 
         
+    }
+    finished(){
+        return !this.object_hold.battle.moving
     }
 }
 

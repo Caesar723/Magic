@@ -7,6 +7,8 @@ class Action_Bar{
 
 
         this.actions=[]
+        this.actions_cache=[]
+        this.actions_processing=[]
         this.position=[0,0]
         this.target_position_hide=-90
         this.target_position_show=0
@@ -29,6 +31,10 @@ class Action_Bar{
         this.card_mode="hide"
         this.action_showed=undefined
         this.moving=false
+
+
+
+        this.actions_finsihed=true
 
         
 
@@ -53,6 +59,7 @@ class Action_Bar{
         // this.ctx.clip();
     }
     update(){
+        this.check_actions_finsihed()
         this.update_position()
         if (this.mode=="show"){
 
@@ -179,6 +186,61 @@ class Action_Bar{
         if (this.card_mode=="show"){
             this.action_showed.draw_action(ctx,canvas,camera)
         }
+    }
+
+    set_actions(list){
+        this.actions=list
+    }
+    add_actions(action){
+        this.actions_cache.push(action)
+    }
+    check_actions_finsihed(){
+        //console.log(this.actions_cache)
+        if (this.actions_finsihed){
+            const result=this.pop_cache()
+            
+            
+            if (result[0]==true){
+                this.actions_finsihed=false
+                this.actions_processing=result[1]
+                for (let action of this.actions_processing){
+                    action.set_animate()
+                }
+                console.log(this.actions_cache)
+                this.actions_cache=this.actions_cache.filter(item => !(result[1].includes(item)))
+                
+                this.actions_cache.shift()
+            }
+        }
+        else{
+            let finish=true
+            for (let action of this.actions_processing){
+                const result=action.finished()
+                console.log(result)
+                if (!result){
+                    finish=false
+                }
+            }
+            
+            if (finish){
+                this.actions_finsihed=true
+                this.actions= this.actions.concat(this.actions_processing);
+            }
+        }
+    }
+    pop_cache(){
+        var arr=[]
+        for (let action of this.actions_cache){
+            console.log(arr,action)
+            if (action != false){
+                arr.push(action)
+            }
+            else{
+                
+                return [true,arr]
+            }
+        }
+        return [false]
     }
 
 }
