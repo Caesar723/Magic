@@ -568,6 +568,7 @@ class Die extends Animation{
 class Summon extends Animation{
     constructor(object_hold,player){///object can be card and 
         super(object_hold,player)
+        //console.log(object_hold)
     }
     set_animate(){
         //this.selected_object.position=[0,60*this.player.unit,-20]
@@ -583,12 +584,18 @@ class Summon extends Animation{
             
         }
         else if(this.object_hold instanceof Land_Hand){
-
+            if (this.player instanceof Opponent){
+                this.player.table.opponent_landfield.push(this.object_hold.battle)
+            }
+            else{
+                this.player.table.self_landfield.push(this.object_hold.battle)
+            }
         }
         
 
         //this.player.cards.push(this.selected_object)
         //this.selected_object.moving_cache.push(["rotate_to_point",[this.attacked_obj.position]])
+        //console.log(this.object_hold)
     }
     draw_action(ctx,canvas,camera){
 

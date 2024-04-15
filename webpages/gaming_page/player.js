@@ -170,7 +170,7 @@ class Self extends Player{
         
     }
     update(){
-
+        console.log(this.cards)
         this.arrange_cards()
         for (let card_i in this.cards){
             this.cards[card_i].update()

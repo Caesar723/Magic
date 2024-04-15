@@ -342,6 +342,18 @@ class Game_Client{
                 
                 
             }
+            else if (event.key === "]" || event.key === "】") {
+                const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
+                const card=new Land_Hand(4,5.62,[0,0,60],1.6,canvas,"Caesar",1122334455)
+                const card_battle=new Land_Battle(6,5,[-25,-25,0],0.3,card,"self",this.table)
+
+
+                //this.table.self_battlefield.push(card_battle)
+
+                const action=new Summon(card,this.self_player)
+                action.set_animate()
+                this.action_bar.actions.push(action)
+            }
 
 
 
@@ -366,6 +378,7 @@ class Game_Client{
         this.canvas_table.addEventListener('mousemove', (event) => {
             
             if (this.card_hold[2]){
+                this.show_2d.delete_mouse_card()
                 const mouse_pos=this.get_mouse_pos(event,this.canvas_table)
                 //console.log(2)
                 if (this.card_hold[0] instanceof Card_Battle){
@@ -408,6 +421,7 @@ class Game_Client{
                     }
                     card.start_moving("change_size_animation",[this.self_player.get_enlarge_size()])
                     card.z_index=2;
+                    
                     //this.canvas_table.style.cursor = 'pointer';             
                     //card.change_size_cache=this.self_player.get_enlarge_size()
                 }
@@ -422,6 +436,17 @@ class Game_Client{
                         }
                         
                     }
+
+                    
+                    if (card instanceof Card_Battle){
+                        console.log(card.card,card.position)
+                        this.show_2d.set_mouse_card(card.card,card.position)
+                    }
+                    else{
+                        this.show_2d.delete_mouse_card()
+                    }
+                    
+
                     //this.canvas_table.style.cursor = 'default';
                     
                 }

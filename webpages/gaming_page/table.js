@@ -27,6 +27,11 @@ class Table{
         this.opponent_battlefield_delete=[]
         this.self_battlefield_delete=[]
 
+        this.opponent_landfield=[]
+        this.self_landfield=[]
+        this.opponent_landfield_delete=[]
+        this.self_landfield_delete=[]
+
 
         ///
         for (let i=0;i<1;i++){
@@ -92,6 +97,29 @@ class Table{
         
 
     }
+    arrange_cards_land(arr,unit){
+        const grouped_items=this.groupValues(arr)
+
+        for (let grouped_index in grouped_items){
+            for (let offset in grouped_items[grouped_index]){
+                
+            }
+        }
+    }
+    groupValues(arr) {
+        const groups = {};
+        arr.forEach(item => {
+            if (!groups[item.name]) {
+                groups[item.name] = [];
+            }
+            groups[item.name].push(item);
+        });
+        return Object.values(groups);  // 返回一个包含所有组的数组
+    }
+    
+    // const myArray = [1, 2, 2, 3, 4, 4, 4, 5];
+    // const grouped = groupValues(myArray);
+    // console.log(grouped);  /
 
     update(){
         this.arrange_cards_battle(this.self_battlefield,1)
@@ -105,7 +133,7 @@ class Table{
 
         this.deck_self_graph.update(this.camera)
         this.deck_oppo_graph.update(this.camera)
-        
+        //battle
         for (let i_self in this.self_battlefield){
             
             this.self_battlefield[i_self].update(this.camera)
@@ -114,12 +142,29 @@ class Table{
             
             this.opponent_battlefield[i_oppo].update(this.camera)
         }
+        //land
+        for (let i_self in this.self_landfield){
+            
+            this.self_landfield[i_self].update(this.camera)
+        }
+        for (let i_oppo in this.opponent_landfield){
+            
+            this.opponent_landfield[i_oppo].update(this.camera)
+        }
         
         this.self_battlefield= this.self_battlefield.filter(item => !(this.self_battlefield_delete.includes(item)))
         this.opponent_battlefield=this.opponent_battlefield.filter(item => !(this.opponent_battlefield_delete.includes(item)))
         
         this.self_battlefield_delete=[]
         this.opponent_battlefield_delete=[]
+
+
+        this.self_landfield= this.self_landfield.filter(item => !(this.self_landfield_delete.includes(item)))
+        this.opponent_landfield=this.opponent_landfield.filter(item => !(this.opponent_landfield_delete.includes(item)))
+        
+
+        this.opponent_landfield_delete=[]
+        this.self_landfield_delete=[]
 
         this.special_effects.update(this.camera)
 
@@ -153,6 +198,14 @@ class Table{
             // this.self_battlefield[i_self_battlefield].angle_x=this.self_battlefield[i_self_battlefield].angle_x+0.01
             // this.self_battlefield[i_self_battlefield].position[0]=this.self_battlefield[i_self_battlefield].position[0]+0.01
         }
+        //land
+        for (let i_self in this.self_landfield){
+            this.self_landfield[i_self].draw(this.camera,this.ctx,this.canvas)
+        }
+        for (let i_oppo in this.opponent_landfield){
+            this.opponent_landfield[i_oppo].draw(this.camera,this.ctx,this.canvas)
+        }
+
         this.deck_self_graph.draw(this.camera,this.canvas,this.ctx)
         this.deck_oppo_graph.draw(this.camera,this.canvas,this.ctx)
         this.timmer_turn.draw(this.camera,this.ctx,this.canvas)
@@ -170,10 +223,19 @@ class Table{
 
     }
     sort_cards(){
+
         this.self_battlefield.sort(function(a, b) {
             return a.z_index - b.z_index;
         });
         this.opponent_battlefield.sort(function(a, b) {
+            return a.z_index - b.z_index;
+        });
+
+
+        this.opponent_landfield.sort(function(a, b) {
+            return a.z_index - b.z_index;
+        });
+        this.self_landfield.sort(function(a, b) {
             return a.z_index - b.z_index;
         });
     }

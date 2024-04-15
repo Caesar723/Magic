@@ -5,7 +5,7 @@ class Card_Battle{
         card.battle=this
         this.table=table
         this.player=player
-        console.log(player,table)
+        //console.log(player,table)
         this.corners=[//x y z
             [1*width,-1*height,0],
             [1*width,1*height,0],
@@ -655,8 +655,8 @@ class Card_Battle{
         
         const limit=0.9;
         const next_pos=camera.similar_tri_reverse_2(...mouse_pos,this.position[1],this.position_in_screen_z);
-        const x_diff=(next_pos[0]-this.position[0])/3;
-        const y_diff=-(next_pos[2]-this.position[2])/3;
+        const x_diff=(next_pos[0]-this.position[0])/1;
+        const y_diff=-(next_pos[2]-this.position[2])/1;
         
 
         this.angle_y = x_diff > limit ? limit : (x_diff < -limit ? -limit :x_diff);

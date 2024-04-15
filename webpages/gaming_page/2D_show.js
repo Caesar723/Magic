@@ -10,9 +10,11 @@ class Show_2D{
 
     update(){
         this.update_showed_card()
+        this.update_mouse_card()
     }
     draw(){
         this.draw_showed_card()
+        this.draw_mouse_card()
     }
     update_showed_card(){
         if (!(this.showed_card===undefined)){
@@ -37,5 +39,29 @@ class Show_2D{
 
     unshow_a_card(){
         this.showed_card=undefined
+    }
+
+
+    set_mouse_card(card,position){
+        //if (!(this.mouse_card===undefined)){
+        this.mouse_card=card.get_copy()
+        this.mouse_card.position=[position[0],0,0]///
+        console.log()
+        //}
+        
+
+    }
+    delete_mouse_card(){
+        this.mouse_card=undefined
+    }
+    update_mouse_card(){
+        if (!(this.mouse_card===undefined)){
+            this.mouse_card.update()
+        }
+    }
+    draw_mouse_card(){
+        if (!(this.mouse_card===undefined)){
+            this.mouse_card.draw(this.camera,this.ctx,this.canvas)
+        }
     }
 }

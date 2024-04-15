@@ -1,6 +1,7 @@
 class Creature_Hand extends Card_Hand {
     constructor(width,height,position,size,dynamic_canvas,color_fee,Life,Damage,name,id,player){
         super(width,height,position,size,dynamic_canvas,color_fee,name,id,player)
+        //console.log(player,this.player)
         this.Org_Life=Life;
         this.Life=Life;
         this.Org_Damage=Damage;
@@ -11,6 +12,7 @@ class Creature_Hand extends Card_Hand {
 
     
     update(){
+        //console.log(this.player)
         super.update();
         this.print_life_damage();
         
