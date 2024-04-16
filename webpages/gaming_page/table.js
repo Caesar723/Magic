@@ -85,7 +85,7 @@ class Table{
                 //console.log(2)
                 const start_point=-dis_between*(length-1)/2
                 for (let i =layer*max_len;i<layer*max_len+max_len;i++){
-                    const position=[start_point+(i-layer*max_len)*dis_between,arr[i].accurate_position[1],(-5-layer*5)*unit]
+                    const position=[start_point+(i-layer*max_len)*dis_between,arr[i].position[1],(-5-layer*5)*unit]
                     arr[i].accurate_position=position
                     
                     arr[i].start_moving("move_to",[position])
@@ -99,20 +99,38 @@ class Table{
     }
     arrange_cards_land(arr,unit){
         const grouped_items=this.groupValues(arr)
+        //console.log(grouped_items)
+        const card_len=6
+        const start_point=-20
+        
+        const size=0.3
 
+        const gap=1.5
+        const dis_between=card_len*size*2*gap
+
+
+        const small_distance=0.2
         for (let grouped_index in grouped_items){
             for (let offset in grouped_items[grouped_index]){
-                
+                const card=grouped_items[grouped_index][offset]
+                const position=[
+                    (start_point+dis_between*grouped_index+small_distance*offset)*unit,
+                    card.accurate_position[1],
+                    (-13+offset*small_distance)*unit
+
+                ]
+                card.start_moving("move_to",[position])
+                card.change_size(size)
             }
         }
     }
     groupValues(arr) {
         const groups = {};
         arr.forEach(item => {
-            if (!groups[item.name]) {
-                groups[item.name] = [];
+            if (!groups[item.card.name]) {
+                groups[item.card.name] = [];
             }
-            groups[item.name].push(item);
+            groups[item.card.name].push(item);
         });
         return Object.values(groups);  // 返回一个包含所有组的数组
     }
@@ -124,6 +142,9 @@ class Table{
     update(){
         this.arrange_cards_battle(this.self_battlefield,1)
         this.arrange_cards_battle(this.opponent_battlefield,-1)
+
+        this.arrange_cards_land(this.self_landfield,1)
+        this.arrange_cards_land(this.opponent_landfield,-1)
         this.table_graph.update(this.camera)
         this.timmer_turn.update(this.camera)
         this.timmer_bullet.update(this.camera)
@@ -186,25 +207,39 @@ class Table{
             this.opponent_battlefield[i_oppo].draw_shade(-20,this.camera,this.ctx,this.canvas)
             
         }
-        for (let i_self in this.self_battlefield){
+
+
+
+        const combinedArray = this.self_battlefield.concat(
+            this.opponent_battlefield, 
+            this.opponent_landfield,
+            this.self_landfield,
+            );
+        combinedArray.sort((a, b) => -a.position[1] + b.position[1]);
+
+        for (let card_i in combinedArray){
+            combinedArray[card_i].draw(this.camera,this.ctx,this.canvas)
+        }
+
+        // for (let i_self in this.self_battlefield){
             
-            this.self_battlefield[i_self].draw(this.camera,this.ctx,this.canvas)
+        //     this.self_battlefield[i_self].draw(this.camera,this.ctx,this.canvas)
             
-        }
-        for (let i_oppo in this.opponent_battlefield){
-            //this.opponent_battlefield[i_oppo].draw_shade(-20,this.camera,this.ctx,this.canvas)
-            //this.ctx.drawImage(this.self_battlefield[i_self_battlefield].canvas,100,100,this.self_battlefield[i_self_battlefield].canvas.width,this.self_battlefield[i_self_battlefield].canvas.height)
-            this.opponent_battlefield[i_oppo].draw(this.camera,this.ctx,this.canvas)
-            // this.self_battlefield[i_self_battlefield].angle_x=this.self_battlefield[i_self_battlefield].angle_x+0.01
-            // this.self_battlefield[i_self_battlefield].position[0]=this.self_battlefield[i_self_battlefield].position[0]+0.01
-        }
-        //land
-        for (let i_self in this.self_landfield){
-            this.self_landfield[i_self].draw(this.camera,this.ctx,this.canvas)
-        }
-        for (let i_oppo in this.opponent_landfield){
-            this.opponent_landfield[i_oppo].draw(this.camera,this.ctx,this.canvas)
-        }
+        // }
+        // for (let i_oppo in this.opponent_battlefield){
+        //     //this.opponent_battlefield[i_oppo].draw_shade(-20,this.camera,this.ctx,this.canvas)
+        //     //this.ctx.drawImage(this.self_battlefield[i_self_battlefield].canvas,100,100,this.self_battlefield[i_self_battlefield].canvas.width,this.self_battlefield[i_self_battlefield].canvas.height)
+        //     this.opponent_battlefield[i_oppo].draw(this.camera,this.ctx,this.canvas)
+        //     // this.self_battlefield[i_self_battlefield].angle_x=this.self_battlefield[i_self_battlefield].angle_x+0.01
+        //     // this.self_battlefield[i_self_battlefield].position[0]=this.self_battlefield[i_self_battlefield].position[0]+0.01
+        // }
+        // //land
+        // for (let i_self in this.self_landfield){
+        //     this.self_landfield[i_self].draw(this.camera,this.ctx,this.canvas)
+        // }
+        // for (let i_oppo in this.opponent_landfield){
+        //     this.opponent_landfield[i_oppo].draw(this.camera,this.ctx,this.canvas)
+        // }
 
         this.deck_self_graph.draw(this.camera,this.canvas,this.ctx)
         this.deck_oppo_graph.draw(this.camera,this.canvas,this.ctx)

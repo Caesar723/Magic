@@ -45,7 +45,15 @@ class Show_2D{
     set_mouse_card(card,position){
         //if (!(this.mouse_card===undefined)){
         this.mouse_card=card.get_copy()
-        this.mouse_card.position=[position[0],0,0]///
+        const distance=3*(card.size)+10
+
+        if (position[0]>0){
+            this.mouse_card.position=[position[0]-distance,0,0]///
+        } 
+        else{
+            this.mouse_card.position=[position[0]+distance,0,0]///
+        }  
+        
         console.log()
         //}
         

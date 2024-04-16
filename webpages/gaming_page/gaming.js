@@ -345,7 +345,7 @@ class Game_Client{
             else if (event.key === "]" || event.key === "】") {
                 const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
                 const card=new Land_Hand(4,5.62,[0,0,60],1.6,canvas,"Caesar",1122334455)
-                const card_battle=new Land_Battle(6,5,[-25,-25,0],0.3,card,"self",this.table)
+                const card_battle=new Land_Battle(6,5,[-25,-20,0],0.3,card,"self",this.table)
 
 
                 //this.table.self_battlefield.push(card_battle)
@@ -353,6 +353,43 @@ class Game_Client{
                 const action=new Summon(card,this.self_player)
                 action.set_animate()
                 this.action_bar.actions.push(action)
+
+
+
+                const canvas2=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
+                const card2=new Land_Hand(4,5.62,[0,0,60],1.6,canvas2,"Caesar",1122334455)
+                const card_battle2=new Land_Battle(6,5,[-25,-20,0],0.3,card2,"opponent",this.table)
+
+
+                //this.table.self_battlefield.push(card_battle)
+
+                const action2=new Summon(card2,this.oppo_player)
+                action2.set_animate()
+                this.action_bar.actions.push(action2)
+            }
+            else if (event.key === "\\" || event.key === "、") {
+                const canvas=this.table.card_frame.generate_card("blue","Bacon","creature","Common","shausoaishaisuhai","cards/creature/Aetherweaver/image.jpg")
+                const card=new Land_Hand(4,5.62,[0,0,60],1.6,canvas,"Bacon",1122334455)
+                const card_battle=new Land_Battle(6,5,[-25,-20,0],0.3,card,"self",this.table)
+
+
+                //this.table.self_battlefield.push(card_battle)
+
+                const action=new Summon(card,this.self_player)
+                action.set_animate()
+                this.action_bar.actions.push(action)
+
+
+                const canvas2=this.table.card_frame.generate_card("blue","Bacon","creature","Common","shausoaishaisuhai","cards/creature/Aetherweaver/image.jpg")
+                const card2=new Land_Hand(4,5.62,[0,0,60],1.6,canvas2,"Bacon",1122334455)
+                const card_battle2=new Land_Battle(6,5,[-25,-20,0],0.3,card2,"opponent",this.table)
+
+
+                //this.table.self_battlefield.push(card_battle)
+
+                const action2=new Summon(card2,this.oppo_player)
+                action2.set_animate()
+                this.action_bar.actions.push(action2)
             }
 
 
@@ -573,11 +610,11 @@ class Game_Client{
     }
     find_timers_by_mouse(mouse_pos){
         if (this.table.timmer_turn.check_inside(mouse_pos,...this.table.timmer_turn.position_in_screen)){
-            console.log(12345)
+            //console.log(12345)
             return this.table.timmer_turn
         }
         else if(this.table.timmer_bullet.check_inside(mouse_pos,...this.table.timmer_bullet.position_in_screen)){
-            console.log(345)
+            //console.log(345)
             return this.table.timmer_bullet
         }
         return undefined
