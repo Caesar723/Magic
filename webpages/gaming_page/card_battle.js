@@ -65,6 +65,8 @@ class Card_Battle{
         this.card_hold=[false,false]//click_bool,move_bool
 
         this.z_index=1;
+
+        this.activated=false
         
     }
     get_org_position(size){
@@ -200,7 +202,17 @@ class Card_Battle{
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.ctx.save()
-        this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
+
+        if(this.activated==true){
+            this.ctx.filter = 'brightness(50%)';
+            this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
+            this.ctx.filter = 'none';
+        }
+        else{
+            this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
+        }
+        
+        //this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
         this.ctx.restore()
         //this.create_fee(this.dynamic_canvas[1],this.color_fee,...Array.from({length: 6}, (_, i) => this.images_fee[i]));
         

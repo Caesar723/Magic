@@ -11,6 +11,7 @@ class Game_Client{
         this.oppo_player=new Opponent("DD",this.canvas_table,this.ctx_table)
         this.table.set_player(this.self_player,this.oppo_player)
         this.card_frame=new Card_frame()
+        this.message_processor=new Message_Processor(this)
 
 
         this.action_bar=new Action_Bar()
@@ -390,6 +391,25 @@ class Game_Client{
                 const action2=new Summon(card2,this.oppo_player)
                 action2.set_animate()
                 this.action_bar.actions.push(action2)
+            }
+            else if (event.key === ";" || event.key === ";") {
+                
+                const action=new Activate_Ability(this.table.self_battlefield[0].card,this.self_player)
+                action.set_animate()
+                this.action_bar.actions.push(action)
+
+            }
+            else if (event.key === "'" || event.key === "'") {
+                
+                const action=new Activate_Ability(this.table.self_landfield[3].card,this.self_player)
+                action.set_animate()
+                this.action_bar.actions.push(action)
+
+
+                const action2=new Reset_Ability(this.table.self_battlefield[0].card,this.self_player)
+                action2.set_animate()
+                this.action_bar.actions.push(action2)
+
             }
 
 

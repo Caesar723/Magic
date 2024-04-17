@@ -208,21 +208,26 @@ class Creature_Start_Attack extends Animation{
             this.object_hold.battle.moving_cache.push(["rotate_to_point",[this.attacked_obj.position]])
             this.object_hold.battle.moving_cache.push(["attack_to",[this.attacked_obj.position,this.state_self,this.attacked_obj,this.state_attacted]])
         }
+        this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
+            this.object_hold.battle.accurate_position[0],
+            this.object_hold.battle.accurate_position[1],
+            this.object_hold.battle.accurate_position[2]+1,
+        ]]])
 
-        if (this.player instanceof Opponent){
-            this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
-                this.object_hold.battle.accurate_position[0],
-                this.object_hold.battle.accurate_position[1],
-                this.object_hold.battle.accurate_position[2]-1,
-            ]]])
-        }
-        else{
-            this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
-                this.object_hold.battle.accurate_position[0],
-                this.object_hold.battle.accurate_position[1],
-                this.object_hold.battle.accurate_position[2]+1,
-            ]]])
-        }
+        // if (this.player instanceof Opponent){
+        //     this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
+        //         this.object_hold.battle.accurate_position[0],
+        //         this.object_hold.battle.accurate_position[1],
+        //         this.object_hold.battle.accurate_position[2]-1,
+        //     ]]])
+        // }
+        // else{
+        //     this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
+        //         this.object_hold.battle.accurate_position[0],
+        //         this.object_hold.battle.accurate_position[1],
+        //         this.object_hold.battle.accurate_position[2]+1,
+        //     ]]])
+        // }
         
     }
     draw_action(ctx,canvas,camera){
@@ -314,8 +319,22 @@ class Creature_Prepare_Defense extends Animation{
 class Activate_Ability extends Animation{//就是将卡牌横置
     constructor(object_hold,player){///object can be card and 
         super(object_hold,player)
+
     }
     set_animate(){
+        console.log(this.object_hold.battle.accurate_position)
+        this.object_hold.battle.z_index=-1;
+        this.object_hold.battle.activated=true
+        this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
+            this.object_hold.battle.accurate_position[0]+1,
+            this.object_hold.battle.accurate_position[1],
+            this.object_hold.battle.accurate_position[2],
+        ]]])
+        console.log([
+            this.object_hold.battle.accurate_position[0]+1,
+            this.object_hold.battle.accurate_position[1],
+            this.object_hold.battle.accurate_position[2],
+        ])
     //    this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
     //     this.object_hold.battle.accurate_position[0]+1,
     //     this.object_hold.battle.accurate_position[1],
@@ -330,6 +349,30 @@ class Activate_Ability extends Animation{//就是将卡牌横置
     //     return !this.object_hold.battle.moving
     // }
 
+}
+class Reset_Ability extends Animation{//就是将卡牌横置
+    constructor(object_hold,player){///object can be card and 
+        super(object_hold,player)
+
+    }
+    set_animate(){
+        this.object_hold.battle.z_index=1;
+        this.object_hold.battle.activated=false
+        this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
+            this.object_hold.battle.accurate_position[0],
+            this.object_hold.battle.accurate_position[1],
+            this.object_hold.battle.accurate_position[2]+1,
+        ]]])
+    //    this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
+    //     this.object_hold.battle.accurate_position[0]+1,
+    //     this.object_hold.battle.accurate_position[1],
+    //     this.object_hold.battle.accurate_position[2],
+    // ]]])
+    }
+    draw_action(ctx,canvas,camera){
+        super.draw_action(ctx,canvas,camera)
+        
+    }
 }
 
 class Select_Object extends Animation{

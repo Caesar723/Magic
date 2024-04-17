@@ -119,6 +119,7 @@ class Table{
                     (-13+offset*small_distance)*unit
 
                 ]
+                card.accurate_position=position
                 card.start_moving("move_to",[position])
                 card.change_size(size)
             }
@@ -132,6 +133,11 @@ class Table{
             }
             groups[item.card.name].push(item);
         });
+        
+        for (const groupName in groups) {
+            groups[groupName].sort((a, b) => a.z_index - b.z_index);
+        }
+        //console.log(groups)
         return Object.values(groups);  // 返回一个包含所有组的数组
     }
     
@@ -140,11 +146,7 @@ class Table{
     // console.log(grouped);  /
 
     update(){
-        this.arrange_cards_battle(this.self_battlefield,1)
-        this.arrange_cards_battle(this.opponent_battlefield,-1)
-
-        this.arrange_cards_land(this.self_landfield,1)
-        this.arrange_cards_land(this.opponent_landfield,-1)
+        
         this.table_graph.update(this.camera)
         this.timmer_turn.update(this.camera)
         this.timmer_bullet.update(this.camera)
@@ -172,7 +174,11 @@ class Table{
             
             this.opponent_landfield[i_oppo].update(this.camera)
         }
-        
+        this.arrange_cards_battle(this.self_battlefield,1)
+        this.arrange_cards_battle(this.opponent_battlefield,-1)
+
+        this.arrange_cards_land(this.self_landfield,1)
+        this.arrange_cards_land(this.opponent_landfield,-1)
         this.self_battlefield= this.self_battlefield.filter(item => !(this.self_battlefield_delete.includes(item)))
         this.opponent_battlefield=this.opponent_battlefield.filter(item => !(this.opponent_battlefield_delete.includes(item)))
         
@@ -215,7 +221,15 @@ class Table{
             this.opponent_landfield,
             this.self_landfield,
             );
-        combinedArray.sort((a, b) => -a.position[1] + b.position[1]);
+        combinedArray.sort((a, b) =>{
+            const positionDiff = b.position[1] - a.position[1];
+            if (positionDiff !== 0) {
+                // 如果 position[1] 不相等，直接返回差值
+                return positionDiff;
+            } else {
+                // 如果 position[1] 相等，按照 z-index 排序
+                return a.z_index - b.z_index;
+            }});
 
         for (let card_i in combinedArray){
             combinedArray[card_i].draw(this.camera,this.ctx,this.canvas)
