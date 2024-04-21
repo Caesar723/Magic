@@ -11,7 +11,7 @@ class Game_Client{
         this.oppo_player=new Opponent("DD",this.canvas_table,this.ctx_table)
         this.table.set_player(this.self_player,this.oppo_player)
         this.card_frame=new Card_frame()
-        this.message_processor=new Message_Processor(this)
+        //this.message_processor=new Message_Processor(this)
 
 
         this.action_bar=new Action_Bar()
