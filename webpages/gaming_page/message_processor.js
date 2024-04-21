@@ -31,7 +31,9 @@ parameters() return [....]
 */
 class Message_Processor{
     constructor(client){
+        
         this.client=client
+        
         this.card_frame=client.card_frame
 
 
@@ -57,24 +59,36 @@ class Message_Processor{
 
 
         this.function_diction={
-            "Creature":this.Creature,
-            "Sorcery":this.Sorcery,
-            "Instant":this.Instant,
-            "Land":this.Land,
-            "Opponent":this.Opponent,
+            "Creature":this.Creature.bind(this),
+            "Sorcery":this.Sorcery.bind(this),
+            "Instant":this.Instant.bind(this),
+            "Land":this.Land.bind(this),
+            "Opponent":this.Opponent.bind(this),
             // "create_new":this.create_new,
             // "find_card":this.find_card,
-            "player":this.player,
-            "action":this.action,
-            "action_list":this.action_list,
-            "Initinal_all":this.initinal_all,
-            "state":this.state,
-            "int":this.int,
-            "parameters":this.parameters
+            "player":this.player.bind(this),
+            "action":this.action.bind(this),
+            "action_list":this.action_list.bind(this),
+            "Initinal_all":this.initinal_all.bind(this),
+            "state":this.state.bind(this),
+            "int":this.int.bind(this),
+            "parameters":this.parameters.bind(this),
+            "string":this.string.bind(this),
         }
         this.state(1,2,3,4,5)
-        console.log(this.extractParts("int(find_card(67),create_new(2))"))
+        // console.log(this.extractParts("Creature(player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg)"))
+        // console.log(this.extractParts("player(CC,Self)"))
+        console.log(this.extractParts("action_list(action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))),action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))),action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))))"))
 
+    }
+    countOccurrencesLoop(str, char) {
+        let count = 0;
+        for (let i = 0; i < str.length; i++) {
+            if (str[i] === char) {
+                count++;
+            }
+        }
+        return count;
     }
     processage_message(text){
 
@@ -82,9 +96,11 @@ class Message_Processor{
 
 
 
+    string(){
 
+    }
     find_card(id){//返回的为card hand
-        console.log(card)
+        console.log()
         return false
     }
     create_new(card){
@@ -96,6 +112,7 @@ class Message_Processor{
         if (result){
             return result
         }
+        console.log(player)
         const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
         const card=new Creature_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,fee,Org_Damage,Org_Life,name,id,player)
         return card
@@ -158,12 +175,14 @@ class Message_Processor{
     }
     player(name,type){
         if (type=="Opponent"){
+            
             const player=this.client.oppo_player
             if (player.name==name){
                 return player
             }
         }
         else{
+            
             const player=this.client.self_player
             if (player.name==name){
                 return player
@@ -178,14 +197,20 @@ class Message_Processor{
         return result
     }
     action(act_name,para){
-        const action=new this.action_diction[act_name](para)
+        //console.log(this.action_diction[act_name],para)
+        const action=new this.action_diction[act_name](...para)
         return action
     }
     action_list(){
-        arguments
+        for (let action of arguments){
+            action.set_animate()
+            this.client.action_bar.actions.push(action)
+        }
+        this.client.action_bar.actions.push(false)
     }
     parameters(){
         let result=[]
+        console.log(arguments)
         for (let para of arguments){
             result.push(para)
         }
@@ -199,14 +224,46 @@ class Message_Processor{
         const beforeParenthesis = str.substring(0, indexOfFirstParenthesis); // 获取 '(' 左边的内容
         
         const inParenthesis = str.substring(indexOfFirstParenthesis + 1, str.length-1); // 获取括号内的内容
-
-        let result_para=[]
-        
-        for(let para of inParenthesis.split(",")){
-
-            const result=this.extractParts(para)
-            result_para.push(result)
+        if (beforeParenthesis=="string"){
+            //console.log(inParenthesis)
+            return inParenthesis
         }
+        let result_para=[]
+
+        let numBraL=0
+        //let numBraR=0
+        var para=""
+        console.log(inParenthesis)
+        for (let char of inParenthesis){
+            if (char=="("){
+                numBraL++
+                para+=char
+            }
+            else if (char==")"){
+                numBraL--
+                para+=char
+            }
+            else if (char=="," && numBraL==0){
+                const result=this.extractParts(para)
+                console.log(para)
+                result_para.push(result)
+                para=""
+            }
+            else {
+                para+=char
+            }
+        }
+        const result=this.extractParts(para)
+        console.log(para)
+        result_para.push(result)
+        
+        // for(let para of inParenthesis.split(",")){
+
+        //     const result=this.extractParts(para)
+        //     console.log(para,result)
+        //     result_para.push(result)
+        // }
+        
         return this.function_diction[beforeParenthesis](...result_para)
 
     

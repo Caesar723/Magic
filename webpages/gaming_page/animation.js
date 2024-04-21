@@ -2,6 +2,7 @@ class Animation{//action
 
     constructor(object_hold,player){///object can be card and 
         this.object_hold=object_hold
+        console.log(player)
         if (this.object_hold instanceof Player){
             this.new_ring_hold=this.object_hold.player_life_ring.get_copy()
         }
