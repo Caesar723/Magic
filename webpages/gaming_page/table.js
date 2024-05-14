@@ -36,7 +36,7 @@ class Table{
         ///
         for (let i=0;i<1;i++){
             const canvas=this.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-            const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,"Caesar",1122334455)
+            const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,20,20,"Caesar",1122334455)
             const card_battle=new Creature_Battle(6,5,[-25+i*5,-20,0],0.3,card,"self",this)
             this.self_battlefield.push(card_battle)
         }
@@ -85,7 +85,7 @@ class Table{
                 //console.log(2)
                 const start_point=-dis_between*(length-1)/2
                 for (let i =layer*max_len;i<layer*max_len+max_len;i++){
-                    const position=[start_point+(i-layer*max_len)*dis_between,arr[i].position[1],(-5-layer*5)*unit]
+                    const position=[start_point+(i-layer*max_len)*dis_between,arr[i].accurate_position[1],(-5-layer*5)*unit]
                     arr[i].accurate_position=position
                     
                     arr[i].start_moving("move_to",[position])

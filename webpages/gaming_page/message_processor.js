@@ -1,7 +1,7 @@
 /*
 
 不管是什么操作，只要是card都按照这个来
-card(player,id,name,type(blue),type_card(Creature),rarity,content,image_path)
+card(flying,active,player,id,name,type(blue),type_card(Creature),rarity,content,image_path)
     Creature-(fee,Org_Life,Life,Org_Damage,Damage )
     Sorcery-（fee  ）
     Instant-（fee ）
@@ -25,7 +25,23 @@ action(action name,parameter)
 action_list(action,action,action,.....)
 
 
-Initinal_all()
+Initinal_all(
+    parameters(card1,card2),//self hand 
+    parameters(card1,card2),//oppo hand 
+    parameters(card1,card2),//self battle 
+    parameters(card1,card2),//oppo battle
+    parameters(card1,card2),//self lands 
+    parameters(card1,card2),//oppo lands
+    parameters(action1,action2),//create actions
+    parameters(int(0),int(0),int(0),int(0),int(0)),//[blue,white,black,red,green]
+    
+    29,//time turn
+    29,//time bullet
+    15,//life self
+    25,//life oppo
+    40,//length of deck self
+    40,//length of deck oppo
+)
 
 parameters() return [....]
 */
@@ -64,8 +80,6 @@ class Message_Processor{
             "Instant":this.Instant.bind(this),
             "Land":this.Land.bind(this),
             "Opponent":this.Opponent.bind(this),
-            // "create_new":this.create_new,
-            // "find_card":this.find_card,
             "player":this.player.bind(this),
             "action":this.action.bind(this),
             "action_list":this.action_list.bind(this),
@@ -78,7 +92,7 @@ class Message_Processor{
         this.state(1,2,3,4,5)
         // console.log(this.extractParts("Creature(player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg)"))
         // console.log(this.extractParts("player(CC,Self)"))
-        console.log(this.extractParts("action_list(action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))),action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))),action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))))"))
+        console.log(this.extractParts("action_list(action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(1,1,player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))),action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(1,1,player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))),action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(1,1,player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))))"))
 
     }
     countOccurrencesLoop(str, char) {
@@ -107,18 +121,18 @@ class Message_Processor{
         console.log(card)
         return 1
     }
-    Creature(player,id,name,type,type_card,rarity,content,image_path,fee,Org_Life,Life,Org_Damage,Damage){
+    Creature(flying,active,player,id,name,type,type_card,rarity,content,image_path,fee,Org_Life,Life,Org_Damage,Damage){
         const result=this.find_card(id)
         if (result){
             return result
         }
         console.log(player)
         const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
-        const card=new Creature_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,fee,Org_Damage,Org_Life,name,id,player)
+        const card=new Creature_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,fee,Org_Damage,Org_Life,Life,Damage,name,id,player)
         return card
 
     }
-    Sorcery(player,id,name,type,type_card,rarity,content,image_path,fee){
+    Sorcery(flying,active,player,id,name,type,type_card,rarity,content,image_path,fee){
         const result=this.find_card(id)
         if (result){
             return result
@@ -127,7 +141,7 @@ class Message_Processor{
         const card=new Sorcery_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,fee,name,id,player)
         return card
     }
-    Instant(player,id,name,type,type_card,rarity,content,image_path,fee){
+    Instant(flying,active,player,id,name,type,type_card,rarity,content,image_path,fee){
         const result=this.find_card(id)
         if (result){
             return result
@@ -136,7 +150,7 @@ class Message_Processor{
         const card=new Instant_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,fee,name,id,player)
         return card
     }
-    Land(player,id,name,type,type_card,rarity,content,image_path){
+    Land(flying,active,player,id,name,type,type_card,rarity,content,image_path){
         const result=this.find_card(id)
         if (result){
             return result
@@ -203,10 +217,13 @@ class Message_Processor{
     }
     action_list(){
         for (let action of arguments){
-            action.set_animate()
-            this.client.action_bar.actions.push(action)
+            //action.set_animate()
+            // actions_cache
+            //this.client.action_bar.actions.push(action)
+            this.client.action_bar.actions_cache.push(action)
         }
-        this.client.action_bar.actions.push(false)
+        this.client.action_bar.actions_cache.push(false)
+        this.actions_finsihed=true
     }
     parameters(){
         let result=[]
@@ -216,6 +233,19 @@ class Message_Processor{
         }
         return result
         //arguments
+    }
+    time_turn(str){
+        const timmer_turn=this.client.table.timmer_turn
+        timmer_turn.animate_set(+str,timmer_turn.time)
+    }
+    time_bullet(str){
+        const timmer_bullet=this.client.table.timmer_bullet
+        timmer_bullet.animate_set(+str,timmer_bullet.time)
+    }
+    length_deck(player,height){
+        if (player=="Self"){
+
+        }
     }
     extractParts(str) {
         const indexOfFirstParenthesis = str.indexOf('('); // 找到第一个 '(' 的索引

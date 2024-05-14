@@ -33,7 +33,7 @@ class Room:
         self.gamming=True #如果在游戏的话就是True，没有就是False
 
         #used to store all action
-        self.action_store_list_cache:list[Action]=[]#先存cache 然后转移给list，cache清空
+        self.action_store_list_cache:list[list[Action]]=[]#先存cache,cache 里存list of action 然后转移给list，拆开list，cache清空
         self.action_store_list:list[Action]=[]
 
         #used to count the time for a turn

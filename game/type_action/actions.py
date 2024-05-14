@@ -10,7 +10,16 @@ from game.action import Action
 
 
 class Creature_Start_Attack(Action):
-    pass
+    def __init__(self,object_hold:"Card|Player",player:"Player",attack_obj:"Card|Player",show_hide:bool,state_self:tuple,state_attacted:tuple) -> None:
+        self.show_hide:bool=show_hide # true show ,false hide
+        self.object_hold:"Card|Player"=object_hold # store the controled card
+        self.player:"Player"=player # who use the card
+        self.attack_obj:"Card|Player"=attack_obj # store the selected_object card
+        self.state_self:tuple=state_self
+        self.state_attacted:tuple=state_attacted
+    
+    def text(self,player)-> str:
+        pass
 
 class Creature_Prepare_Attack(Action):
     pass

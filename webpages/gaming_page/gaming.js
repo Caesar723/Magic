@@ -19,7 +19,7 @@ class Game_Client{
         
         //////////////////////////////
         const canvas=this.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-        const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,"Caesar",1122334455)
+        const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,20,20,"Caesar",1122334455)
         // this.action_bar.actions.push(new Activate_Ability(card.get_copy(),this.self_player))
         // this.action_bar.actions.push(new Die(card.get_copy(),this.self_player))
         // this.action_bar.actions.push(new Summon(card.get_copy(),this.self_player))
@@ -100,11 +100,12 @@ class Game_Client{
     
 
     update(){
+        this.action_bar.update()
         this.table.update()
         
         this.oppo_player.update()
         this.self_player.update()
-        this.action_bar.update()
+        
         this.show_2d.update()
     }
     draw(){
@@ -196,7 +197,7 @@ class Game_Client{
             }
             else if (event.key === "l" || event.key === "L"){
                 const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-                const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,"Caesar",1122334455)
+                const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,20,20,"Caesar",1122334455)
                 const card_battle=new Creature_Battle(6,5,[-25,-25,0],0.3,card,"self",this.table)
 
 
@@ -208,7 +209,7 @@ class Game_Client{
             }
             else if (event.key === "k" || event.key === "K"){
                 const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-                const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,"Caesar",1122334455)
+                const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,20,20,"Caesar",1122334455)
                 const card_battle=new Creature_Battle(6,5,[-25,-20,0],0.3,card,"opponent",this.table)
 
                 const action=new Summon(card,this.oppo_player)
@@ -224,7 +225,7 @@ class Game_Client{
             }
             else if (event.key === "b" || event.key === "B"){
                 const canvas_dynamic=this.self_player.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-                const card=new Creature_Hand(4,5.62,[0,60,-20],1.5,canvas_dynamic,"3U",20,20,"Caesar",1122334455,this.self_player)
+                const card=new Creature_Hand(4,5.62,[0,60,-20],1.5,canvas_dynamic,"3U",20,20,20,20,"Caesar",1122334455,this.self_player)
         
                 //this.self_player.cards.push(card)
 

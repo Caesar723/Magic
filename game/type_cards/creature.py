@@ -187,10 +187,32 @@ class Creature(Card):
         self.actual_power=self.power
         reset_instance_methods(self)
 
+    def text(self,player)-> str:
+        Flying=int(self.get_flag("flying"))
+        Active=int(self.get_flag("active"))
+        Player=self.player.text(player)
+        Id=id(self)
+        Name=self.name
+        Type=self.color
+        Type_card=self.type_card
+        Rarity=self.rarity
+        Content=self.content
+        Image_Path=self.image_path
+        Fee=self.mana_cost
+        Org_Life=self.live
+        Life=self.actual_live
+        Org_Damage=self.power
+        Damage=self.actual_power
+        return f"Creature({Flying},{Active},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),{Image_Path},{Fee},int({Org_Life}),int({Life}),int({Org_Damage}),int({Damage}))"
+
+
+
     
     
     def __repr__(self):
         power,live=self.state
+        flying=self.get_flag("flying")
+        active=self.get_flag("active")
         content=f"({self.name},{self.type},{power}/{live},{id(self)},{self.mana_cost})"
         return content
 

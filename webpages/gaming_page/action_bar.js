@@ -198,12 +198,14 @@ class Action_Bar{
         //console.log(this.actions_cache)
         if (this.actions_finsihed){
             const result=this.pop_cache()
+            console.log(result)
             
             
             if (result[0]==true){
                 this.actions_finsihed=false
                 this.actions_processing=result[1]
                 for (let action of this.actions_processing){
+                    //console.log(action)
                     action.set_animate()
                 }
                 console.log(this.actions_cache)

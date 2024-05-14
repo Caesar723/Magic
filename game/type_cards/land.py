@@ -72,6 +72,20 @@ class Land(Card):
         prepared_function=await self.when_enter_battlefield(player,opponent)
         return prepared_function
 
+    def text(self,player)-> str:
+        Flying=0
+        Active=0
+        Player=self.player.text(player)
+        Id=id(self)
+        Name=self.name
+        Type=self.color
+        Type_card=self.type_card
+        Rarity=self.rarity
+        Content=self.content
+        Image_Path=self.image_path
+        
+        return f"Land({Flying},{Active},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),{Image_Path})"
+
 
     def __repr__(self):
         content=f"({self.name},{self.type},{id(self)})"

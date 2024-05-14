@@ -12,5 +12,15 @@ class Action:
         self.object_hold:"Card|Player"=object_hold # store the controled card
         self.player:"Player"=player # who use the card
 
+    def text(self,player)-> str:
+        pass
+
     def __repr__(self) -> str:
+        pass
+
+class List_Action_Genarator:
+    pass
+
+class List_Action:
+    def __init__(self,list_action) -> None:
         pass

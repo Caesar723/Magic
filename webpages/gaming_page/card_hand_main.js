@@ -1,10 +1,10 @@
 class Creature_Hand extends Card_Hand {
-    constructor(width,height,position,size,dynamic_canvas,color_fee,Life,Damage,name,id,player){
+    constructor(width,height,position,size,dynamic_canvas,color_fee,Org_Life,Org_Damage,Life,Damage,name,id,player){
         super(width,height,position,size,dynamic_canvas,color_fee,name,id,player)
         //console.log(player,this.player)
-        this.Org_Life=Life;
+        this.Org_Life=Org_Life;
         this.Life=Life;
-        this.Org_Damage=Damage;
+        this.Org_Damage=Org_Damage;
         this.Damage=Damage;
         this.type="Creature";
         
@@ -89,7 +89,7 @@ class Creature_Hand extends Card_Hand {
     }
 
     get_copy(){
-        const card=new Creature_Hand(4,5.62,[0,0,0],2,this.dynamic_canvas,this.color_fee,this.Org_Life,this.Org_Damage,this.name,this.id,this.player)
+        const card=new Creature_Hand(4,5.62,[0,0,0],2,this.dynamic_canvas,this.color_fee,this.Org_Life,this.Org_Damage,this.Life,this.Damage,this.name,this.id,this.player)
         card.battle=this.battle
         console.log(card.battle)
         return card

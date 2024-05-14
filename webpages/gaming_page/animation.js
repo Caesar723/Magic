@@ -351,7 +351,7 @@ class Activate_Ability extends Animation{//就是将卡牌横置
     // }
 
 }
-class Reset_Ability extends Animation{//就是将卡牌横置
+class Reset_Ability extends Animation{//就是将卡牌解除横置
     constructor(object_hold,player){///object can be card and 
         super(object_hold,player)
 

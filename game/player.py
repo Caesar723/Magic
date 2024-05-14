@@ -279,6 +279,12 @@ class Player:
                         self.mana[key]-=1
                         self.mana["colorless"]+=1
 
+    def text(self,player)-> str:
+        if self==player:
+            return f"player({self.name},Self)"
+        else:
+            return f"player({self.name},Opponent)"
+
 
     
 if __name__=="__main__":

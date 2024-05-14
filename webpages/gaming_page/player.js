@@ -93,7 +93,7 @@ class Self extends Player{
         super(name,canvas,ctx);
 
         const canvas_dynamic=this.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-        const card=new Creature_Hand(4,5.62,[0,0,0],1.5,canvas_dynamic,"3U",20,20,"Caesar",1122334455,this)
+        const card=new Creature_Hand(4,5.62,[0,0,0],1.5,canvas_dynamic,"3U",20,20,20,20,"Caesar",1122334455,this)
         
 
         this.cards=[card];
