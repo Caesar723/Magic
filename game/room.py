@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 from game.player import Player
-from game.action import Action
+#from game.action import Action
 from game.type_action import actions
 from game.card import Card
 from game.type_cards.instant import Instant
@@ -33,8 +33,8 @@ class Room:
         self.gamming=True #如果在游戏的话就是True，没有就是False
 
         #used to store all action
-        self.action_store_list_cache:list[list[Action]]=[]#先存cache,cache 里存list of action 然后转移给list，拆开list，cache清空
-        self.action_store_list:list[Action]=[]
+        self.action_store_list_cache:list[list[actions.Action]]=[]#先存cache,cache 里存list of action 然后转移给list，拆开list，cache清空
+        self.action_store_list:list[actions.Action]=[]
 
         #used to count the time for a turn
         self.turn_timer:int=0
@@ -420,7 +420,7 @@ if __name__=="__main__":
         room=Room([(test,"1"),(test,"2")])
         
         await room.game_start()
-        print(room)
+        print([i.text(room.player_1) for i in room.player_1.hand])
         room.active_player=room.players["1"]
         room.non_active_player=room.players["2"]
         

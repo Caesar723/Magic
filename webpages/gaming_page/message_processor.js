@@ -44,6 +44,9 @@ Initinal_all(
 )
 
 parameters() return [....]
+
+
+showOBJ() return this.show2d
 */
 class Message_Processor{
     constructor(client){
@@ -88,6 +91,7 @@ class Message_Processor{
             "int":this.int.bind(this),
             "parameters":this.parameters.bind(this),
             "string":this.string.bind(this),
+            "showOBJ":this.showOBJ.bind(this)
         }
         this.state(1,2,3,4,5)
         // console.log(this.extractParts("Creature(player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg)"))
@@ -112,6 +116,9 @@ class Message_Processor{
 
     string(){
 
+    }
+    showOBJ(){
+        return this.client.show_2d
     }
     find_card(id){//返回的为card hand
         console.log()

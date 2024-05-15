@@ -10,7 +10,7 @@ import random
 
 
 
-from game.action import Action
+#from game.action import Action
 from game.type_action import actions
 from game.card import Card
 from initinal_file import CARD_DICTION
@@ -25,7 +25,7 @@ class Player:
 
     
 
-    def __init__(self,name:str,decks_detail:str,action_stroe:list[Action]) -> None:
+    def __init__(self,name:str,decks_detail:str,action_stroe:list[actions.Action]) -> None:
         self.name=name
 
         self.opponent:Player#opponent player
@@ -71,7 +71,7 @@ class Player:
 
 
         #action store
-        self.action_store:list[Action]=action_stroe
+        self.action_store:list[actions.Action]=action_stroe
 
         #state of player Beginning Phase,In-Game State,Ending Phase
         self.state_of_gaming:str=""
