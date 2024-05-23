@@ -7,13 +7,18 @@ class Game_Client{
         this.canvas_table=this.table.canvas
         this.ctx_table=this.table.ctx
 
-        this.self_player=new Self("CC",this.canvas_table,this.ctx_table)
-        this.oppo_player=new Opponent("DD",this.canvas_table,this.ctx_table)
+       
+        
+        let players=window.dataFromBackend
+        
+        this.self_player=new Self(players["self"],this.canvas_table,this.ctx_table)
+        this.oppo_player=new Opponent(players["opponent"],this.canvas_table,this.ctx_table)
+        console.log(this.self_player,this.oppo_player)
         this.table.set_player(this.self_player,this.oppo_player)
-        this.card_frame=new Card_frame()
+        //this.initinal_players()
         
 
-
+        this.card_frame=new Card_frame()
         this.action_bar=new Action_Bar()
         this.show_2d=new Show_2D(this.canvas_table,this.ctx_table)
         
@@ -36,15 +41,35 @@ class Game_Client{
         this.card_hold=[undefined,false,false]//card click bool,move bool
 
         this.init()
+        
 
         this.your_turn=true;//判断是不是你的回合
-
         this.message_processor=new Message_Processor(this)
 
+        
+
     }
+    // async initinal_players(){
+    //     console.log(await this.get_players_name())
+        
+       
+    // }
+    // async get_players_name(){
+    //     const response = await fetch('/players', {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json'
+    //         },
+            
+    //     });
+    //     const responseData =await response.json()
+    //     return responseData
+    // }
     async init() {
         this.socket_main = await this.get_socket("entering_game");
         this.socket_select = await this.get_socket("select_object");
+        this.receive_message_main_listener()
+        this.receive_message_select_listener()
     }
     async get_socket(name){
         var socket = new WebSocket("ws://127.0.0.1:8000/"+name);
@@ -63,6 +88,7 @@ class Game_Client{
 
         this.socket_main.addEventListener('message', (event)=> {
             console.log('收到消息：', event.data);
+            this.message_processor.extractParts(event.data)
             // 在这里处理消息
             // 你可以根据消息的内容执行不同的操作，比如更新UI、存储数据等
           });
@@ -412,6 +438,12 @@ class Game_Client{
                 this.action_bar.actions.push(action2)
 
             }
+            else if (event.key === "/" || event.key === "/") {
+                
+                this.message_processor.extractParts("action_list(action(Play_Cards,parameters(Land(0,0,player(CC,Self),int(4319679728),string(Island),blue,Land,Uncommon,string(),cards/land/Island/image.jpg),player(CC,Self),showOBJ())),action(Lose_Card,parameters(player(CC,Self),player(CC,Self),Opponent(player(CC,Self),int(4319679728)))),action(Summon,parameters(Land(0,0,player(CC,Self),int(4319679728),string(Island),blue,Land,Uncommon,string(),cards/land/Island/image.jpg),player(CC,Self))))")
+
+
+            }
 
 
 
@@ -672,6 +704,30 @@ class Game_Client{
     action_mouse_process(){
 
     }
+
+    check_battle(card,player){//如果card是hand，检查有没有battle，没有就建一个
+        if (card instanceof Card_Battle){
+            return card
+        }
+        else if(card instanceof Card_Hand){
+            if (card.battle===undefined){
+                new Land_Battle(6,5,[-25,-20,0],0.3,card,player.type_name,this.table)
+            }
+            return card.battle
+        }
+    }
+    check_hand(card,battle_bool,player){//如果card是battle，变成hand，如果battle_bool是true，检查有没有battle，没有就建一个
+        if (battle_bool){
+            this.check_battle(card,player)
+        }
+        if (card instanceof Card_Battle){
+            return card.card
+        }
+        else if(card instanceof Card_Hand){
+            return card
+        }
+    }
+
 }
 
 // (async () => {
@@ -685,6 +741,7 @@ class Game_Client{
 const size_rat=7/10;
 var SIZE=1000*size_rat;
 var POSITION=[2000,-700,3000];
+
 const client = new Game_Client();
 function main(){
     

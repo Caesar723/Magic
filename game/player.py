@@ -25,7 +25,7 @@ class Player:
 
     
 
-    def __init__(self,name:str,decks_detail:str,action_stroe:list[actions.Action]) -> None:
+    def __init__(self,name:str,decks_detail:str,action_stroe:actions.List_Action_Processor) -> None:
         self.name=name
 
         self.opponent:Player#opponent player
@@ -71,7 +71,7 @@ class Player:
 
 
         #action store
-        self.action_store:list[actions.Action]=action_stroe
+        self.action_store:actions.List_Action_Processor=action_stroe
 
         #state of player Beginning Phase,In-Game State,Ending Phase
         self.state_of_gaming:str=""
@@ -143,7 +143,13 @@ class Player:
             self.counter_dict[key]=number
 
     def draw_card(self,number:int):# draw x cards from library
-        pass
+        self.action_store.start_record()
+        for i in range(number):
+            card=self.library[0]
+            self.remove_card(card,'library')
+            self.append_card(card,'hand')
+        self.action_store.end_record()
+            
 
     def change_live(self,change_of_live:int):
         pass
@@ -177,7 +183,9 @@ class Player:
                 if not land.when_clicked(self,self.opponent):
                     return (False,"Can't use land")
             self.mana_consumed(card)
+            
             result=await card.when_use_this_card(self,self.opponent)
+            
             print(result)
             #result[1]()
             return result
@@ -187,22 +195,28 @@ class Player:
     async def check_creature_die(self,card:Creature):
         result=await card.check_dead()
         if result:
+            self.action_store.start_record()
             await card.when_move_to_graveyard(self,self.opponent)
+            self.action_store.end_record()
             # card.when_die(self,self.opponent)
             # card.when_leave_battlefield(self,self.opponent,'graveyard')
         return result
 
     def beginning_phase(self):#开始阶段
+        
         self.untap_step()
         self.upkeep_step()
         self.draw_step()
+       
 
     def untap_step(self):#解除操控步骤:土地被横置以产生法术力（Mana），生物被横置以攻击等
         pass
 
     def upkeep_step(self):#保持步骤（Upkeep Step）：某些卡牌效果会在这个时候触发。
         for card in self.get_cards_from_dict("upkeep_step"):
+            self.action_store.start_record()
             card.when_start_turn(self,self.opponent)
+            self.action_store.end_record()
 
     def draw_step(self):#抓牌步骤（Draw Step）通常情况下，玩家在这一步抓一张牌。
         self.draw_card(1)
@@ -212,13 +226,17 @@ class Player:
         pass
 
     async def ending_phase(self):#结束阶段 清空法术力（包括敌方）
+        #self.action_store.start_record()
         self.end_step()
         await self.cleanup_step()
+        #self.action_store.end_record()
         
 
     def end_step(self):#结束步骤（End Step）：某些卡牌效果会在这个时候触发。
         for card in self.get_cards_from_dict("end_step"):
+            self.action_store.start_record()
             card.when_end_turn(self,self.opponent)
+            self.action_store.end_record()
 
     async def cleanup_step(self):#清理步骤（Cleanup Step）：玩家将手牌调整至最大手牌限制，移除所有“直到回合结束”类的效果，并移除所有受到的伤害。清空法术力（包括敌方）
         self.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
@@ -246,12 +264,15 @@ class Player:
         }
         if type in deck_type and card in deck_type[type]:
             deck_type[type].remove(card)
+            if type=='hand':
+                self.action_store.add_action(actions.Lose_Card(self,self,card,True))# 一定是需要的，这个动作
+            elif  (type=='land_area' or type=='battlefield'):
+                self.action_store.add_action(actions.Die(card,self))# 一定是需要的，这个动作
+    
 
-        """
-        还没有写完代码，要发消息给client，让client做此动作
-        """
+        
 
-        self.action_store.append(actions.Lose_Card(self,self,card,False))# 一定是需要的，这个动作
+        
 
 
     def append_card(self,card:Card,type:str):#会发送消息给client
@@ -266,7 +287,10 @@ class Player:
         if type in deck_type:
             deck_type[type].append(card)
         
-        self.action_store.append(actions.Gain_Card(self,self,card,False))
+            if type=='hand':
+                self.action_store.add_action(actions.Gain_Card(self,self,card,True))
+            elif type=='battlefield' or type=='land_area':
+                self.action_store.add_action(actions.Summon(card,self))
 
     def mana_consumed(self,card:"Card"):#自己的魔力池减少
         cost=card.cost
@@ -280,7 +304,7 @@ class Player:
                         self.mana["colorless"]+=1
 
     def text(self,player)-> str:
-        if self==player:
+        if self.name==player.name:
             return f"player({self.name},Self)"
         else:
             return f"player({self.name},Opponent)"

@@ -198,7 +198,7 @@ class Action_Bar{
         //console.log(this.actions_cache)
         if (this.actions_finsihed){
             const result=this.pop_cache()
-            console.log(result)
+            //console.log(result)
             
             
             if (result[0]==true){
@@ -208,17 +208,18 @@ class Action_Bar{
                     //console.log(action)
                     action.set_animate()
                 }
-                console.log(this.actions_cache)
+                //console.log(this.actions_cache)
                 this.actions_cache=this.actions_cache.filter(item => !(result[1].includes(item)))
                 
                 this.actions_cache.shift()
             }
         }
         else{
+            
             let finish=true
             for (let action of this.actions_processing){
                 const result=action.finished()
-                console.log(result)
+                //console.log(action,result)
                 if (!result){
                     finish=false
                 }
@@ -227,13 +228,14 @@ class Action_Bar{
             if (finish){
                 this.actions_finsihed=true
                 this.actions= this.actions.concat(this.actions_processing);
+                console.log(this.actions)
             }
         }
     }
     pop_cache(){
         var arr=[]
         for (let action of this.actions_cache){
-            console.log(arr,action)
+            //console.log(arr,action)
             if (action != false){
                 arr.push(action)
             }

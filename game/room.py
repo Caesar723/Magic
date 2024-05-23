@@ -33,7 +33,9 @@ class Room:
         self.gamming=True #如果在游戏的话就是True，没有就是False
 
         #used to store all action
-        self.action_store_list_cache:list[list[actions.Action]]=[]#先存cache,cache 里存list of action 然后转移给list，拆开list，cache清空
+        self.action_store_list_cache_condition=asyncio.Condition()#当list是空的时候就会调用这个，让程序有序运行
+        self.action_store_list_cache:list[actions.List_Action]=[]#先存cache,cache 里存list of action 然后转移给list，拆开list，cache清空
+        self.action_processor=actions.List_Action_Processor(self.action_store_list_cache,self.action_store_list_cache_condition)
         self.action_store_list:list[actions.Action]=[]
 
         #used to count the time for a turn
@@ -45,8 +47,8 @@ class Room:
         self.max_bullet_time:int=5
 
         # used to store the players
-        self.player_1,self.player_2=Player(players[0][1],players[0][0],self.action_store_list_cache),\
-                                    Player(players[1][1],players[1][0],self.action_store_list_cache)
+        self.player_1,self.player_2=Player(players[0][1],players[0][0],self.action_processor),\
+                                    Player(players[1][1],players[1][0],self.action_processor)
         self.player_1.set_opponent_player(self.player_2)
         self.player_2.set_opponent_player(self.player_1)
         self.players:dict[Player]={
@@ -55,11 +57,12 @@ class Room:
         }
 
         #用来发送消息
+        
         self.players_socket:dict["WebSocket"]={
-            players[0]:None,
-            players[1]:None
+            players[0][1]:None,
+            players[1][1]:None
         }
-
+        print(self.players_socket)
 
         #used to store the each flag like whether is bullet_time
         self.flag_dict:dict={}
@@ -97,6 +100,7 @@ class Room:
 
         #start executing message_process
         asyncio.create_task(self.message_process())
+        asyncio.create_task(self.action_sender())
 
     
     async def game_start(self):# start the game
@@ -112,20 +116,31 @@ class Room:
         # self.flag_dict["bullet_time"]=False
         # self.flag_dict["attacker_defenders"]=False
         self.reset_turn_timer()
+
+        #######test
+        print("发送消息")
+        asyncio.create_task(tasks(self))
+        # asyncio.run(main())
         
 
     async def start_attack(self,defender:Union[Creature,Player]):# attacker and defenders start attack
+        self.action_processor.start_record()
         if isinstance(defender,Creature):
             self.attacker.when_start_attcak(defender,self.attacker.player,self.attacker.player.opponent)
             defender.when_start_defend(self.attacker,defender.player,defender.player.opponent)
             await self.attacker.deal_damage(defender,self.attacker.player,self.attacker.player.opponent)
             await defender.deal_damage(self.attacker,defender.player,defender.player.opponent)
+            self.action_processor.add_action(actions.Creature_Start_Attack(self.attacker,self.attacker.player,defender,False,(self.attacker.power,self.attacker.live),(defender.power,defender.live)))
+            
 
 
         elif isinstance(defender,Player):
             pass
 
+            self.action_processor.add_action(actions.Creature_Start_Attack(self.attacker,self.attacker.player,self.attacker.player.opponent,False,(self.attacker.power,self.attacker.live),(self.attacker.player.opponent.life)))
+
         self.attacker=None
+        self.action_processor.end_record()
 
     def get_flag(self,flag_name:str):
         
@@ -152,14 +167,18 @@ class Room:
 
     async def end_turn_time(self):#turn_timer is 0
         #self.non_active_player.
+        
         await self.change_turn()
         self.reset_turn_timer()
+        
 
     async def end_bullet_time(self):#bullet_time is 0
         
         while self.stack:
             func,card=self.stack.pop()
+            self.action_processor.start_record()
             result=func()
+            self.action_processor.end_record()
             if result=="defender" and isinstance(card,Creature) :
 
                 await card.check_dead()
@@ -190,8 +209,9 @@ class Room:
 
     def reset_turn_timer(self):
         self.initinal_turn_timer=time.perf_counter()
-        self.action_store_list_cache.append(actions.Turn(self.active_player,self.active_player,True))
-        
+        self.action_processor.start_record()
+        self.action_processor.add_action(actions.Turn(self.active_player,self.active_player))
+        self.action_processor.end_record()
 
     def reset_bullet_timer(self):
         self.initinal_bullet_timer=time.perf_counter()
@@ -252,12 +272,14 @@ class Room:
             return (False,"no card")
 
         if player==self.active_player:
+            self.action_processor.start_record()
+            self.action_processor.add_action(actions.Creature_Prepare_Attack(card,player))
             player.select_attacker(card)
             self.flag_dict['attacker_defenders']=True
             self.attacker=card
             card.when_become_attacker(player,player.opponent)
             self.start_bullet_time()
-            
+            self.action_processor.end_record()
             
             return (True,"success")# bool, reason
         else:
@@ -271,10 +293,13 @@ class Room:
             return (False,"no card")
         
         if player==self.non_active_player and self.get_flag("attacker_defenders"):
+            self.action_processor.start_record()
+            self.action_processor.add_action(actions.Creature_Prepare_Defense(card,player,self.attacker,False))
             player.select_defender(card)
             prepared_function=lambda: "defender"
             self.put_prepared_function_to_stack(prepared_function,card)
             card.when_become_defender(player,player.opponent)
+            self.action_processor.end_record()
             return (True,"success")
         else:
             return (False,"You must do it in your turn")
@@ -336,7 +361,10 @@ class Room:
             return (False,"no card")
         
         if isinstance(card,Land) or card.check_can_use(player):# 如果card 的类型是instant，可以直接释放,或者card有flash
+            self.action_processor.start_record()
+            self.action_processor.add_action(actions.Activate_Ability(card,player))
             card.when_clicked(player,player.opponent)
+            self.action_processor.end_record()
 
         else:
             return (False,"You can't activate ability")
@@ -345,7 +373,9 @@ class Room:
         pass
 
     def set_socket(self,socket:"WebSocket",username:str):#用来初始化socket
+        
         self.players_socket[username]=socket
+        print(f"set socket {username} {self.players_socket}")
 
     def set_select_socket(self,socket:"WebSocket",username:str):
         self.players[username].socket_select_object=socket
@@ -369,9 +399,35 @@ class Room:
             self.counter_dict[key]=number
 
     async def check_death(self):
+
         for name in self.players:
             for creature in self.players[name].battlefield:
                 await self.players[name].check_creature_die(creature)
+
+    async def action_sender(self):
+        while self.gamming:
+            print("action_sender 检查一次")
+            if not self.action_store_list_cache:
+                async with self.action_store_list_cache_condition:
+                    await self.action_store_list_cache_condition.wait_for(lambda: len(self.action_store_list_cache) > 0)  # 等待队列不为空
+            action:actions.List_Action=self.action_store_list_cache.pop(0)
+            self.action_store_list+=action.list_action
+            await self.send_action(action)
+
+            
+            # await func[0](*func[1]) 
+            # await self.check_death()
+    async def send_action(self,action:actions.List_Action):
+        print(self.players_socket)
+        for name in self.players_socket:
+            player:Player=self.players[name]
+            print(player.name)
+            socket:"WebSocket"=self.players_socket[name]
+            if socket!=None:
+                print("准备发送")
+                await socket.send_text(action.text(player))
+                print("发送成功")
+
 
     def __repr__(self):
         player1,player2=[key for key in self.players]
@@ -406,75 +462,102 @@ player2:{player2}
     land:{self.players[player2].land_area}
     graveyard:{self.players[player2].graveyard}
     mana:{self.players[player2].mana}
+
+Action_list:
+    {self.action_store_list_cache}
 #########################################################################################
         
 
 """
         return content
     
-            
-if __name__=="__main__":
-    from game.buffs import StateBuff
-    async def main():
-        test="Mistweaver Drake+Creature+1|Island+Land+4|Mystic Reflection+Instant+1|Mystic Evasion+Instant+2|Mindful Manipulation+Sorcery+1|Mistweaver Drake+Creature+1|Forest+Land+7|Aetheric Nexus+Land+1|Plains+Land+7|Swamp+Land+7|Mountain+Land+7|Mystic Tides+Instant+1"
-        room=Room([(test,"1"),(test,"2")])
-        
-        await room.game_start()
-        print([i.text(room.player_1) for i in room.player_1.hand])
-        room.active_player=room.players["1"]
-        room.non_active_player=room.players["2"]
-        
-        asyncio.create_task(room.message_receiver("1|play_card|1"))
-        await asyncio.sleep(6)
-        print(room)
-        
-        asyncio.create_task(room.message_receiver("1|play_card|1"))
-        await asyncio.sleep(6)
-        asyncio.create_task(room.message_receiver("1|play_card|1"))
-        
-        await asyncio.sleep(6)
-        asyncio.create_task(room.message_receiver("1|activate_ability|land_area;0"))
-        await asyncio.sleep(1)
-        print(room)
-        await asyncio.sleep(2)
-        asyncio.create_task(room.message_receiver("1|play_card|0"))
-        await asyncio.sleep(6)
-        print(room)
-        await asyncio.sleep(2)
-        asyncio.create_task(room.message_receiver("1|end_step|"))
-        await asyncio.sleep(2)
-        asyncio.create_task(room.message_receiver("2|play_card|1"))
-        await asyncio.sleep(6)
-        print(room)
-        
-        asyncio.create_task(room.message_receiver("2|play_card|1"))
-        await asyncio.sleep(6)
-        asyncio.create_task(room.message_receiver("2|play_card|1"))
-        
-        await asyncio.sleep(6)
-        print(room)
-        await asyncio.sleep(2)
-        asyncio.create_task(room.message_receiver("2|play_card|0"))
-        await asyncio.sleep(6)
-        print(room)
-        await asyncio.sleep(2)
-        
-        await asyncio.sleep(5)
-        card=room.active_player.battlefield[0]
-        buff=StateBuff(card,2,2)
-        card.gain_buff(buff)
-        print(room)
-        #card.loss_buff(buff)
-        #print(room)
+from game.buffs import StateBuff
+async def tasks(room):
+    await asyncio.sleep(6)
+    for name in room.players:
+        room.players[name].draw_card(2)
+        print("draw cards")
+        print(room.action_store_list_cache)
+    #asyncio.create_task(room.message_receiver("t|play_card|1"))
+async def main():
+    test="Mistweaver Drake+Creature+1|Island+Land+4|Mystic Reflection+Instant+1|Mystic Evasion+Instant+2|Mindful Manipulation+Sorcery+1|Mistweaver Drake+Creature+1|Forest+Land+7|Aetheric Nexus+Land+1|Plains+Land+7|Swamp+Land+7|Mountain+Land+7|Mystic Tides+Instant+1"
+    room=Room([(test,"CC"),(test,"DD")])
+    
+    await room.game_start()
+    print([i.text(room.player_1) for i in room.player_1.hand])
+    room.active_player=room.players["CC"]
+    room.non_active_player=room.players["DD"]
+    
+    asyncio.create_task(room.message_receiver("CC|play_card|1"))
+    await asyncio.sleep(6)
+    print(room)
+    print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
+    
+    asyncio.create_task(room.message_receiver("CC|play_card|1"))
+    await asyncio.sleep(6)
+    asyncio.create_task(room.message_receiver("CC|play_card|1"))
+    
+    await asyncio.sleep(6)
+    asyncio.create_task(room.message_receiver("CC|activate_ability|land_area;0"))
+    await asyncio.sleep(1)
+    print(room)
+    print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
+    
+    await asyncio.sleep(2)
+    asyncio.create_task(room.message_receiver("CC|play_card|0"))
+    await asyncio.sleep(6)
+    print(room)
+    print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
+    
+    await asyncio.sleep(2)
+    asyncio.create_task(room.message_receiver("CC|end_step|"))
+    await asyncio.sleep(2)
+    asyncio.create_task(room.message_receiver("DD|play_card|1"))
+    await asyncio.sleep(6)
+    print(room)
+    print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
+    
+    
+    asyncio.create_task(room.message_receiver("DD|play_card|1"))
+    await asyncio.sleep(6)
+    asyncio.create_task(room.message_receiver("DD|play_card|1"))
+    
+    await asyncio.sleep(6)
+    print(room)
+    print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
+    
+    await asyncio.sleep(2)
+    asyncio.create_task(room.message_receiver("DD|play_card|0"))
+    await asyncio.sleep(6)
+    print(room)
+    print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
+    
+    await asyncio.sleep(2)
+    
+    await asyncio.sleep(5)
+    card=room.active_player.battlefield[0]
+    buff=StateBuff(card,2,2)
+    card.gain_buff(buff)
+    print(room)
+    print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
+    
+    #card.loss_buff(buff)
+    #print(room)
 
-        await asyncio.sleep(2)
-        asyncio.create_task(room.message_receiver("2|select_attacker|0"))
+    await asyncio.sleep(2)
+    asyncio.create_task(room.message_receiver("DD|select_attacker|0"))
+    
+    await asyncio.sleep(2)
+    print(room)
+    print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
+    
+    asyncio.create_task(room.message_receiver("CC|select_defender|0"))
+    await asyncio.sleep(6)
+    print(room)
+    print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
         
-        await asyncio.sleep(2)
-        print(room)
-        asyncio.create_task(room.message_receiver("1|select_defender|0"))
-        await asyncio.sleep(6)
-        print(room)
+if __name__=="__main__":
+    
         
     asyncio.run(main())
     

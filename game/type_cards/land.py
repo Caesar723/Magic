@@ -72,11 +72,13 @@ class Land(Card):
         prepared_function=await self.when_enter_battlefield(player,opponent)
         return prepared_function
 
-    def text(self,player)-> str:
+    def text(self,player:'Player',show_hide:bool=False)-> str:
         Flying=0
         Active=0
         Player=self.player.text(player)
         Id=id(self)
+        if show_hide and player.name!=self.player.name:
+            return f"Opponent({Player},int({Id}))"
         Name=self.name
         Type=self.color
         Type_card=self.type_card

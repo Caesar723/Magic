@@ -57,9 +57,13 @@
             <canvas id="myCanvas" tabindex="0"></canvas>
         </div>
         
-        <!-- <div id="exit" class="triangle-button" style="--rotate: 270deg; --size: 3vw; --color: #FF8C00; bottom: 3vw; left: 4vw;">
-            <span class="button-text">Exit</span>
-        </div> -->
+       
+        
+        <script>
+            // @ts-nocheck
+            window.dataFromBackend = {{ data | tojson }};
+            
+        </script>
         <script src="webpages/gaming_page/gaming.js"></script>
         
     </div>

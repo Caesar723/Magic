@@ -35,12 +35,14 @@ class Instant(Card):
         
         return prepared_function
     
-    def text(self,player)-> str:
+    def text(self,player:'Player',show_hide:bool=False)-> str:
         Flying=0
         Active=0
         Player=self.player.text(player)
         Id=id(self)
         Name=self.name
+        if show_hide and player.name!=self.player.name:
+            return f"Opponent({Player},int({Id}))"
         Type=self.color
         Type_card=self.type_card
         Rarity=self.rarity

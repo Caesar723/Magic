@@ -224,7 +224,7 @@ async def matching(deck:Deck_selected,username: str = Depends(get_current_user(d
     deck=await database.check_deck_real(deck.name,deck.id,username)
     client_detail=(deck,username)
     if deck:
-         return room_server.matching(client_detail)
+         return await room_server.matching(client_detail)
     else:
         return {"state":"unvalid deck"}
    
@@ -244,9 +244,14 @@ async def game_page(request: Request, username: str = Depends(get_current_user(d
     if type(username)==RedirectResponse:
         print(username)
         return username
-    return templates.TemplateResponse(f"webpages/gaming_page/gaming.html", {"request": request, "username": username})
+    return templates.TemplateResponse(f"webpages/gaming_page/gaming.html", {"request": request, "data": room_server.get_players_name(username)})
 
-
+# @app.post("/players") 
+# async def matching_delete(username: str = Depends(get_current_user(database))):
+#     if type(username)==RedirectResponse:
+#         return username
+    
+#     return room_server.get_players_name(username)
 
 @app.websocket("/entering_game")
 async def entering_game(websocket: WebSocket,username: str = Depends(get_current_user_socket(database))):#
@@ -267,7 +272,7 @@ async def select_object(websocket: WebSocket,username: str = Depends(get_current
         return username
     await websocket.accept()
     room:Room=room_server.find_player_room(username)
-        
+    
 
 
 

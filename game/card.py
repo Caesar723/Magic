@@ -83,10 +83,10 @@ class Card:
     
 
     def attact_to_object(self,object):# it won't get hurt object can be card ot player
-        pass
+        self.player.action_store.add_action(actions.Attack_To_Object(self,self.player,object))
 
     def cure_to_object(self,object):# it won't get hurt
-        pass
+        self.player.action_store.add_action(actions.Cure_To_Object(self,self.player,object))
     
     async def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card return prepared function
         pass
@@ -96,8 +96,13 @@ class Card:
         # if not checked_result[0]:
         #     return checked_result
         # else:
+        self.player.action_store.start_record()
+        self.player.action_store.add_action(actions.Play_Cards(self,self.player))
+    
         prepared_function=await self.when_play_this_card(player,opponent)
+        self.player.action_store.end_record()
         return (True,prepared_function)
+    
         
             
 

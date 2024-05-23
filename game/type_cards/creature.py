@@ -176,7 +176,10 @@ class Creature(Card):
 
         player.remove_card(self,"hand")
         player.append_card(self,"battlefield")
+
+
         prepared_function=await self.when_enter_battlefield(player,opponent)
+
         print("battlefield")
         return prepared_function
         # player.hand.remove(self)
@@ -187,12 +190,14 @@ class Creature(Card):
         self.actual_power=self.power
         reset_instance_methods(self)
 
-    def text(self,player)-> str:
+    def text(self,player:'Player',show_hide:bool=False)-> str:
         Flying=int(self.get_flag("flying"))
         Active=int(self.get_flag("active"))
         Player=self.player.text(player)
         Id=id(self)
         Name=self.name
+        if show_hide and player.name!=self.player.name:
+            return f"Opponent({Player},int({Id}))"
         Type=self.color
         Type_card=self.type_card
         Rarity=self.rarity

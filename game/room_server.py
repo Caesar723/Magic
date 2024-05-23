@@ -20,11 +20,13 @@ class RoomServer:
         else:
             return "no room found"
 
-    def create_new_room(self,client_1:tuple,client_2:tuple):
+    async def create_new_room(self,client_1:tuple,client_2:tuple):
         room=Room([client_1,client_2])
 
         self.client_room[client_1[1]]=room
         self.client_room[client_2[1]]=room
+
+        await room.game_start()
 
 
         
@@ -42,7 +44,7 @@ class RoomServer:
     def get_room(self,client:str):
         return self.client_room[client]
     
-    def check_matching(self):
+    async def check_matching(self):
         print(self.queue)
         if len(self.queue)>=2:
             print(1)
@@ -52,14 +54,14 @@ class RoomServer:
             del self.queue_dict[client_1[1]]
             del self.queue_dict[client_2[1]]
 
-            self.create_new_room(client_1,client_2)
+            await self.create_new_room(client_1,client_2)
 
 
 
 
-    def matching(self,client_detail:tuple):# deck_detail username
+    async def matching(self,client_detail:tuple):# deck_detail username
 
-        self.check_matching()
+        await self.check_matching()
         if self.check_client_in_room(client_detail[1]):
             return {"state":"find!"}
 
@@ -78,6 +80,18 @@ class RoomServer:
             return {"state":"success delete"}
         else:
             return {"state":"not find"}
+        
+    def get_players_name(self,username:str):
+        result={"self":"t","opponent":"tt"}
+        if self.check_client_in_room(username):
+
+            room:Room=self.client_room[username]
+            for player_name in room.players:
+                if player_name==username:
+                    result["self"]=player_name
+                else:
+                    result["opponent"]=player_name
+        return result
         
     
 

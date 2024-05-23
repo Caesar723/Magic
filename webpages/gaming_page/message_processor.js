@@ -91,13 +91,15 @@ class Message_Processor{
             "int":this.int.bind(this),
             "parameters":this.parameters.bind(this),
             "string":this.string.bind(this),
-            "showOBJ":this.showOBJ.bind(this)
+            "showOBJ":this.showOBJ.bind(this),
+            
         }
         this.state(1,2,3,4,5)
         // console.log(this.extractParts("Creature(player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg)"))
         // console.log(this.extractParts("player(CC,Self)"))
-        console.log(this.extractParts("action_list(action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(1,1,player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))),action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(1,1,player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))),action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(1,1,player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))))"))
-
+        //console.log(this.extractParts("action_list(action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(1,1,player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))),action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(1,1,player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))),action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(1,1,player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))))"))
+        //this.extractParts("action_list(action(Gain_Card,parameters(player(t,Self),player(t,Self),Land(0,0,player(t,Self),int(4319679728),string(Island),blue,Land,Uncommon,string(),cards/land/Island/image.jpg))))")
+        //this.extractParts("action_list(action(Play_Cards,parameters(Land(0,0,player(CC,Self),int(4327028048),string(Island),blue,Land,Uncommon,string(),cards/land/Island/image.jpg),player(CC,Self),Land(0,0,player(CC,Self),int(4327028048),string(Island),blue,Land,Uncommon,string(),cards/land/Island/image.jpg),showOBJ())),action(Lose_Card,parameters(player(CC,Self),player(CC,Self),Land(0,0,player(CC,Self),int(4327028048),string(Island),blue,Land,Uncommon,string(),cards/land/Island/image.jpg))),action(Summon,parameters(Land(0,0,player(CC,Self),int(4327028048),string(Island),blue,Land,Uncommon,string(),cards/land/Island/image.jpg),player(CC,Self))))")
     }
     countOccurrencesLoop(str, char) {
         let count = 0;
@@ -120,8 +122,42 @@ class Message_Processor{
     showOBJ(){
         return this.client.show_2d
     }
-    find_card(id){//返回的为card hand
+    opponent_player(name){
+
+    }
+    find_card(id){//返回的为card hand 
         console.log()
+        for (let card_oppo_hand of this.client.oppo_player.cards){
+            if (card_oppo_hand.id==id){
+                return card_oppo_hand
+            }
+        }
+        for (let card_self_hand of this.client.self_player.cards){
+            console.log(this.client.self_player.cards,this.client.self_player.cards[1],card_self_hand,card_self_hand.id,id)
+            if (card_self_hand.id==id){
+                return card_self_hand
+            }
+        }
+        for (let card_oppo_battle of this.client.table.opponent_battlefield){
+            if (card_oppo_battle.id==id){
+                return card_oppo_battle
+            }
+        }
+        for (let card_self_battle of this.client.table.self_battlefield){
+            if (card_self_battle.id==id){
+                return card_self_battle
+            }
+        }
+        for (let card_oppo_land of this.client.table.opponent_landfield){
+            if (card_oppo_land.id==id){
+                return card_oppo_land
+            }
+        }
+        for (let card_self_land of this.client.table.self_landfield){
+            if (card_self_land.id==id){
+                return card_self_land
+            }
+        }
         return false
     }
     create_new(card){
@@ -159,6 +195,7 @@ class Message_Processor{
     }
     Land(flying,active,player,id,name,type,type_card,rarity,content,image_path){
         const result=this.find_card(id)
+        console.log(result)
         if (result){
             return result
         }
@@ -168,7 +205,13 @@ class Message_Processor{
 
     }
     Opponent(player,id){
+        const result=this.find_card(id)
+        console.log(result)
+        if (result){
+            return result
+        }
         const card=new Card_Hand_Oppo(4,5.62,[0,60*player.unit,-20],0.7,id,player)
+        console.log(card)
         return card
     }
     
@@ -230,14 +273,15 @@ class Message_Processor{
             this.client.action_bar.actions_cache.push(action)
         }
         this.client.action_bar.actions_cache.push(false)
-        this.actions_finsihed=true
+        this.client.action_bar.actions_finsihed=true
     }
     parameters(){
         let result=[]
-        console.log(arguments)
+        
         for (let para of arguments){
             result.push(para)
         }
+        console.log(result)
         return result
         //arguments
     }

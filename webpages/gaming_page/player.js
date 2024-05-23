@@ -31,6 +31,7 @@ class Opponent extends Player{
         const card=new Card_Hand_Oppo(4,5.62,[0,0,0],0.7,1122334455,this)
         this.cards=[card];
         this.hand_delete=[]
+        this.type_name='opponent'
 
         this.unit=-1
         this.player_life_ring=new Player_Life([-0.47,-20,14],6,this.unit)
@@ -95,8 +96,8 @@ class Self extends Player{
         const canvas_dynamic=this.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
         const card=new Creature_Hand(4,5.62,[0,0,0],1.5,canvas_dynamic,"3U",20,20,20,20,"Caesar",1122334455,this)
         
-
-        this.cards=[card];
+        this.type_name='self'
+        this.cards=[];
         this.hand_delete=[]
 
         this.cards_mode="ignore"//两个模式，第一个是ignore，卡牌缩小，放到右侧，第二个是focus，卡牌放大
@@ -175,8 +176,10 @@ class Self extends Player{
         for (let card_i in this.cards){
             this.cards[card_i].update()
         }
+        //console.log(this.cards)
         this.cards= this.cards.filter(item => !(this.hand_delete.includes(item)))
         this.hand_delete=[]
+        //console.log(this.cards)
         this.mana_bar.update()
         //this.sort_cards()
     }

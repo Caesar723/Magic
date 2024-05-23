@@ -58,20 +58,28 @@ class Card_Hand extends Card{
 
     check_moving(){
         if (!this.card_hold[1]){
+            //console.log(this.moving,this.moving_precentage,this.moving_cache)
+
             if (this.moving && this.moving_precentage<100){
+                
                 this.current_moving(...this.moving_parameters)
                 
             }
             else if(this.moving && this.moving_precentage>=100){
+                //console.log(this.moving,this.moving_precentage)
                 this.moving=false
                 this.moving_precentage=0
+                
                 this.finish_moving(...this.moving_parameters)
             }
             else {
+                
                 this.pick_moving_function()
             }
+            //console.log(this.moving,this.current_moving)
         }
         else{
+            
             this.moving=false
             this.moving_precentage=0
         }
@@ -79,10 +87,12 @@ class Card_Hand extends Card{
     }
 
     start_moving(moving_type,parameters){
-        //console.log(this.moving,parameters)
+        
+        
         if (this.moving==false && this.moving_precentage<100){
             this.moving_precentage=0;
             this.moving=true
+            
             this.current_moving=this.moving_dict[moving_type][0]
             this.finish_moving=this.moving_dict[moving_type][2]
             
@@ -95,9 +105,12 @@ class Card_Hand extends Card{
     }
 
     pick_moving_function(){//FIFO
+        
         if (this.moving_cache.length){
-            
+            console.log(this.moving_cache,this.moving_cache.length)
             const para=this.moving_cache.shift()
+            console.log(para,this.moving_cache,this.moving_cache.length)
+            
             
             this.start_moving(...para)
         }
@@ -132,6 +145,7 @@ class Card_Hand extends Card{
         
         //console.log(this.player, this.player.hand_delete)
         this.player.hand_delete.push(this);
+        
         
         this.move_to_finish(target_position)
     }
@@ -344,6 +358,8 @@ class Card_Hand extends Card{
             // this.finish_moving(...this.moving_parameters)
             // this.moving_store=[]
             this.moving_precentage=100
+            //console.log(this.moving_precentage)
+            //this.check_moving()
             
             
             
