@@ -260,7 +260,7 @@ async def entering_game(websocket: WebSocket,username: str = Depends(get_current
     
     await websocket.accept()
     room:Room=room_server.find_player_room(username)
-    room.set_socket(websocket,username)
+    await room.set_socket(websocket,username)
     while True:
         data = await websocket.receive_text()
         print(data)

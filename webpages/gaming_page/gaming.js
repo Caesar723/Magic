@@ -23,8 +23,8 @@ class Game_Client{
         this.show_2d=new Show_2D(this.canvas_table,this.ctx_table)
         
         //////////////////////////////
-        const canvas=this.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-        const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,20,20,"Caesar",1122334455)
+        //const canvas=this.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
+        //const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,20,20,"Caesar",1122334455)
         // this.action_bar.actions.push(new Activate_Ability(card.get_copy(),this.self_player))
         // this.action_bar.actions.push(new Die(card.get_copy(),this.self_player))
         // this.action_bar.actions.push(new Summon(card.get_copy(),this.self_player))
@@ -66,17 +66,27 @@ class Game_Client{
     //     return responseData
     // }
     async init() {
-        this.socket_main = await this.get_socket("entering_game");
-        this.socket_select = await this.get_socket("select_object");
-        this.receive_message_main_listener()
-        this.receive_message_select_listener()
+        // this.socket_main = await this.get_socket("entering_game");
+        // this.socket_select = await this.get_socket("select_object");
+        this.get_socket_main()
+        await this.get_socket_select()
+       
     }
-    async get_socket(name){
-        var socket = new WebSocket("ws://127.0.0.1:8000/"+name);
-        while (socket.readyState != WebSocket.OPEN){
+    async get_socket_main(){
+        this.socket_main= new WebSocket("ws://127.0.0.1:8000/"+"entering_game");
+        this.receive_message_main_listener()
+        while (this.socket_main.readyState != WebSocket.OPEN){
             await this.sleep(200)
         }
-        return socket
+        //return socket
+    }
+    async get_socket_select(){
+        this.socket_select = new WebSocket("ws://127.0.0.1:8000/"+"select_object");
+        this.receive_message_select_listener()
+        while (this.socket_select.readyState != WebSocket.OPEN){
+            await this.sleep(200)
+        }
+        //return socket
     }
     sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -454,8 +464,8 @@ class Game_Client{
             const card=this.find_cards_by_mouse(mouse_pos)
             if (! (card===undefined)){
                 //console.log(card)
-                const click_bool=this.judge_click()
-                const move_bool=this.judge_move()
+                const click_bool=this.judge_click(card)
+                const move_bool=this.judge_move(card)
                 this.card_hold=[card,click_bool,move_bool]
                 card.card_hold=[click_bool,move_bool]
                 
@@ -571,20 +581,35 @@ class Game_Client{
                     this.card_hold[0].angle_x=math.pi/2;;
                     this.card_hold[0].angle_y=0;
                     this.card_hold[0].angle_z=0;
+                    if (performance.now()-this.startTime<0.15*1000){
+                        if (this.card_hold[1]){
+                            this.battle_click_activate(this.card_hold[0])
+                        }
+                    }
+                    else{
+                        if (this.card_hold[2]){
+                            this.battle_move_activate(this.card_hold[0])
+                        }
+                    }
+                    
+                    
+                    
+
                     
                 }
                 else if(this.card_hold[0] instanceof Card_Hand){
                     this.card_hold[0].angle_x=0;
                     this.card_hold[0].angle_y=0;
                     this.card_hold[0].angle_z=0;
-                    if (this.card_hold[1]){
-                        if (performance.now()-this.startTime<0.15*1000){
-                            //console.log("click")
-                            
-                            this.self_player.change_to_focus()
-                            
-                        }
+                    if (performance.now()-this.startTime<0.15*1000){
+                        this.self_player.change_to_focus()
                     }
+                    else{
+                        this.hand_move_activate(this.card_hold[0])
+                    }
+                    // if (this.card_hold[1]){
+                        
+                    // }
                 }
                 this.card_hold[0].card_hold=[false,false]
                 this.card_hold=[undefined,false,false]
@@ -680,10 +705,10 @@ class Game_Client{
         return [mouseX,mouseY]
     }
 
-    judge_move(){
+    judge_move(card){
         return true
     }
-    judge_click(){
+    judge_click(card){
         return true
     }
 
@@ -726,6 +751,61 @@ class Game_Client{
         else if(card instanceof Card_Hand){
             return card
         }
+    }
+    battle_click_activate(card){
+
+    }
+    battle_move_activate(card){
+
+    }
+    hand_move_activate(card){
+        console.log((card.position_in_screen[1][1]+card.position_in_screen[2][1])/2<this.canvas_table.height/3)
+        if ((card.position_in_screen[1][1]+card.position_in_screen[2][1])/2<this.canvas_table.height/3){
+            for (let card_self_hand_i in this.self_player.cards){
+                if(this.self_player.cards[card_self_hand_i]===card){
+                    const values = [this.self_player.name,'play_card',card_self_hand_i];
+                    this.socket_main.send(values.join('|'));
+                    return true
+                }
+            }
+        }
+        return false
+    }
+    find_position(card){//return position name and index
+        for (let card_self_hand_i in this.self_player.cards){
+            if(this.self_player.cards[card_self_hand_i]===card){
+                return ('hand',card_self_hand_i)
+            }
+        }
+        for (let card_self_battle_i in this.table.self_battlefield){
+            if(this.table.self_battlefield[card_self_battle_i]===card){
+                return ('battlefield',card_self_battle_i)
+            }
+        }
+        for (let card_self_land_i in this.table.self_landfield){
+            if(this.table.self_landfield[card_self_land_i]===card){
+                return ('land_area',card_self_land_i)
+            }
+        }
+        for (let card_oppo_hand_i in this.oppo_player.cards){
+            if(this.self_player.cards[card_oppo_hand_i]===card){
+                return ('hand',card_oppo_hand_i)
+            }
+        }
+        
+        for (let card_oppo_battle_i in this.table.opponent_battlefield){
+            if(this.table.opponent_battlefield[card_oppo_battle_i]===card){
+                return ('battlefield',card_oppo_battle_i)
+            }
+        }
+        
+        for (let card_oppo_land_i in this.table.opponent_landfield){
+            if(this.table.opponent_landfield[card_oppo_land_i]===card){
+                return ('land_area',card_oppo_land_i)
+            }
+        }
+        return false
+        
     }
 
 }

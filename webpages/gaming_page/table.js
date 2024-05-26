@@ -34,12 +34,12 @@ class Table{
 
 
         ///
-        for (let i=0;i<1;i++){
-            const canvas=this.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-            const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,20,20,"Caesar",1122334455)
-            const card_battle=new Creature_Battle(6,5,[-25+i*5,-20,0],0.3,card,"self",this)
-            this.self_battlefield.push(card_battle)
-        }
+        // for (let i=0;i<1;i++){
+        //     const canvas=this.card_frame.generate_card("blue","Caesa","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
+        //     const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,20,20,"Caesa",1122334455)
+        //     const card_battle=new Creature_Battle(6,5,[-25+i*5,-20,0],0.3,card,"self",this)
+        //     this.self_battlefield.push(card_battle)
+        // }
         ////
         
         

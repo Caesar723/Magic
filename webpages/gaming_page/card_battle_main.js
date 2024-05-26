@@ -136,6 +136,7 @@ class Land_Battle extends Card_Battle {
     constructor(width,height,position,size,card,player,table){
         super(width,height,position,size,card,player,table)
         this.type="Land";
+        this.manas=card.manas
 
     }
     

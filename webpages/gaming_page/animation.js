@@ -173,18 +173,21 @@ class Animation{//action
     finished(){
         return true
     }
-    check_battle(card,player){//如果card是hand，检查有没有battle，没有就建一个
+    static check_battle(card,player){//如果card是hand，检查有没有battle，没有就建一个
         if (card instanceof Card_Battle || card instanceof Card_Hand_Oppo){
             return card
         }
         else if(card instanceof Creature_Hand || card instanceof Land_Hand){
-            if (card.battle===undefined){
-                new Land_Battle(6,5,[-25,-20,0],0.3,card,player.type_name,this.player.table)
+            if (card.battle===undefined && card instanceof Land_Hand){
+                new Land_Battle(6,5,[-25,-20,0],0.3,card,player.type_name,player.table)
+            }
+            else if (card.battle===undefined && card instanceof Creature_Hand){
+                new Creature_Battle(6,5,[-25,-20,0],0.3,card,player.type_name,player.table)
             }
             return card.battle
         }
     }
-    check_hand(card,battle_bool,player){//如果card是battle，变成hand，如果battle_bool是true，检查有没有battle，没有就建一个
+    static check_hand(card,battle_bool,player){//如果card是battle，变成hand，如果battle_bool是true，检查有没有battle，没有就建一个
         if (battle_bool){
             this.check_battle(card,player)
         }
@@ -578,7 +581,7 @@ class Gain_Card extends Select_Object{
 class Lose_Card extends Select_Object{
     constructor(object_hold,player,selected_object){//selected_object hand
         super(object_hold,player,selected_object)
-        this.selected_object=this.check_hand(selected_object,false,player)
+        this.selected_object=Animation.check_hand(selected_object,false,player)
         console.log(this.selected_object)
         console.log(arguments,object_hold,player,selected_object)
         this.new_card=this.selected_object.get_copy()
@@ -639,7 +642,7 @@ class Die extends Animation{
 class Summon extends Animation{
     constructor(object_hold,player){///object can be card and 
         super(object_hold,player)
-        this.object_hold=this.check_hand(object_hold,true,player)
+        this.object_hold=Animation.check_hand(object_hold,true,player)
         //console.log(object_hold)
     }
     set_animate(){

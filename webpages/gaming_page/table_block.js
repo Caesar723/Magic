@@ -361,6 +361,26 @@ class Deck_battle extends Table_graph{
         this.set_height_position()
         this.change_height(this.height)
     }
+    draw(camera,canvas,ctx){
+        //console.log(this.number_of_cards!=0)
+        if (this.number_of_cards!=0){
+            
+            this.planes.sort(function(a,b){
+                const b_mid=b.mid_point();
+                const a_mid=a.mid_point()
+                
+                const b_dis=Math.sqrt((camera.position[0]-b_mid[0])**2 + (camera.position[1]+b_mid[1])**2+ (camera.position[2]-b_mid[2])**2) 
+                const a_dis=Math.sqrt((camera.position[0]-a_mid[0])**2 + (camera.position[1]+a_mid[1])**2+ (camera.position[2]-a_mid[2])**2) 
+                
+                return b_dis-a_dis;
+            })
+            
+            for (const plane_index in this.planes){
+                this.planes[plane_index].draw(camera,canvas,ctx);
+            }
+        }
+        
+    }
 }
 
 

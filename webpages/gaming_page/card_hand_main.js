@@ -104,9 +104,10 @@ class Creature_Hand extends Card_Hand {
 
 
 class Land_Hand extends Card_Hand {
-    constructor(width,height,position,size,dynamic_canvas,name,id,player){
+    constructor(width,height,position,size,dynamic_canvas,name,id,player,manas){
         super(width,height,position,size,dynamic_canvas,"",name,id,player)
         this.type="Land";
+        this.manas=manas
 
     }
     create_fee(ctx,fee_text,color_less,red,blue,green,gold,black){

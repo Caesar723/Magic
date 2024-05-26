@@ -169,7 +169,7 @@ class Message_Processor{
         if (result){
             return result
         }
-        console.log(player)
+        //console.log(player)
         const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
         const card=new Creature_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,fee,Org_Damage,Org_Life,Life,Damage,name,id,player)
         return card
@@ -193,25 +193,25 @@ class Message_Processor{
         const card=new Instant_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,fee,name,id,player)
         return card
     }
-    Land(flying,active,player,id,name,type,type_card,rarity,content,image_path){
+    Land(flying,active,player,id,name,type,type_card,rarity,content,image_path,manas){
         const result=this.find_card(id)
-        console.log(result)
+        console.log(manas)
         if (result){
             return result
         }
         const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
-        const card=new Land_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,name,id,player)
+        const card=new Land_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,name,id,player,manas)
         return card
 
     }
     Opponent(player,id){
         const result=this.find_card(id)
-        console.log(result)
+        //console.log(result)
         if (result){
             return result
         }
         const card=new Card_Hand_Oppo(4,5.62,[0,60*player.unit,-20],0.7,id,player)
-        console.log(card)
+        //console.log(card)
         return card
     }
     
@@ -234,7 +234,42 @@ class Message_Processor{
         // console.log(number,test)
         // return number+test
     }
-    initinal_all(){
+    initinal_all(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_oppo,len_deck_self,len_deck_oppo){
+        console.log(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_oppo,len_deck_self,len_deck_oppo)
+        console.log(this.client,this.client.self_player)
+        const self_player=this.client.self_player
+        const oppo_player=this.client.oppo_player
+
+        for (let card of self_hand){
+            self_player.cards.push(card)
+        }
+        for (let card of oppo_hand){
+            oppo_player.cards.push(card)
+        }
+        for (let card of self_battle){
+            this.client.table.self_battlefield.push(Animation.check_battle(card,self_player))
+        }
+        for (let card of oppo_battle){
+            this.client.table.opponent_battlefield.push(Animation.check_battle(card,oppo_player))
+        }
+        for (let card of self_lands){
+            this.client.table.self_landfield.push(Animation.check_battle(card,self_player))
+        }
+        for (let card of oppo_lands){
+            this.client.table.opponent_landfield.push(Animation.check_battle(card,oppo_player))
+        }
+
+        for (let action of actions){
+            this.client.action_bar.actions.push(action)
+        }
+        self_player.mana_bar.set_mana(manas)
+        this.client.table.timmer_turn.animate_set(time_turn,this.client.table.timmer_turn.time)
+        this.client.table.timmer_bullet.animate_set(time_bullet,this.client.table.timmer_bullet.time)
+        self_player.player_life_ring.animate_set(life_self,self_player.player_life_ring.life)
+        oppo_player.player_life_ring.animate_set(life_oppo,oppo_player.player_life_ring.life)
+        this.client.table.deck_self_graph.number_of_cards=len_deck_self
+        this.client.table.deck_oppo_graph.number_of_cards=len_deck_oppo
+
 
     }
     player(name,type){
@@ -279,9 +314,13 @@ class Message_Processor{
         let result=[]
         
         for (let para of arguments){
+
             result.push(para)
         }
-        console.log(result)
+        if (result.length==1 && result[0] == ''){
+            return []
+        }
+        //console.log(arguments,result,result==[''])
         return result
         //arguments
     }
@@ -314,7 +353,7 @@ class Message_Processor{
         let numBraL=0
         //let numBraR=0
         var para=""
-        console.log(inParenthesis)
+        //console.log(inParenthesis)
         for (let char of inParenthesis){
             if (char=="("){
                 numBraL++
@@ -335,7 +374,7 @@ class Message_Processor{
             }
         }
         const result=this.extractParts(para)
-        console.log(para)
+        //sconsole.log(para)
         result_para.push(result)
         
         // for(let para of inParenthesis.split(",")){

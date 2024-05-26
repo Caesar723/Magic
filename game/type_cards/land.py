@@ -85,8 +85,18 @@ class Land(Card):
         Rarity=self.rarity
         Content=self.content
         Image_Path=self.image_path
+
+        manas=self.generate_mana()
+        result_mana=[]
+        for mana in ['U','W','B','R','G']:
+            num=0
+            if mana in manas:
+                num=manas[mana]
+            result_mana.append(str(num))
+        result_mana=','.join(result_mana)
+        print(result_mana)
         
-        return f"Land({Flying},{Active},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),{Image_Path})"
+        return f"Land({Flying},{Active},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),{Image_Path},state({result_mana}))"
 
 
     def __repr__(self):

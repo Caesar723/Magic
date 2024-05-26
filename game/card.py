@@ -127,6 +127,8 @@ class Card:
     def when_an_object_hert(self,object):#当一个card or 人物收到伤害，object是card 或者 player
         pass
     
+    def text(self,player:'Player',show_hide:bool=False)-> str:
+        pass
 
 
 

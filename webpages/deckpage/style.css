@@ -74,7 +74,9 @@ body {
     top:0;
     outline: none;
     border: none; /* 无边框 */
-    border-radius: 1vw; /* 圆角边框 */
+    /* border-radius: 1vw; 圆角边框 */
+    border-bottom-left-radius: 1vw;
+    border-bottom-right-radius: 1vw;
     padding: 1vw; /* 内边距 */
     font-size: 2vw; /* 增加字体大小 */
     width: 20%; /* 宽度 */

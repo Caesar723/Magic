@@ -31,8 +31,8 @@ class Player:
         self.opponent:Player#opponent player
 
         #the life of player
-        self.ini_life:int=30
-        self.life:int=30
+        self.ini_life:int=20
+        self.life:int=20
 
         #list of Graveyard 墓地
         self.graveyard:list[Card]=[]

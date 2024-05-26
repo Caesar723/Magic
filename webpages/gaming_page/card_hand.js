@@ -426,6 +426,44 @@ class Card_Hand extends Card{
     }
 
     check_weather_can_used(){
+        const splited=this.color_fee.match(/\d+|\D/g);
+        //console.log(this,this.player)
+        const mana_dict={
+            'U':this.player.total_manas[0],
+            'W':this.player.total_manas[1],
+            'B':this.player.total_manas[2],
+            'R':this.player.total_manas[3],
+            'G':this.player.total_manas[4],
+        }
+        //console.log(mana_dict)
+        if (splited){
+            for (let i in splited.reverse()){
+                if (/^[+-]?\d+$/.test(splited[i])){
+                    //console.log(+splited[i])
+                    let rest_mana=+splited[i]
+                    for (let mana_key in mana_dict){
+                        rest_mana-=mana_dict[mana_key]
+                    }
+                    //console.log(rest_mana,this)
+                    if (rest_mana>0){
+                        return false
+                    }
+
+                
+                }
+                else{
+                    // console.log(this.player,this)
+                    
+                    mana_dict[splited[i]]-=1;
+                    //console.log(mana_dict,this)
+                    if (mana_dict[splited[i]]<0){
+                        return false
+                    }
+                    //console.log(splited[i])
+                }
+            }
+        }
+        
         return true
     }
 
@@ -455,7 +493,7 @@ class Card_Hand extends Card{
         const ROW=4;
 
         this.position_in_screen=new_points_pos;
-        if (this.check_weather_can_used()){
+        if (this.player instanceof Self && this.check_weather_can_used()){
             this.draw_blur_ring(ctx)
             this.draw_blur_ring(ctx)
             //this.draw_blur_ring(ctx)

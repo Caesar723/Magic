@@ -8,6 +8,7 @@ class Player{
         this.cards=[];
         this.camera=new Camera([0,0,-50])
         this.card_frame=new Card_frame()
+        
     }
     initinal_all(content){
 
@@ -108,6 +109,8 @@ class Self extends Player{
         this.player_life_ring=new Player_Life([-0.47,-20,-13],6,this.unit)
 
         this.mana_bar=new Mana_Bar()
+        this.total_manas=[0,0,0,0,0]
+
     }
     get_enlarge_size(){
         if (this.cards_mode==="ignore"){
@@ -172,6 +175,8 @@ class Self extends Player{
     }
     update(){
         //console.log(this.cards)
+        this.collect_all_manas()
+        //console.log(this.total_manas)
         this.arrange_cards()
         for (let card_i in this.cards){
             this.cards[card_i].update()
@@ -236,6 +241,13 @@ class Self extends Player{
         return this.cards.slice().sort(function(a, b) {
             return a.z_index - b.z_index;
           });
+    }
+
+    collect_all_manas(){
+        this.total_manas=[0,0,0,0,0]
+        for (let land of this.table.self_landfield){
+            this.total_manas = this.total_manas.map((num, idx) => num + land.manas[idx]);
+        }
     }
 
     // draw_player(camera,ctx,){

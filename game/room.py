@@ -372,10 +372,13 @@ class Room:
     async def concede(self,username:str,content:str):
         pass
 
-    def set_socket(self,socket:"WebSocket",username:str):#用来初始化socket
+    async def set_socket(self,socket:"WebSocket",username:str):#用来初始化socket
         
         self.players_socket[username]=socket
         print(f"set socket {username} {self.players_socket}")
+        player=self.players[username]
+        print(self.text(player))
+        await socket.send_text(self.text(player))
 
     def set_select_socket(self,socket:"WebSocket",username:str):
         self.players[username].socket_select_object=socket
@@ -427,6 +430,32 @@ class Room:
                 print("准备发送")
                 await socket.send_text(action.text(player))
                 print("发送成功")
+
+    def text(self,player:'Player'):
+        self_player:'Player'=player
+        oppo_player:'Player'=player.opponent
+
+        self_hand=','.join([card.text(player,False) for card in self_player.hand])
+        oppo_hand=','.join([card.text(player,True) for card in oppo_player.hand])
+        self_battle=','.join([card.text(player,False) for card in self_player.battlefield])
+        oppo_battle=','.join([card.text(player,False) for card in oppo_player.battlefield])
+        self_lands=','.join([card.text(player,False) for card in self_player.land_area])
+        oppo_lands=','.join([card.text(player,False) for card in oppo_player.land_area])
+        actions_text=','.join([action.text(player) for action in self.action_store_list])
+
+        manas=[]
+        for key in self_player.mana:
+            if key!="colorless":
+                manas.append(f'int({self_player.mana[key]})')
+        manas=','.join(manas)
+        time_turn=f'int({self.turn_timer})'
+        time_bullet=f'int({self.bullet_timer})'
+        life_self=f'int({self_player.life})'
+        life_oppo=f'int({oppo_player.life})'
+        len_deck_self=f'int({len(self_player.library)})'
+        len_deck_oppo=f'int({len(oppo_player.library)})'
+        return f"Initinal_all(parameters({self_hand}),parameters({oppo_hand}),parameters({self_battle}),parameters({oppo_battle}),parameters({self_lands}),parameters({oppo_lands}),parameters({actions_text}),parameters({manas}),{time_turn},{time_bullet},{life_self},{life_oppo},{len_deck_self},{len_deck_oppo})"
+
 
 
     def __repr__(self):
