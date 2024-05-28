@@ -606,6 +606,9 @@ class Card_Hand_Oppo extends Card{
         this.TIME_INTERVAL=2
         this.card_hold=[false,false]//click_bool,move_bool
 
+
+        this.orginal_image=this.back_img
+
     }
 
     update(){

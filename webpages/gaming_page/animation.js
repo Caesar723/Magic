@@ -1,12 +1,14 @@
 class Animation{//action
 
     constructor(object_hold,player){///object can be card and 
+        this.name="Action"
         this.object_hold=object_hold
         console.log(player)
         if (this.object_hold instanceof Player){
             this.new_ring_hold=this.object_hold.player_life_ring.get_copy()
         }
         else{
+            this.object_hold=Animation.check_hand(this.object_hold)
             this.object_hold_new=this.object_hold.get_copy()
         }
         
@@ -48,6 +50,7 @@ class Animation{//action
             //this.new_ring.draw(camera,ctx,canvas)
         }
         else{
+            console.log(this.object_hold)
             this.ctx.drawImage(this.object_hold.orginal_image,0,0,this.width,this.height)
         }
         //console.log(this.ctx,this.object_hold.orginal_image,this.object_hold)
@@ -104,6 +107,8 @@ class Animation{//action
         ctx.closePath();
 
         ctx.drawImage(this.canvas,x,y,this.width,this.height)
+        
+
         
     }
 
@@ -166,6 +171,22 @@ class Animation{//action
             this.object_hold_new.update()
             this.object_hold_new.draw(camera,ctx,canvas)
         }
+
+        ctx.font = "80px serif";
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#e3b931";
+        ctx.shadowColor = "#e3b931";
+        ctx.shadowBlur = 20;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        const mid_x = ctx.canvas.width / 2;
+        const mid_y = ctx.canvas.height / 4;
+        ctx.fillText(this.name, mid_x, mid_y);
+        ctx.shadowColor = "transparent";
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
         
         //ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
     }
@@ -209,6 +230,7 @@ class Creature_Start_Attack extends Animation{
         this.attacked_obj=attack_obj
         this.state_self=state_self
         this.state_attacted=state_attacted
+        this.name='Creature Start Attack'
 
         
         if (this.attacked_obj instanceof Player){
@@ -281,6 +303,7 @@ class Creature_Start_Attack extends Animation{
 class Creature_Prepare_Attack extends Animation{
     constructor(object_hold,player){///object can be card and 
         super(object_hold,player)
+        this.name='Creature Prepare Attack'
     }
     set_animate(){
         this.object_hold.battle.mode="attack"
@@ -297,6 +320,7 @@ class Play_Cards extends Animation{
         this.show_2D=show_2D
         
         this.action_finished=false
+        this.name='Play Card'
     }
     set_animate(){
         //this.deleted_card.moving_cache.push(["disappear",[[0,60*this.player.unit,-20]]])
@@ -320,6 +344,7 @@ class Creature_Prepare_Defense extends Animation{
         super(object_hold,player)
         this.attacked_obj=attack_obj
         this.new_card=this.attacked_obj.card.get_copy()
+        this.name='Creature Prepare Defense'
     }
     set_animate(){
         this.object_hold.battle.mode="defence"
@@ -345,10 +370,12 @@ class Creature_Prepare_Defense extends Animation{
 class Activate_Ability extends Animation{//就是将卡牌横置
     constructor(object_hold,player){///object can be card and 
         super(object_hold,player)
+        this.name='Activate Ability'
 
     }
     set_animate(){
-        console.log(this.object_hold.battle.accurate_position)
+        
+        //console.log(this.object_hold.battle,this.object_hold)
         this.object_hold.battle.z_index=-1;
         this.object_hold.battle.activated=true
         this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
@@ -356,6 +383,7 @@ class Activate_Ability extends Animation{//就是将卡牌横置
             this.object_hold.battle.accurate_position[1],
             this.object_hold.battle.accurate_position[2],
         ]]])
+        
         console.log([
             this.object_hold.battle.accurate_position[0]+1,
             this.object_hold.battle.accurate_position[1],
@@ -379,6 +407,7 @@ class Activate_Ability extends Animation{//就是将卡牌横置
 class Reset_Ability extends Animation{//就是将卡牌解除横置
     constructor(object_hold,player){///object can be card and 
         super(object_hold,player)
+        this.name='Reset Ability'
 
     }
     set_animate(){
@@ -389,6 +418,7 @@ class Reset_Ability extends Animation{//就是将卡牌解除横置
             this.object_hold.battle.accurate_position[1],
             this.object_hold.battle.accurate_position[2]+1,
         ]]])
+        
     //    this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
     //     this.object_hold.battle.accurate_position[0]+1,
     //     this.object_hold.battle.accurate_position[1],
@@ -405,6 +435,7 @@ class Select_Object extends Animation{
     constructor(object_hold,player,selected_object){///object can be card and 
         super(object_hold,player)
         this.selected_object=selected_object
+        this.name='Select Object'
         
 
     }
@@ -426,6 +457,7 @@ class Add_Buff extends Select_Object{
         this.new_card=this.selected_object.card.get_copy()
 
         this.action_finished=true
+        this.name='Add Buff'
         
     }
     set_animate(){
@@ -452,6 +484,7 @@ class Attack_To_Object extends Select_Object{
         this.color=color
         this.type=type
         this.result_state=result_state
+        this.name='Attack To Object'
 
 
         if (this.selected_object instanceof Player){
@@ -509,6 +542,7 @@ class Cure_To_Object extends Select_Object{
         this.color=color
         this.type=type
         this.result_state=result_state
+        this.name='Cure To Object'
 
 
         if (this.selected_object instanceof Player){
@@ -560,6 +594,7 @@ class Gain_Card extends Select_Object{
     constructor(object_hold,player,selected_object){//selected_object hand
         super(object_hold,player,selected_object)
         this.new_card=this.selected_object.get_copy()
+        this.name='Gain Card'
     }
     set_animate(){
         this.selected_object.position=[0,60*this.player.unit,-20]
@@ -585,6 +620,7 @@ class Lose_Card extends Select_Object{
         console.log(this.selected_object)
         console.log(arguments,object_hold,player,selected_object)
         this.new_card=this.selected_object.get_copy()
+        this.name='Lose Card'
         
     }
     set_animate(){
@@ -619,6 +655,7 @@ class Die extends Animation{
     constructor(object_hold,player){///object can be card and //object_hold battle
         super(object_hold,player)
         //this.new_card=this.object_hold.get_copy()
+        this.name='Die'
     }
     set_animate(){
         
@@ -644,10 +681,11 @@ class Summon extends Animation{
         super(object_hold,player)
         this.object_hold=Animation.check_hand(object_hold,true,player)
         //console.log(object_hold)
+        this.name='Summon'
     }
     set_animate(){
         //this.selected_object.position=[0,60*this.player.unit,-20]
-        
+        console.log(this.object_hold)
         this.object_hold.battle.position=[0,-20,-20*this.player.unit]
         if (this.object_hold instanceof Creature_Hand){
             if (this.player instanceof Opponent){
@@ -683,18 +721,22 @@ class Summon extends Animation{
 class Turn extends Animation{
     constructor(object_hold,player){///object can be card and 
         super(object_hold,player)
+        this.name='Turn'
     }
 }
 class Change_Mana extends Animation{
     constructor(object_hold,player,mana_cost){///player must be self  mana_cost[blue,white,black,red,green]
         super(object_hold,player)
         this.mana_cost=mana_cost
+        console.log(object_hold,player,mana_cost)
 
         this.new_mana_bar=new Mana_Bar()
         this.new_mana_bar.set_mana(this.mana_cost)
+        this.name='Change Mana'
         
     }
     set_animate(){
+        console.log(this.object_hold_new,this.player,this.mana_cost)
         this.player.mana_bar.set_mana(this.mana_cost)
 
     }
@@ -710,5 +752,9 @@ class Change_Mana extends Animation{
         this.new_mana_bar.update()
         this.new_mana_bar.draw(canvas,ctx,camera)
         
+    }
+    finished(){
+        console.log(this.player.mana_bar.check_finish())
+        return this.player.mana_bar.check_finish()
     }
 }

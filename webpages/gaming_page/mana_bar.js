@@ -42,6 +42,15 @@ class Mana_Bar{
             index++
         }
     }
+    check_finish(){
+        
+        for(let color in this.bars){
+            if (this.bars[color].moving==true){
+                return false
+            }
+        }
+        return true
+    }
 
     
 }

@@ -179,10 +179,18 @@ class Player:
         checked_result=card.check_can_use(self)
         print(checked_result)
         if checked_result[0]:
+            self.action_store.start_record()#
             for land in checked_result[1]:
                 if not land.when_clicked(self,self.opponent):
                     return (False,"Can't use land")
+            self.action_store.add_action(actions.Change_Mana(self,self,self.get_manas()))
+            self.action_store.end_record()
+
+            self.action_store.start_record()#
             self.mana_consumed(card)
+            self.action_store.add_action(actions.Change_Mana(card,self,self.get_manas()))
+            self.action_store.end_record()
+            
             
             result=await card.when_use_this_card(self,self.opponent)
             
@@ -302,7 +310,12 @@ class Player:
                     while self.mana[key]>0 and self.mana["colorless"]<0:
                         self.mana[key]-=1
                         self.mana["colorless"]+=1
-
+    def get_manas(self)->list:#[blue,white,black,red,green]
+        result=[]
+        for key in self.mana:
+            if key!="colorless":
+                result.append(self.mana[key])
+        return result
     def text(self,player)-> str:
         if self.name==player.name:
             return f"player({self.name},Self)"

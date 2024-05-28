@@ -66,7 +66,12 @@ class List_Action:
         self.list_action:list[Action]=list_action
 
     def text(self,player):
-        action_text=[action.text(player) for action in self.list_action]
+        action_text=[]
+        for action in self.list_action:
+            text=action.text(player)
+            if text!='':
+                action_text.append(text)
+        #action_text=[action.text(player) for action in self.list_action]
         actions=",".join(action_text)
         return f"action_list({actions})"
     
@@ -261,9 +266,11 @@ class Change_Mana(Action):
         self.player:"Player"=player # who use the card
         self.mana=mana
 
-    def text(self,player)-> str:
+    def text(self,player:"Player")-> str:
+        if player.name!=self.player.name:
+            return ''
         mana=f"state({','.join(map(str,self.mana))})" 
-        return f"action(Turn,parameters({self.object_hold.text(player)},{self.player.text(player)},{mana}))"
+        return f"action(Change_Mana,parameters({self.object_hold.text(player)},{self.player.text(player)},{mana}))"
 
 
 

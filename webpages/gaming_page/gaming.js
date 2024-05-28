@@ -72,8 +72,15 @@ class Game_Client{
         await this.get_socket_select()
        
     }
+    get_domain(name){
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.hostname;
+        const port = window.location.port ? `:${window.location.port}` : '';
+        const socketUrl = `${protocol}//${host}${port}/${name}`;
+        return socketUrl
+    }
     async get_socket_main(){
-        this.socket_main= new WebSocket("ws://127.0.0.1:8000/"+"entering_game");
+        this.socket_main= new WebSocket(this.get_domain("entering_game"));
         this.receive_message_main_listener()
         while (this.socket_main.readyState != WebSocket.OPEN){
             await this.sleep(200)
@@ -81,7 +88,7 @@ class Game_Client{
         //return socket
     }
     async get_socket_select(){
-        this.socket_select = new WebSocket("ws://127.0.0.1:8000/"+"select_object");
+        this.socket_select = new WebSocket(this.get_domain("select_object"));
         this.receive_message_select_listener()
         while (this.socket_select.readyState != WebSocket.OPEN){
             await this.sleep(200)

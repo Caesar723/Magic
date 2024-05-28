@@ -52,6 +52,7 @@ class Land(Card):
 
     def when_clicked(self,player:'Player'=None,opponent:'Player'=None):#当地牌被点击时横置，有一些是获得mana，有一些是别的能力   #启动式能力（Activated Abilities）：玩家可以在任何时候支付成本来使用的能力，通常格式为“[成本]：[效果]”。
         if not self.get_flag("tap"):
+            self.player.action_store.add_action(actions.Activate_Ability(self,self.player))
             mana=self.generate_mana()
             for key in mana:
                 player.mana[key]+=mana[key]
@@ -73,8 +74,8 @@ class Land(Card):
         return prepared_function
 
     def text(self,player:'Player',show_hide:bool=False)-> str:
-        Flying=0
-        Active=0
+        Flying=int(self.get_flag("flying"))
+        Active=int(self.get_flag("tap"))
         Player=self.player.text(player)
         Id=id(self)
         if show_hide and player.name!=self.player.name:

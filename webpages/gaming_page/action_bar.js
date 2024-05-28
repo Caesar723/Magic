@@ -41,6 +41,7 @@ class Action_Bar{
     }
     set_image(){
         for (let i in this.actions){
+            
             this.actions[i].arrow_img=this.arrow_img
         }
     }

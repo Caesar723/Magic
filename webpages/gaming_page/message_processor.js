@@ -92,6 +92,8 @@ class Message_Processor{
             "parameters":this.parameters.bind(this),
             "string":this.string.bind(this),
             "showOBJ":this.showOBJ.bind(this),
+            "timer_turn":this.time_turn.bind(this),
+            "timer_bullet":this.time_bullet.bind(this),
             
         }
         this.state(1,2,3,4,5)
@@ -166,9 +168,10 @@ class Message_Processor{
     }
     Creature(flying,active,player,id,name,type,type_card,rarity,content,image_path,fee,Org_Life,Life,Org_Damage,Damage){
         const result=this.find_card(id)
-        if (result){
+        if (result && !(result instanceof Card_Hand_Oppo)){
             return result
         }
+
         //console.log(player)
         const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
         const card=new Creature_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,fee,Org_Damage,Org_Life,Life,Damage,name,id,player)
@@ -177,7 +180,7 @@ class Message_Processor{
     }
     Sorcery(flying,active,player,id,name,type,type_card,rarity,content,image_path,fee){
         const result=this.find_card(id)
-        if (result){
+        if (result && !(result instanceof Card_Hand_Oppo)){
             return result
         }
         const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
@@ -186,7 +189,7 @@ class Message_Processor{
     }
     Instant(flying,active,player,id,name,type,type_card,rarity,content,image_path,fee){
         const result=this.find_card(id)
-        if (result){
+        if (result && !(result instanceof Card_Hand_Oppo)){
             return result
         }
         const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
@@ -194,20 +197,31 @@ class Message_Processor{
         return card
     }
     Land(flying,active,player,id,name,type,type_card,rarity,content,image_path,manas){
-        const result=this.find_card(id)
-        console.log(manas)
-        if (result){
-            return result
+        let result=this.find_card(id)
+        
+        if (result && !(result instanceof Card_Hand_Oppo)){
+            //return result
         }
-        const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
-        const card=new Land_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,name,id,player,manas)
-        return card
+        else{
+            const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
+            result=new Land_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,name,id,player,manas)
+        }
+
+        if (active==1){
+            Activate_Ability.check_battle(result,player)
+            const action=new Activate_Ability(result,player)
+            action.set_animate()
+        }
+        //console.log(active,result)
+        
+
+        return result
 
     }
     Opponent(player,id){
         const result=this.find_card(id)
         //console.log(result)
-        if (result){
+        if (result && (result instanceof Card_Hand_Oppo)){
             return result
         }
         const card=new Card_Hand_Oppo(4,5.62,[0,60*player.unit,-20],0.7,id,player)
@@ -308,7 +322,7 @@ class Message_Processor{
             this.client.action_bar.actions_cache.push(action)
         }
         this.client.action_bar.actions_cache.push(false)
-        this.client.action_bar.actions_finsihed=true
+        //this.client.action_bar.actions_finsihed=true
     }
     parameters(){
         let result=[]

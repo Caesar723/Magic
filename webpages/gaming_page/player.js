@@ -246,7 +246,10 @@ class Self extends Player{
     collect_all_manas(){
         this.total_manas=[0,0,0,0,0]
         for (let land of this.table.self_landfield){
-            this.total_manas = this.total_manas.map((num, idx) => num + land.manas[idx]);
+            if (land.activated==false){
+                this.total_manas = this.total_manas.map((num, idx) => num + land.manas[idx]);
+            }
+            
         }
     }
 

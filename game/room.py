@@ -44,7 +44,7 @@ class Room:
 
         #used to count the time when player use instant and in bullet_time
         self.bullet_timer:int=0
-        self.max_bullet_time:int=5
+        self.max_bullet_time:int=10
 
         # used to store the players
         self.player_1,self.player_2=Player(players[0][1],players[0][0],self.action_processor),\
@@ -153,16 +153,30 @@ class Room:
     
     async def update_timer(self):# update turn_timer and bullet_time_timer
         self.turn_timer:int=self.max_turn_time-round(time.perf_counter()-self.initinal_turn_timer)
-        
+        await self.check_timer_change("timer_turn",self.turn_timer)
         if self.turn_timer<=0:
             await self.end_turn_time()
         
         
         if self.get_flag("bullet_time"):
             self.bullet_timer:int=self.max_bullet_time-round(time.perf_counter()-self.initinal_bullet_timer)
+            await self.check_timer_change("timer_bullet",self.bullet_timer)
             print(self.bullet_timer)
             if self.bullet_timer<=0:
                 await self.end_bullet_time()
+
+    async def check_timer_change(self,name,time):
+        #print("check",time)
+        if not (name in self.counter_dict):
+            self.counter_dict[name]=-1
+        if self.counter_dict[name]!=time:
+            self.counter_dict[name]=time
+            for name_player in self.players_socket:
+                socket:"WebSocket"=self.players_socket[name_player]
+                if socket!=None:
+                    await socket.send_text(f"{name}({time})")
+                    
+
         
 
     async def end_turn_time(self):#turn_timer is 0
@@ -441,7 +455,7 @@ class Room:
         oppo_battle=','.join([card.text(player,False) for card in oppo_player.battlefield])
         self_lands=','.join([card.text(player,False) for card in self_player.land_area])
         oppo_lands=','.join([card.text(player,False) for card in oppo_player.land_area])
-        actions_text=','.join([action.text(player) for action in self.action_store_list])
+        actions_text=','.join([action.text(player) for action in self.action_store_list if action.text(player) != ''])
 
         manas=[]
         for key in self_player.mana:
