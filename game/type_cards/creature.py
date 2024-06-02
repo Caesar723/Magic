@@ -184,6 +184,11 @@ class Creature(Card):
         return prepared_function
         # player.hand.remove(self)
         # player.battlefield.append(self)
+
+    async def when_clicked(self):
+        pass
+
+    
     
     def reset_to_orginal_state(self):
         self.actual_live=self.live

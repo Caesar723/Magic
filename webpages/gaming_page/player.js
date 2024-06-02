@@ -111,6 +111,8 @@ class Self extends Player{
         this.mana_bar=new Mana_Bar()
         this.total_manas=[0,0,0,0,0]
 
+        this.my_turn=false
+
     }
     get_enlarge_size(){
         if (this.cards_mode==="ignore"){
@@ -244,7 +246,14 @@ class Self extends Player{
     }
 
     collect_all_manas(){
-        this.total_manas=[0,0,0,0,0]
+        this.total_manas=[
+            this.mana_bar.bars['U'].val,
+            this.mana_bar.bars['W'].val,
+            this.mana_bar.bars['B'].val,
+            this.mana_bar.bars['R'].val,
+            this.mana_bar.bars['G'].val
+        ]
+        //console.log(this.total_manas)
         for (let land of this.table.self_landfield){
             if (land.activated==false){
                 this.total_manas = this.total_manas.map((num, idx) => num + land.manas[idx]);

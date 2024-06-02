@@ -2,6 +2,7 @@ from fastapi import FastAPI, Body,Depends, Form, HTTPException, Response, Reques
 from fastapi.responses import HTMLResponse, RedirectResponse,FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from starlette.websockets import WebSocketDisconnect
 
 import os
 
@@ -261,10 +262,17 @@ async def entering_game(websocket: WebSocket,username: str = Depends(get_current
     await websocket.accept()
     room:Room=room_server.find_player_room(username)
     await room.set_socket(websocket,username)
-    while True:
-        data = await websocket.receive_text()
-        print(data)
-        await room.message_receiver(data)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await room.message_receiver(data)
+    except WebSocketDisconnect as e:
+        room.players_socket[username]=None
+        print(f"WebSocket disconnected with code: {e.code}")
+        if e.code == 1001:
+            print("Connection closed by the client or server going away.")
+    finally:
+        await websocket.close()
 
 @app.websocket("/select_object")
 async def select_object(websocket: WebSocket,username: str = Depends(get_current_user_socket(database))):#
@@ -277,6 +285,9 @@ async def select_object(websocket: WebSocket,username: str = Depends(get_current
 
 
 def main():
-    pass
+    import uvicorn
+    uvicorn.run(app, host="172.16.5.14", port=8000, ssl_keyfile="private.key", ssl_certfile="certificate.crt",reload=True)
 
-main()
+if __name__=="__main__":
+    main()
+    pass

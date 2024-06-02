@@ -94,9 +94,11 @@ class Message_Processor{
             "showOBJ":this.showOBJ.bind(this),
             "timer_turn":this.time_turn.bind(this),
             "timer_bullet":this.time_bullet.bind(this),
+            "start_bullet":this.start_bullet.bind(this),
+            "end_bullet":this.end_bullet.bind(this)
             
         }
-        this.state(1,2,3,4,5)
+        //this.state(1,2,3,4,5)
         // console.log(this.extractParts("Creature(player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg)"))
         // console.log(this.extractParts("player(CC,Self)"))
         //console.log(this.extractParts("action_list(action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(1,1,player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))),action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(1,1,player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))),action(Gain_Card,parameters(player(CC,Self),player(CC,Self),Land(1,1,player(CC,Self),int(11334),Xuanpei,blue,Creature,Uncommon,string(a,b,c,d()),cards/creature/Angelic Protector/image.jpg))))"))
@@ -248,8 +250,8 @@ class Message_Processor{
         // console.log(number,test)
         // return number+test
     }
-    initinal_all(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_oppo,len_deck_self,len_deck_oppo){
-        console.log(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_oppo,len_deck_self,len_deck_oppo)
+    initinal_all(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_oppo,len_deck_self,len_deck_oppo,your_turn){
+        console.log(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_oppo,len_deck_self,len_deck_oppo,your_turn)
         console.log(this.client,this.client.self_player)
         const self_player=this.client.self_player
         const oppo_player=this.client.oppo_player
@@ -283,6 +285,14 @@ class Message_Processor{
         oppo_player.player_life_ring.animate_set(life_oppo,oppo_player.player_life_ring.life)
         this.client.table.deck_self_graph.number_of_cards=len_deck_self
         this.client.table.deck_oppo_graph.number_of_cards=len_deck_oppo
+        if (your_turn==1){
+            this.client.table.timmer_turn.change_green()
+            self_player.my_turn=true
+        }
+        else{
+            this.client.table.timmer_turn.change_yellow()
+            self_player.my_turn=false
+        }
 
 
     }
@@ -350,6 +360,12 @@ class Message_Processor{
         if (player=="Self"){
 
         }
+    }
+    start_bullet(){
+        this.client.table.timmer_bullet.change_green()
+    }
+    end_bullet(){
+        this.client.table.timmer_bullet.change_yellow()
     }
     extractParts(str) {
         const indexOfFirstParenthesis = str.indexOf('('); // 找到第一个 '(' 的索引

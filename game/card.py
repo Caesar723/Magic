@@ -56,12 +56,15 @@ class Card:
         player_mana=dict(self.player.mana)
         cost=self.cost
         difference={key:cost[key]-player_mana[key] for key in player_mana}
-
+        sum_negative_numbers = sum(difference[key] for key in difference if (difference[key] < 0 and key!='colorless'))
+        difference["colorless"]+=sum_negative_numbers
+        print(player_mana,cost,difference)
         land_store=[]
 
         for land in player.land_area:
             if land.check_can_use(player)[0]:
                 mana=land.generate_mana()
+                print(mana)
                 for key in mana:
                     if difference[key]>0:
                         difference[key]-=mana[key]
@@ -69,7 +72,7 @@ class Card:
                     elif difference["colorless"]>0:
                         difference["colorless"]-=mana[key]
                         land_store.append(land)
-
+        print(difference)
         all_values_less_than_zero = all(value <= 0 for value in difference.values())
         if all_values_less_than_zero:
             return (True,land_store)#第二个list是如果用[。。。]这些就可以打出这个牌
@@ -119,7 +122,9 @@ class Card:
         pass
 
     def check_keyword(self,keyword:str)->bool:#检查关键词条,比如检查是否有吸血，key是吸血
-        return True
+        if keyword in self.keyword_list:
+            return True
+        return False
 
     def when_a_creature_die(self,creature):#当随从死亡时（放入一个死亡随从的参数）
         pass

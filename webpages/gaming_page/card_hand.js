@@ -488,12 +488,12 @@ class Card_Hand extends Card{
             const end_y=cy + camera.similar_tri(y_start,z_start)
             new_points_pos.push([end_x, end_y])
         }
-        //ctx.closePath();
+        
         const COL=4;
         const ROW=4;
 
         this.position_in_screen=new_points_pos;
-        if (this.player instanceof Self && this.check_weather_can_used()){
+        if (this.player instanceof Self && this.check_weather_can_used() && (this.player.my_turn || this instanceof Instant_Hand)){
             this.draw_blur_ring(ctx)
             this.draw_blur_ring(ctx)
             //this.draw_blur_ring(ctx)

@@ -181,7 +181,7 @@ class Animation{//action
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
         const mid_x = ctx.canvas.width / 2;
-        const mid_y = ctx.canvas.height / 4;
+        const mid_y = ctx.canvas.height / 5;
         ctx.fillText(this.name, mid_x, mid_y);
         ctx.shadowColor = "transparent";
         ctx.shadowBlur = 0;
@@ -723,7 +723,19 @@ class Turn extends Animation{
         super(object_hold,player)
         this.name='Turn'
     }
+    set_animate(){
+        if (this.player instanceof Opponent){
+            this.player.table.timmer_turn.change_yellow()
+            this.player.table.player_self.my_turn=false
+        }
+        else{
+            this.player.table.timmer_turn.change_green()
+            this.player.table.player_self.my_turn=true
+        }
+    }
 }
+
+
 class Change_Mana extends Animation{
     constructor(object_hold,player,mana_cost){///player must be self  mana_cost[blue,white,black,red,green]
         super(object_hold,player)

@@ -92,7 +92,7 @@ class Room:
             "discard":self.discard,
             "activate_ability":self.activate_ability,
             "concede":self.concede,
-            "end_bullet_time":self.end_bullet_time
+            "end_bullet":self.end_bullet
 
         }
         self.message_process_condition=asyncio.Condition()#当list是空的时候就会调用这个，让程序有序运行
@@ -152,10 +152,7 @@ class Room:
 
     
     async def update_timer(self):# update turn_timer and bullet_time_timer
-        self.turn_timer:int=self.max_turn_time-round(time.perf_counter()-self.initinal_turn_timer)
-        await self.check_timer_change("timer_turn",self.turn_timer)
-        if self.turn_timer<=0:
-            await self.end_turn_time()
+        
         
         
         if self.get_flag("bullet_time"):
@@ -164,6 +161,14 @@ class Room:
             print(self.bullet_timer)
             if self.bullet_timer<=0:
                 await self.end_bullet_time()
+        else:
+            #self.initinal_turn_timer-=round(time.perf_counter()-self.initinal_turn_timer)
+            self.turn_timer:int=self.max_turn_time-round(time.perf_counter()-self.initinal_turn_timer)
+            await self.check_timer_change("timer_turn",self.turn_timer)
+            if self.turn_timer<=0:
+                await self.end_turn_time()
+
+        
 
     async def check_timer_change(self,name,time):
         #print("check",time)
@@ -181,13 +186,26 @@ class Room:
 
     async def end_turn_time(self):#turn_timer is 0
         #self.non_active_player.
-        
+        self.action_processor.start_record()
         await self.change_turn()
         self.reset_turn_timer()
+        self.action_processor.end_record()
         
 
     async def end_bullet_time(self):#bullet_time is 0
-        
+        self.bullet_timer=0
+        await self.check_timer_change("timer_bullet",self.bullet_timer)
+        self.initinal_turn_timer+=time.perf_counter()-self._elapsed_time
+
+        for name_player in self.players_socket:
+            socket:"WebSocket"=self.players_socket[name_player]
+            if socket!=None:
+                await socket.send_text("end_bullet()")
+
+        key="{}_bullet_time_flag"
+        for un in self.players:#username
+            self.flag_dict[key.format(un)]=False
+
         while self.stack:
             func,card=self.stack.pop()
             self.action_processor.start_record()
@@ -230,9 +248,16 @@ class Room:
     def reset_bullet_timer(self):
         self.initinal_bullet_timer=time.perf_counter()
 
-    def start_bullet_time(self):
+    async def start_bullet_time(self):
+        print("start_bullet()1")
         self.reset_bullet_timer()
         self.flag_dict["bullet_time"]=True
+        self._elapsed_time=time.perf_counter()
+        for name_player in self.players_socket:
+            socket:"WebSocket"=self.players_socket[name_player]
+            if socket!=None:
+                await socket.send_text("start_bullet()")
+        print("start_bullet()")
 
 
     async def change_turn(self):# when active_player end turn
@@ -256,7 +281,7 @@ class Room:
         ...|discard|[list of numbers]
         ...|activate_ability|区域;index   #大部分是用在land，点击land激活能力产生法力
         ...|concede(投降)|
-        ...|end_bullet_time|...#当两个玩家都end bullet time 的时候，他们才会真正的结束bullet time
+        ...|end_bullet|...#当两个玩家都end bullet time 的时候，他们才会真正的结束bullet time
         ...|start_attack|#当敌方用start_attack才有用
        
         
@@ -292,7 +317,7 @@ class Room:
             self.flag_dict['attacker_defenders']=True
             self.attacker=card
             card.when_become_attacker(player,player.opponent)
-            self.start_bullet_time()
+            await self.start_bullet_time()
             self.action_processor.end_record()
             
             return (True,"success")# bool, reason
@@ -311,7 +336,7 @@ class Room:
             self.action_processor.add_action(actions.Creature_Prepare_Defense(card,player,self.attacker,False))
             player.select_defender(card)
             prepared_function=lambda: "defender"
-            self.put_prepared_function_to_stack(prepared_function,card)
+            await self.put_prepared_function_to_stack(prepared_function,card)
             card.when_become_defender(player,player.opponent)
             self.action_processor.end_record()
             return (True,"success")
@@ -326,11 +351,11 @@ class Room:
         if not card:
             return (False,"no card")
         
-        
+        print(player==self.active_player,isinstance(card,Instant) ,card.check_keyword("Flash"))
         if (player==self.active_player and not self.get_flag("bullet_time")) or isinstance(card,Instant) or card.check_keyword("Flash"):# 如果card 的类型是instant，可以直接释放,或者card有flash
             result=await player.play_a_card(card)
             if result[0]:
-                self.put_prepared_function_to_stack(result[1],card)
+                await self.put_prepared_function_to_stack(result[1],card)
             else:
                 return result
         
@@ -355,10 +380,17 @@ class Room:
         self.flag_dict[key.format(username)]=True
 
         start=True
+
+        
+        socket:"WebSocket"=self.players_socket[username]
+        if socket!=None:
+            await socket.send_text("end_bullet()")
+
         for un in self.players:#username
             if not self.get_flag(key.format(un)):
                 start=False
         if start:
+            
             await self.end_bullet_time()
         
         return (True,"success")
@@ -376,8 +408,10 @@ class Room:
         
         if isinstance(card,Land) or card.check_can_use(player):# 如果card 的类型是instant，可以直接释放,或者card有flash
             self.action_processor.start_record()
-            self.action_processor.add_action(actions.Activate_Ability(card,player))
-            card.when_clicked(player,player.opponent)
+            #self.action_processor.add_action(actions.Activate_Ability(card,player))
+            await card.when_clicked(player,player.opponent)
+            self.action_processor.add_action(actions.Change_Mana(card,player,player.get_manas()))
+
             self.action_processor.end_record()
 
         else:
@@ -403,9 +437,9 @@ class Room:
             await asyncio.sleep(0.5)
             await self.update_timer()
             
-    def put_prepared_function_to_stack(self,prepared_function,card:Card):
+    async def put_prepared_function_to_stack(self,prepared_function,card:Card):
         
-        self.start_bullet_time()
+        await self.start_bullet_time()
         self.stack.append((prepared_function,card))
 
 
@@ -468,7 +502,8 @@ class Room:
         life_oppo=f'int({oppo_player.life})'
         len_deck_self=f'int({len(self_player.library)})'
         len_deck_oppo=f'int({len(oppo_player.library)})'
-        return f"Initinal_all(parameters({self_hand}),parameters({oppo_hand}),parameters({self_battle}),parameters({oppo_battle}),parameters({self_lands}),parameters({oppo_lands}),parameters({actions_text}),parameters({manas}),{time_turn},{time_bullet},{life_self},{life_oppo},{len_deck_self},{len_deck_oppo})"
+        your_turn=f'int({int(self_player==self.active_player)})'
+        return f"Initinal_all(parameters({self_hand}),parameters({oppo_hand}),parameters({self_battle}),parameters({oppo_battle}),parameters({self_lands}),parameters({oppo_lands}),parameters({actions_text}),parameters({manas}),{time_turn},{time_bullet},{life_self},{life_oppo},{len_deck_self},{len_deck_oppo},{your_turn})"
 
 
 

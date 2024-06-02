@@ -50,16 +50,27 @@ class Land(Card):
     def when_sacrificed(self):#当牺牲时
         pass
 
-    def when_clicked(self,player:'Player'=None,opponent:'Player'=None):#当地牌被点击时横置，有一些是获得mana，有一些是别的能力   #启动式能力（Activated Abilities）：玩家可以在任何时候支付成本来使用的能力，通常格式为“[成本]：[效果]”。
+    async def when_clicked(self,player:'Player'=None,opponent:'Player'=None):#当地牌被点击时横置，有一些是获得mana，有一些是别的能力   #启动式能力（Activated Abilities）：玩家可以在任何时候支付成本来使用的能力，通常格式为“[成本]：[效果]”。
         if not self.get_flag("tap"):
-            self.player.action_store.add_action(actions.Activate_Ability(self,self.player))
+            
             mana=self.generate_mana()
             for key in mana:
                 player.mana[key]+=mana[key]
-            self.flag_dict["tap"]=True#横置
+            self.tap()
+            #self.flag_dict["tap"]=True#横置
             return True
         else:
             return False
+        
+    def tap(self):
+        if not self.get_flag("tap"):
+            self.player.action_store.add_action(actions.Activate_Ability(self,self.player))
+            self.flag_dict["tap"]=True#横置
+
+    def untap(self):
+        if self.get_flag("tap"):
+            self.player.action_store.add_action(actions.Reset_Ability(self,self.player))
+            self.flag_dict["tap"]=False#横置
 
     def check_ability_can_be_used(self,player:'Player'=None,opponent:'Player'=None):#有一些是“仅在你的回合”、“仅在主要阶段”、或“仅当堆栈为空时”能够激活
         return True

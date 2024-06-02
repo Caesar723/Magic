@@ -181,7 +181,7 @@ class Player:
         if checked_result[0]:
             self.action_store.start_record()#
             for land in checked_result[1]:
-                if not land.when_clicked(self,self.opponent):
+                if not await land.when_clicked(self,self.opponent):
                     return (False,"Can't use land")
             self.action_store.add_action(actions.Change_Mana(self,self,self.get_manas()))
             self.action_store.end_record()
@@ -218,7 +218,8 @@ class Player:
        
 
     def untap_step(self):#解除操控步骤:土地被横置以产生法术力（Mana），生物被横置以攻击等
-        pass
+        for land in self.land_area:
+            land.untap()
 
     def upkeep_step(self):#保持步骤（Upkeep Step）：某些卡牌效果会在这个时候触发。
         for card in self.get_cards_from_dict("upkeep_step"):

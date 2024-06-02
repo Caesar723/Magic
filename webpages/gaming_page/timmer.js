@@ -288,10 +288,11 @@ class Ring_Record{
 class Timmer extends Ring_Record{
 
 
-    constructor(max_time,position,size){
+    constructor(max_time,position,size,name){
         super(position,size)
         this.max_time=max_time
         this.time=60
+        this.name=name
 
 
 
@@ -302,6 +303,14 @@ class Timmer extends Ring_Record{
         this.text=""
         this.text_click="End"
         this.mode="time"//time, end
+
+        this.changing_color=false
+        this.changing_precentage=0
+        this.rgb_yellow=[255,223,56]//yellow
+        this.rgb_green=[66, 237, 57]//green
+
+        this.current_color=[255,223,56]
+        this.min_difference=[0,0,0]
     }
     animate_set(val,current_val){
         this.moving_precentage=0
@@ -355,6 +364,10 @@ class Timmer extends Ring_Record{
         
         // this.time=this.time+0.03
         this.check_move()
+        if (this.changing_color){
+            this.color_change()
+        }
+        
         this.presentage=100*this.time/this.max_time
         this.update_text()
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -375,6 +388,7 @@ class Timmer extends Ring_Record{
     
 
     print_ring(canvas,ctx,progress){
+        const color=this.get_current_color()
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         const radius = 40;
@@ -390,9 +404,9 @@ class Timmer extends Ring_Record{
         ctx.arc(centerX, centerY, radius, startAngle, endAngle);
         ctx.lineWidth = 4; // 设置进度条的宽度
         ctx.lineCap = 'round';
-        ctx.strokeStyle = '#ffdf38'; // 进度条颜色
+        ctx.strokeStyle = color; // 进度条颜色
         // 设置阴影的颜色
-        ctx.shadowColor = '#ffdf38'; // 半透明的蓝色光晕
+        ctx.shadowColor = color; // 半透明的蓝色光晕
         // 设置阴影的模糊级别
         ctx.shadowBlur = 20;
         // 设置阴影的偏移量
@@ -405,10 +419,84 @@ class Timmer extends Ring_Record{
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         ctx.font = '20px Arial';
-        ctx.fillStyle = '#ffdf38';
+        ctx.fillStyle = this.get_current_color();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(this.text + '', centerX, centerY);
+    }
+
+    color_change_prepared(colors){
+        //console.log(colors,this.current_color)
+        const dif_r=math.abs(colors[0]-this.current_color[0])
+        const dif_g=math.abs(colors[1]-this.current_color[1])
+        const dif_b=math.abs(colors[2]-this.current_color[2])
+
+        const unit_r=dif_r/(colors[0]-this.current_color[0])
+        const unit_g=dif_g/(colors[1]-this.current_color[1])
+        const unit_b=dif_b/(colors[2]-this.current_color[2])
+
+        const a_r=math.sqrt(dif_r*2/math.pi)
+        const a_g=math.sqrt(dif_g*2/math.pi)
+        const a_b=math.sqrt(dif_b*2/math.pi)
+
+        this.changing_store=[a_r,a_g,a_b,unit_r,unit_g,unit_b,colors]
+
+        this.min_difference=[dif_r,dif_g,dif_b]
+
+        this.changing_color=true
+        this.changing_precentage=0
+        this.check_target(colors)
+    }
+    color_change(){
+        const time_consume=5
+        const a_r= this.changing_store[0]
+        const a_g= this.changing_store[1]
+        const a_b= this.changing_store[2]
+        const unit_r= this.changing_store[3]
+        const unit_g= this.changing_store[4]
+        const unit_b= this.changing_store[5]
+        const x_r=(a_r*math.pi/100)*this.changing_precentage
+        const x_g=(a_g*math.pi/100)*this.changing_precentage
+        const x_b=(a_b*math.pi/100)*this.changing_precentage
+
+        const dif_r=unit_r*a_r*Math.pow(Math.sin(x_r/a_r),2)/((100/(time_consume))/(a_r*math.pi))
+        const dif_g=unit_g*a_g*Math.pow(Math.sin(x_g/a_g),2)/((100/(time_consume))/(a_g*math.pi))
+        const dif_b=unit_b*a_b*Math.pow(Math.sin(x_b/a_b),2)/((100/(time_consume))/(a_b*math.pi))
+
+        this.current_color[0]+=dif_r
+        this.current_color[1]+=dif_g
+        this.current_color[2]+=dif_b
+        //console.log(this.current_color,a_r,a_g,a_b)
+        this.changing_precentage+=time_consume
+        this.check_target(this.changing_store[6])
+    }
+    color_change_finish(){
+        this.current_color=[...this.changing_store[6]]
+        this.changing_color=false
+        this.changing_precentage=0
+        //console.log(this.current_color)
+    }
+    check_target(colors){
+        const dif_r=math.abs(colors[0]-this.current_color[0])
+        const dif_g=math.abs(colors[1]-this.current_color[1])
+        const dif_b=math.abs(colors[2]-this.current_color[2])
+        
+        if (dif_r<=this.min_difference[0] && dif_g<=this.min_difference[1] && dif_b<=this.min_difference[2]  && this.changing_precentage<100){
+            this.min_difference=[dif_r,dif_g,dif_b]
+        }
+        else{
+            this.color_change_finish()
+        }
+    }
+    change_green(){
+        this.color_change_prepared(this.rgb_green)
+    }
+    change_yellow(){
+        this.color_change_prepared(this.rgb_yellow)
+    }
+    
+    get_current_color(){
+        return `rgb(${this.current_color[0]}, ${this.current_color[1]}, ${this.current_color[2]})`;
     }
 
     

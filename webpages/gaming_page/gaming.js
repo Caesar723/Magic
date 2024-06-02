@@ -110,7 +110,7 @@ class Game_Client{
             // 你可以根据消息的内容执行不同的操作，比如更新UI、存储数据等
           });
         this.socket_main.addEventListener('close', () => {
-
+            console.log('关闭');
         });
         this.socket_main.addEventListener('error', (event) => {
             
@@ -443,21 +443,33 @@ class Game_Client{
                 this.action_bar.actions.push(action)
 
             }
+            // else if (event.key === "'" || event.key === "'") {
+                
+            //     const action=new Activate_Ability(this.table.self_landfield[3].card,this.self_player)
+            //     action.set_animate()
+            //     this.action_bar.actions.push(action)
+
+
+            //     const action2=new Reset_Ability(this.table.self_battlefield[0].card,this.self_player)
+            //     action2.set_animate()
+            //     this.action_bar.actions.push(action2)
+
+            // }
+            // else if (event.key === "/" || event.key === "/") {
+                
+            //     this.message_processor.extractParts("action_list(action(Play_Cards,parameters(Land(0,0,player(CC,Self),int(4319679728),string(Island),blue,Land,Uncommon,string(),cards/land/Island/image.jpg),player(CC,Self),showOBJ())),action(Lose_Card,parameters(player(CC,Self),player(CC,Self),Opponent(player(CC,Self),int(4319679728)))),action(Summon,parameters(Land(0,0,player(CC,Self),int(4319679728),string(Island),blue,Land,Uncommon,string(),cards/land/Island/image.jpg),player(CC,Self))))")
+
+
+            // }
             else if (event.key === "'" || event.key === "'") {
                 
-                const action=new Activate_Ability(this.table.self_landfield[3].card,this.self_player)
-                action.set_animate()
-                this.action_bar.actions.push(action)
+                this.table.timmer_turn.change_green()
 
-
-                const action2=new Reset_Ability(this.table.self_battlefield[0].card,this.self_player)
-                action2.set_animate()
-                this.action_bar.actions.push(action2)
 
             }
             else if (event.key === "/" || event.key === "/") {
                 
-                this.message_processor.extractParts("action_list(action(Play_Cards,parameters(Land(0,0,player(CC,Self),int(4319679728),string(Island),blue,Land,Uncommon,string(),cards/land/Island/image.jpg),player(CC,Self),showOBJ())),action(Lose_Card,parameters(player(CC,Self),player(CC,Self),Opponent(player(CC,Self),int(4319679728)))),action(Summon,parameters(Land(0,0,player(CC,Self),int(4319679728),string(Island),blue,Land,Uncommon,string(),cards/land/Island/image.jpg),player(CC,Self))))")
+                this.table.timmer_turn.change_yellow()
 
 
             }
@@ -469,6 +481,7 @@ class Game_Client{
         this.canvas_table.addEventListener('mousedown', (event) => { 
             const mouse_pos=this.get_mouse_pos(event,this.canvas_table)
             const card=this.find_cards_by_mouse(mouse_pos)
+            const timer=this.find_timers_by_mouse(mouse_pos)
             if (! (card===undefined)){
                 //console.log(card)
                 const click_bool=this.judge_click(card)
@@ -478,6 +491,12 @@ class Game_Client{
                 
             }
             this.startTime = performance.now();
+
+            if (!(timer===undefined)){
+                this.end_time(timer)
+                
+            }
+            
             
             
             
@@ -628,8 +647,6 @@ class Game_Client{
                     //console.log("click")
                 }
             }
-            
-            
         });
         this.canvas_table.addEventListener('mouseleave', (event) => {
             if (!(this.card_hold[0]===undefined)){
@@ -671,8 +688,10 @@ class Game_Client{
         const cards_hand_oppo=this.oppo_player.cards//
         const cards_battle_self=this.table.self_battlefield//再检查battle的
         const cards_battle_oppo=this.table.opponent_battlefield
+        const cards_land_self=this.table.self_landfield//再检查land的
+        const cards_land_oppo=this.table.opponent_landfield
 
-        const cards=[cards_hand_self,cards_hand_oppo,cards_battle_self,cards_battle_oppo]
+        const cards=[cards_hand_self,cards_hand_oppo,cards_battle_self,cards_battle_oppo,cards_land_self,cards_land_oppo]
         for (let cards_i in cards){
             const card=this.check_cards_list(mouse_pos,cards[cards_i])
             
@@ -760,7 +779,16 @@ class Game_Client{
         }
     }
     battle_click_activate(card){
-
+        if (card instanceof Land_Battle){
+            for (let card_self_land_i in this.table.self_landfield){
+                if(this.table.self_landfield[card_self_land_i]===card){
+                    const values = [this.self_player.name,'activate_ability',`land_area;${card_self_land_i}`];
+                    this.socket_main.send(values.join('|'));
+                    return true
+                }
+            }
+        }
+        return false   
     }
     battle_move_activate(card){
 
@@ -777,6 +805,19 @@ class Game_Client{
             }
         }
         return false
+    }
+    end_time(timer){
+        if (timer.name=='turn'){
+            const values = [this.self_player.name,'end_step',''];
+            this.socket_main.send(values.join('|'));
+            return true
+        }
+        else if (timer.name=='bullet'){
+            const values = [this.self_player.name,'end_bullet',''];
+            this.socket_main.send(values.join('|'));
+            return true
+
+        }
     }
     find_position(card){//return position name and index
         for (let card_self_hand_i in this.self_player.cards){
