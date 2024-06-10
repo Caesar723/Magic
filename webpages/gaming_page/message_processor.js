@@ -47,6 +47,23 @@ parameters() return [....]
 
 
 showOBJ() return this.show2d
+
+select()
+    type:
+        cards 就是会提供给你cards，然后选择
+        'all_roles',
+        'opponent_roles', 
+        'your_roles',
+        'all_creatures',
+        'opponent_creatures',
+        'your_creatures',
+        'all_lands',
+        'opponent_lands',
+        'your_lands',
+
+
+    如果是cards还有别的参数 parameters( cards)
+    
 */
 class Message_Processor{
     constructor(client){
@@ -95,7 +112,8 @@ class Message_Processor{
             "timer_turn":this.time_turn.bind(this),
             "timer_bullet":this.time_bullet.bind(this),
             "start_bullet":this.start_bullet.bind(this),
-            "end_bullet":this.end_bullet.bind(this)
+            "end_bullet":this.end_bullet.bind(this),
+            "select":this.select.bind(this)
             
         }
         //this.state(1,2,3,4,5)
@@ -366,6 +384,18 @@ class Message_Processor{
     }
     end_bullet(){
         this.client.table.timmer_bullet.change_yellow()
+    }
+
+    async select(type,cards){
+        console.log(type,cards)
+        this.client.selectionPage.start_selection(type,cards)
+        let object=await this.client.get_selected_input()
+        const values = this.client.selectionPage.get_object_parameter(object);//名字，选择类型（field或者cards），（场地名{self_battlefield,opponent_battlefield,self_landfield,opponent_landfield}或者player{self,oppo}），如果是场地index。cards直接index
+        console.log(values)
+        this.client.selectionPage.end_selection()
+        this.client.socket_select.send(values.join('|'));
+
+
     }
     extractParts(str) {
         const indexOfFirstParenthesis = str.indexOf('('); // 找到第一个 '(' 的索引

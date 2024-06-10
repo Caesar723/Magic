@@ -26,7 +26,6 @@ class Show_2D{
         this.showed_card.position=[-50,0,0]
         this.showed_card.moving_cache.push(["move_to",[[-20,0,0]]])
         this.showed_card.update()
-
     }
 
 

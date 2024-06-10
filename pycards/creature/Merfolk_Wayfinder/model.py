@@ -31,6 +31,9 @@ class Merfolk_Wayfinder(Creature):
         self.content:str="Whenever Merfolk Wayfinder enters the battlefield, you may scry 1. (Look at the top card of your library. You may put that card on the bottom of your library.)"
         self.image_path:str="cards/creature/Merfolk Wayfinder/image.jpg"
 
+    @select_object("opponent_roles",1)
+    def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
+        print(selected_object)
 
 
         

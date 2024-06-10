@@ -354,8 +354,8 @@ class Camera{
         const y=math.sqrt((1-(math.pow(x, 2)/math.pow(b, 2)))*math.pow(a, 2));
         const angle=math.atan(y/x);
         this.angle_y=angle;
-        this.position[2]=-x*0.2;
-        this.position[1]=-y;
+        this.position[2]=-x*0.2-10*(1-this.rotate_prescent/100);
+        this.position[1]=-y-10;
         
     }
 

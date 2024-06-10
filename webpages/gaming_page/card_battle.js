@@ -67,6 +67,8 @@ class Card_Battle{
         this.z_index=1;
 
         this.activated=false
+
+        this.select_flag=false
         
     }
     get_org_position(size){
@@ -199,6 +201,7 @@ class Card_Battle{
     }
     update(camera){
         this.check_moving()
+        //console.log(this,this.moving)
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.ctx.save()
@@ -246,6 +249,13 @@ class Card_Battle{
         //ctx.closePath();
         const COL=4;
         const ROW=4;
+        this.position_in_screen=new_points_pos;
+
+        if (this.select_flag){
+            this.draw_blur_ring(ctx)
+            this.draw_blur_ring(ctx)
+            //this.draw_blur_ring(ctx)
+        }
 
         let col_left_up=this.average_p(new_points_pos[2],new_points_pos[3],COL-0,COL);
         let col_right_up=this.average_p(new_points_pos[1],new_points_pos[0],COL-0,COL);
@@ -271,7 +281,7 @@ class Card_Battle{
             col_left_up=col_left_down;
             col_right_up=col_right_down;
         }
-        this.position_in_screen=new_points_pos;
+        
         this.position_in_screen_z=(new_points_z[0]+new_points_z[2])/2
     }
     average_p(p_1,p_2,n,t){
@@ -366,7 +376,7 @@ class Card_Battle{
                 this.moving_precentage=0
                 this.finish_moving(...this.moving_parameters)
             }
-            else {
+            else  {//if (this.position==this.accurate_position)
                 this.pick_moving_function()
             }
         }
@@ -388,16 +398,23 @@ class Card_Battle{
             
             
             this.moving_parameters=parameters;
+            this.check_moving()
+            
             
         }
     }
 
     pick_moving_function(){//FIFO
         if (this.moving_cache.length){
-            
+            //console.log(this.moving_cache,this.moving_cache.length)
             const para=this.moving_cache.shift()
+            //console.log(para,this.moving_cache,this.moving_cache.length)
             
             this.start_moving(...para)
+        }
+        else{
+            this.moving=false
+            this.moving_precentage=0
         }
         
     }
@@ -444,8 +461,9 @@ class Card_Battle{
         this.min_distance_difference=distance;
         const a=math.sqrt(distance*2/math.pi)
         const time_consume=1/distance+2
-        this.check_distance_to_target(target_position)
+        
         this.moving_store=[a,unitVector,time_consume,target_position]
+        this.check_distance_to_target(target_position)
     }
     move_to(target_position){//target_position[x,y]
         const a=this.moving_store[0];
@@ -553,10 +571,23 @@ class Card_Battle{
 
 
 
-    rotate_to_point_prepared(target_position){//让它指向目标点 x,y,z
+    rotate_to_point_prepared(target_position){//让它指向目标点 x,y,z  target_position position or tap
+        console.log(target_position,this.accurate_position,this.position)
         const direction_vector=this.get_vector_point()
+        if (Array.isArray(target_position)) {
+            var [unitVector,distance]=this.calculate_vector_move(target_position)
+        }
+        else{
+            const radians=target_position * (Math.PI / 180);
+            var [unitVector,distance]=this.calculate_vector_move(
+                [
+                    this.position[0]+Math.cos(radians),
+                    this.position[1],
+                    this.position[2]+Math.sin(radians),
+                ]
+            )
+        }
         
-        const [unitVector,distance]=this.calculate_vector_move(target_position)
         
         const a=[direction_vector[0],direction_vector[2]]
         const b=[unitVector[0],unitVector[2]]
@@ -678,6 +709,46 @@ class Card_Battle{
         this.position[2]=next_pos[2]
     }
 
+    draw_blur_ring(ctx){
+        ctx.save()
+        
+        
+        ctx.beginPath();
+            
+        ctx.moveTo(this.position_in_screen[0][0], this.position_in_screen[0][1]);
+        ctx.lineTo(this.position_in_screen[1][0], this.position_in_screen[1][1]);
+        
+        ctx.lineTo(this.position_in_screen[2][0], this.position_in_screen[2][1]);
+        
+        ctx.lineTo(this.position_in_screen[3][0], this.position_in_screen[3][1]);
+        
+        ctx.lineTo(this.position_in_screen[0][0], this.position_in_screen[0][1]);
+        
+        
+        
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(126,163,255)';
+        ctx.shadowColor = 'rgba(126,163,255)'; // 半透明的蓝色光晕
+        ctx.fillStyle = 'rgba(126,163,255)';
+        ctx.lineCap = 'round';
+        ctx.shadowBlur = 20;
+        // 设置阴影的偏移量
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.lineWidth = 1;
+        ctx.fill(); // 描绘边框
+        //ctx.stroke()
+        ctx.restore()
+        //ctx.restore()
+        //ctx.stroke(); // 描绘边框
 
+        // ctx.shadowColor = 'transparent';
+        // ctx.shadowBlur = 0;
+        // ctx.shadowOffsetX = 0;
+        // ctx.shadowOffsetY = 0;
+        
+            
+
+    }
 
 }

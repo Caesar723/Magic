@@ -9,6 +9,7 @@ import re
 from game.game_function_tool import validate_all_methods
 from game.type_action import actions
 
+import game.custom_print
 
 
 class Card:

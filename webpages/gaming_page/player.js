@@ -8,6 +8,8 @@ class Player{
         this.cards=[];
         this.camera=new Camera([0,0,-50])
         this.card_frame=new Card_frame()
+
+        this.select_flag=false
         
     }
     initinal_all(content){
@@ -22,6 +24,34 @@ class Player{
     }
     draw_life(){
 
+    }
+    start_selection(){
+        this.select_flag=true
+        this.player_life_ring.select_flag=true
+    }
+    end_selection(){
+        this.select_flag=false
+        this.player_life_ring.select_flag=false
+    }
+    check_inside(mouse_pos,position1,position2,position3,position4){//n shape of points
+        
+        return (
+            this.create_function_x(mouse_pos,position2,position1)<0 &&
+            this.create_function_y(mouse_pos,position4,position1)<0 &&
+            this.create_function_x(mouse_pos,position4,position3)>0 &&
+            this.create_function_y(mouse_pos,position3,position2)>0
+        )
+
+    }
+    create_function_x(mouse_pos,position1,position2){// for x=... position1(lower x) x-...
+        const k=(position2[0]-position1[0])/(position2[1]-position1[1]);
+        const b=position1[0]-k*position1[1];
+        return mouse_pos[0]-(mouse_pos[1])*k-b
+    }
+    create_function_y(mouse_pos,position1,position2){// for y=... position1(lower x) y-....
+        const k=(position2[1]-position1[1])/(position2[0]-position1[0]);
+        const b=position1[1]-k*position1[0];
+        return mouse_pos[1]-(mouse_pos[0])*k-b
     }
 }
 
@@ -112,6 +142,8 @@ class Self extends Player{
         this.total_manas=[0,0,0,0,0]
 
         this.my_turn=false
+
+        
 
     }
     get_enlarge_size(){

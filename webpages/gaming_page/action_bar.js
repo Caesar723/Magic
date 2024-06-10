@@ -205,8 +205,9 @@ class Action_Bar{
             if (result[0]==true){
                 this.actions_finsihed=false
                 this.actions_processing=result[1]
+                console.log(this.actions_processing)
                 for (let action of this.actions_processing){
-                    //console.log(action)
+                    
                     action.set_animate()
                 }
                 //console.log(this.actions_cache)

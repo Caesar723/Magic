@@ -25,6 +25,8 @@ from game.type_cards.instant import Instant
 from game.type_cards.creature import Creature
 from game.type_cards.land import Land
 
+import game.custom_print
+
 
 class Room:
     
@@ -49,8 +51,8 @@ class Room:
         # used to store the players
         self.player_1,self.player_2=Player(players[0][1],players[0][0],self.action_processor),\
                                     Player(players[1][1],players[1][0],self.action_processor)
-        self.player_1.set_opponent_player(self.player_2)
-        self.player_2.set_opponent_player(self.player_1)
+        self.player_1.set_opponent_player(self.player_2,self)
+        self.player_2.set_opponent_player(self.player_1,self)
         self.players:dict[Player]={
             players[0][1]:self.player_1,
             players[1][1]:self.player_2
@@ -84,6 +86,9 @@ class Room:
         #self.defenders:list[Card]=None
 
 
+        
+
+
         self.message_process_dict={
             "select_attacker":self.select_attacker,
             "select_defender":self.select_defender,
@@ -101,6 +106,10 @@ class Room:
         #start executing message_process
         asyncio.create_task(self.message_process())
         asyncio.create_task(self.action_sender())
+
+
+        
+        
 
     
     async def game_start(self):# start the game
@@ -130,14 +139,17 @@ class Room:
             defender.when_start_defend(self.attacker,defender.player,defender.player.opponent)
             await self.attacker.deal_damage(defender,self.attacker.player,self.attacker.player.opponent)
             await defender.deal_damage(self.attacker,defender.player,defender.player.opponent)
-            self.action_processor.add_action(actions.Creature_Start_Attack(self.attacker,self.attacker.player,defender,False,(self.attacker.power,self.attacker.live),(defender.power,defender.live)))
+            state_attacker=self.attacker.state
+            state_defender=defender.state
+            self.action_processor.add_action(actions.Creature_Start_Attack(self.attacker,self.attacker.player,defender,False,state_attacker,state_defender))
             
 
 
         elif isinstance(defender,Player):
-            pass
-
-            self.action_processor.add_action(actions.Creature_Start_Attack(self.attacker,self.attacker.player,self.attacker.player.opponent,False,(self.attacker.power,self.attacker.live),(self.attacker.player.opponent.life)))
+            self.attacker.when_start_attcak(defender,self.attacker.player,self.attacker.player.opponent)
+            await self.attacker.deal_damage_player(defender,self.attacker.player,self.attacker.player.opponent)
+            state_attacker=self.attacker.state
+            self.action_processor.add_action(actions.Creature_Start_Attack(self.attacker,self.attacker.player,self.attacker.player.opponent,False,state_attacker,[self.attacker.player.opponent.life]))
 
         self.attacker=None
         self.action_processor.end_record()
@@ -221,6 +233,7 @@ class Room:
                     self.add_counter_dict("defender_number",1)
                     if self.counter_dict["defender_number"]>=max_defender_number:
                         self.flag_dict["attacker_defenders"]=False
+                        self.counter_dict["defender_number"]=0
                     await self.start_attack(card)
             
 
@@ -310,7 +323,7 @@ class Room:
         if not card:
             return (False,"no card")
 
-        if player==self.active_player:
+        if player==self.active_player and not self.get_flag('attacker_defenders'):
             self.action_processor.start_record()
             self.action_processor.add_action(actions.Creature_Prepare_Attack(card,player))
             player.select_attacker(card)
@@ -430,6 +443,8 @@ class Room:
 
     def set_select_socket(self,socket:"WebSocket",username:str):
         self.players[username].socket_select_object=socket
+        self.players[username].socket_connected_flag=True
+        return self.players[username]
 
     async def timer_task(self):# 每一秒 更新时间
         while self.gamming:
@@ -478,6 +493,15 @@ class Room:
                 print("准备发送")
                 await socket.send_text(action.text(player))
                 print("发送成功")
+
+    # async def selection_process_queue(self):
+    #     while self.gamming:
+    #         pass
+            
+            
+            
+            
+    
 
     def text(self,player:'Player'):
         self_player:'Player'=player

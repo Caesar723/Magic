@@ -1,7 +1,8 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING,Union
 
 if TYPE_CHECKING:
     from game.player import Player
+    
 
 
 
@@ -63,6 +64,13 @@ class Creature(Card):
         if await card.check_dead():
             self.when_kill_creature(card,player,opponent)
         
+    async def deal_damage_player(self,player:"Player",player_attacker: "Player" = None, opponent_attacker: "Player" = None):
+        power,life=self.state
+        player.take_damage(self,power)
+        self.when_harm_is_done(player,power,player_attacker,opponent_attacker)
+        await player.check_dead()
+            
+
 
         
 
@@ -96,7 +104,7 @@ class Creature(Card):
     def when_end_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
-    def when_harm_is_done(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当造成伤害时 OK
+    def when_harm_is_done(self,card:Union["Creature","Player"],value:int,player: "Player" = None, opponent: "Player" = None):#当造成伤害时 OK
         return value
 
     def when_hurt(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当受到伤害时 OK
@@ -120,7 +128,7 @@ class Creature(Card):
     def when_kill_creature(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
-    def when_start_attcak(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
+    def when_start_attcak(self,card:Union["Creature","Player"],player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
     def when_start_defend(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
@@ -209,10 +217,12 @@ class Creature(Card):
         Content=self.content
         Image_Path=self.image_path
         Fee=self.mana_cost
+
+        state=self.state
         Org_Life=self.live
-        Life=self.actual_live
+        Life=state[1]
         Org_Damage=self.power
-        Damage=self.actual_power
+        Damage=state[0]
         return f"Creature({Flying},{Active},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),{Image_Path},{Fee},int({Org_Life}),int({Life}),int({Org_Damage}),int({Damage}))"
 
 

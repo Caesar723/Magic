@@ -57,6 +57,7 @@ class Card_Hand extends Card{
 
 
     check_moving(){
+        
         if (!this.card_hold[1]){
             //console.log(this.moving,this.moving_precentage,this.moving_cache)
 
@@ -114,6 +115,11 @@ class Card_Hand extends Card{
             
             this.start_moving(...para)
         }
+        else{
+            this.moving=false
+            this.moving_precentage=0
+        }
+       
         
     }
     move_to_horizontal(target_position){//target_position[x,y,z]

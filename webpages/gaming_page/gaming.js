@@ -21,6 +21,8 @@ class Game_Client{
         this.card_frame=new Card_frame()
         this.action_bar=new Action_Bar()
         this.show_2d=new Show_2D(this.canvas_table,this.ctx_table)
+
+        this.selectionPage=new Selection_Page(this.canvas_table,this.ctx_table,this.table,this.self_player,this.oppo_player)
         
         //////////////////////////////
         //const canvas=this.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
@@ -47,7 +49,7 @@ class Game_Client{
         this.message_processor=new Message_Processor(this)
 
         
-
+        this.resolveSelectInput= '';
     }
     // async initinal_players(){
     //     console.log(await this.get_players_name())
@@ -126,11 +128,12 @@ class Game_Client{
         // }
         this.socket_select.addEventListener('message', (event)=> {
             console.log('收到消息：', event.data);
+            this.message_processor.extractParts(event.data)
             // 在这里处理消息
             // 你可以根据消息的内容执行不同的操作，比如更新UI、存储数据等
           });
         this.socket_select.addEventListener('close', () => {
-
+            console.log('关闭');
         });
         this.socket_select.addEventListener('error', (event) => {
             
@@ -150,6 +153,7 @@ class Game_Client{
         this.self_player.update()
         
         this.show_2d.update()
+        this.selectionPage.update()
     }
     draw(){
         //this.ctx_table.filter = 'grayscale(100%)';
@@ -159,6 +163,7 @@ class Game_Client{
         this.ctx_table.filter = 'none';
         this.action_bar.draw(this.canvas_table,this.ctx_table,this.self_player.camera)
         this.show_2d.draw()
+        this.selectionPage.draw()
 
 
     }
@@ -463,13 +468,13 @@ class Game_Client{
             // }
             else if (event.key === "'" || event.key === "'") {
                 
-                this.table.timmer_turn.change_green()
+                this.self_player.player_life_ring.change_blue()
 
 
             }
             else if (event.key === "/" || event.key === "/") {
                 
-                this.table.timmer_turn.change_yellow()
+                this.self_player.player_life_ring.change_orange()
 
 
             }
@@ -482,7 +487,13 @@ class Game_Client{
             const mouse_pos=this.get_mouse_pos(event,this.canvas_table)
             const card=this.find_cards_by_mouse(mouse_pos)
             const timer=this.find_timers_by_mouse(mouse_pos)
-            if (! (card===undefined)){
+
+            const object=this.selectionPage.check_mouse_in_selection(mouse_pos)
+
+            if (! (object===undefined)){
+                this.end_selection(object)
+            }
+            else if (! (card===undefined)){
                 //console.log(card)
                 const click_bool=this.judge_click(card)
                 const move_bool=this.judge_move(card)
@@ -524,9 +535,11 @@ class Game_Client{
                 const timer=this.find_timers_by_mouse(mouse_pos)
                 const action=this.action_bar.check_mouse(mouse_pos)
 
+                const object=this.selectionPage.check_mouse_in_selection(mouse_pos)
 
 
-                if (!(card===undefined)||!(timer===undefined)){
+
+                if ( ((!(card===undefined)||!(timer===undefined))&&!this.selectionPage.in_selection) || (this.selectionPage.in_selection&&!(object===undefined)) ){
                     this.canvas_table.style.cursor = 'pointer';
                 }
                 else{
@@ -669,10 +682,15 @@ class Game_Client{
 
         this.canvas_table.addEventListener('wheel', (event)=> {
             //console.log(event.deltaY);
-            this.table.camera.angle_x=event.deltaX/40+this.table.camera.angle_x
-            this.table.camera.angle_y=event.deltaY/40+this.table.camera.angle_y
-            // this.table.camera.add_rotate_prescent(event.deltaY)
-            // this.table.camera.update()
+            //this.table.camera.angle_x=event.deltaX/40+this.table.camera.angle_x
+            //this.table.camera.angle_y=event.deltaY/40+this.table.camera.angle_y
+            if (this.selectionPage.in_selection==false){
+                this.table.camera.add_rotate_prescent(event.deltaY)
+                this.table.camera.update()
+            }
+            
+
+            this.selectionPage.rotate_cards(event.deltaX)
            
             event.preventDefault();
         });
@@ -791,7 +809,28 @@ class Game_Client{
         return false   
     }
     battle_move_activate(card){
-
+        if (card instanceof Creature_Battle && ((card.position_in_screen[1][1]+card.position_in_screen[2][1])/2<this.canvas_table.height/3)){
+            if (this.table.player_self.my_turn){
+                for (let card_self_battle_i in this.table.self_battlefield){
+                    if(this.table.self_battlefield[card_self_battle_i]===card){
+                        const values = [this.self_player.name,'select_attacker',card_self_battle_i];
+                        this.socket_main.send(values.join('|'));
+                        return true
+                    }
+                }
+            }
+            else{
+                for (let card_self_battle_i in this.table.self_battlefield){
+                    if(this.table.self_battlefield[card_self_battle_i]===card){
+                        const values = [this.self_player.name,'select_defender',card_self_battle_i];
+                        this.socket_main.send(values.join('|'));
+                        return true
+                    }
+                }
+            }
+            
+        }
+        return false
     }
     hand_move_activate(card){
         console.log((card.position_in_screen[1][1]+card.position_in_screen[2][1])/2<this.canvas_table.height/3)
@@ -855,6 +894,23 @@ class Game_Client{
         return false
         
     }
+
+    //////////////////////////////////////////////////
+    end_selection(card){
+        if (this.selectionPage.check_card_in_list(card)){
+            
+            this.resolveSelectInput(card)
+        }
+        
+    }
+    get_selected_input(){
+        return new Promise((resolve) => {
+            this.resolveSelectInput = resolve;
+        });
+    }
+    // select_object(){
+
+    // }
 
 }
 

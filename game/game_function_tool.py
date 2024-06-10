@@ -6,6 +6,11 @@ import json
 
 from pydantic import validate_call,BaseModel
 from typing_extensions import Literal
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game.card import Card
+    from game.room import Room
+    from game.player import Player
 #from pycards import *
 
 
@@ -20,14 +25,84 @@ def validate_all_methods(cls):
     return cls
 
 
-@validate_call
-async def send_select_request(type:str,number:int):
-    return type
 
-def check_select_valid(selected_object):
-    return 
+async def send_select_request(card:'Card',type:str,number:int):
+    room=card.player.room
+    player=card.player
+    objects=[]
+    for i in range(number):
+        async with player.selection_lock:
+            await player.send_text(f"select({type})")
+            data =await player.receive_text()# ...|player;区域;index
+            print(data)
+            obj=get_object(data,room,type)
+            if obj:objects.append(obj)
+    return objects
+def get_object(data:str,room:'Room',type:str):#名字，选择类型（field或者cards），（场地名{self_battlefield,opponent_battlefield,self_landfield,opponent_landfield}或者player{self,oppo}），如果是场地index。cards直接index
+    parameters=data.split("|")
+    player:'Player'=room.players[parameters[0]]
 
-@validate_call
+    field_dict={
+        "self_battlefield":player.battlefield,
+        "opponent_battlefield":player.opponent.battlefield,
+        "self_landfield":player.land_area,
+        "opponent_landfield":player.opponent.land_area,
+        
+    }
+    player_dict={
+        "self":player,
+        "oppo":player.opponent,
+    }
+    obj=''
+    if parameters[1]=="field":#选择类型（field或者cards）
+        if parameters[2] in field_dict:
+            index=int(parameters[3])
+            obj=field_dict[parameters[2]][index]
+        elif parameters[2] in player_dict:
+            obj= player_dict[parameters[2]]
+    if obj and check_select_valid(player,obj,type):
+        return obj
+    else:
+        return False
+    
+    
+
+
+def check_select_valid(player:'Player',selected_object,type_selection:str):
+    self_player=player
+    oppo_player=player.opponent
+    
+    type_dict={
+        'all_roles':[self_player.battlefield,oppo_player.battlefield,oppo_player,self_player],
+        'opponent_roles':[oppo_player.battlefield,oppo_player], 
+        'your_roles':[self_player.battlefield,self_player],
+        'all_creatures':[self_player.battlefield,oppo_player.battlefield],
+        'opponent_creatures':[oppo_player.battlefield],
+        'your_creatures':[self_player.battlefield],
+        'all_lands':[self_player.land_area,oppo_player.land_area],
+        'opponent_lands':[oppo_player.land_area],
+        'your_lands':[self_player.land_area], 
+    }
+    type_player=type(self_player)
+
+    if type_selection in type_dict:
+        for element in type_dict[type_selection]:
+            if isinstance(element,type_player)  :
+                if selected_object==element:
+                    return True
+            else:
+                #print(element)
+                
+                if selected_object in element:
+                    return True
+    return False
+            
+
+
+
+# def check_have_object(type):
+#     pass
+
 def select_object(type:Literal['all_roles',#分为两个阶段，准备阶段和使用阶段，询问选择对象为准备阶段，会返回一个function，调用这个function为使用阶段
                                'opponent_roles', #只有在creature的战吼，sorcery的打出的能力，和instant 打出能力时，会用到
                                'your_roles',
@@ -45,7 +120,7 @@ def select_object(type:Literal['all_roles',#分为两个阶段，准备阶段和
 
     def new_decorator(func):
         async def new_func(self,*args, **kwargs):
-            objects=await send_select_request(type,number) if type else ()
+            objects=await send_select_request(self,type,number) if type else ()
             
             kwargs[key_word] = objects
             def prepared_function():

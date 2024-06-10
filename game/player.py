@@ -6,8 +6,9 @@ if __name__=="__main__":
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from fastapi import WebSocket
+    from game.room import Room
 import random
-
+import asyncio
 
 
 #from game.action import Action
@@ -16,8 +17,8 @@ from game.card import Card
 from initinal_file import CARD_DICTION
 from game.type_cards.creature import Creature
 from game.type_cards.land import Land
-
-
+from starlette.websockets import WebSocketDisconnect
+import game.custom_print
 
   
 
@@ -82,16 +83,23 @@ class Player:
         #defenders
         #self.defenders:list[Card]=None
 
-        #the socket used to select object
-        self.socket_select_object:"WebSocket"
+        
 
         #游戏还没有开始
         self.deck:list[Card]=[]
         self.initinal_decks(decks_detail)
         self.initinal_card_dict()
+
+        #the socket used to select object
+        self.socket_select_object:"WebSocket"
+        #用于锁，确保每一次只想client发一个请求
+        self.selection_lock = asyncio.Lock()
+        self.socket_connected_flag=False
+        self.selection_event=asyncio.Event()
     
-    def set_opponent_player(self,opponent:"Player"):
+    def set_opponent_player(self,opponent:"Player",room:'Room'):
         self.opponent:"Player"=opponent
+        self.room:'Room'=room
 
 
     def set_socket(self,socket):
@@ -154,6 +162,17 @@ class Player:
     def change_live(self,change_of_live:int):
         pass
 
+   
+    def take_damage(self,card:Card,value:int)->int:
+        self.life-=value
+        self.when_dealt_damage(card,value)
+
+    async def check_dead(self):
+       if self.life<=0:
+           self.flag_dict["die"]=True
+           return True
+       else:
+           return False
     
 
     def select_attacker(self,card:Creature):# select_creature_as_attacker, the index of battlefield
@@ -169,11 +188,13 @@ class Player:
     def gain_life_player(self):# gain life to player
         pass
 
-    def when_dealt_damage(self):#when players live decrease
+    def when_dealt_damage(self,card:"Creature",value:int):#when players live decrease
         pass
 
     def when_gaining_life(self):#when players live increase
         pass
+
+    
 
     async def play_a_card(self,card:Card):# player 打出一张牌
         checked_result=card.check_can_use(self)
@@ -209,6 +230,7 @@ class Player:
             # card.when_die(self,self.opponent)
             # card.when_leave_battlefield(self,self.opponent,'graveyard')
         return result
+    
 
     def beginning_phase(self):#开始阶段
         
@@ -250,6 +272,8 @@ class Player:
     async def cleanup_step(self):#清理步骤（Cleanup Step）：玩家将手牌调整至最大手牌限制，移除所有“直到回合结束”类的效果，并移除所有受到的伤害。清空法术力（包括敌方）
         self.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
         self.opponent.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
+        self.action_store.add_action(actions.Change_Mana(self,self,self.get_manas()))
+        self.opponent.action_store.add_action(actions.Change_Mana(self.opponent,self.opponent,self.opponent.get_manas()))
 
     def get_card_index(self,index:int,type:str):# get card by index,type:battlefield,hand,land_area
         deck_type={
@@ -317,6 +341,40 @@ class Player:
             if key!="colorless":
                 result.append(self.mana[key])
         return result
+    
+    async def send_selection_cards(self,card,selected_cards:list[Card],select_times:int):
+        async with self.selection_lock:
+            pass
+
+    async def send_selection_players(self,card,select_times:int):
+        async with self.selection_lock:
+            pass
+    async def receive_text(self):
+        data=''
+        try:
+            data =await self.socket_select_object.receive_text()
+            
+        except WebSocketDisconnect as e:
+            await self.socket_select_object.close()
+            self.socket_select_object=None
+            self.selection_event.set()
+        return data
+        
+            
+
+    async def send_text(self,message):
+        try:
+            await self.socket_select_object.send_text(message)
+            
+        except WebSocketDisconnect as e:
+            await self.socket_select_object.close()
+            self.socket_select_object=None
+            self.selection_event.set()
+        
+
+    async def wait_selection_socket(self):
+        await self.selection_event.wait()
+
     def text(self,player)-> str:
         if self.name==player.name:
             return f"player({self.name},Self)"

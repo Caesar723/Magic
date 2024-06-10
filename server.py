@@ -272,21 +272,28 @@ async def entering_game(websocket: WebSocket,username: str = Depends(get_current
         if e.code == 1001:
             print("Connection closed by the client or server going away.")
     finally:
-        await websocket.close()
+        if not websocket.client_state == WebSocket.DISCONNECTED:
+            await websocket.close()
 
 @app.websocket("/select_object")
 async def select_object(websocket: WebSocket,username: str = Depends(get_current_user_socket(database))):#
     if type(username)==RedirectResponse:
         return username
     await websocket.accept()
+    print(websocket,username)
     room:Room=room_server.find_player_room(username)
+    player=room.set_select_socket(websocket,username)
+    # while player.socket_connected_flag:
+    #     #await websocket.send_text("select(all_roles)")
+    await player.wait_selection_socket()
+        
     
 
 
 
 def main():
     import uvicorn
-    uvicorn.run(app, host="172.16.5.14", port=8000, ssl_keyfile="private.key", ssl_certfile="certificate.crt",reload=True)
+    uvicorn.run(app, host="172.16.6.78", port=8000, ssl_keyfile="private.key", ssl_certfile="certificate.crt",reload=True)
 
 if __name__=="__main__":
     main()

@@ -311,8 +311,10 @@ class Card{
                     1038);
                 ctx.font = '20px Georgia';
                 ctx.fillStyle = 'black';
+                ctx.textAlign = 'center';  // 水平居中
+                //ctx.textBaseline = 'middle';
                 
-                ctx.fillText(splited[i], color_less.width*(20-1.5*i)/24,color_less.height*3.95/3);
+                ctx.fillText(splited[i], color_less.width*(20-1.5*i)/24+10,color_less.height*3.95/3);
                 
             }
             else{

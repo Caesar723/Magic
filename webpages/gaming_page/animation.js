@@ -297,6 +297,7 @@ class Creature_Start_Attack extends Animation{
     }
 
     finished(){
+        //console.log(this.object_hold.battle.moving)
         return !this.object_hold.battle.moving
     }
 }
@@ -307,6 +308,7 @@ class Creature_Prepare_Attack extends Animation{
     }
     set_animate(){
         this.object_hold.battle.mode="attack"
+        this.object_hold.battle.moving_cache.push(["rotate_to_point",[this.player.oppo.player_life_ring.position]])
     }
     draw_action(ctx,canvas,camera){
         super.draw_action(ctx,canvas,camera)
@@ -378,13 +380,9 @@ class Activate_Ability extends Animation{//就是将卡牌横置
         //console.log(this.object_hold.battle,this.object_hold)
         this.object_hold.battle.z_index=-1;
         this.object_hold.battle.activated=true
-        this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
-            this.object_hold.battle.accurate_position[0]+1,
-            this.object_hold.battle.accurate_position[1],
-            this.object_hold.battle.accurate_position[2],
-        ]]])
+        this.object_hold.battle.moving_cache.push(["rotate_to_point",[0]])
         
-        console.log([
+        console.log(this.object_hold.battle.accurate_position,this.object_hold.battle.position,[
             this.object_hold.battle.accurate_position[0]+1,
             this.object_hold.battle.accurate_position[1],
             this.object_hold.battle.accurate_position[2],
@@ -724,6 +722,7 @@ class Turn extends Animation{
         this.name='Turn'
     }
     set_animate(){
+        console.log(this.player,this.player.table.player_self.my_turn)
         if (this.player instanceof Opponent){
             this.player.table.timmer_turn.change_yellow()
             this.player.table.player_self.my_turn=false
@@ -732,6 +731,7 @@ class Turn extends Animation{
             this.player.table.timmer_turn.change_green()
             this.player.table.player_self.my_turn=true
         }
+        console.log(this.player.table.player_self.my_turn)
     }
 }
 

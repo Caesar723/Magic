@@ -49,6 +49,10 @@ class Table{
         this.player_oppo=player_oppo
         this.player_self.table=this
         this.player_oppo.table=this
+
+        player_self.oppo=player_oppo
+        player_oppo.oppo=player_self
+
     }
 
     arrange_cards_battle(arr,unit){//1:self,-1:opponent
@@ -157,6 +161,11 @@ class Table{
         this.deck_self_graph.update(this.camera)
         this.deck_oppo_graph.update(this.camera)
         //battle
+        
+        this.arrange_cards_battle(this.self_battlefield,1)
+        this.arrange_cards_battle(this.opponent_battlefield,-1)
+        this.arrange_cards_land(this.self_landfield,1)
+        this.arrange_cards_land(this.opponent_landfield,-1)
         for (let i_self in this.self_battlefield){
             
             this.self_battlefield[i_self].update(this.camera)
@@ -174,11 +183,11 @@ class Table{
             
             this.opponent_landfield[i_oppo].update(this.camera)
         }
-        this.arrange_cards_battle(this.self_battlefield,1)
-        this.arrange_cards_battle(this.opponent_battlefield,-1)
+        
+        
 
-        this.arrange_cards_land(this.self_landfield,1)
-        this.arrange_cards_land(this.opponent_landfield,-1)
+        
+        
         this.self_battlefield= this.self_battlefield.filter(item => !(this.self_battlefield_delete.includes(item)))
         this.opponent_battlefield=this.opponent_battlefield.filter(item => !(this.opponent_battlefield_delete.includes(item)))
         
@@ -287,5 +296,20 @@ class Table{
         this.self_landfield.sort(function(a, b) {
             return a.z_index - b.z_index;
         });
+    }
+
+    get_self_battlefield(){
+        return this.self_battlefield
+    }
+    get_opponent_battlefield(){
+        return this.opponent_battlefield
+    }
+
+    get_self_landfield(){
+        return this.self_landfield
+    }
+
+    get_opponent_landfield(){
+        return this.opponent_landfield
     }
 }

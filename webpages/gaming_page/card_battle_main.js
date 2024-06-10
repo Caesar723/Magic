@@ -114,6 +114,7 @@ class Creature_Battle extends Card_Battle {
         else if (attacted_obj instanceof Creature_Battle){
             attacted_obj.mode="none"
             attacted_obj.change_state(...state_attacted_obj)
+            attacted_obj.moving_cache.push(["rotate_to_point",[90]])
             // Life=state_attacted_obj[1]
             // attacted_obj.Damage=state_attacted_obj[0]
         }
