@@ -86,9 +86,9 @@ class Creature(Card):
 
     
 
-    #Here are listeners
+    #Here are listeners 注意，这个是异步函数
     @select_object("",1)
-    def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
         pass
 
     def when_leave_battlefield(self,player: "Player" = None, opponent: "Player" = None,name:str='battlefield'):# when creature leave battlefield
@@ -182,11 +182,15 @@ class Creature(Card):
     async def when_play_this_card(self, player: "Player" = None, opponent: "Player" = None):# when player use the card OK
         await super().when_play_this_card(player, opponent)
 
-        player.remove_card(self,"hand")
-        player.append_card(self,"battlefield")
+        
 
 
         prepared_function=await self.when_enter_battlefield(player,opponent)
+        if prepared_function=="cancel":
+            return prepared_function
+
+        player.remove_card(self,"hand")
+        player.append_card(self,"battlefield")
 
         print("battlefield")
         return prepared_function

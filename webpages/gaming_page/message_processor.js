@@ -113,7 +113,8 @@ class Message_Processor{
             "timer_bullet":this.time_bullet.bind(this),
             "start_bullet":this.start_bullet.bind(this),
             "end_bullet":this.end_bullet.bind(this),
-            "select":this.select.bind(this)
+            "select":this.select.bind(this),
+            "end_select":this.end_select.bind(this)
             
         }
         //this.state(1,2,3,4,5)
@@ -386,16 +387,46 @@ class Message_Processor{
         this.client.table.timmer_bullet.change_yellow()
     }
 
+
+
     async select(type,cards){
         console.log(type,cards)
         this.client.selectionPage.start_selection(type,cards)
         let object=await this.client.get_selected_input()
-        const values = this.client.selectionPage.get_object_parameter(object);//名字，选择类型（field或者cards），（场地名{self_battlefield,opponent_battlefield,self_landfield,opponent_landfield}或者player{self,oppo}），如果是场地index。cards直接index
-        console.log(values)
-        this.client.selectionPage.end_selection()
-        this.client.socket_select.send(values.join('|'));
+        if (object=="cancel"){
+            return 
+        }
+        else if (object=="cancel_client"){
+            const values=[this.client.self_player.name,"cancel"]
+            this.client.socket_select.send(values.join('|'));
+            return 
+        }
+        else{
+            const values = this.client.selectionPage.get_object_parameter(object);//名字，选择类型（field或者cards），（场地名{self_battlefield,opponent_battlefield,self_landfield,opponent_landfield}或者player{self,oppo}），如果是场地index。cards直接index
+            console.log(values)
+            this.client.selectionPage.end_selection()
+            this.client.socket_select.send(values.join('|'));
+            return
+        }
+        
 
 
+    }
+
+    end_select(){
+        if (this.client.selectionPage.in_selection){
+            console.log("end")
+            this.client.selectionPage.end_selection()
+            this.client.resolveSelectInput("cancel")
+            
+        }
+    }
+
+    win(){
+
+    }
+    lose(){
+        
     }
     extractParts(str) {
         const indexOfFirstParenthesis = str.indexOf('('); // 找到第一个 '(' 的索引

@@ -15,6 +15,7 @@ import time
 from typing import Union,TYPE_CHECKING
 if TYPE_CHECKING:
     from fastapi import WebSocket
+    from game.room_server import RoomServer
 
 
 from game.player import Player
@@ -31,7 +32,9 @@ import game.custom_print
 class Room:
     
     
-    def __init__(self,players:list[tuple]) -> None:#((deck,user_name1),...)
+    def __init__(self,players:list[tuple],room_server:"RoomServer") -> None:#((deck,user_name1),...)
+        self.room_server=room_server #room_server可以用来删除room 和更新用户的任务
+
         self.gamming=True #如果在游戏的话就是True，没有就是False
 
         #used to store all action
@@ -130,6 +133,17 @@ class Room:
         print("发送消息")
         asyncio.create_task(tasks(self))
         # asyncio.run(main())
+
+
+    #finish game 给客户发送胜利/失败的消息。
+    #关闭socket，gaming=false，
+    #把两个player交给room server，用来收集任务进度，
+    #最后room server把房间移除，玩家移除
+    async def game_end(self,died_player:list):
+        if len(died_player)==2:
+            pass
+        else:
+            pass
         
 
     async def start_attack(self,defender:Union[Creature,Player]):# attacker and defenders start attack
@@ -206,6 +220,7 @@ class Room:
 
     async def end_bullet_time(self):#bullet_time is 0
         self.bullet_timer=0
+        self.flag_dict["bullet_time"]=False
         await self.check_timer_change("timer_bullet",self.bullet_timer)
         self.initinal_turn_timer+=time.perf_counter()-self._elapsed_time
 
@@ -217,11 +232,12 @@ class Room:
         key="{}_bullet_time_flag"
         for un in self.players:#username
             self.flag_dict[key.format(un)]=False
-
+        
         while self.stack:
             func,card=self.stack.pop()
             self.action_processor.start_record()
-            result=func()
+            print(func,card)
+            result=await func()
             self.action_processor.end_record()
             if result=="defender" and isinstance(card,Creature) :
 
@@ -245,7 +261,7 @@ class Room:
             self.flag_dict["attacker_defenders"]=False
             print(self.flag_dict["attacker_defenders"])
         await self.check_death()
-        self.flag_dict["bullet_time"]=False
+        
 
         self.attacker=None
 
@@ -275,6 +291,8 @@ class Room:
 
     async def change_turn(self):# when active_player end turn
         await self.active_player.ending_phase()
+        await self.active_player.cancel_future_function()
+        await self.non_active_player.cancel_future_function()
         self.active_player,self.non_active_player=self.non_active_player,self.active_player
         
         self.active_player.beginning_phase()
@@ -348,7 +366,9 @@ class Room:
             self.action_processor.start_record()
             self.action_processor.add_action(actions.Creature_Prepare_Defense(card,player,self.attacker,False))
             player.select_defender(card)
-            prepared_function=lambda: "defender"
+            async def prepared_function():
+                return "defender"
+            #prepared_function=lambda: "defender"
             await self.put_prepared_function_to_stack(prepared_function,card)
             card.when_become_defender(player,player.opponent)
             self.action_processor.end_record()
@@ -465,15 +485,21 @@ class Room:
             self.counter_dict[key]=number
 
     async def check_death(self):
-
+        died_player=[]
         for name in self.players:
+
+            if (await self.players[name].check_dead()):
+                died_player.append(self.players[name])
+
             for creature in self.players[name].battlefield:
                 await self.players[name].check_creature_die(creature)
-
+        if (died_player):
+            self.game_end(died_player)
     async def action_sender(self):
         while self.gamming:
             print("action_sender 检查一次")
             if not self.action_store_list_cache:
+                
                 async with self.action_store_list_cache_condition:
                     await self.action_store_list_cache_condition.wait_for(lambda: len(self.action_store_list_cache) > 0)  # 等待队列不为空
             action:actions.List_Action=self.action_store_list_cache.pop(0)

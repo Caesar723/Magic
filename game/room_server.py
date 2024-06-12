@@ -22,7 +22,7 @@ class RoomServer:
             return "no room found"
 
     async def create_new_room(self,client_1:tuple,client_2:tuple):
-        room=Room([client_1,client_2])
+        room=Room([client_1,client_2],self)
 
         self.client_room[client_1[1]]=room
         self.client_room[client_2[1]]=room

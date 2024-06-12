@@ -271,9 +271,10 @@ async def entering_game(websocket: WebSocket,username: str = Depends(get_current
         print(f"WebSocket disconnected with code: {e.code}")
         if e.code == 1001:
             print("Connection closed by the client or server going away.")
-    finally:
-        if not websocket.client_state == WebSocket.DISCONNECTED:
-            await websocket.close()
+    except Exception as e:
+        await websocket.close()
+        
+        
 
 @app.websocket("/select_object")
 async def select_object(websocket: WebSocket,username: str = Depends(get_current_user_socket(database))):#

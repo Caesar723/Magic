@@ -92,6 +92,8 @@ class Card:
     def cure_to_object(self,object):# it won't get hurt
         self.player.action_store.add_action(actions.Cure_To_Object(self,self.player,object))
     
+    async def selection_step(self, player: "Player" = None, opponent: "Player" = None)->list:# 当打出牌是，会调用此函数，给用户发送卡牌选项,返回项必须是数组
+        return []
     async def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card return prepared function
         pass
         
@@ -101,9 +103,11 @@ class Card:
         #     return checked_result
         # else:
         self.player.action_store.start_record()
-        self.player.action_store.add_action(actions.Play_Cards(self,self.player))
+        
     
         prepared_function=await self.when_play_this_card(player,opponent)
+        if prepared_function!="cancel":
+            self.player.action_store.add_action(actions.Play_Cards(self,self.player))
         self.player.action_store.end_record()
         return (True,prepared_function)
     
@@ -132,6 +136,15 @@ class Card:
 
     def when_an_object_hert(self,object):#当一个card or 人物收到伤害，object是card 或者 player
         pass
+
+    def create_selection(self,content:str,index:int):#生成一个selection，图片和名字是一样的，但是type_card和content是选项内容
+        _class=type(self)
+        new_selection=_class(self.player)
+        new_selection.content=content
+        new_selection.type_card=f"Selection {index}"
+        new_selection.selection_index=index
+        return new_selection
+
     
     def text(self,player:'Player',show_hide:bool=False)-> str:
         pass

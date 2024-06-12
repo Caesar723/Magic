@@ -7,6 +7,7 @@ import json
 from pydantic import validate_call,BaseModel
 from typing_extensions import Literal
 from typing import TYPE_CHECKING
+import asyncio
 if TYPE_CHECKING:
     from game.card import Card
     from game.room import Room
@@ -27,17 +28,29 @@ def validate_all_methods(cls):
 
 
 async def send_select_request(card:'Card',type:str,number:int):
-    room=card.player.room
-    player=card.player
-    objects=[]
-    for i in range(number):
-        async with player.selection_lock:
-            await player.send_text(f"select({type})")
-            data =await player.receive_text()# ...|player;区域;index
-            print(data)
-            obj=get_object(data,room,type)
-            if obj:objects.append(obj)
-    return objects
+    try:
+        room=card.player.room
+        player=card.player
+        objects=[]
+        if type:
+            for i in range(number):
+                async with player.selection_lock:
+                    await player.send_text(f"select({type})")
+                    data =await player.receive_text()# ...|player;区域;index
+                    print(data)
+                    obj=get_object(data,room,type)
+                    if obj:objects.append(obj)
+            #return objects
+        else:
+            objects=await card.selection_step(player,player.opponent)
+            #return objects
+        if ("cancel" in objects):
+            raise asyncio.CancelledError("Client cancellation")
+        else:
+            return objects
+    except asyncio.CancelledError:
+        return "cancel"
+    
 def get_object(data:str,room:'Room',type:str):#名字，选择类型（field或者cards），（场地名{self_battlefield,opponent_battlefield,self_landfield,opponent_landfield}或者player{self,oppo}），如果是场地index。cards直接index
     parameters=data.split("|")
     player:'Player'=room.players[parameters[0]]
@@ -60,6 +73,8 @@ def get_object(data:str,room:'Room',type:str):#名字，选择类型（field或�
             obj=field_dict[parameters[2]][index]
         elif parameters[2] in player_dict:
             obj= player_dict[parameters[2]]
+    elif parameters[1]=="cancel":
+        return "cancel"
     if obj and check_select_valid(player,obj,type):
         return obj
     else:
@@ -119,12 +134,15 @@ def select_object(type:Literal['all_roles',#分为两个阶段，准备阶段和
     key_word="selected_object"
 
     def new_decorator(func):
-        async def new_func(self,*args, **kwargs):
-            objects=await send_select_request(self,type,number) if type else ()
-            
+        async def new_func(self:"Card",*args, **kwargs):
+            self.player.future_function=asyncio.create_task(send_select_request(self,type,number))
+            objects=await self.player.future_function
+            print(objects)
+            if objects=="cancel":
+                return "cancel"
             kwargs[key_word] = objects
-            def prepared_function():
-                func(self,*args,**kwargs)
+            async def prepared_function():
+                await func(self,*args,**kwargs)
             return prepared_function
         return new_func
     return new_decorator

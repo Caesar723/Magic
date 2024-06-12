@@ -38,7 +38,7 @@ class Land(Card):
         return {}
 
     @select_object("",1)
-    def when_enter_battlefield(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
+    async def when_enter_battlefield(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
         pass
 
     def when_leave_battlefield(self):
@@ -78,10 +78,13 @@ class Land(Card):
     async def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card
         await super().when_play_this_card(player, opponent)
 
-        player.remove_card(self,"hand")
-        player.append_card(self,"land_area")
+       
 
         prepared_function=await self.when_enter_battlefield(player,opponent)
+        if prepared_function=="cancel":
+            return prepared_function
+        player.remove_card(self,"hand")
+        player.append_card(self,"land_area")
         return prepared_function
 
     def text(self,player:'Player',show_hide:bool=False)-> str:

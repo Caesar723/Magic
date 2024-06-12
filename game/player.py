@@ -83,6 +83,8 @@ class Player:
         #defenders
         #self.defenders:list[Card]=None
 
+        self.future_function:asyncio.Task=""#done(): 判断 Future 是否已经完成（无论是正常完成还是抛出异常）。
+
         
 
         #游戏还没有开始
@@ -153,6 +155,10 @@ class Player:
     def draw_card(self,number:int):# draw x cards from library
         self.action_store.start_record()
         for i in range(number):
+            if not (self.library):
+                self.flag_dict["die"]=True
+                self.action_store.end_record()
+                return 
             card=self.library[0]
             self.remove_card(card,'library')
             self.append_card(card,'hand')
@@ -170,9 +176,8 @@ class Player:
     async def check_dead(self):
        if self.life<=0:
            self.flag_dict["die"]=True
-           return True
-       else:
-           return False
+           
+       return self.get_flag("die")
     
 
     def select_attacker(self,card:Creature):# select_creature_as_attacker, the index of battlefield
@@ -200,6 +205,12 @@ class Player:
         checked_result=card.check_can_use(self)
         print(checked_result)
         if checked_result[0]:
+
+            result=await card.when_use_this_card(self,self.opponent)
+            print(result)
+            if result[1]=="cancel":
+                await self.send_text("end_select()")
+                return (False,"Selection Error")
             self.action_store.start_record()#
             for land in checked_result[1]:
                 if not await land.when_clicked(self,self.opponent):
@@ -208,18 +219,19 @@ class Player:
             self.action_store.end_record()
 
             self.action_store.start_record()#
-            self.mana_consumed(card)
+            self.mana_consumed(card.cost)
             self.action_store.add_action(actions.Change_Mana(card,self,self.get_manas()))
             self.action_store.end_record()
             
             
-            result=await card.when_use_this_card(self,self.opponent)
+            
             
             print(result)
             #result[1]()
             return result
         else:
             return checked_result
+        
     
     async def check_creature_die(self,card:Creature):
         result=await card.check_dead()
@@ -325,8 +337,8 @@ class Player:
             elif type=='battlefield' or type=='land_area':
                 self.action_store.add_action(actions.Summon(card,self))
 
-    def mana_consumed(self,card:"Card"):#自己的魔力池减少
-        cost=card.cost
+    def mana_consumed(self,cost:"dict"):#自己的魔力池减少
+        #cost=card.cost
         for key in cost:
             self.mana[key]-=cost[key]
         if self.mana["colorless"]<0:
@@ -342,13 +354,31 @@ class Player:
                 result.append(self.mana[key])
         return result
     
-    async def send_selection_cards(self,card,selected_cards:list[Card],select_times:int):
+    async def send_selection_cards(self,selected_cards:list[Card]):
         async with self.selection_lock:
-            pass
+            cards=','.join([card.text(self,False) for card in selected_cards])
+            await self.send_text(f"select(cards,parameters({cards}))")
+            data =await self.receive_text()# ...|player;区域;index
+            selected_card=self.get_object(selected_cards,data)
+        return selected_card
+    
+    def get_object(self,selected_cards:list[Card],data:str):
+        parameters=data.split("|")
+        room=self.room
+        if parameters[1]=="cards" and room.players[parameters[0]]==self:
+            index=int(parameters[2])
+            if index<len(selected_cards):
+                return selected_cards[index]
+        elif parameters[1]=="cancel":
+            return "cancel"
 
-    async def send_selection_players(self,card,select_times:int):
-        async with self.selection_lock:
-            pass
+        
+
+
+    # async def send_selection_players(self,card):
+    #     async with self.selection_lock:
+    #         pass
+
     async def receive_text(self):
         data=''
         try:
@@ -375,6 +405,55 @@ class Player:
     async def wait_selection_socket(self):
         await self.selection_event.wait()
 
+    async def cancel_future_function(self):
+        if (isinstance(self.future_function,asyncio.Task)) and (not self.future_function.done()):
+            self.future_function.cancel()
+            #await self.send_text("end_select()")
+
+    def check_can_use(self,cost:dict)->tuple[bool]:#cost={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
+        player_mana=dict(self.mana)
+        difference={key:cost[key]-player_mana[key] for key in player_mana}
+        sum_negative_numbers = sum(difference[key] for key in difference if (difference[key] < 0 and key!='colorless'))
+        difference["colorless"]+=sum_negative_numbers
+        #print(player_mana,cost,difference)
+        land_store=[]
+
+        for land in self.land_area:
+            if land.check_can_use(self)[0]:
+                mana=land.generate_mana()
+                #print(mana)
+                for key in mana:
+                    if difference[key]>0:
+                        difference[key]-=mana[key]
+                        land_store.append(land)
+                    elif difference["colorless"]>0:
+                        difference["colorless"]-=mana[key]
+                        land_store.append(land)
+        all_values_less_than_zero = all(value <= 0 for value in difference.values())
+        if all_values_less_than_zero:
+            return (True,land_store)#第二个list是如果用[。。。]这些就可以打出这个牌
+        else:
+            return (False,"not enough cost")
+    
+    async def generate_and_consume_mana(self,lands,cost,card:"Card"):#把generate mana 和consume mana 合并到一起
+        self.action_store.start_record()#
+        for land in lands:
+            if not await land.when_clicked(self,self.opponent):
+                return (False,"Can't use land")
+        self.action_store.add_action(actions.Change_Mana(self,self,self.get_manas()))
+        self.action_store.end_record()
+
+        self.action_store.start_record()#
+        self.mana_consumed(cost)
+        self.action_store.add_action(actions.Change_Mana(card,self,self.get_manas()))
+        self.action_store.end_record()
+
+    def get_flag(self,flag_name:str):
+        if flag_name in self.flag_dict:
+            return self.flag_dict[flag_name]
+        else:
+            return False
+        
     def text(self,player)-> str:
         if self.name==player.name:
             return f"player({self.name},Self)"

@@ -17,7 +17,7 @@ class Instant(Card):
         super().__init__(player)
 
     @select_object("",1)
-    def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
+    async def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
         pass
 
     def calculate_spell_power(self):
@@ -29,9 +29,13 @@ class Instant(Card):
     async def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card
         await super().when_play_this_card(player, opponent)
 
-        player.remove_card(self,"hand")
+       
 
         prepared_function=await self.card_ability(player,opponent)
+        if prepared_function=="cancel":
+            return prepared_function
+
+        player.remove_card(self,"hand")
         
         return prepared_function
     

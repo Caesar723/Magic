@@ -13,11 +13,11 @@ class Selection_Page{
 
 
         this.selection_list=[]
-        for (let i=0 ;i<10;i++){
-            const can=this.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-            const card=new Creature_Hand(4,5.62,[0,0,60],1.6,can,"10UU",20,20,20,20,"Caesar",1122334455)
-            this.selection_list.push(card)
-        }
+        // for (let i=0 ;i<10;i++){
+        //     const can=this.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
+        //     const card=new Creature_Hand(4,5.62,[0,0,60],1.6,can,"10UU",20,20,20,20,"Caesar",1122334455)
+        //     this.selection_list.push(card)
+        // }
         
         
         this.selection_mode=''
@@ -47,8 +47,14 @@ class Selection_Page{
     }
 
     set_selection_page(cards){
-        this.selection_list=cards
-        
+        console.log(cards)
+        let copy_cards=[]
+        for (let card of cards){
+            const hand_card=Animation.check_hand(card,false,this.self_player)
+            copy_cards.push(hand_card.get_copy())
+        }
+        this.selection_list=copy_cards
+        this.initinal_matrix(cards.length)
     }
 
     start_selection(mode,cards){
@@ -78,6 +84,7 @@ class Selection_Page{
         if (this.selection_mode=="cards"){
             this.selection_mode=''
             this.in_selection=false
+            this.selection_list=[]
             
         }
         else if (this.selection_mode in this.selection_dict){
@@ -130,7 +137,7 @@ class Selection_Page{
 
     check_mouse_in_selection(mouse_pos){//返回card或者是undefine
         if (this.selection_mode=="cards"){
-            for(let card of this.selection_list){
+            for(let card of this.sort_cards_check()){
                 if (card.check_inside(mouse_pos,...card.position_in_screen)){
                     return card
                 }
@@ -162,6 +169,7 @@ class Selection_Page{
     get_object_parameter(obj){
         console.log(obj)
         if (this.selection_mode=="cards"){
+            //console.log(this.sort_cards_check())
             for(let i in this.selection_list){
                 if (this.selection_list[i]===obj){
                     return [this.self_player.name,"cards",i]
@@ -208,7 +216,7 @@ class Selection_Page{
             var len=length;
         }
         for (let i=0 ;i<length;i++){
-            const angle=(2*math.pi/len)*i
+            const angle=(2*math.pi/len)*(-i)
             var new_point=math.multiply(rotateY(angle),initinal_point);
             arr_x.push(new_point.get([0,0]));
             arr_y.push(new_point.get([1,0]));
@@ -259,6 +267,11 @@ class Selection_Page{
     sort_cards(){
         return this.selection_list.slice().sort(function(a, b) {
             return -a.position[2] + b.position[2];
+          });
+    }
+    sort_cards_check(){
+        return this.selection_list.slice().sort(function(a, b) {
+            return a.position[2] - b.position[2];
           });
     }
 }

@@ -32,7 +32,7 @@ class Merfolk_Wayfinder(Creature):
         self.image_path:str="cards/creature/Merfolk Wayfinder/image.jpg"
 
     @select_object("opponent_roles",1)
-    def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
         print(selected_object)
 
 

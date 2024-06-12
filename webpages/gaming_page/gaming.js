@@ -50,6 +50,9 @@ class Game_Client{
 
         
         this.resolveSelectInput= '';
+
+        this.grayscale=0;
+        this.blur_value=0;
     }
     // async initinal_players(){
     //     console.log(await this.get_players_name())
@@ -154,6 +157,8 @@ class Game_Client{
         
         this.show_2d.update()
         this.selectionPage.update()
+
+        this.blur_changing()
     }
     draw(){
         //this.ctx_table.filter = 'grayscale(100%)';
@@ -161,11 +166,58 @@ class Game_Client{
         this.oppo_player.draw()
         this.self_player.draw()
         this.ctx_table.filter = 'none';
+        if (this.action_bar.mode=="show"){
+            this.blur_effect(this.grayscale,this.blur_value)
+        }
         this.action_bar.draw(this.canvas_table,this.ctx_table,this.self_player.camera)
         this.show_2d.draw()
+        if (this.selectionPage.in_selection && this.selectionPage.selection_mode=="cards" ){
+            this.blur_effect(this.grayscale,this.blur_value)
+        }
         this.selectionPage.draw()
 
 
+    }
+    blur_changing(){
+        const value_change_grayscale=5
+        const value_change_blur=0.5
+        var max_blur=0;
+        var max_grayscale=0;
+
+        if (this.action_bar.mode=="show"){
+            max_blur=10
+            max_grayscale=50
+            //this.blur_effect(50,10)
+        }
+        if (this.selectionPage.in_selection && this.selectionPage.selection_mode=="cards" ){
+            max_blur=10
+            max_grayscale=100
+            //this.blur_effect(100,10)
+        }
+
+        if (max_blur==0 && max_grayscale==0){
+            this.grayscale-=value_change_grayscale
+            this.blur_value-=value_change_blur
+
+            if (this.grayscale<max_grayscale){
+                this.grayscale=max_grayscale
+            }
+            if (this.blur_value<max_blur){
+                this.blur_value=max_blur
+            }
+
+        }
+        else{
+            this.grayscale+=value_change_grayscale
+            this.blur_value+=value_change_blur
+
+            if (this.grayscale>max_grayscale){
+                this.grayscale=max_grayscale
+            }
+            if (this.blur_value>max_blur){
+                this.blur_value=max_blur
+            }
+        }
     }
     set_lestener(){
         
@@ -489,8 +541,10 @@ class Game_Client{
             const timer=this.find_timers_by_mouse(mouse_pos)
 
             const object=this.selectionPage.check_mouse_in_selection(mouse_pos)
-
-            if (! (object===undefined)){
+            if (object===undefined && this.selectionPage.in_selection){
+                this.resolveSelectInput("cancel_client")
+            }
+            else if (! (object===undefined)){
                 this.end_selection(object)
             }
             else if (! (card===undefined)){
@@ -855,7 +909,6 @@ class Game_Client{
             const values = [this.self_player.name,'end_bullet',''];
             this.socket_main.send(values.join('|'));
             return true
-
         }
     }
     find_position(card){//return position name and index
@@ -893,6 +946,12 @@ class Game_Client{
         }
         return false
         
+    }
+
+    blur_effect(grayscale,blur_value){
+        this.ctx_table.filter =  `blur(${blur_value}px) grayscale(${grayscale}%)`;
+        this.ctx_table.drawImage(this.canvas_table, 0, 0, this.canvas_table.width, this.canvas_table.height);
+        this.ctx_table.filter =  "none";
     }
 
     //////////////////////////////////////////////////
