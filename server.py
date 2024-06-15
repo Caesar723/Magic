@@ -263,7 +263,7 @@ async def entering_game(websocket: WebSocket,username: str = Depends(get_current
     room:Room=room_server.find_player_room(username)
     await room.set_socket(websocket,username)
     try:
-        while True:
+        while room.gamming:
             data = await websocket.receive_text()
             await room.message_receiver(data)
     except WebSocketDisconnect as e:

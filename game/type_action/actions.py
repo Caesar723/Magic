@@ -273,6 +273,27 @@ class Change_Mana(Action):
         return f"action(Change_Mana,parameters({self.object_hold.text(player)},{self.player.text(player)},{mana}))"
 
 
+class Win(Action):
+    def __init__(self,object_hold:"Card|Player",player:"Player") -> None:
+        
+        self.object_hold:"Card|Player"=object_hold # store the controled card
+        self.player:"Player"=player # who use the card
+
+    def text(self,player:"Player")-> str:
+        if player.name!=self.player.name:
+            return ''
+        return f"action(Win,parameters({self.object_hold.text(player)},{self.player.text(player)}))"
+
+class Lose(Action):
+    def __init__(self,object_hold:"Card|Player",player:"Player") -> None:
+        
+        self.object_hold:"Card|Player"=object_hold # store the controled card
+        self.player:"Player"=player # who use the card
+
+    def text(self,player:"Player")-> str:
+        if player.name!=self.player.name:
+            return ''
+        return f"action(Lose,parameters({self.object_hold.text(player)},{self.player.text(player)}))"
 
 
 

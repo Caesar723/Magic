@@ -236,9 +236,9 @@ class Player:
     async def check_creature_die(self,card:Creature):
         result=await card.check_dead()
         if result:
-            self.action_store.start_record()
+            #self.action_store.start_record()
             await card.when_move_to_graveyard(self,self.opponent)
-            self.action_store.end_record()
+            #self.action_store.end_record()
             # card.when_die(self,self.opponent)
             # card.when_leave_battlefield(self,self.opponent,'graveyard')
         return result

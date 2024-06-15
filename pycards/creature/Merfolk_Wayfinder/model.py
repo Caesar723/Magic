@@ -17,9 +17,9 @@ class Merfolk_Wayfinder(Creature):
 
         self.name:str="Merfolk Wayfinder"
         self.live:int=1
-        self.power:int=1
+        self.power:int=19
         self.actual_live:int=1
-        self.actual_power:int=1
+        self.actual_power:int=19
 
         self.type_creature:str="Merfolk Creature"
         self.type:str="Creature"

@@ -90,6 +90,8 @@ class Message_Processor{
             "Summon":Summon,
             "Turn":Turn,
             "Change_Mana":Change_Mana,
+            "Win":Win,
+            "Lose":Lose
 
         }
 
@@ -196,6 +198,10 @@ class Message_Processor{
         //console.log(player)
         const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
         const card=new Creature_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,fee,Org_Damage,Org_Life,Life,Damage,name,id,player)
+        if (flying==1){
+            card.flying=true
+        }
+        
         return card
 
     }
@@ -422,12 +428,7 @@ class Message_Processor{
         }
     }
 
-    win(){
-
-    }
-    lose(){
-        
-    }
+    
     extractParts(str) {
         const indexOfFirstParenthesis = str.indexOf('('); // 找到第一个 '(' 的索引
         if (indexOfFirstParenthesis === -1) return str; 

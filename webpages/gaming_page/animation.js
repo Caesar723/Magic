@@ -770,3 +770,46 @@ class Change_Mana extends Animation{
         return this.player.mana_bar.check_finish()
     }
 }
+
+class Win extends Animation{
+    constructor(object_hold,player){///player must be self  mana_cost[blue,white,black,red,green]
+        super(object_hold,player)
+
+    }
+    set_animate(){
+        const client=this.player.table.client
+
+        client.win_lose.set_picture(true)
+
+
+        const values = [this.player.name,'close_game','win'];
+        client.socket_main.send(values.join('|'));
+
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 5000);
+    }
+
+}
+
+class Lose extends Animation{
+    constructor(object_hold,player){///player must be self  mana_cost[blue,white,black,red,green]
+        super(object_hold,player)
+
+    }
+    set_animate(){
+        const client=this.player.table.client
+
+        client.win_lose.set_picture(false)
+
+
+        const values = [this.player.name,'close_game',"lose"];
+        client.socket_main.send(values.join('|'));
+
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 5000);
+        
+    }
+
+}

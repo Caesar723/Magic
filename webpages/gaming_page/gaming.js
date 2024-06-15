@@ -3,12 +3,13 @@ class Game_Client{
         this.socket_main=null;
         this.socket_select =null;
 
-        this.table=new Table()
+        
+        this.table=new Table(this)
         this.canvas_table=this.table.canvas
         this.ctx_table=this.table.ctx
 
        
-        
+        this.win_lose=new Winning_And_Losing(this.canvas_table,this.ctx_table)
         let players=window.dataFromBackend
         
         this.self_player=new Self(players["self"],this.canvas_table,this.ctx_table)
@@ -171,10 +172,11 @@ class Game_Client{
         }
         this.action_bar.draw(this.canvas_table,this.ctx_table,this.self_player.camera)
         this.show_2d.draw()
-        if (this.selectionPage.in_selection && this.selectionPage.selection_mode=="cards" ){
+        if ((this.selectionPage.in_selection && this.selectionPage.selection_mode=="cards")||(this.win_lose.finish) ){
             this.blur_effect(this.grayscale,this.blur_value)
         }
         this.selectionPage.draw()
+        this.win_lose.draw()
 
 
     }
@@ -193,6 +195,10 @@ class Game_Client{
             max_blur=10
             max_grayscale=100
             //this.blur_effect(100,10)
+        }
+        if (this.win_lose.finish ){
+            max_blur=10
+            max_grayscale=100
         }
 
         if (max_blur==0 && max_grayscale==0){
@@ -311,6 +317,8 @@ class Game_Client{
                 const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
                 const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,20,20,"Caesar",1122334455)
                 const card_battle=new Creature_Battle(6,5,[-25,-20,0],0.3,card,"opponent",this.table)
+
+                card_battle.flying=true
 
                 const action=new Summon(card,this.oppo_player)
                 action.set_animate()
@@ -520,13 +528,13 @@ class Game_Client{
             // }
             else if (event.key === "'" || event.key === "'") {
                 
-                this.self_player.player_life_ring.change_blue()
+                this.table.opponent_battlefield[0].flying=true
 
 
             }
             else if (event.key === "/" || event.key === "/") {
                 
-                this.self_player.player_life_ring.change_orange()
+                this.table.opponent_battlefield[0].flying=false
 
 
             }
@@ -971,6 +979,40 @@ class Game_Client{
 
     // }
 
+}
+
+class Winning_And_Losing{
+    constructor(canvas,ctx){
+        this.canvas=canvas;
+        this.ctx=ctx;
+        this.finish=false
+        this.win = new Image();
+        this.win.src="webpages/image_source/game/win.png";
+
+        this.lose = new Image();
+        this.lose.src="webpages/image_source/game/lose.png";
+        this.show_pic=new Image();
+
+        // this.finish=true
+        // this.show_pic=this.lose
+    }
+    set_picture(isWin){
+        if (isWin){
+            this.show_pic=this.win
+        }
+        else{
+            this.show_pic=this.lose
+        }
+        this.finish=true
+        
+    }
+    draw(){
+        if (this.finish){
+            const x = (this.canvas.width - this.show_pic.width) / 2;
+            const y = (this.canvas.height - this.show_pic.height) / 2;
+            this.ctx.drawImage(this.show_pic, x, y);
+        }
+    }
 }
 
 // (async () => {

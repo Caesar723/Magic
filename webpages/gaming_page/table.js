@@ -2,7 +2,8 @@ var TIME_INTERVAL=2
 
 
 class Table{
-    constructor(){
+    constructor(client){
+        this.client=client
         this.canvas = document.getElementById("myCanvas");
         this.ctx = this.canvas.getContext("2d");
         this.canvas.width = 1470;

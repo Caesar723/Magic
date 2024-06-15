@@ -93,6 +93,13 @@ class RoomServer:
                 else:
                     result["opponent"]=player_name
         return result
+    
+    async def settle_player(self,isWin:bool,player):
+        name:str=player.name
+
+        if name in self.client_room:
+            del self.client_room[name]
+
         
     
 

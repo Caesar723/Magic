@@ -17,7 +17,8 @@ class Card:
     def __init__(self,player) -> None:
         self.player:"Player"=player
         self.name:str=""
-        self.keyword_list:list=[]
+        self.flag_dict:dict={}
+        #self.keyword_list:list=[]
         self.type:str
         self.current_position:str=""#library,battlefield,land_area,hand
 
@@ -126,10 +127,26 @@ class Card:
     def when_discard(self):#当卡牌被弃置
         pass
 
-    def check_keyword(self,keyword:str)->bool:#检查关键词条,比如检查是否有吸血，key是吸血
-        if keyword in self.keyword_list:
-            return True
-        return False
+    def get_flag(self,flag_name:str)->bool:
+        if flag_name in self.flag_dict:
+            return self.flag_dict[flag_name]
+        else:
+            return False
+
+    # def check_keyword(self,keyword:str)->bool:#检查关键词条,比如检查是否有吸血，key是吸血
+    #     if keyword in self.keyword_list:
+    #         return True
+    #     return False
+    
+    # def add_keyword(self,keyword:str)->bool:#检查关键词条,比如检查是否有吸血，key是吸血
+    #     if not (keyword in self.keyword_list):
+    #         return True
+    #     return False
+    
+    # def remove_keyword(self,keyword:str)->bool:#检查关键词条,比如检查是否有吸血，key是吸血
+    #     if keyword in self.keyword_list:
+    #         return True
+    #     return False
 
     def when_a_creature_die(self,creature):#当随从死亡时（放入一个死亡随从的参数）
         pass

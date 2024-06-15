@@ -31,6 +31,9 @@ class Torrent_Elemental(Creature):
         self.content:str="Flash (You may cast this spell any time you could cast an instant) and Flying"
         self.image_path:str="cards/creature/Torrent Elemental/image.jpg"
 
+        self.flag_dict["flying"]=True
+        self.flag_dict["Flash"]=True
+
 
 
         

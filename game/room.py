@@ -100,7 +100,8 @@ class Room:
             "discard":self.discard,
             "activate_ability":self.activate_ability,
             "concede":self.concede,
-            "end_bullet":self.end_bullet
+            "end_bullet":self.end_bullet,
+            "close_game":self.close_game
 
         }
         self.message_process_condition=asyncio.Condition()#当list是空的时候就会调用这个，让程序有序运行
@@ -139,11 +140,25 @@ class Room:
     #关闭socket，gaming=false，
     #把两个player交给room server，用来收集任务进度，
     #最后room server把房间移除，玩家移除
-    async def game_end(self,died_player:list):
+    #
+    async def game_end(self,died_player:list[Player]):
+        #self.gamming=False
+
+        self.action_processor.start_record()
         if len(died_player)==2:
-            pass
+            for player in died_player:
+                self.action_processor.add_action(actions.Lose(player,player))
+                #await self.room_server.settle_player(False,player)
         else:
-            pass
+            lose_player=died_player[0]
+            win_player=lose_player.opponent
+            self.action_processor.add_action(actions.Win(win_player,win_player))
+            self.action_processor.add_action(actions.Lose(lose_player,lose_player))
+            #await self.room_server.settle_player(True,win_player)
+            #await self.room_server.settle_player(False,lose_player)
+        self.action_processor.end_record()
+        print(self.action_processor.action_cache)
+
         
 
     async def start_attack(self,defender:Union[Creature,Player]):# attacker and defenders start attack
@@ -178,9 +193,6 @@ class Room:
 
     
     async def update_timer(self):# update turn_timer and bullet_time_timer
-        
-        
-        
         if self.get_flag("bullet_time"):
             self.bullet_timer:int=self.max_bullet_time-round(time.perf_counter()-self.initinal_bullet_timer)
             await self.check_timer_change("timer_bullet",self.bullet_timer)
@@ -314,6 +326,7 @@ class Room:
         ...|concede(投降)|
         ...|end_bullet|...#当两个玩家都end bullet time 的时候，他们才会真正的结束bullet time
         ...|start_attack|#当敌方用start_attack才有用
+        ...|close_game|win or lose
        
         
         """
@@ -384,7 +397,7 @@ class Room:
         if not card:
             return (False,"no card")
         
-        print(player==self.active_player,isinstance(card,Instant) ,card.check_keyword("Flash"))
+        print(player==self.active_player,isinstance(card,Instant) ,card.get_flag("Flash"))
         if (player==self.active_player and not self.get_flag("bullet_time")) or isinstance(card,Instant) or card.check_keyword("Flash"):# 如果card 的类型是instant，可以直接释放,或者card有flash
             result=await player.play_a_card(card)
             if result[0]:
@@ -449,6 +462,24 @@ class Room:
 
         else:
             return (False,"You can't activate ability")
+        
+    async def close_game(self,username:str,content:str):
+        player:Player=self.players[username]
+        socket:"WebSocket"=self.players_socket[username]
+        player.flag_dict["game_over"]=True
+
+        try:
+            socket.close()
+        except:pass
+
+        if content=='win':
+            await self.room_server.settle_player(True,player)
+        elif content=='lose':
+            await self.room_server.settle_player(False,player)
+        print(player.opponent.get_flag("game_over"),player.get_flag("game_over"))
+        if player.opponent.get_flag("game_over"):
+            self.gamming=False
+
 
     async def concede(self,username:str,content:str):
         pass
@@ -486,15 +517,18 @@ class Room:
 
     async def check_death(self):
         died_player=[]
+        self.action_processor.start_record()
         for name in self.players:
-
             if (await self.players[name].check_dead()):
                 died_player.append(self.players[name])
 
             for creature in self.players[name].battlefield:
                 await self.players[name].check_creature_die(creature)
+        self.action_processor.end_record()
         if (died_player):
-            self.game_end(died_player)
+            print(died_player)
+            await self.game_end(died_player)
+
     async def action_sender(self):
         while self.gamming:
             print("action_sender 检查一次")

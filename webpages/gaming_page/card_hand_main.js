@@ -7,6 +7,7 @@ class Creature_Hand extends Card_Hand {
         this.Org_Damage=Org_Damage;
         this.Damage=Damage;
         this.type="Creature";
+        this.flying=false
         
     }
 

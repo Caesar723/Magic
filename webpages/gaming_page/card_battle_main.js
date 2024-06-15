@@ -12,14 +12,22 @@ class Creature_Battle extends Card_Battle {
         this.type="Creature";
 
         this.mode="none"//none attack,defence
-        this.flying=false//trur-> flying
-        
+        this.flying=card.flying//trur-> flying
+        this.current_flying=false
+        this.move_to_fly_flag=false
+        this.flying_x=0
+        this.moving_dict["move_to_flying"]=[this.move_to_flying.bind(this),this.move_to_flying_prepared.bind(this),this.move_to_flying_finish.bind(this)]
+        this.flying_height=-25
+        this.unflying_height=-20
     }
 
     
     update(camera){
         super.update(camera);
         this.print_life_damage();
+
+        this.check_flying()
+        this.flying_motion()
         
 
         
@@ -121,6 +129,73 @@ class Creature_Battle extends Card_Battle {
         
         
         
+    }
+
+    
+    move_to_flying_prepared(target_position){
+        
+        const [unitVector,distance]=this.calculate_vector_move(target_position)
+        this.min_distance_difference=distance;
+        console.log(distance)
+        const a=math.sqrt(distance*2/math.pi)
+        const time_consume=1/distance+2
+        
+        this.moving_store=[a,unitVector,time_consume,target_position]
+        this.check_distance_to_target(target_position)
+    }
+    move_to_flying(target_position){//target_position[x,y]
+        const a=this.moving_store[0];
+        const unitVector=this.moving_store[1];
+        const time_consume=this.moving_store[2];
+        //console.log(time_consume)
+        const x=(a*math.pi/100)*this.moving_precentage
+        const vel=a*Math.pow(Math.sin(x/a),2)/((100/(TIME_INTERVAL*time_consume))/(a*math.pi))
+        const new_vel=math.multiply(vel,unitVector)
+        const new_pos=math.add(this.position,new_vel);
+        this.position[0]=new_pos[0]
+        this.position[1]=new_pos[1]
+        this.position[2]=new_pos[2]
+        this.moving_precentage+=TIME_INTERVAL*time_consume
+        this.check_distance_to_target(target_position)
+        console.log(this.position,target_position,this.calculate_vector_move(target_position),this.moving_precentage,this.min_distance_difference)
+        
+    }
+    move_to_flying_finish(target_position){
+        const final_pos=this.moving_store[3];
+        this.position[0]=final_pos[0]
+        this.position[1]=final_pos[1]
+        this.position[2]=final_pos[2]
+
+        this.accurate_position[1]=final_pos[1]
+        this.move_to_fly_flag=this.flying
+        if (this.move_to_fly_flag){
+            this.flying_x=0
+        }
+        
+        this.pick_moving_function()
+        
+    }
+
+    check_flying(){
+        if (this.current_flying!=this.flying){
+            this.current_flying=this.flying
+            if(this.flying){
+                this.moving_cache.push(["move_to_flying",[[this.accurate_position[0],this.flying_height,this.accurate_position[2]]]])
+            }
+            else{
+
+                this.moving_cache.push(["move_to_flying",[[this.accurate_position[0],this.unflying_height,this.accurate_position[2]]]])
+            }
+        }
+    }
+
+    flying_motion(){
+        if(this.flying && !this.moving && this.move_to_fly_flag){
+            this.flying_x+=Math.PI/64
+            this.accurate_position[1]+=Math.sin(this.flying_x)*0.05;
+            this.position[1]=this.accurate_position[1]
+
+        }
     }
 
     change_state(Damage,Life){
