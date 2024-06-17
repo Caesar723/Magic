@@ -1,6 +1,7 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING,Union
 if TYPE_CHECKING:
     from game.player import Player
+    from game.type_cards.creature import Creature
 
 
 
@@ -37,7 +38,21 @@ class Sorcery(Card):
         if prepared_function=="cancel":
             return prepared_function
         player.remove_card(self,"hand")
+        player.append_card(self,"graveyard")
         return prepared_function
+    
+    async def attact_to_object(self,object:Union["Creature","Player"],power:int,color:str,type_missile:str):# it won't get hurt object can be card ot player
+        if isinstance(object,type(self.player)):
+            object.take_damage(self,power)
+            self.player.action_store.add_action(actions.Attack_To_Object(self.player,self.player,object,color,type_missile,[object.life]))
+            await object.check_dead()
+        else:
+            object.take_damage(self,power,object.player,object.player.opponent) 
+            self.player.action_store.add_action(actions.Attack_To_Object(self.player,self.player,object,color,type_missile,object.state))
+            if await object.check_dead():
+                self.when_kill_creature(object,self.player,self.player.opponent)
+    
+    
     
     def text(self,player:'Player',show_hide:bool=False)-> str:
         Flying=0
@@ -54,7 +69,7 @@ class Sorcery(Card):
         Image_Path=self.image_path
         Fee=self.mana_cost
         
-        return f"Sorcery({Flying},{Active},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),{Image_Path},{Fee})"
+        return f"Sorcery({Flying},{Active},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),{Fee})"
 
     
     def __repr__(self):

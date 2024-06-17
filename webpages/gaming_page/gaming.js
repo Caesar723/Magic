@@ -681,7 +681,7 @@ class Game_Client{
                 if (this.card_hold[0] instanceof Card_Battle){
                     this.card_hold[0].angle_x=math.pi/2;;
                     this.card_hold[0].angle_y=0;
-                    this.card_hold[0].angle_z=0;
+                    //this.card_hold[0].angle_z=0;
                     if (performance.now()-this.startTime<0.15*1000){
                         if (this.card_hold[1]){
                             this.battle_click_activate(this.card_hold[0])
@@ -729,7 +729,7 @@ class Game_Client{
                 if (this.card_hold[0] instanceof Card_Battle){
                     this.card_hold[0].angle_x=math.pi/2;;
                     this.card_hold[0].angle_y=0;
-                    this.card_hold[0].angle_z=0;
+                    //this.card_hold[0].angle_z=0;
                     
                 }
                 else if(this.card_hold[0] instanceof Card_Hand){

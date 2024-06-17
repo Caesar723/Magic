@@ -1,0 +1,80 @@
+Date : 2024-06-15 14:19:03
+Directory : /Users/xuanpeichen/Desktop/code/python/openai
+Total : 38 files,  2833 codes, 404 comments, 770 blanks, all 4007 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| JavaScript |         18 |      2,088 |        331 |        524 |      2,943 |
+| Python     |         18 |        736 |         75 |        242 |      1,053 |
+| HTML       |          1 |          8 |         -3 |          4 |          9 |
+| CSS        |          1 |          1 |          1 |          0 |          2 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                      | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                         |         38 |      2,833 |        404 |        770 |      4,007 |
+| . (Files)                                                                                 |          2 |         35 |          8 |          9 |         52 |
+| game                                                                                      |         12 |        681 |         67 |        228 |        976 |
+| game (Files)                                                                              |          7 |        422 |         58 |        120 |        600 |
+| game/type_action                                                                          |          1 |        159 |          6 |         77 |        242 |
+| game/type_cards                                                                           |          4 |        100 |          3 |         31 |        134 |
+| pycards                                                                                   |          4 |         20 |          0 |          5 |         25 |
+| pycards/creature                                                                          |          4 |         20 |          0 |          5 |         25 |
+| pycards/creature/Merfolk_Wayfinder                                                        |          1 |          3 |          0 |          0 |          3 |
+| pycards/creature/Mistweaver_Adept                                                         |          1 |         14 |          0 |          3 |         17 |
+| pycards/creature/Raging_Firekin                                                           |          1 |          1 |          0 |          1 |          2 |
+| pycards/creature/Torrent_Elemental                                                        |          1 |          2 |          0 |          1 |          3 |
+| webpages                                                                                  |         20 |      2,097 |        329 |        528 |      2,954 |
+| webpages (Files)                                                                          |          2 |          4 |          1 |          2 |          7 |
+| webpages/deckpage                                                                         |          1 |          1 |          1 |          0 |          2 |
+| webpages/gaming_page                                                                      |         17 |      2,092 |        327 |        526 |      2,945 |
++-------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                                  | language   | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| /Users/xuanpeichen/Desktop/code/python/openai/game/action.py                              | Python     |        -11 |          0 |         -5 |        -16 |
+| /Users/xuanpeichen/Desktop/code/python/openai/game/card.py                                | Python     |         35 |         13 |          9 |         57 |
+| /Users/xuanpeichen/Desktop/code/python/openai/game/custom_print.py                        | Python     |          9 |          5 |          4 |         18 |
+| /Users/xuanpeichen/Desktop/code/python/openai/game/game_function_tool.py                  | Python     |         75 |          5 |         13 |         93 |
+| /Users/xuanpeichen/Desktop/code/python/openai/game/player.py                              | Python     |        128 |         13 |         40 |        181 |
+| /Users/xuanpeichen/Desktop/code/python/openai/game/room.py                                | Python     |        170 |         22 |         53 |        245 |
+| /Users/xuanpeichen/Desktop/code/python/openai/game/room_server.py                         | Python     |         16 |          0 |          6 |         22 |
+| /Users/xuanpeichen/Desktop/code/python/openai/game/type_action/actions.py                 | Python     |        159 |          6 |         77 |        242 |
+| /Users/xuanpeichen/Desktop/code/python/openai/game/type_cards/creature.py                 | Python     |         33 |          2 |         16 |         51 |
+| /Users/xuanpeichen/Desktop/code/python/openai/game/type_cards/instant.py                  | Python     |         17 |          0 |          4 |         21 |
+| /Users/xuanpeichen/Desktop/code/python/openai/game/type_cards/land.py                     | Python     |         33 |          1 |          7 |         41 |
+| /Users/xuanpeichen/Desktop/code/python/openai/game/type_cards/sorcery.py                  | Python     |         17 |          0 |          4 |         21 |
+| /Users/xuanpeichen/Desktop/code/python/openai/pycards/creature/Merfolk_Wayfinder/model.py | Python     |          3 |          0 |          0 |          3 |
+| /Users/xuanpeichen/Desktop/code/python/openai/pycards/creature/Mistweaver_Adept/model.py  | Python     |         14 |          0 |          3 |         17 |
+| /Users/xuanpeichen/Desktop/code/python/openai/pycards/creature/Raging_Firekin/model.py    | Python     |          1 |          0 |          1 |          2 |
+| /Users/xuanpeichen/Desktop/code/python/openai/pycards/creature/Torrent_Elemental/model.py | Python     |          2 |          0 |          1 |          3 |
+| /Users/xuanpeichen/Desktop/code/python/openai/server.py                                   | Python     |         18 |          7 |          3 |         28 |
+| /Users/xuanpeichen/Desktop/code/python/openai/server_start.py                             | Python     |         17 |          1 |          6 |         24 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/block.js                           | JavaScript |          3 |          0 |          1 |          4 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/card.js                            | JavaScript |          1 |          1 |          1 |          3 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/deckpage/style.css                 | CSS        |          1 |          1 |          0 |          2 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/2D_show.js             | JavaScript |         59 |          2 |         13 |         74 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/action_bar.js          | JavaScript |         57 |          5 |         20 |         82 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/animation.js           | JavaScript |        266 |         34 |         54 |        354 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/card_battle.js         | JavaScript |         50 |         14 |         18 |         82 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/card_battle_main.js    | JavaScript |         64 |          1 |         12 |         77 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/card_hand.js           | JavaScript |        101 |         26 |         48 |        175 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/card_hand_main.js      | JavaScript |          2 |          2 |          0 |          4 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/gaming.html            | HTML       |          8 |         -3 |          4 |          9 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/gaming.js              | JavaScript |        338 |         61 |         99 |        498 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/mana_bar.js            | JavaScript |          8 |          0 |          1 |          9 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/message_processor.js   | JavaScript |        327 |         96 |         60 |        483 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/player.js              | JavaScript |         46 |          5 |          8 |         59 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/selection_page.js      | JavaScript |        234 |         10 |         40 |        284 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/special_effects.js     | JavaScript |        282 |         31 |         76 |        389 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/table.js               | JavaScript |         78 |         28 |         34 |        140 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/table_block.js         | JavaScript |         14 |          1 |          5 |         20 |
+| /Users/xuanpeichen/Desktop/code/python/openai/webpages/gaming_page/timmer.js              | JavaScript |        158 |         14 |         34 |        206 |
+| Total                                                                                     |            |      2,833 |        404 |        770 |      4,007 |
++-------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+

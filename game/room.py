@@ -166,11 +166,17 @@ class Room:
         if isinstance(defender,Creature):
             self.attacker.when_start_attcak(defender,self.attacker.player,self.attacker.player.opponent)
             defender.when_start_defend(self.attacker,defender.player,defender.player.opponent)
-            await self.attacker.deal_damage(defender,self.attacker.player,self.attacker.player.opponent)
+            rest_live=await self.attacker.deal_damage(defender,self.attacker.player,self.attacker.player.opponent)
             await defender.deal_damage(self.attacker,defender.player,defender.player.opponent)
             state_attacker=self.attacker.state
             state_defender=defender.state
             self.action_processor.add_action(actions.Creature_Start_Attack(self.attacker,self.attacker.player,defender,False,state_attacker,state_defender))
+
+            if self.attacker.get_flag("Trample") and rest_live<0:
+            #opponent.take_damage(self,abs(rest_live))
+                self.action_processor.start_record()
+                await self.attacker.attact_to_object(self.attacker.player.opponent,int(abs(rest_live)),"rgba(243, 243, 243, 0.9)","Missile_Hit")
+                self.action_processor.end_record()
             
 
 
@@ -180,7 +186,7 @@ class Room:
             state_attacker=self.attacker.state
             self.action_processor.add_action(actions.Creature_Start_Attack(self.attacker,self.attacker.player,self.attacker.player.opponent,False,state_attacker,[self.attacker.player.opponent.life]))
 
-        self.attacker=None
+        #self.attacker=None
         self.action_processor.end_record()
 
     def get_flag(self,flag_name:str):
@@ -244,38 +250,45 @@ class Room:
         key="{}_bullet_time_flag"
         for un in self.players:#username
             self.flag_dict[key.format(un)]=False
-        
-        while self.stack:
+        print(self.stack)
+        while self.stack and not self.flag_dict["bullet_time"]:
             func,card=self.stack.pop()
             self.action_processor.start_record()
-            print(func,card)
+            #print(func,card,self.attacker)
+            self.action_processor.start_record()
+            self.action_processor.add_action(actions.Play_Cards(card,card.player))
+            self.action_processor.end_record()
             result=await func()
+            
             self.action_processor.end_record()
             if result=="defender" and isinstance(card,Creature) :
 
                 await card.check_dead()
                 await self.attacker.check_dead()
 
-                if not card.get_flag("die") and not self.attacker.get_flag("die"):#如果是有Menace 就记数，有两个defender才会让attacker_defenders变false 
+                #if not card.get_flag("die") and not self.attacker.get_flag("die"):#如果是有Menace 就记数，有两个defender才会让attacker_defenders变false 
+                if not (card.get_flag("die") or self.attacker.get_flag("die")):
                     max_defender_number=1
                     self.add_counter_dict("defender_number",1)
                     if self.counter_dict["defender_number"]>=max_defender_number:
                         self.flag_dict["attacker_defenders"]=False
                         self.counter_dict["defender_number"]=0
+                    
                     await self.start_attack(card)
             
 
         #self.stack 用pop()把每一个函数调用
-        self.reset_bullet_timer()
+        if not self.flag_dict["bullet_time"]:
+            self.reset_bullet_timer()
 
-        if self.get_flag("attacker_defenders"):#如果attacker_defenders还是True 那attacker 就去攻击敌方英雄
-            await self.start_attack(self.non_active_player)
-            self.flag_dict["attacker_defenders"]=False
-            print(self.flag_dict["attacker_defenders"])
-        await self.check_death()
+            if self.get_flag("attacker_defenders"):#如果attacker_defenders还是True 那attacker 就去攻击敌方英雄
+                await self.start_attack(self.non_active_player)
+                self.flag_dict["attacker_defenders"]=False
+                print(self.flag_dict["attacker_defenders"])
+            await self.check_death()
         
 
-        self.attacker=None
+            self.attacker=None
 
         
 
@@ -397,16 +410,25 @@ class Room:
         if not card:
             return (False,"no card")
         
-        print(player==self.active_player,isinstance(card,Instant) ,card.get_flag("Flash"))
-        if (player==self.active_player and not self.get_flag("bullet_time")) or isinstance(card,Instant) or card.check_keyword("Flash"):# 如果card 的类型是instant，可以直接释放,或者card有flash
-            result=await player.play_a_card(card)
-            if result[0]:
-                await self.put_prepared_function_to_stack(result[1],card)
-            else:
-                return result
+        
+        if (player==self.active_player and not self.get_flag("bullet_time")) or isinstance(card,Instant) or card.get_flag("Flash"):# 如果card 的类型是instant，可以直接释放,或者card有flash
+            return await self.start_play_card(card,player)
+            # result=await player.play_a_card(card)
+            # if result[0]:
+            #     await self.put_prepared_function_to_stack(result[1],card)
+            # else:
+            #     return result
         
         else:
             return (False,"You must do it in your turn")
+        
+    async def start_play_card(self,card:"Card",player:Player):
+        result=await player.play_a_card(card)
+        print(result)
+        if result[0]:
+            await self.put_prepared_function_to_stack(result[1],card)
+        else:
+            return result
     
     
     async def end_step(self,username:str,content:str):
@@ -522,7 +544,7 @@ class Room:
             if (await self.players[name].check_dead()):
                 died_player.append(self.players[name])
 
-            for creature in self.players[name].battlefield:
+            for creature in self.players[name].battlefield.copy():
                 await self.players[name].check_creature_die(creature)
         self.action_processor.end_record()
         if (died_player):
@@ -536,9 +558,12 @@ class Room:
                 
                 async with self.action_store_list_cache_condition:
                     await self.action_store_list_cache_condition.wait_for(lambda: len(self.action_store_list_cache) > 0)  # 等待队列不为空
+            print(self.action_store_list_cache)
             action:actions.List_Action=self.action_store_list_cache.pop(0)
             self.action_store_list+=action.list_action
+            
             await self.send_action(action)
+            
 
             
             # await func[0](*func[1]) 
@@ -550,8 +575,11 @@ class Room:
             print(player.name)
             socket:"WebSocket"=self.players_socket[name]
             if socket!=None:
-                print("准备发送")
-                await socket.send_text(action.text(player))
+                print("准备发送",action)
+                try:
+                    await socket.send_text(action.text(player))
+                except:
+                    pass
                 print("发送成功")
 
     # async def selection_process_queue(self):

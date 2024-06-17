@@ -31,6 +31,26 @@ class Eternal_Phoenix(Creature):
         self.content:str="Flying, When Eternal Phoenix dies, if it didn't have a feather counter on it, return it to the battlefield with a feather counter on it instead of putting it into your graveyard."
         self.image_path:str="cards/creature/Eternal Phoenix/image.jpg"
 
+        self.flag_dict["flying"]=True
 
+
+    async def when_move_to_graveyard(self, player: "Player" = None, opponent: "Player" = None):#移入墓地 OK
+        
+        
+        self.when_leave_battlefield(player,opponent,'graveyard')
+        
+
+        player.action_store.start_record()
+        self.when_die(player,opponent)
+        player.action_store.end_record()
+
+        
+        self.reset_to_orginal_state()
+
+    def when_die(self,player: "Player" = None, opponent: "Player" = None):#OK
+        if not self.get_flag("feather_Eternal_Phoenix"):
+            new_creature=Eternal_Phoenix(player)
+            player.append_card(new_creature,"battlefield")
+            new_creature.flag_dict["feather_Eternal_Phoenix"]=True
 
         

@@ -59,11 +59,15 @@ class Creature(Card):
     async def deal_damage(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):# 用在所有造成伤害的功能
         power,life=self.state
         
-        card.take_damage(self,power,card.player,card.player.opponent) 
+        rest_live=card.take_damage(self,power,card.player,card.player.opponent) 
         self.when_harm_is_done(card,power,player,opponent)
         if await card.check_dead():
             self.when_kill_creature(card,player,opponent)
+        return rest_live
         
+            #self.player.action_store.add_action(actions.Attack_To_Object(self,self.player,opponent,"rgba(243, 243, 243, 0.9)","Missile_Hit",(opponent.life)))
+
+
     async def deal_damage_player(self,player:"Player",player_attacker: "Player" = None, opponent_attacker: "Player" = None):
         power,life=self.state
         player.take_damage(self,power)
@@ -78,7 +82,7 @@ class Creature(Card):
         print(value,card)
         self.actual_live-=value
         self.when_hurt(card,value,player,opponent)
-        return value
+        return self.state[1]
 
     # def grt_current_power_live(self)->tuple:# calculate power_live
     #     pass
@@ -227,7 +231,7 @@ class Creature(Card):
         Life=state[1]
         Org_Damage=self.power
         Damage=state[0]
-        return f"Creature({Flying},{Active},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),{Image_Path},{Fee},int({Org_Life}),int({Life}),int({Org_Damage}),int({Damage}))"
+        return f"Creature({Flying},{Active},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),{Fee},int({Org_Life}),int({Life}),int({Org_Damage}),int({Damage}))"
 
 
 

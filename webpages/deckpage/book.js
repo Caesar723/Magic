@@ -734,7 +734,7 @@ class Book{
                 card=new Sorcery(4,5.62,[-35,0,40],2.2,image,data[card_i]['Cost'],data[card_i]["Name"])
             }
             else{
-                card=new Creature(4,5.62,[-35,0,40],2.2,image,data[card_i]['Cost'],data[card_i]["Power"],data[card_i]["Toughness"],data[card_i]["Name"])
+                card=new Creature(4,5.62,[-35,0,40],2.2,image,data[card_i]['Cost'],data[card_i]["Toughness"],data[card_i]["Power"],data[card_i]["Name"])
             }
             card.quantity=data[card_i]["quantity"]
             cards.push(card)

@@ -172,7 +172,7 @@ class Add_Buff(Select_Object):
 
 
 class Attack_To_Object(Select_Object):#这种伤害自己的随从是不会受伤的
-    def __init__(self,object_hold:"Card|Player",player:"Player",selected_object:"Card|Player",color:str,type:str,final_state:tuple) -> None:
+    def __init__(self,object_hold:"Card|Player",player:"Player",selected_object:"Card|Player",color:str,type:str,final_state:"tuple|list") -> None:
         
         self.object_hold:"Card|Player"=object_hold # store the controled card
         self.player:"Player"=player # who use the card
@@ -182,12 +182,12 @@ class Attack_To_Object(Select_Object):#这种伤害自己的随从是不会受�
         self.final_state=final_state
     def text(self,player)-> str:
         final_state=f"state({','.join(map(str,self.final_state))})"
-        
-        return f"action(Attack_To_Object,parameters({self.object_hold.text(player)},{self.player.text(player)},{self.object_selected.text(player)},{self.color},{self.type},{final_state}))"
+        color=f"string({self.color})"
+        return f"action(Attack_To_Object,parameters({self.object_hold.text(player)},{self.player.text(player)},{self.object_selected.text(player)},{color},{self.type},{final_state}))"
     
 
 class Cure_To_Object(Select_Object):
-    def __init__(self,object_hold:"Card|Player",player:"Player",selected_object:"Card|Player",color:str,type:str,final_state:tuple) -> None:
+    def __init__(self,object_hold:"Card|Player",player:"Player",selected_object:"Card|Player",color:str,type:str,final_state:"tuple|list") -> None:
         
         self.object_hold:"Card|Player"=object_hold # store the controled card
         self.player:"Player"=player # who use the card
@@ -197,8 +197,8 @@ class Cure_To_Object(Select_Object):
         self.final_state=final_state
     def text(self,player)-> str:
         final_state=f"state({','.join(map(str,self.final_state))})"
-        
-        return f"action(Cure_To_Object,parameters({self.object_hold.text(player)},{self.player.text(player)},{self.object_selected.text(player)},{self.color},{self.type},{final_state}))"
+        color=f"string({self.color})"
+        return f"action(Cure_To_Object,parameters({self.object_hold.text(player)},{self.player.text(player)},{self.object_selected.text(player)},{self.color},{type},{final_state}))"
     
 
 class Gain_Card(Select_Object):

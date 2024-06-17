@@ -1,6 +1,7 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING,Union
 if TYPE_CHECKING:
     from game.player import Player
+    from game.type_cards.creature import Creature
 
 
 import re
@@ -87,8 +88,18 @@ class Card:
 
     
 
-    def attact_to_object(self,object):# it won't get hurt object can be card ot player
-        self.player.action_store.add_action(actions.Attack_To_Object(self,self.player,object))
+    async def attact_to_object(self,object:Union["Creature","Player"],power:int,color:str,type_missile:str):# it won't get hurt object can be card ot player
+        if isinstance(object,type(self.player)):
+            object.take_damage(self,power)
+            self.player.action_store.add_action(actions.Attack_To_Object(self,self.player,object,color,type_missile,[object.life]))
+            await object.check_dead()
+        else:
+            object.take_damage(self,power,object.player,object.player.opponent) 
+            self.player.action_store.add_action(actions.Attack_To_Object(self,self.player,object,color,type_missile,object.state))
+            if await object.check_dead():
+                self.when_kill_creature(object,self.player,self.player.opponent)
+        
+        
 
     def cure_to_object(self,object):# it won't get hurt
         self.player.action_store.add_action(actions.Cure_To_Object(self,self.player,object))
@@ -124,7 +135,7 @@ class Card:
     def when_go_to_library(self):#当卡牌进入牌库
         pass
 
-    def when_discard(self):#当卡牌被弃置
+    async def when_discard(self,player: "Player" = None, opponent: "Player" = None):#当卡牌被弃置
         pass
 
     def get_flag(self,flag_name:str)->bool:
@@ -152,6 +163,9 @@ class Card:
         pass
 
     def when_an_object_hert(self,object):#当一个card or 人物收到伤害，object是card 或者 player
+        pass
+
+    def when_kill_creature(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
     def create_selection(self,content:str,index:int):#生成一个selection，图片和名字是一样的，但是type_card和content是选项内容

@@ -24,10 +24,10 @@ class Night_Stalker__(Creature):
         self.type_creature:str="Vampire Creature  "
         self.type:str="Creature"
 
-        self.mana_cost:str="1B  "
+        self.mana_cost:str="1B"
         self.color:str="colorless"
         self.type_card:str="Vampire Creature  "
-        self.rarity:str="Common  "
+        self.rarity:str="Common"
         self.content:str="Menace (This creature can't be blocked except by two or more creatures.)  "
         self.image_path:str="cards/creature/Night Stalker  /image.jpg"
 

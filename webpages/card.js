@@ -279,9 +279,15 @@ class Card{
         const y=p_2[1]+n*(p_1[1]-p_2[1])/t
         return [x,y]
     }
+    removeTrailingSpaces(text) {
+        // 去除每个单词后面多余的空格
+        text = text.replace(/(\S+)\s+/g, '$1 ');
     
+        // 去除字符串末尾的所有空格
+        return text.trim();
+    }
     create_fee(ctx,fee_text,color_less,red,blue,green,gold,black){//3UU
-        
+        fee_text=this.removeTrailingSpaces(fee_text)
         const splited=fee_text.match(/\d+|\D/g);
         
         const color_selector={//B/U/G/R/W
@@ -291,6 +297,7 @@ class Card{
             "W":gold,
             "G":green,
         }
+        //console.log(splited)
         for (let i in splited.reverse()){
             ctx.save();
             if (/^[+-]?\d+$/.test(splited[i])){//check whether it is number
@@ -457,6 +464,7 @@ class Card_frame{
             "black":"webpages/image_source/card/black.PNG",
             "gold":"webpages/image_source/card/gold.PNG",
             "green":"webpages/image_source/card/green.PNG",
+            "colorless":"webpages/image_source/card/colorless.PNG",
 
         }
         this.image_rarity={
@@ -476,8 +484,21 @@ class Card_frame{
         }
         
     }
+    removeTrailingSpaces(text) {
+        // 去除每个单词后面多余的空格
+        text = text.replace(/(\S+)\s+/g, '$1 ');
+    
+        // 去除字符串末尾的所有空格
+        return text.trim();
+    }
     //"blue","Caesar","Creature","Uncommon","nothing nothing","cards/creature/Spectral Harbinger/image.jpg"
     generate_card(type,name,type_card,rarity,content,image_path){
+        //console.log(type,name,type_card,rarity,content,image_path)
+        type=this.removeTrailingSpaces(type)
+        name=this.removeTrailingSpaces(name)
+        type_card=this.removeTrailingSpaces(type_card)
+        rarity=this.removeTrailingSpaces(rarity)
+        content=this.removeTrailingSpaces(content)
         const background=this.image_background[type];
         const rar=this.image_rarity[rarity];
 
@@ -494,7 +515,7 @@ class Card_frame{
         
         const ctx_canvas_battle = canvas_battle.getContext('2d');
         
-        
+        console.log(background,image_path,rar)
         Promise.all([
             loadImage(background),
             loadImage(image_path),

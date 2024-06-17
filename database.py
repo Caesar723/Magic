@@ -275,6 +275,15 @@ class DataBase:
         
         return cards_dicts
     
+    async def add_all_cards_to_player(self,username):
+        cards=[]
+        async with self.AsyncSessionLocal() as session:
+            stmt = select(Card)
+            result = await session.execute(stmt)
+            cards += result.scalars().all()
+        for card in cards:
+            await self.add_card_to_player(session,username,card)
+    
     async def delete_pack(self,session,packid):
         stmt = select(PlayerPack).where(PlayerPack.id == packid)
         result = await session.execute(stmt)

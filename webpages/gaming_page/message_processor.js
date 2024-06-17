@@ -281,25 +281,31 @@ class Message_Processor{
         const self_player=this.client.self_player
         const oppo_player=this.client.oppo_player
 
+        self_player.cards=[]
         for (let card of self_hand){
             self_player.cards.push(card)
         }
+        oppo_player.cards=[]
         for (let card of oppo_hand){
             oppo_player.cards.push(card)
         }
+        this.client.table.self_battlefield=[]
         for (let card of self_battle){
             this.client.table.self_battlefield.push(Animation.check_battle(card,self_player))
         }
+        this.client.table.opponent_battlefield=[]
         for (let card of oppo_battle){
             this.client.table.opponent_battlefield.push(Animation.check_battle(card,oppo_player))
         }
+        this.client.table.self_landfield=[]
         for (let card of self_lands){
             this.client.table.self_landfield.push(Animation.check_battle(card,self_player))
         }
+        this.client.table.opponent_landfield=[]
         for (let card of oppo_lands){
             this.client.table.opponent_landfield.push(Animation.check_battle(card,oppo_player))
         }
-
+        this.client.action_bar.actions=[]
         for (let action of actions){
             this.client.action_bar.actions.push(action)
         }

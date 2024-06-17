@@ -35,20 +35,23 @@ class Player:
         self.ini_life:int=20
         self.life:int=20
 
-        #list of Graveyard 墓地
+        #list of Graveyard 墓地 这里可以包含所有的卡牌而不只是随从
         self.graveyard:list[Card]=[]
 
         #list of Library牌库
         self.library:list[Card]=[]
 
         #list of Battlefield 场地
-        self.battlefield:list[Card]=[]
+        self.battlefield:list[Creature]=[]
 
         #land area
         self.land_area:list[Card]=[]
 
         #hand area
         self.hand:list[Card]=[]
+
+        #exile area
+        self.exile_area:list[Card]=[]
 
         #mana cost [colorless, blue,white,black,red,green]
         self.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
@@ -205,15 +208,17 @@ class Player:
         checked_result=card.check_can_use(self)
         print(checked_result)
         if checked_result[0]:
-
+            self.action_store.start_record()#
             result=await card.when_use_this_card(self,self.opponent)
             print(result)
             if result[1]=="cancel":
+                self.action_store.end_record()
                 await self.send_text("end_select()")
                 return (False,"Selection Error")
-            self.action_store.start_record()#
+            
             for land in checked_result[1]:
                 if not await land.when_clicked(self,self.opponent):
+                    self.action_store.end_record()
                     return (False,"Can't use land")
             self.action_store.add_action(actions.Change_Mana(self,self,self.get_manas()))
             self.action_store.end_record()
@@ -305,7 +310,8 @@ class Player:
             'hand':self.hand,
             'land_area':self.land_area,
             'graveyard':self.graveyard,
-            'library':self.library
+            'library':self.library,
+            'exile_area':self.exile_area
         }
         if type in deck_type and card in deck_type[type]:
             deck_type[type].remove(card)
@@ -326,7 +332,8 @@ class Player:
             'hand':self.hand,
             'land_area':self.land_area,
             'graveyard':self.graveyard,
-            'library':self.library
+            'library':self.library,
+            'exile_area':self.exile_area
         }
         
         if type in deck_type:
@@ -354,6 +361,12 @@ class Player:
                 result.append(self.mana[key])
         return result
     
+    def discard(self,card:"Card"):
+        if card in self.hand:
+            self.remove_card(card,"hand")
+            card.when_discard(self,self.opponent)
+
+
     async def send_selection_cards(self,selected_cards:list[Card]):
         async with self.selection_lock:
             cards=','.join([card.text(self,False) for card in selected_cards])
@@ -447,6 +460,7 @@ class Player:
         self.mana_consumed(cost)
         self.action_store.add_action(actions.Change_Mana(card,self,self.get_manas()))
         self.action_store.end_record()
+        
 
     def get_flag(self,flag_name:str):
         if flag_name in self.flag_dict:

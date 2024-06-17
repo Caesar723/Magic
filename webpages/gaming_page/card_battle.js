@@ -674,14 +674,45 @@ class Card_Battle{
         return pos_rotate.toArray().flat();
     }
     check_inside(mouse_pos,position1,position2,position3,position4){//n shape of points
-        
+        //console.log(position1,position2,position3,position4)
+        const positions=this.sortPositions([position1,position2,position3,position4])
+        //console.log(positions)
         return (
-            this.create_function_x(mouse_pos,position2,position1)<0 &&
-            this.create_function_y(mouse_pos,position4,position1)<0 &&
-            this.create_function_x(mouse_pos,position4,position3)>0 &&
-            this.create_function_y(mouse_pos,position3,position2)>0
+            this.create_function_x(mouse_pos,positions[1],positions[0])<0 &&
+            this.create_function_y(mouse_pos,positions[3],positions[0])<0 &&
+            this.create_function_x(mouse_pos,positions[3],positions[2])>0 &&
+            this.create_function_y(mouse_pos,positions[2],positions[1])>0
         )
 
+    }
+    sortPositions(positions) {
+        // Calculate the center point
+        let centerX = 0;
+        let centerY = 0;
+        positions.forEach(pos => {
+            centerX += pos[0];
+            centerY += pos[1];
+        });
+        centerX /= positions.length;
+        centerY /= positions.length;
+        //console.log(centerX,centerY)
+    
+        // Sort positions based on their relative quadrant
+        const new_pos=[]
+        for (let a of positions){
+            let index=-2
+            if (a[0] >= centerX && a[1] < centerY) index= 1; // Right bottom
+            else if (a[0] < centerX && a[1] < centerY) index= 2;  // Left bottom
+            else if (a[0] < centerX && a[1] >= centerY) index= 3; // Left top
+            else index= 0; // Right top
+
+            new_pos[index]=a
+        }
+        
+        
+        
+    
+        return new_pos;
     }
     create_function_x(mouse_pos,position1,position2){// for x=... position1(lower x) x-...
         const k=(position2[0]-position1[0])/(position2[1]-position1[1]);

@@ -31,6 +31,13 @@ class Emberheart_Salamander(Creature):
         self.content:str="Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.), When Emberheart Salamander enters the battlefield, it deals 2 damage to any target."
         self.image_path:str="cards/creature/Emberheart Salamander/image.jpg"
 
+        self.flag_dict["Trample"]=True
 
+    @select_object("all_roles",1)
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
+        
+        if selected_object:
 
+            await self.attact_to_object(selected_object[0],2,"rgba(243, 0, 0, 0.9)","Missile_Hit")
+    
         

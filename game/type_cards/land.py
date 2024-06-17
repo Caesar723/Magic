@@ -111,7 +111,7 @@ class Land(Card):
         result_mana=','.join(result_mana)
         print(result_mana)
         
-        return f"Land({Flying},{Active},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),{Image_Path},state({result_mana}))"
+        return f"Land({Flying},{Active},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),state({result_mana}))"
 
 
     def __repr__(self):

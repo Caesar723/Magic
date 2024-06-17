@@ -31,6 +31,8 @@ class Raging_Firekin(Creature):
         self.content:str="Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)"
         self.image_path:str="cards/creature/Raging Firekin/image.jpg"
 
+        self.flag_dict["Trample"]=True
+
 
 
         

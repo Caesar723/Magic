@@ -194,23 +194,23 @@ class Animation{//action
     finished(){
         return true
     }
-    static check_battle(card,player){//如果card是hand，检查有没有battle，没有就建一个
+    static check_battle(card){//如果card是hand，检查有没有battle，没有就建一个
         if (card instanceof Card_Battle || card instanceof Card_Hand_Oppo){
             return card
         }
         else if(card instanceof Creature_Hand || card instanceof Land_Hand){
             if (card.battle===undefined && card instanceof Land_Hand){
-                new Land_Battle(6,5,[-25,-20,0],0.3,card,player.type_name,player.table)
+                new Land_Battle(6,5,[-25,-20,0],0.3,card,card.player.type_name,card.player.table)
             }
             else if (card.battle===undefined && card instanceof Creature_Hand){
-                new Creature_Battle(6,5,[-25,-20,0],0.3,card,player.type_name,player.table)
+                new Creature_Battle(6,5,[-25,-20,0],0.3,card,card.player.type_name,card.player.table)
             }
             return card.battle
         }
     }
-    static check_hand(card,battle_bool,player){//如果card是battle，变成hand，如果battle_bool是true，检查有没有battle，没有就建一个
+    static check_hand(card,battle_bool){//如果card是battle，变成hand，如果battle_bool是true，检查有没有battle，没有就建一个
         if (battle_bool){
-            this.check_battle(card,player)
+            this.check_battle(card)
         }
         if (card instanceof Card_Battle){
             return card.card
@@ -227,17 +227,21 @@ class Animation{//action
 class Creature_Start_Attack extends Animation{
     constructor(object_hold,player,attack_obj,state_self,state_attacted){///object can be card and 
         super(object_hold,player)
-        this.attacked_obj=attack_obj
+        //this.attacked_obj=Animation.check_battle(attack_obj)
         this.state_self=state_self
         this.state_attacted=state_attacted
         this.name='Creature Start Attack'
 
+        console.log(attack_obj)
+
         
-        if (this.attacked_obj instanceof Player){
+        if (attack_obj instanceof Player){
+            this.attacked_obj=attack_obj
             this.new_ring=attack_obj.player_life_ring.get_copy()
             this.new_ring.life=state_attacted[0]
         }
         else{
+            this.attacked_obj=Animation.check_battle(attack_obj)
             this.new_card=this.attacked_obj.card.get_copy()
             this.new_card.Life=state_attacted[1]
             this.new_card.Damage=state_attacted[0]
@@ -345,7 +349,7 @@ class Creature_Prepare_Defense extends Animation{
     constructor(object_hold,player,attack_obj){///object can be card and 
         super(object_hold,player)
         this.attacked_obj=attack_obj
-        this.new_card=this.attacked_obj.card.get_copy()
+        this.new_card=Animation.check_hand(this.attacked_obj).get_copy()
         this.name='Creature Prepare Defense'
     }
     set_animate(){
@@ -432,7 +436,12 @@ class Reset_Ability extends Animation{//就是将卡牌解除横置
 class Select_Object extends Animation{
     constructor(object_hold,player,selected_object){///object can be card and 
         super(object_hold,player)
-        this.selected_object=selected_object
+        if (selected_object instanceof Player){
+            this.selected_object=selected_object
+        }
+        else{
+            this.selected_object=Animation.check_hand(selected_object)
+        }
         this.name='Select Object'
         
 
@@ -452,7 +461,7 @@ class Add_Buff extends Select_Object{
         this.final_state=final_state
         
 
-        this.new_card=this.selected_object.card.get_copy()
+        this.new_card=Animation.check_hand(this.selected_object).card.get_copy()
 
         this.action_finished=true
         this.name='Add Buff'
@@ -490,7 +499,7 @@ class Attack_To_Object extends Select_Object{
             this.new_ring.life=result_state[0]
         }
         else{
-            this.new_card=this.selected_object.get_copy()
+            this.new_card=Animation.check_hand(this.selected_object).get_copy()
             this.new_card.Life=result_state[1]
             this.new_card.Damage=result_state[0]
         }
@@ -527,7 +536,7 @@ class Attack_To_Object extends Select_Object{
             return true;
         }
         else{
-            return this.missile
+            return this.missile.disappear
         }
     }
 }
@@ -548,7 +557,7 @@ class Cure_To_Object extends Select_Object{
             this.new_ring.life=state_attacted[0]
         }
         else{
-            this.new_card=this.attacked_obj.card.get_copy()
+            this.new_card=Animation.check_hand(this.attacked_obj.card).get_copy()
             this.new_card.Life=state_attacted[1]
             this.new_card.Damage=state_attacted[0]
         }
@@ -591,7 +600,7 @@ class Cure_To_Object extends Select_Object{
 class Gain_Card extends Select_Object{
     constructor(object_hold,player,selected_object){//selected_object hand
         super(object_hold,player,selected_object)
-        this.new_card=this.selected_object.get_copy()
+        this.new_card=Animation.check_hand(this.selected_object).get_copy()
         this.name='Gain Card'
     }
     set_animate(){
@@ -617,7 +626,7 @@ class Lose_Card extends Select_Object{
         this.selected_object=Animation.check_hand(selected_object,false,player)
         console.log(this.selected_object)
         console.log(arguments,object_hold,player,selected_object)
-        this.new_card=this.selected_object.get_copy()
+        this.new_card=Animation.check_hand(this.selected_object).get_copy()
         this.name='Lose Card'
         
     }
