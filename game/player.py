@@ -239,6 +239,9 @@ class Player:
         
     
     async def check_creature_die(self,card:Creature):
+        if card.get_flag("exile"):
+            await card.when_move_to_exile_area(self,self.opponent)
+            return True
         result=await card.check_dead()
         if result:
             #self.action_store.start_record()
@@ -367,12 +370,15 @@ class Player:
             card.when_discard(self,self.opponent)
 
 
-    async def send_selection_cards(self,selected_cards:list[Card]):
+    async def send_selection_cards(self,selected_cards:list[Card],selection_random:bool=False):
         async with self.selection_lock:
             cards=','.join([card.text(self,False) for card in selected_cards])
             await self.send_text(f"select(cards,parameters({cards}))")
             data =await self.receive_text()# ...|player;区域;index
             selected_card=self.get_object(selected_cards,data)
+        if selected_card=="cancel" and selection_random:
+            if selected_cards:
+                selected_card=random.choice(selected_cards)
         return selected_card
     
     def get_object(self,selected_cards:list[Card],data:str):

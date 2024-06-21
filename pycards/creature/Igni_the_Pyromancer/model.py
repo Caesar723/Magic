@@ -1,6 +1,6 @@
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING,Union
 if TYPE_CHECKING:
     from game.player import Player
     from game.card import Card
@@ -31,6 +31,8 @@ class Igni_the_Pyromancer(Creature):
         self.content:str="Whenever Igni the Pyromancer deals damage to a player, you may cast an instant or sorcery spell from your graveyard without paying its mana cost."
         self.image_path:str="cards/creature/Igni the Pyromancer/image.jpg"
 
-
+    async def when_harm_is_done(self,card:Union["Creature","Player"],value:int,player: "Player" = None, opponent: "Player" = None):#当造成伤害时 OK
+        if isinstance(card,type(player)):
+            pass
 
         

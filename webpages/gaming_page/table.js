@@ -1,13 +1,15 @@
-var TIME_INTERVAL=2
+
 
 
 class Table{
     constructor(client){
         this.client=client
-        this.canvas = document.getElementById("myCanvas");
-        this.ctx = this.canvas.getContext("2d");
+        this.canvas = document.getElementById("myCanvas");//new OffscreenCanvas(200, 200);
         this.canvas.width = 1470;
         this.canvas.height = 742;
+
+        //this.canvas =this.canvas.transferControlToOffscreen();
+        this.ctx = this.canvas.getContext("2d");
         this.time_interval=0.02//每隔0.02秒进行一次刷新
         this.table_graph=new Table_graph(2,1,1,[0,0,0],20,"webpages/image_source/game/background.jpg");
         this.deck_self_graph=new Deck_battle(4,2,5.62,[-28.5,-20-3,-15],0.5,"webpages/image_source/card/back.png")

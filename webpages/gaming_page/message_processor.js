@@ -91,7 +91,8 @@ class Message_Processor{
             "Turn":Turn,
             "Change_Mana":Change_Mana,
             "Win":Win,
-            "Lose":Lose
+            "Lose":Lose,
+            "Point_To":Point_To
 
         }
 

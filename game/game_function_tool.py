@@ -8,6 +8,11 @@ from pydantic import validate_call,BaseModel
 from typing_extensions import Literal
 from typing import TYPE_CHECKING
 import asyncio
+import random
+
+
+from game.type_action import actions
+
 if TYPE_CHECKING:
     from game.card import Card
     from game.room import Room
@@ -27,7 +32,7 @@ def validate_all_methods(cls):
 
 
 
-async def send_select_request(card:'Card',type:str,number:int):
+async def send_select_request(card:'Card',type:str,number:int,selection_random:bool=False):
     try:
         room=card.player.room
         player=card.player
@@ -37,12 +42,15 @@ async def send_select_request(card:'Card',type:str,number:int):
                 async with player.selection_lock:
                     await player.send_text(f"select({type})")
                     data =await player.receive_text()# ...|player;区域;index
-                    print(data)
-                    obj=get_object(data,room,type)
-                    if obj:objects.append(obj)
+                    obj=get_object(data,room,type,card)
+                    if obj:
+                        if ("cancel"==obj and selection_random):
+                            obj=random_select(player,type)
+                        objects.append(obj)
+
             #return objects
         else:
-            objects=await card.selection_step(player,player.opponent)
+            objects=await card.selection_step(player,player.opponent,selection_random)
             #return objects
         if ("cancel" in objects):
             raise asyncio.CancelledError("Client cancellation")
@@ -51,7 +59,7 @@ async def send_select_request(card:'Card',type:str,number:int):
     except asyncio.CancelledError:
         return "cancel"
     
-def get_object(data:str,room:'Room',type:str):#名字，选择类型（field或者cards），（场地名{self_battlefield,opponent_battlefield,self_landfield,opponent_landfield}或者player{self,oppo}），如果是场地index。cards直接index
+def get_object(data:str,room:'Room',type:str,card:'Card'):#名字，选择类型（field或者cards），（场地名{self_battlefield,opponent_battlefield,self_landfield,opponent_landfield}或者player{self,oppo}），如果是场地index。cards直接index
     parameters=data.split("|")
     player:'Player'=room.players[parameters[0]]
 
@@ -76,6 +84,13 @@ def get_object(data:str,room:'Room',type:str):#名字，选择类型（field或�
     elif parameters[1]=="cancel":
         return "cancel"
     if obj and check_select_valid(player,obj,type):
+        
+        #room.action_processor.start_record()
+        if card in player.battlefield or card in player.opponent.battlefield or card in player.land_area or card in player.opponent.land_area:
+            room.action_processor.add_action(actions.Point_To(card,player,obj))
+        else:
+            room.action_processor.add_action(actions.Point_To(player,player,obj))
+        #room.action_processor.end_record()
         return obj
     else:
         return False
@@ -112,6 +127,31 @@ def check_select_valid(player:'Player',selected_object,type_selection:str):
                     return True
     return False
             
+def random_select(player:'Player',type_selection:str):
+    self_player=player
+    oppo_player=player.opponent
+    type_dict={
+        'all_roles':[self_player.battlefield,oppo_player.battlefield,oppo_player,self_player],
+        'opponent_roles':[oppo_player.battlefield,oppo_player], 
+        'your_roles':[self_player.battlefield,self_player],
+        'all_creatures':[self_player.battlefield,oppo_player.battlefield],
+        'opponent_creatures':[oppo_player.battlefield],
+        'your_creatures':[self_player.battlefield],
+        'all_lands':[self_player.land_area,oppo_player.land_area],
+        'opponent_lands':[oppo_player.land_area],
+        'your_lands':[self_player.land_area], 
+    }
+
+    combined_list=[]
+    for item in type_dict[type_selection]:
+        if isinstance(item,type(player)):
+            combined_list.append(item)
+        else:
+            combined_list+=item
+    if combined_list:
+        return random.choice(combined_list)
+    else:
+        return "cancel"
 
 
 
@@ -133,13 +173,19 @@ def select_object(type:Literal['all_roles',#分为两个阶段，准备阶段和
     
     key_word="selected_object"
 
+
+    key_random="selection_random"
+
     def new_decorator(func):
         async def new_func(self:"Card",*args, **kwargs):
-            self.player.future_function=asyncio.create_task(send_select_request(self,type,number))
+            if key_random in kwargs:
+                self.player.future_function=asyncio.create_task(send_select_request(self,type,number,kwargs[key_random]))
+            else:
+                self.player.future_function=asyncio.create_task(send_select_request(self,type,number))
             objects=await self.player.future_function
             print(objects)
             if objects=="cancel":
-                return "cancel"
+                    return "cancel"
             kwargs[key_word] = objects
             async def prepared_function():
                 await func(self,*args,**kwargs)

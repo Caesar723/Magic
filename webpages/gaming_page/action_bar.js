@@ -9,7 +9,7 @@ class Action_Bar{
         this.actions=[]
         this.actions_cache=[]
         this.actions_processing=[]
-        this.position=[0,0]
+        this.position=[-90,0]
         this.target_position_hide=-90
         this.target_position_show=0
 
@@ -124,15 +124,19 @@ class Action_Bar{
     }
     update_position(){
         //console.log(this.mode)
-        this.check_move()
+        
         if (this.moving){
             if (this.mode=="hide"){
-                this.position[0]=this.position[0]-8
+                console.log(this)
+                this.position[0]=this.position[0]-8*TIME_INTERVAL/2
+                
             }
             else if(this.mode=="show"){
-                this.position[0]=this.position[0]+8
+                this.position[0]=this.position[0]+8*TIME_INTERVAL/2
             }
         }
+        this.check_move()
+        //console.log((8*TIME_INTERVAL/2))
     }
 
     check_mouse(mouse_pos){

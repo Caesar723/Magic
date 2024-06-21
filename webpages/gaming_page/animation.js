@@ -512,6 +512,7 @@ class Attack_To_Object extends Select_Object{
         
         
         this.missile=this.special_effect.create_missile(this.object_hold,this.selected_object,this.color,this.type,this.result_state)
+        this.player.music.play_music_effect("missile")
 
     }
     draw_action(ctx,canvas,camera){
@@ -553,13 +554,13 @@ class Cure_To_Object extends Select_Object{
 
 
         if (this.selected_object instanceof Player){
-            this.new_ring=attack_obj.player_life_ring.get_copy()
-            this.new_ring.life=state_attacted[0]
+            this.new_ring=this.selected_object.player_life_ring.get_copy()
+            this.new_ring.life=result_state[0]
         }
         else{
-            this.new_card=Animation.check_hand(this.attacked_obj.card).get_copy()
-            this.new_card.Life=state_attacted[1]
-            this.new_card.Damage=state_attacted[0]
+            this.new_card=Animation.check_hand(this.selected_object).get_copy()
+            this.new_card.Life=result_state[1]
+            this.new_card.Damage=result_state[0]
         }
 
         this.missile=undefined
@@ -568,6 +569,8 @@ class Cure_To_Object extends Select_Object{
     }
     set_animate(){
         this.missile=this.special_effect.create_missile(this.object_hold,this.selected_object,this.color,this.type,this.result_state)
+        this.player.music.play_music_effect("missile")
+
 
     }
     draw_action(ctx,canvas,camera){
@@ -597,6 +600,57 @@ class Cure_To_Object extends Select_Object{
     }
 
 }
+
+class Point_To extends Select_Object{
+    constructor(object_hold,player,selected_object){//selected_object hand
+        super(object_hold,player,selected_object)
+        this.special_effect=player.table.special_effects
+        if (this.selected_object instanceof Player){
+            this.new_ring=this.selected_object.player_life_ring.get_copy()
+            
+        }
+        else{
+            this.new_card=Animation.check_hand(this.selected_object).get_copy()
+            
+        }
+        
+        this.name='Point To'
+    }
+    set_animate(){
+        this.missile=this.special_effect.create_missile(this.object_hold,this.selected_object,'','Arrow','')
+        //console.log(this.missile)
+        //this.player.music.play_music_effect("missile")
+
+
+    }
+    draw_action(ctx,canvas,camera){
+        super.draw_action(ctx,canvas,camera)
+        ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
+
+
+        if (this.selected_object instanceof Player){
+            
+            this.new_ring.position[0]=20
+            this.new_ring.update(camera)
+            this.new_ring.draw(camera,ctx,canvas)
+        }
+        else{
+            this.new_card.position[0]=20
+            this.new_card.update()
+            this.new_card.draw(camera,ctx,canvas)
+        }
+    }
+    finished(){
+        if (this.missile===undefined){
+            return true;
+        }
+        else{
+            return this.missile
+        }
+    }
+
+}
+
 class Gain_Card extends Select_Object{
     constructor(object_hold,player,selected_object){//selected_object hand
         super(object_hold,player,selected_object)
@@ -606,6 +660,7 @@ class Gain_Card extends Select_Object{
     set_animate(){
         this.selected_object.position=[0,60*this.player.unit,-20]
         this.player.cards.push(this.selected_object)
+        this.player.music.play_music_effect("card_pic")
         console.log(this.player.cards)
         //this.selected_object.moving_cache.push(["rotate_to_point",[this.attacked_obj.position]])
     }
@@ -711,6 +766,7 @@ class Summon extends Animation{
                 this.player.table.self_landfield.push(this.object_hold.battle)
             }
         }
+        this.player.music.play_music_effect("card_send")
         
 
         //this.player.cards.push(this.selected_object)

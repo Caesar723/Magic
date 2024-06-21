@@ -82,7 +82,7 @@ class Color_Bar{
         const unit=this.moving_store[2];
         const x=(a*math.pi/100)*this.moving_precentage
         const vel=unit*a*Math.pow(Math.sin(x/a),2)/((100/(this.interval))/(a*math.pi))
-        this.moving_precentage+=this.interval
+        this.moving_precentage+=this.interval*TIME_INTERVAL/2
         return vel
     }
     check_move(){

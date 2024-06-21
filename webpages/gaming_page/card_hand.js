@@ -227,13 +227,13 @@ class Card_Hand extends Card{
         const time_consume=this.moving_store[2];
         //console.log(time_consume)
         const x=(a*math.pi/100)*this.moving_precentage
-        const vel=a*Math.pow(Math.sin(x/a),2)/((100/(this.TIME_INTERVAL*time_consume))/(a*math.pi))
+        const vel=a*Math.pow(Math.sin(x/a),2)/((100/(this.TIME_INTERVAL*TIME_INTERVAL*time_consume/2))/(a*math.pi))
         const new_vel=math.multiply(vel,unitVector)
         const new_pos=math.add(this.position,new_vel);
         this.position[0]=new_pos[0]
         this.position[1]=new_pos[1]
         this.position[2]=new_pos[2]
-        this.moving_precentage+=this.TIME_INTERVAL*time_consume
+        this.moving_precentage+=this.TIME_INTERVAL*time_consume*TIME_INTERVAL/2
         this.check_distance_to_target(target_position)
         //console.log(this.position)
         
@@ -301,9 +301,9 @@ class Card_Hand extends Card{
         
         
         const x=((a*math.pi/2)/100)*this.moving_precentage
-        const angle_change=a*Math.pow(Math.sin(x/a),2)/((100/(this.TIME_INTERVAL*time_consume))/(Math.abs(a)*math.pi))
+        const angle_change=a*Math.pow(Math.sin(x/a),2)/((100/(this.TIME_INTERVAL*time_consume*TIME_INTERVAL/2))/(Math.abs(a)*math.pi))
         this.angle_z=this.angle_z+angle_change
-        this.moving_precentage+=this.TIME_INTERVAL*time_consume
+        this.moving_precentage+=this.TIME_INTERVAL*time_consume*TIME_INTERVAL/2
         
     }
     rotate_to_finish(target_position){//让它指向目标点
@@ -330,12 +330,12 @@ class Card_Hand extends Card{
         //console.log(time_consume)
         
         const x=(a*math.pi/100)*this.moving_precentage
-        const dif_size=unit*a*Math.pow(Math.sin(x/a),2)/((100/(this.TIME_INTERVAL*time_consume))/(a*math.pi))
+        const dif_size=unit*a*Math.pow(Math.sin(x/a),2)/((100/(this.TIME_INTERVAL*time_consume*TIME_INTERVAL/2))/(a*math.pi))
         
         this.change_size(this.size+dif_size)
         //console.log(this.size,dif_size)
         
-        this.moving_precentage+=this.TIME_INTERVAL*time_consume
+        this.moving_precentage+=this.TIME_INTERVAL*time_consume*TIME_INTERVAL/2
         this.check_size_to_target(size_target)
     }
     change_size_animation_finish(size_target){
@@ -748,13 +748,13 @@ class Card_Hand_Oppo extends Card{
         const time_consume=this.moving_store[2];
         //console.log(time_consume)
         const x=(a*math.pi/100)*this.moving_precentage
-        const vel=a*Math.pow(Math.sin(x/a),2)/((100/(this.TIME_INTERVAL*time_consume))/(a*math.pi))
+        const vel=a*Math.pow(Math.sin(x/a),2)/((100/(this.TIME_INTERVAL*time_consume*TIME_INTERVAL/2))/(a*math.pi))
         const new_vel=math.multiply(vel,unitVector)
         const new_pos=math.add(this.position,new_vel);
         this.position[0]=new_pos[0]
         this.position[1]=new_pos[1]
         this.position[2]=new_pos[2]
-        this.moving_precentage+=this.TIME_INTERVAL*time_consume
+        this.moving_precentage+=this.TIME_INTERVAL*time_consume*TIME_INTERVAL/2
         this.check_distance_to_target(target_position)
         //console.log(this.position)
         
@@ -818,9 +818,9 @@ class Card_Hand_Oppo extends Card{
         
         
         const x=((a*math.pi/2)/100)*this.moving_precentage
-        const angle_change=a*Math.pow(Math.sin(x/a),2)/((100/(this.TIME_INTERVAL*time_consume))/(Math.abs(a)*math.pi))
+        const angle_change=a*Math.pow(Math.sin(x/a),2)/((100/(this.TIME_INTERVAL*time_consume*TIME_INTERVAL/2))/(Math.abs(a)*math.pi))
         this.angle_z=this.angle_z+angle_change
-        this.moving_precentage+=this.TIME_INTERVAL*time_consume
+        this.moving_precentage+=this.TIME_INTERVAL*time_consume*TIME_INTERVAL/2
         
     }
     rotate_to_finish(target_position){//让它指向目标点
@@ -866,12 +866,12 @@ class Card_Hand_Oppo extends Card{
         //console.log(time_consume)
         
         const x=(a*math.pi/100)*this.moving_precentage
-        const dif_size=unit*a*Math.pow(Math.sin(x/a),2)/((100/(this.TIME_INTERVAL*time_consume))/(a*math.pi))
+        const dif_size=unit*a*Math.pow(Math.sin(x/a),2)/((100/(this.TIME_INTERVAL*time_consume*TIME_INTERVAL/2))/(a*math.pi))
         
         this.change_size(this.size+dif_size)
         //console.log(this.size,dif_size)
         
-        this.moving_precentage+=this.TIME_INTERVAL*time_consume
+        this.moving_precentage+=this.TIME_INTERVAL*time_consume*TIME_INTERVAL/2
         this.check_size_to_target(size_target)
     }
     change_size_animation_finish(size_target){

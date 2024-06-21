@@ -42,21 +42,21 @@ class Ephemeral_Bolt(Instant):
                 await self.attact_to_object(obj,3,"rgba(243, 0, 0, 0.9)","Missile_Hit")
                 player.action_store.end_record()
 
-    async def selection_step(self, player: "Player" = None, opponent: "Player" = None):
+    async def selection_step(self, player: "Player" = None, opponent: "Player" = None,selection_random:bool=False):
         total_object=[]
-        object_1=await send_select_request(self,"all_roles",1)
+        object_1=await send_select_request(self,"all_roles",1,selection_random)
         if object_1=="cancel":
             return ["cancel"]
         total_object+=object_1
 
         selection1=self.create_selection("Pay 2R to flashback",1)
         selection2=self.create_selection("Do nothing",2)
-        card=await player.send_selection_cards([selection1,selection2])
+        card=await player.send_selection_cards([selection1,selection2],selection_random)
 
         if card=="cancel":
             return ["cancel"]
         elif card.selection_index==1:
-            object_2=await send_select_request(self,"all_roles",1)
+            object_2=await send_select_request(self,"all_roles",1,selection_random)
             if object_2=="cancel":
                 return ["cancel"]
             total_object+=object_2

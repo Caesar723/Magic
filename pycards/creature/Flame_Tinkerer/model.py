@@ -48,14 +48,14 @@ class Flame_Tinkerer(Creature):
 
 
 
-    async def selection_step(self, player: "Player" = None, opponent: "Player" = None):
+    async def selection_step(self, player: "Player" = None, opponent: "Player" = None,selection_random:bool=False):
         selection1=self.create_selection("Pay R",1)
         selection2=self.create_selection("Do nothing",2)
-        card=await player.send_selection_cards([selection1,selection2])
+        card=await player.send_selection_cards([selection1,selection2],selection_random)
         print(card)
         if card!="cancel" and card.selection_index==1 :
             if  (player.battlefield or opponent.battlefield):
-                creature=await send_select_request(self,"all_creatures",1)
+                creature=await send_select_request(self,"all_creatures",1,selection_random)
                 if creature!="cancel":
                     return creature
                 else:

@@ -1,6 +1,10 @@
 class Book{
 
     constructor(camera,deck){
+        this.soundEffect_book = new Audio('webpages/audio/music_sorce/book/book.mp3'); 
+        this.soundEffect_book.volume = 0.3;
+        this.soundEffect_card = new Audio('webpages/audio/music_sorce/card/send.mp3'); 
+        this.soundEffect_card.volume = 0.3;
         this.deck=deck
         this.frame_generator= new Card_frame()
 
@@ -72,6 +76,8 @@ class Book{
         ]
         //this.send_page_request()
 
+
+       
         
     }
     showBox(content) {
@@ -137,6 +143,8 @@ class Book{
                         if (this.target_card.quantity-1!=-1){
                             this.target_card.quantity--
                             this.deck.push_card(this.target_card);
+                            this.soundEffect_card.currentTime = 0;
+                            this.soundEffect_card.play()
                         }
                         
                         
@@ -480,6 +488,8 @@ class Book{
         this.acceleration=acc_unit*4;
         this.velocity=0;
         this.position_x=position_x_unit*this.point_O[0];
+        this.soundEffect_book.currentTime = 0; // 确保每次从头开始播放
+        this.soundEffect_book.play()
 
     }
     update_turing(){
@@ -768,8 +778,11 @@ class Book{
             this.back_page_cards=page_1.cards;
             this.start_page_turing(turing_made);
         }
+        // this.soundEffect.currentTime = 0; // 确保每次从头开始播放
+        // this.soundEffect.play()
     }
     async change_page(target_page,type_mark,color_mark,turing_made){
+        
         if (turing_made==1){//翻回来
             if (this.position_x>0){
                 const page_1=await this.get_page(target_page,type_mark,color_mark);
@@ -813,7 +826,10 @@ class Book{
                 }
                 
             }
+            
         }
+        // this.soundEffect.currentTime = 0; // 确保每次从头开始播放
+        // this.soundEffect.play()
     }
 
     draw_arrow(){
@@ -876,6 +892,7 @@ class Arrow extends Button{
         this.initinal_color=ini_color;
         
         this.unit_direction=unit_direction
+        this.soundEffect = new Audio('webpages/audio/music_sorce/book/book.mp3'); 
         
         
         
@@ -884,6 +901,7 @@ class Arrow extends Button{
     change_page(current_page){
         console.log(current_page,this.unit_direction,current_page+this.unit_direction)
         if (current_page+this.unit_direction>=1){
+            //this.soundEffect.
             
             return current_page+this.unit_direction
         }

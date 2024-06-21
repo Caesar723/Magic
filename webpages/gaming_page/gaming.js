@@ -1,5 +1,7 @@
 class Game_Client{
     constructor(){
+        this.main_canvas=document.getElementById("myCanvas");
+        
         this.socket_main=null;
         this.socket_select =null;
 
@@ -7,6 +9,7 @@ class Game_Client{
         this.table=new Table(this)
         this.canvas_table=this.table.canvas
         this.ctx_table=this.table.ctx
+        //this.main_ctx=this.main_canvas.getContext("2d");
 
        
         this.win_lose=new Winning_And_Losing(this.canvas_table,this.ctx_table)
@@ -14,6 +17,8 @@ class Game_Client{
         
         this.self_player=new Self(players["self"],this.canvas_table,this.ctx_table)
         this.oppo_player=new Opponent(players["opponent"],this.canvas_table,this.ctx_table)
+        this.music=new Music(this.self_player,this.oppo_player)
+
         console.log(this.self_player,this.oppo_player)
         this.table.set_player(this.self_player,this.oppo_player)
         //this.initinal_players()
@@ -163,9 +168,18 @@ class Game_Client{
     }
     draw(){
         //this.ctx_table.filter = 'grayscale(100%)';
+        //console.time('table');
         this.table.draw()
+        //console.timeEnd('table');
+
+        //console.time('oppo_player');
         this.oppo_player.draw()
+        //console.timeEnd('oppo_player');
+
+        //console.time('self_player');
         this.self_player.draw()
+        //console.timeEnd('self_player');
+
         this.ctx_table.filter = 'none';
         if (this.action_bar.mode=="show"){
             this.blur_effect(this.grayscale,this.blur_value)
@@ -177,6 +191,10 @@ class Game_Client{
         }
         this.selectionPage.draw()
         this.win_lose.draw()
+
+        //this.main_ctx.drawImage(this.canvas_table, this.main_canvas.width,this.main_canvas.height)
+
+
 
 
     }
@@ -229,8 +247,8 @@ class Game_Client{
         
 
         
-        this.canvas_table.focus()
-        this.canvas_table.addEventListener('keydown', (event) => {
+        this.main_canvas.focus()
+        this.main_canvas.addEventListener('keydown', (event) => {
             console.log("A key pressed");
             if (event.key === "w" || event.key === "W") {
                 // 执行W键按下时的操作
@@ -386,10 +404,10 @@ class Game_Client{
                 //this.oppo_player.cards.push(card)
             }
             else if (event.key === "r" || event.key === "R") {
-                
-                const action=new Attack_To_Object(this.self_player,this.self_player,this.oppo_player,"rgba(0, 243, 0, 0.9)","Cure",[5])
-                action.set_animate()
-                this.action_bar.actions.push(action)
+                this.table.special_effects.create_missile(this.table.self_battlefield[0].card,this.oppo_player,"","Arrow","")
+                // const action=new Attack_To_Object(this.self_player,this.self_player,this.oppo_player,"rgba(0, 243, 0, 0.9)","Cure",[5])
+                // action.set_animate()
+                // this.action_bar.actions.push(action)
                 
             }
             else if (event.key === "t" || event.key === "T") {
@@ -543,8 +561,8 @@ class Game_Client{
 
             
         });
-        this.canvas_table.addEventListener('mousedown', (event) => { 
-            const mouse_pos=this.get_mouse_pos(event,this.canvas_table)
+        this.main_canvas.addEventListener('mousedown', (event) => { 
+            const mouse_pos=this.get_mouse_pos(event,this.main_canvas)
             const card=this.find_cards_by_mouse(mouse_pos)
             const timer=this.find_timers_by_mouse(mouse_pos)
 
@@ -567,6 +585,12 @@ class Game_Client{
 
             if (!(timer===undefined)){
                 this.end_time(timer)
+                if (this.music.start_flag){
+                    this.music.start_flag=false
+                    setTimeout(this.music.play_bgm.bind(this.music),4000)
+
+                }
+                
                 
             }
             
@@ -574,11 +598,11 @@ class Game_Client{
             
             
         });
-        this.canvas_table.addEventListener('mousemove', (event) => {
+        this.main_canvas.addEventListener('mousemove', (event) => {
             
             if (this.card_hold[2]){
                 this.show_2d.delete_mouse_card()
-                const mouse_pos=this.get_mouse_pos(event,this.canvas_table)
+                const mouse_pos=this.get_mouse_pos(event,this.main_canvas)
                 //console.log(2)
                 if (this.card_hold[0] instanceof Card_Battle){
                     //console.log(this.card_hold[0].position[2],this.card_hold[0].position_in_screen_z)
@@ -592,7 +616,7 @@ class Game_Client{
                 }
             }
             else if(this.card_hold[0]===undefined){
-                const mouse_pos=this.get_mouse_pos(event,this.canvas_table)
+                const mouse_pos=this.get_mouse_pos(event,this.main_canvas)
                 const card=this.find_cards_by_mouse(mouse_pos)
                 const timer=this.find_timers_by_mouse(mouse_pos)
                 const action=this.action_bar.check_mouse(mouse_pos)
@@ -602,10 +626,10 @@ class Game_Client{
 
 
                 if ( ((!(card===undefined)||!(timer===undefined))&&!this.selectionPage.in_selection) || (this.selectionPage.in_selection&&!(object===undefined)) ){
-                    this.canvas_table.style.cursor = 'pointer';
+                    this.main_canvas.style.cursor = 'pointer';
                 }
                 else{
-                    this.canvas_table.style.cursor = 'default';
+                    this.main_canvas.style.cursor = 'default';
                 }
                 //console.log(11)
                 if (card instanceof Card_Hand){
@@ -674,7 +698,7 @@ class Game_Client{
 
             }
         });
-        this.canvas_table.addEventListener('mouseup', (event) => {
+        this.main_canvas.addEventListener('mouseup', (event) => {
             if (!(this.card_hold[0]===undefined)){
                 
                 
@@ -723,7 +747,7 @@ class Game_Client{
                 }
             }
         });
-        this.canvas_table.addEventListener('mouseleave', (event) => {
+        this.main_canvas.addEventListener('mouseleave', (event) => {
             if (!(this.card_hold[0]===undefined)){
                 
                 if (this.card_hold[0] instanceof Card_Battle){
@@ -742,7 +766,7 @@ class Game_Client{
             }
         });
 
-        this.canvas_table.addEventListener('wheel', (event)=> {
+        this.main_canvas.addEventListener('wheel', (event)=> {
             //console.log(event.deltaY);
             //this.table.camera.angle_x=event.deltaX/40+this.table.camera.angle_x
             //this.table.camera.angle_y=event.deltaY/40+this.table.camera.angle_y
@@ -1026,15 +1050,28 @@ class Winning_And_Losing{
 const size_rat=7/10;
 var SIZE=1000*size_rat;
 var POSITION=[2000,-700,3000];
-
+var TIME_INTERVAL=2
 const client = new Game_Client();
-function main(){
+
+let lastTime = 0;
+function main(time){
+    const deltaTime = (time - lastTime) / 1000;
+    console.log(deltaTime);
+    lastTime = time;
+
+    TIME_INTERVAL=(2/0.0167)*deltaTime
     
     //await client.init();
     //while (true){
     client.ctx_table.clearRect(0, 0, client.canvas_table.width, client.canvas_table.height);
+    //client.main_ctx.clearRect(0, 0, client.main_canvas.width, client.main_canvas.height);
+    //console.time('update');
     client.update()
+    //console.timeEnd('update');
+    //console.time('game');
     client.draw()
+    //console.timeEnd('game');
+    
     
     
     requestAnimationFrame(main);

@@ -126,6 +126,7 @@ class Creature_Battle extends Card_Battle {
             // Life=state_attacted_obj[1]
             // attacted_obj.Damage=state_attacted_obj[0]
         }
+        this.card.player.music.play_music_effect("hit")
         
         
         

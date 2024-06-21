@@ -40,8 +40,8 @@ class Ring_Record{
         const a=this.moving_store[0];
         const unit=this.moving_store[2];
         const x=(a*math.pi/100)*this.moving_precentage
-        const vel=unit*a*Math.pow(Math.sin(x/a),2)/((100/(this.interval))/(a*math.pi))
-        this.moving_precentage+=this.interval
+        const vel=unit*a*Math.pow(Math.sin(x/a),2)/((100/(this.interval*TIME_INTERVAL/2))/(a*math.pi))
+        this.moving_precentage+=this.interval*TIME_INTERVAL/2
         return vel
     }
     
@@ -325,8 +325,8 @@ class Timmer extends Ring_Record{
         const a=this.moving_store[0];
         const unit=this.moving_store[2];
         const x=(a*math.pi/100)*this.moving_precentage
-        const vel=unit*a*Math.pow(Math.sin(x/a),2)/((100/(this.interval))/(a*math.pi))
-        this.moving_precentage+=this.interval
+        const vel=unit*a*Math.pow(Math.sin(x/a),2)/((100/(this.interval*TIME_INTERVAL/2))/(a*math.pi))
+        this.moving_precentage+=this.interval*TIME_INTERVAL/2
         return vel
     }
     
@@ -467,7 +467,7 @@ class Timmer extends Ring_Record{
         this.current_color[1]+=dif_g
         this.current_color[2]+=dif_b
         //console.log(this.current_color,a_r,a_g,a_b)
-        this.changing_precentage+=time_consume
+        this.changing_precentage+=time_consume*TIME_INTERVAL/2
         this.check_target(this.changing_store[6])
     }
     color_change_finish(){
@@ -692,7 +692,7 @@ class Player_Life extends Ring_Record{
         this.current_color[1]+=dif_g
         this.current_color[2]+=dif_b
         //console.log(this.current_color,a_r,a_g,a_b)
-        this.changing_precentage+=time_consume
+        this.changing_precentage+=time_consume*TIME_INTERVAL/2
         this.check_target(this.changing_store[6])
     }
     color_change_finish(){

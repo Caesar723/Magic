@@ -35,7 +35,7 @@ class Flameblade_Pyromancer(Creature):
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
         
         
-        if selected_object and selected_object[0].content!="Do nothing":
+        if selected_object and (isinstance(selected_object[0],type(player)) or selected_object[0].content!="Do nothing"):
             #player.action_store.add_action(actions.Change_Mana(self,player,player.get_manas()))
             player.action_store.start_record()
             await self.attact_to_object(selected_object[0],2,"rgba(243, 0, 0, 0.9)","Missile_Hit")
@@ -44,10 +44,10 @@ class Flameblade_Pyromancer(Creature):
 
 
 
-    async def selection_step(self, player: "Player" = None, opponent: "Player" = None):
+    async def selection_step(self, player: "Player" = None, opponent: "Player" = None,selection_random:bool=False):
         selection1=self.create_selection("Discard a card",1)
         selection2=self.create_selection("Do nothing",2)
-        card=await player.send_selection_cards([selection1,selection2])
+        card=await player.send_selection_cards([selection1,selection2],selection_random)
         print(card)
         if card!="cancel" and card.selection_index==1 :
             
@@ -55,12 +55,12 @@ class Flameblade_Pyromancer(Creature):
             if self in discard_list:
                 discard_list.remove(self)
             if discard_list:
-                discard=await player.send_selection_cards(discard_list)
+                discard=await player.send_selection_cards(discard_list,selection_random)
                 if discard !="cancel":
                     
                     player.discard(discard)
 
-                    creature=await send_select_request(self,"all_roles",1)
+                    creature=await send_select_request(self,"all_roles",1,selection_random)
                     if creature!="cancel":
                         return creature
                     else:

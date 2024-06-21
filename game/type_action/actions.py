@@ -198,9 +198,20 @@ class Cure_To_Object(Select_Object):
     def text(self,player)-> str:
         final_state=f"state({','.join(map(str,self.final_state))})"
         color=f"string({self.color})"
-        return f"action(Cure_To_Object,parameters({self.object_hold.text(player)},{self.player.text(player)},{self.object_selected.text(player)},{self.color},{type},{final_state}))"
+        return f"action(Cure_To_Object,parameters({self.object_hold.text(player)},{self.player.text(player)},{self.object_selected.text(player)},{color},{self.type},{final_state}))"
     
+class Point_To(Select_Object):
+    def __init__(self,object_hold:"Card|Player",player:"Player",selected_object:"Card|Player") -> None:
+        
+        self.object_hold:"Card|Player"=object_hold # store the controled card
+        self.player:"Player"=player # who use the card
+        self.object_selected:"Card|Player"=selected_object # store the selected_object card
+        
 
+    def text(self,player)-> str:
+        
+        return f"action(Point_To,parameters({self.object_hold.text(player)},{self.player.text(player)},{self.object_selected.text(player)}))"
+    
 class Gain_Card(Select_Object):
     def __init__(self,object_hold:"Card|Player",player:"Player",selected_object:"Card|Player",show_hide:bool) -> None:
         self.show_hide:bool=show_hide # true show ,false hide

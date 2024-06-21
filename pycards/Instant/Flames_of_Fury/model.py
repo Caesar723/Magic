@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from game.card import Card
  
 from game.type_cards.instant import Instant
+from game.type_cards.creature import Creature
 from game.game_function_tool import select_object
 
 
@@ -27,5 +28,14 @@ class Flames_of_Fury(Instant):
         self.image_path:str="cards/Instant/Flames of Fury/image.jpg"
 
 
+    @select_object("all_roles",1)
+    async def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
+        if selected_object:
 
+            player.action_store.start_record()
+            await self.attact_to_object(selected_object[0],3,"rgba(243, 0, 0, 0.9)","Missile_Hit")
+            player.action_store.end_record()
+
+            if isinstance(selected_object[0],Creature) and await selected_object[0].check_dead():
+                selected_object[0].flag_dict["exile"]
         

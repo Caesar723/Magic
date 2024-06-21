@@ -60,7 +60,7 @@ class Creature(Card):
         power,life=self.state
         
         rest_live=card.take_damage(self,power,card.player,card.player.opponent) 
-        self.when_harm_is_done(card,power,player,opponent)
+        await self.when_harm_is_done(card,power,player,opponent)
         if await card.check_dead():
             self.when_kill_creature(card,player,opponent)
         return rest_live
@@ -71,7 +71,7 @@ class Creature(Card):
     async def deal_damage_player(self,player:"Player",player_attacker: "Player" = None, opponent_attacker: "Player" = None):
         power,life=self.state
         player.take_damage(self,power)
-        self.when_harm_is_done(player,power,player_attacker,opponent_attacker)
+        await self.when_harm_is_done(player,power,player_attacker,opponent_attacker)
         await player.check_dead()
             
 
@@ -87,12 +87,14 @@ class Creature(Card):
     # def grt_current_power_live(self)->tuple:# calculate power_live
     #     pass
 
-
+    async def attact_to_object(self,object:Union["Creature","Player"],power:int,color:str,type_missile:str):# it won't get hurt object can be card ot player
+        await super().attact_to_object(object,power,color,type_missile)
+        await self.when_harm_is_done(object,power,self.player,self.player.opponent)
     
 
     #Here are listeners 注意，这个是异步函数
     @select_object("",1)
-    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield . selection_random=true when user not select it will select random
         pass
 
     def when_leave_battlefield(self,player: "Player" = None, opponent: "Player" = None,name:str='battlefield'):# when creature leave battlefield
@@ -108,7 +110,7 @@ class Creature(Card):
     def when_end_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
-    def when_harm_is_done(self,card:Union["Creature","Player"],value:int,player: "Player" = None, opponent: "Player" = None):#当造成伤害时 OK
+    async def when_harm_is_done(self,card:Union["Creature","Player"],value:int,player: "Player" = None, opponent: "Player" = None):#当造成伤害时 OK
         return value
 
     def when_hurt(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当受到伤害时 OK
@@ -181,6 +183,9 @@ class Creature(Card):
         # player.remove_card(self,"battlefield")
         # player.append_card(self,"graveyard")
     
+    async def when_move_to_exile_area(self, player: "Player" = None, opponent: "Player" = None):
+        self.when_leave_battlefield(player,opponent,'exile_area')
+        self.reset_to_orginal_state()
     
 
     async def when_play_this_card(self, player: "Player" = None, opponent: "Player" = None):# when player use the card OK

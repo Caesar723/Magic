@@ -104,8 +104,10 @@ class Card:
     def cure_to_object(self,object):# it won't get hurt
         self.player.action_store.add_action(actions.Cure_To_Object(self,self.player,object))
     
-    async def selection_step(self, player: "Player" = None, opponent: "Player" = None)->list:# 当打出牌是，会调用此函数，给用户发送卡牌选项,返回项必须是数组
+    async def selection_step(self, player: "Player" = None, opponent: "Player" = None,selection_random:bool=False)->list:# 当打出牌是，会调用此函数，给用户发送卡牌选项,返回项必须是数组
         return []
+    
+
     async def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card return prepared function
         pass
         
