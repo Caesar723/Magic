@@ -6,6 +6,8 @@ if TYPE_CHECKING:
     from game.card import Card
  
 from game.type_cards.creature import Creature
+from game.type_cards.sorcery import Sorcery
+from game.type_cards.instant import Instant
 from game.game_function_tool import select_object
 
 
@@ -33,6 +35,11 @@ class Igni_the_Pyromancer(Creature):
 
     async def when_harm_is_done(self,card:Union["Creature","Player"],value:int,player: "Player" = None, opponent: "Player" = None):#当造成伤害时 OK
         if isinstance(card,type(player)):
-            pass
+            cards=player.get_cards_by_pos_type("graveyard",(Instant,Sorcery))
+            print(cards)
+            if cards:
+                card:"Instant|Sorcery"=await player.send_selection_cards(cards,selection_random=True)
+                await (await card.card_ability(player,opponent,selected_object=(card),selection_random=True))()
+
 
         

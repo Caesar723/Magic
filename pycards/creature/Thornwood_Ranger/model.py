@@ -31,6 +31,7 @@ class Thornwood_Ranger(Creature):
         self.content:str="Reach (This creature can block creatures with flying.)"
         self.image_path:str="cards/creature/Thornwood Ranger/image.jpg"
 
+        self.flag_dict["reach"]=True
 
 
         

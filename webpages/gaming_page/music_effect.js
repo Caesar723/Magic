@@ -102,10 +102,10 @@ class Music{
         setTimeout(this.play_bgm.bind(this),4000)
     }
     play_bgm(){
-        console.log(this.gamming_bgm)
-        this.gamming_bgm.currentTime = 0;
-        this.gamming_bgm.play();
-        this.fadeVolumeIn(this.gamming_bgm, 7000);
+        // console.log(this.gamming_bgm)
+        // this.gamming_bgm.currentTime = 0;
+        // this.gamming_bgm.play();
+        // this.fadeVolumeIn(this.gamming_bgm, 7000);
     }
     
 }

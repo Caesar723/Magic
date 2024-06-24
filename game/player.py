@@ -17,6 +17,9 @@ from game.card import Card
 from initinal_file import CARD_DICTION
 from game.type_cards.creature import Creature
 from game.type_cards.land import Land
+from game.type_cards.sorcery import Sorcery
+from game.type_cards.instant import Instant
+
 from starlette.websockets import WebSocketDisconnect
 import game.custom_print
 
@@ -45,7 +48,7 @@ class Player:
         self.battlefield:list[Creature]=[]
 
         #land area
-        self.land_area:list[Card]=[]
+        self.land_area:list[Land]=[]
 
         #hand area
         self.hand:list[Card]=[]
@@ -58,6 +61,7 @@ class Player:
 
         #counter dict like number of turns, number of cards used
         self.counter_dict:dict={}
+        self.counter_dict["lands_summon_max"]=1
 
         #flag dict like whethr is your tern, whether ....
         self.flag_dict:dict={}
@@ -154,7 +158,15 @@ class Player:
             self.counter_dict[key]+=number
         else:
             self.counter_dict[key]=number
-
+    def set_counter_dict(self,key:str,number:int)->None:# change the numebr of counter_dict
+        
+        self.counter_dict[key]=number
+        
+    def get_counter_from_dict(self,key:str):
+        if key in self.counter_dict:
+            return self.counter_dict[key]
+        else:
+            return 0
     def draw_card(self,number:int):# draw x cards from library
         self.action_store.start_record()
         for i in range(number):
@@ -253,15 +265,20 @@ class Player:
     
 
     def beginning_phase(self):#开始阶段
-        
+        self.return_to_org_max_land()
         self.untap_step()
         self.upkeep_step()
         self.draw_step()
        
-
+    def return_to_org_max_land(self):#让lands_summon_max 变回1
+        self.counter_dict["lands_summon_max"]=1
+        self.counter_dict["lands_summon"]=0
+        
     def untap_step(self):#解除操控步骤:土地被横置以产生法术力（Mana），生物被横置以攻击等
         for land in self.land_area:
             land.untap()
+        for creature in self.battlefield:
+            creature.untap()
 
     def upkeep_step(self):#保持步骤（Upkeep Step）：某些卡牌效果会在这个时候触发。
         for card in self.get_cards_from_dict("upkeep_step"):
@@ -284,6 +301,9 @@ class Player:
         
 
     def end_step(self):#结束步骤（End Step）：某些卡牌效果会在这个时候触发。
+        for creature in self.battlefield:
+            creature.end_summoning_sickness()
+
         for card in self.get_cards_from_dict("end_step"):
             self.action_store.start_record()
             card.when_end_turn(self,self.opponent)
@@ -344,7 +364,12 @@ class Player:
         
             if type=='hand':
                 self.action_store.add_action(actions.Gain_Card(self,self,card,True))
-            elif type=='battlefield' or type=='land_area':
+            elif type=='battlefield' :
+                card.when_go_to_battlefield(card.player,card.player.opponent)
+                self.action_store.add_action(actions.Summon(card,self))
+
+            elif type=='land_area':
+                card.when_go_to_landarea(card.player,card.player.opponent)
                 self.action_store.add_action(actions.Summon(card,self))
 
     def mana_consumed(self,cost:"dict"):#自己的魔力池减少
@@ -376,9 +401,11 @@ class Player:
             await self.send_text(f"select(cards,parameters({cards}))")
             data =await self.receive_text()# ...|player;区域;index
             selected_card=self.get_object(selected_cards,data)
+        
         if selected_card=="cancel" and selection_random:
             if selected_cards:
                 selected_card=random.choice(selected_cards)
+            await self.send_text("end_select()")
         return selected_card
     
     def get_object(self,selected_cards:list[Card],data:str):
@@ -473,6 +500,23 @@ class Player:
             return self.flag_dict[flag_name]
         else:
             return False
+        
+    def get_cards_by_pos_type(self,position:str,card_type:tuple["Creature|Land|Sorcery|Instant"]):
+        position_dict={
+            'battlefield':self.battlefield,
+            'hand':self.hand,
+            'land_area':self.land_area,
+            'graveyard':self.graveyard,
+            'library':self.library,
+            'exile_area':self.exile_area
+        }
+        
+        if position in position_dict:
+            print(position_dict[position])
+            cards=[card for card in position_dict[position] if  isinstance(card,card_type)]
+            return cards
+        return []
+
         
     def text(self,player)-> str:
         if self.name==player.name:

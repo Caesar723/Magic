@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING,Union
+import json
 if TYPE_CHECKING:
     from game.player import Player
     from game.type_cards.creature import Creature
@@ -55,8 +56,9 @@ class Sorcery(Card):
     
     
     def text(self,player:'Player',show_hide:bool=False)-> str:
-        Flying=0
-        Active=0
+        
+        Flag_dict=f"str2json(string({json.dumps(self.flag_dict)}))"
+        Counter_dict=f"str2json(string({json.dumps(self.counter_dict)}))"
         Player=self.player.text(player)
         Id=id(self)
         if show_hide and player.name!=self.player.name:
@@ -69,7 +71,7 @@ class Sorcery(Card):
         Image_Path=self.image_path
         Fee=self.mana_cost
         
-        return f"Sorcery({Flying},{Active},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),{Fee})"
+        return f"Sorcery({Flag_dict},{Counter_dict},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),{Fee})"
 
     
     def __repr__(self):

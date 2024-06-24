@@ -43,10 +43,10 @@ class Mistweaver_Adept(Creature):
                 await player.generate_and_consume_mana(result[1],cost,self)
 
 
-    async def selection_step(self, player: "Player" = None, opponent: "Player" = None):
+    async def selection_step(self, player: "Player" = None, opponent: "Player" = None,selection_random:bool=False):
         selection1=self.create_selection("scry 2-return target creature to its owner's hand",1)
         selection2=self.create_selection("Do nothing",2)
-        card=await player.send_selection_cards([selection1,selection2])
+        card=await player.send_selection_cards([selection1,selection2],selection_random)
         return [card]
 
 

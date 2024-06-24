@@ -286,9 +286,13 @@ class Room:
                 self.flag_dict["attacker_defenders"]=False
                 print(self.flag_dict["attacker_defenders"])
             await self.check_death()
-        
-
+            print(self.attacker)
+            if self.attacker:
+                self.action_processor.start_record()
+                self.attacker.tap()
+                self.action_processor.end_record()
             self.attacker=None
+            
 
         
 
@@ -367,7 +371,9 @@ class Room:
         if not card:
             return (False,"no card")
 
-        if player==self.active_player and not self.get_flag('attacker_defenders'):
+        if player==self.active_player and not self.get_flag('attacker_defenders') and\
+        (not card.get_flag("summoning_sickness") or card.get_flag("haste")) and\
+        not card.get_flag("tap"):
             self.action_processor.start_record()
             self.action_processor.add_action(actions.Creature_Prepare_Attack(card,player))
             player.select_attacker(card)
@@ -388,7 +394,10 @@ class Room:
         if not card:
             return (False,"no card")
         
-        if player==self.non_active_player and self.get_flag("attacker_defenders"):
+        if player==self.non_active_player and \
+        self.get_flag("attacker_defenders") and\
+        not card.get_flag("tap") and \
+        (not self.attacker.get_flag("flying") or (card.get_flag("flying") or card.get_flag("reach"))):
             self.action_processor.start_record()
             self.action_processor.add_action(actions.Creature_Prepare_Defense(card,player,self.attacker,False))
             player.select_defender(card)

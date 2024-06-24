@@ -17,9 +17,9 @@ class Merfolk_Wayfinder(Creature):
 
         self.name:str="Merfolk Wayfinder"
         self.live:int=1
-        self.power:int=19
+        self.power:int=1
         self.actual_live:int=1
-        self.actual_power:int=19
+        self.actual_power:int=1
 
         self.type_creature:str="Merfolk Creature"
         self.type:str="Creature"
@@ -31,9 +31,8 @@ class Merfolk_Wayfinder(Creature):
         self.content:str="Whenever Merfolk Wayfinder enters the battlefield, you may scry 1. (Look at the top card of your library. You may put that card on the bottom of your library.)"
         self.image_path:str="cards/creature/Merfolk Wayfinder/image.jpg"
 
-    @select_object("opponent_roles",1)
+    @select_object("",1)
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
-        print(selected_object)
-
+        await self.Scry(player,opponent,5)
 
         

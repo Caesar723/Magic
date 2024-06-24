@@ -10,7 +10,7 @@ class Game_Client{
         this.canvas_table=this.table.canvas
         this.ctx_table=this.table.ctx
         //this.main_ctx=this.main_canvas.getContext("2d");
-
+        this.table.camera.update()
        
         this.win_lose=new Winning_And_Losing(this.canvas_table,this.ctx_table)
         let players=window.dataFromBackend
@@ -1056,7 +1056,7 @@ const client = new Game_Client();
 let lastTime = 0;
 function main(time){
     const deltaTime = (time - lastTime) / 1000;
-    console.log(deltaTime);
+    
     lastTime = time;
 
     TIME_INTERVAL=(2/0.0167)*deltaTime

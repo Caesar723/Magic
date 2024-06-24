@@ -40,6 +40,10 @@ class Card_Hand extends Card{
 
         //this.battle
         this.used=false
+
+
+        this.flag_dict={}
+        this.counter_dict={}
     }
 
 

@@ -117,7 +117,8 @@ class Message_Processor{
             "start_bullet":this.start_bullet.bind(this),
             "end_bullet":this.end_bullet.bind(this),
             "select":this.select.bind(this),
-            "end_select":this.end_select.bind(this)
+            "end_select":this.end_select.bind(this),
+            "str2json":this.str2json.bind(this)
             
         }
         //this.state(1,2,3,4,5)
@@ -190,41 +191,62 @@ class Message_Processor{
         console.log(card)
         return 1
     }
-    Creature(flying,active,player,id,name,type,type_card,rarity,content,image_path,fee,Org_Life,Life,Org_Damage,Damage){
-        const result=this.find_card(id)
+    Creature(flag_dict,counter_dict,player,id,name,type,type_card,rarity,content,image_path,fee,Org_Life,Life,Org_Damage,Damage){
+        let result=this.find_card(id)
         if (result && !(result instanceof Card_Hand_Oppo)){
-            return result
+            //return result
         }
-
-        //console.log(player)
-        const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
-        const card=new Creature_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,fee,Org_Damage,Org_Life,Life,Damage,name,id,player)
-        if (flying==1){
-            card.flying=true
+        else{
+            const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
+            result=new Creature_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,fee,Org_Damage,Org_Life,Life,Damage,name,id,player)
         }
         
-        return card
+        result.flag_dict=flag_dict
+        result.counter_dict=counter_dict
+
+        if (get_dict(flag_dict,'flying')){
+            result.flying=true
+        }
+
+        if (get_dict(flag_dict,'tap')){
+            Activate_Ability.check_battle(result,player)
+            const action=new Activate_Ability(result,player)
+            action.set_animate()
+        }
+        
+        return result
 
     }
-    Sorcery(flying,active,player,id,name,type,type_card,rarity,content,image_path,fee){
-        const result=this.find_card(id)
+    Sorcery(flag_dict,counter_dict,player,id,name,type,type_card,rarity,content,image_path,fee){
+        let result=this.find_card(id)
         if (result && !(result instanceof Card_Hand_Oppo)){
-            return result
+            //return result
         }
-        const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
-        const card=new Sorcery_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,fee,name,id,player)
-        return card
+        else{
+            const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
+            result=new Sorcery_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,fee,name,id,player)
+            
+        }
+        
+        result.flag_dict=flag_dict
+        result.counter_dict=counter_dict
+        return result
     }
-    Instant(flying,active,player,id,name,type,type_card,rarity,content,image_path,fee){
-        const result=this.find_card(id)
+    Instant(flag_dict,counter_dict,player,id,name,type,type_card,rarity,content,image_path,fee){
+        let result=this.find_card(id)
         if (result && !(result instanceof Card_Hand_Oppo)){
-            return result
+            //return result
         }
-        const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
-        const card=new Instant_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,fee,name,id,player)
-        return card
+        else{
+            const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
+            result=new Instant_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,fee,name,id,player)
+        }
+        
+        result.flag_dict=flag_dict
+        result.counter_dict=counter_dict
+        return result
     }
-    Land(flying,active,player,id,name,type,type_card,rarity,content,image_path,manas){
+    Land(flag_dict,counter_dict,player,id,name,type,type_card,rarity,content,image_path,manas){
         let result=this.find_card(id)
         
         if (result && !(result instanceof Card_Hand_Oppo)){
@@ -235,7 +257,9 @@ class Message_Processor{
             result=new Land_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,name,id,player,manas)
         }
 
-        if (active==1){
+        result.flag_dict=flag_dict
+        result.counter_dict=counter_dict
+        if (get_dict(flag_dict,'tap')){
             Activate_Ability.check_battle(result,player)
             const action=new Activate_Ability(result,player)
             action.set_animate()
@@ -434,6 +458,11 @@ class Message_Processor{
             
         }
     }
+
+    str2json(string){
+        return JSON.parse(string);
+    }
+
 
     
     extractParts(str) {

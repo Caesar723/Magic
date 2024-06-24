@@ -5,7 +5,7 @@ if TYPE_CHECKING:
 
 
 import re
-
+import random
 
 from game.game_function_tool import validate_all_methods
 from game.type_action import actions
@@ -19,6 +19,17 @@ class Card:
         self.player:"Player"=player
         self.name:str=""
         self.flag_dict:dict={}
+        """
+        reach
+        Trample
+        flying
+        haste
+        summoning_sickness
+        """
+
+        #counter dict like number of turns, number of cards used
+        self.counter_dict:dict={}
+        
         #self.keyword_list:list=[]
         self.type:str
         self.current_position:str=""#library,battlefield,land_area,hand
@@ -30,6 +41,8 @@ class Card:
         self.rarity:str
         self.content:str
         self.image_path:str
+
+        self.selection_index:int
 
     @property
     def cost(self)->dict[int]:# colorless,red, green, blue,black,white
@@ -63,9 +76,9 @@ class Card:
         difference["colorless"]+=sum_negative_numbers
         print(player_mana,cost,difference)
         land_store=[]
-
+        print(player.land_area)
         for land in player.land_area:
-            if land.check_can_use(player)[0]:
+            if not land.get_flag("tap"):
                 mana=land.generate_mana()
                 print(mana)
                 for key in mana:
@@ -130,7 +143,10 @@ class Card:
 
     # def when_enter_battlefield(self):# 可以检查时候要用when_play_this_card如果是打出的可以用，如果是召唤的不用
     #     用在creature
-
+    def when_go_to_battlefield(self, player: "Player" = None, opponent: "Player" = None):#这个是每次进入场地的时候
+        pass
+    def when_go_to_landarea(self, player: "Player" = None, opponent: "Player" = None):
+        pass
     def when_go_to_hand(self):#当卡牌进入手牌
         pass
 
@@ -146,6 +162,20 @@ class Card:
         else:
             return False
 
+    def add_counter_dict(self,key:str,number:int)->None:# change the numebr of counter_dict
+        if key in self.counter_dict:
+            self.counter_dict[key]+=number
+        else:
+            self.counter_dict[key]=number
+    def set_counter_dict(self,key:str,number:int)->None:# change the numebr of counter_dict
+        
+        self.counter_dict[key]=number
+        
+    def get_counter_from_dict(self,key:str):
+        if key in self.counter_dict:
+            return self.counter_dict[key]
+        else:
+            return 0
     # def check_keyword(self,keyword:str)->bool:#检查关键词条,比如检查是否有吸血，key是吸血
     #     if keyword in self.keyword_list:
     #         return True
@@ -177,7 +207,27 @@ class Card:
         new_selection.type_card=f"Selection {index}"
         new_selection.selection_index=index
         return new_selection
+    
+    async def Scry(self,player:'Player',opponent:'Player',times:int):
+        length_library=len(player.library)
+        if times>length_library:
+            cards=player.library[0:length_library]
+        else:
+            cards=player.library[0:times]
 
+        selection_end=self.create_selection("End Selection",1)
+        while cards:
+            card=await player.send_selection_cards(cards+[selection_end])
+            if card=="cancel":
+                await player.send_text("end_select()")
+                return
+            elif card.content=="End Selection":
+                return 
+            else:
+                player.remove_card(card,'library')
+                player.append_card(card,'library')
+                cards.remove(card)
+            
     
     def text(self,player:'Player',show_hide:bool=False)-> str:
         pass

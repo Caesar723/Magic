@@ -10,7 +10,8 @@ class SpecialEffects{
         this.types={
             'Missile_Hit':Magic_Missile,
             'Cure':Cure,
-            'Arrow':Arrow
+            'Arrow':Arrow,
+            'High_Missile':High_Missile
         }
     }
 
@@ -387,6 +388,22 @@ class Cure extends Magic_Missile{
             (position[2]+target_position[2])/2
         ]
         const arr=[position,new_pos_1,new_pos_2,target_position]
+        return arr
+    }
+}
+class High_Missile extends Magic_Missile{
+    constructor(object_hold,attacked_obj,color,state_final){
+        super(object_hold,attacked_obj,color,state_final)
+        this.speed=3
+    }
+    get_bezier_points(position,target_position){
+        const new_pos_1=[
+            position[0]+(target_position[0]-position[0])/4,
+            -40,
+            position[2]+(target_position[2]-position[2])/4
+        ]
+        
+        const arr=[position,new_pos_1,target_position]
         return arr
     }
 }

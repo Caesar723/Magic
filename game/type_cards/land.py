@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+import json
 if TYPE_CHECKING:
     from game.player import Player
 
@@ -28,7 +29,7 @@ class Land(Card):
         
 
     def check_can_use(self,player:'Player')->tuple[bool, str]:# check whether user can use this card , bool and reason
-        if self.get_flag("tap"):
+        if self.get_flag("tap") or player.get_counter_from_dict("lands_summon_max")<=player.get_counter_from_dict("lands_summon"):
             return (False,"tap")
         else:
             return (True,"")
@@ -79,7 +80,7 @@ class Land(Card):
         await super().when_play_this_card(player, opponent)
 
        
-
+        player.add_counter_dict("lands_summon",1)
         prepared_function=await self.when_enter_battlefield(player,opponent)
         if prepared_function=="cancel":
             return prepared_function
@@ -88,8 +89,9 @@ class Land(Card):
         return prepared_function
 
     def text(self,player:'Player',show_hide:bool=False)-> str:
-        Flying=int(self.get_flag("flying"))
-        Active=int(self.get_flag("tap"))
+        
+        Flag_dict=f"str2json(string({json.dumps(self.flag_dict)}))"
+        Counter_dict=f"str2json(string({json.dumps(self.counter_dict)}))"
         Player=self.player.text(player)
         Id=id(self)
         if show_hide and player.name!=self.player.name:
@@ -111,7 +113,7 @@ class Land(Card):
         result_mana=','.join(result_mana)
         print(result_mana)
         
-        return f"Land({Flying},{Active},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),state({result_mana}))"
+        return f"Land({Flag_dict},{Counter_dict},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),state({result_mana}))"
 
 
     def __repr__(self):

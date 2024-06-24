@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING,Union
-
+import json
 if TYPE_CHECKING:
     from game.player import Player
     
@@ -21,6 +21,7 @@ class Creature(Card):
 
         self.flag_dict:dict={}
         self.buffs:list[Buff]=[]
+        
 
         #the CreaturePara for js
         
@@ -95,7 +96,12 @@ class Creature(Card):
     #Here are listeners 注意，这个是异步函数
     @select_object("",1)
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield . selection_random=true when user not select it will select random
-        pass
+        pass#这个是玩家打出牌的时候
+
+    def when_go_to_battlefield(self, player: "Player" = None, opponent: "Player" = None):#这个是每次进入场地的时候
+        self.flag_dict["summoning_sickness"]=True
+    def end_summoning_sickness(self):
+        self.flag_dict["summoning_sickness"]=False
 
     def when_leave_battlefield(self,player: "Player" = None, opponent: "Player" = None,name:str='battlefield'):# when creature leave battlefield
         player.remove_card(self,"battlefield")
@@ -209,16 +215,26 @@ class Creature(Card):
     async def when_clicked(self):
         pass
 
-    
+    def tap(self):
+        if not self.get_flag("tap"):
+            self.player.action_store.add_action(actions.Activate_Ability(self,self.player))
+            self.flag_dict["tap"]=True#横置
+
+    def untap(self):
+        if self.get_flag("tap"):
+            self.player.action_store.add_action(actions.Reset_Ability(self,self.player))
+            self.flag_dict["tap"]=False#横置
     
     def reset_to_orginal_state(self):
         self.actual_live=self.live
         self.actual_power=self.power
         reset_instance_methods(self)
 
+
     def text(self,player:'Player',show_hide:bool=False)-> str:
-        Flying=int(self.get_flag("flying"))
-        Active=int(self.get_flag("active"))
+        
+        Flag_dict=f"str2json(string({json.dumps(self.flag_dict)}))"
+        Counter_dict=f"str2json(string({json.dumps(self.counter_dict)}))"
         Player=self.player.text(player)
         Id=id(self)
         Name=self.name
@@ -236,7 +252,7 @@ class Creature(Card):
         Life=state[1]
         Org_Damage=self.power
         Damage=state[0]
-        return f"Creature({Flying},{Active},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),{Fee},int({Org_Life}),int({Life}),int({Org_Damage}),int({Damage}))"
+        return f"Creature({Flag_dict},{Counter_dict},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),{Fee},int({Org_Life}),int({Life}),int({Org_Damage}),int({Damage}))"
 
 
 

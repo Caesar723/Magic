@@ -187,6 +187,8 @@ def select_object(type:Literal['all_roles',#分为两个阶段，准备阶段和
             if objects=="cancel":
                     return "cancel"
             kwargs[key_word] = objects
+            if key_random in kwargs:
+                del kwargs[key_random]
             async def prepared_function():
                 await func(self,*args,**kwargs)
             return prepared_function
@@ -220,7 +222,10 @@ def get_cards_diction():
     result_dict={}
     for subclass in Card.__subclasses__():
         for card in subclass.__subclasses__():
-            result_dict[f"{class_dict[card.__name__]}_{subclass.__name__}"]=card
+            try:
+                result_dict[f"{class_dict[card.__name__]}_{subclass.__name__}"]=card
+            except KeyError as e:
+                print(card.__name__,"token")
     
     return result_dict
 
