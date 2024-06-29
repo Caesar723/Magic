@@ -1,0 +1,50 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <style>
+        /* 自定义悬浮入口的位置 */
+        #position_demo {
+            position: absolute;
+            right: 10px;
+            bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<h1>Hello Bot</h1>
+<div id="position_demo"></div>
+<script src="https://sf-cdn.coze.com/obj/unpkg-va/flow-platform/chat-app-sdk/0.1.0-beta.4/libs/oversea/index.js"></script>
+<script>
+    const bot_id = '7330182852614******';
+    // 自定义Bot名称和icon
+    const title = 'AI翻译助手';
+    const icon = 'https://lf-bot-studio-plugin-resource.coze.cn/obj/bot-studio-platform-plugin-tos/artist/image/7e813aa2c7e14ebb9e2d1a989acfb128.png';
+    const lang = 'zh-CN';
+    const layout = 'pc';
+    // new CozeWebSDK.WebChatClient({
+    //     config: {
+    //         bot_id,
+    //     },
+    //     componentProps: {
+    //         title,
+    //         icon,
+    //     },
+    //     el: document.getElementById('position_demo')
+    // });
+    new CozeWebSDK.WebChatClient({
+    config: {
+        bot_id: '7384436294745194501',
+    },
+    componentProps: {
+        title: 'Coze',
+    },
+    });
+</script>
+</body>
+</html>
+
+
+
+
