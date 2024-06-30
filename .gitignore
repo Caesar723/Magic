@@ -1,0 +1,10 @@
+# 忽略Python缓存文件
+__pycache__/
+*.pyc
+
+# 忽略环境配置文件
+.env
+
+# 忽略敏感信息
+src/private.key
+src/certificate.crt
