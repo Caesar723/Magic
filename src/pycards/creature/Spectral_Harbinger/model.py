@@ -31,6 +31,9 @@ class Spectral_Harbinger(Creature):
         self.content:str="Flying, Lifelink (Damage dealt by this creature also causes you to gain that much life), When Spectral Harbinger enters the battlefield, you may exile target creature card from a graveyard. If you do, you gain 2 life."
         self.image_path:str="cards/creature/Spectral Harbinger/image.jpg"
 
+        self.flag_dict['lifelink']=True
+        self.flag_dict['flying']=True
+
 
 
         

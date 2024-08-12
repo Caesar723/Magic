@@ -69,6 +69,10 @@ class Card_Battle{
         this.activated=false
 
         this.select_flag=false
+
+        this.buff_list=card.buff_list
+        this.flag_dict=card.flag_dict
+        this.counter_dict=card.counter_dict
         
     }
     get_org_position(size){
@@ -781,5 +785,16 @@ class Card_Battle{
             
 
     }
+
+    append_buff(buff){
+        this.buff_list.push(buff)
+        //this.card.buff_list.push(buff)
+        //console.log(this.buff_list,this.card.buff_list)
+    }
+    remove_buff(buff){
+        this.buff_list=this.buff_list.filter(item => item.id !== buff.id);
+        this.card.buff_list=this.buff_list
+    }
+
 
 }

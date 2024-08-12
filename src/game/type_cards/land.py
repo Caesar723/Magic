@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 from game.card import Card
 from game.type_action import actions
 from game.game_function_tool import select_object
-
+from game.buffs import Buff
 
 class Land(Card):
     
@@ -88,6 +88,20 @@ class Land(Card):
         player.append_card(self,"land_area")
         return prepared_function
 
+    def when_gain_buff(self,player: "Player" = None, opponent: "Player" = None,buff:Buff=None,card:'Card'=None):#当获得+1+1的buff时 OK
+        self.player.action_store.start_record()
+        
+    
+        
+        self.player.action_store.add_action(actions.Add_Buff(card,self.player,self,"rgba(236, 230, 233, 0.8)","Missile_Hit",(),buff,True))
+        self.player.action_store.end_record()
+
+    def when_loss_buff(self,player: "Player" = None, opponent: "Player" = None,buff:Buff=None,card:'Card'=None):#当失去+1+1的buff时 OK
+        self.player.action_store.start_record()
+
+        self.player.action_store.add_action(actions.Lose_Buff(card,self.player,self,(),buff,True))
+        self.player.action_store.end_record()
+
     def text(self,player:'Player',show_hide:bool=False)-> str:
         
         Flag_dict=f"str2json(string({json.dumps(self.flag_dict)}))"
@@ -112,8 +126,8 @@ class Land(Card):
             result_mana.append(str(num))
         result_mana=','.join(result_mana)
         print(result_mana)
-        
-        return f"Land({Flag_dict},{Counter_dict},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),state({result_mana}))"
+        buffs=f"parameters({','.join([buff.text(player) for buff in self.buffs])})"
+        return f"Land({Flag_dict},{Counter_dict},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),state({result_mana}),{buffs})"
 
 
     def __repr__(self):

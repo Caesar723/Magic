@@ -70,6 +70,11 @@ async def signup(username: str = Body(...), password: str = Body(...), response:
             result=await database.store_users_password_new_player(username,password)
             if result=="signup successful":
                 await database.add_all_cards_to_player(username)
+                await database.add_all_cards_to_player(username)
+                await database.add_all_cards_to_player(username)
+                
+                await database.add_all_cards_to_player(username)
+
                 await database.add_packs("Original",username,20)
                 await database.add_packs("Green",username,10)
                 await database.add_packs("Blue",username,10)

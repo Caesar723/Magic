@@ -446,8 +446,9 @@ class Card_Creater:
 
     
 card_creator=Card_Creater()
+#print(ORGPATH)
 #card_creator.initinal_card_info()
-card_creator.start_create_prompt()
+#card_creator.start_create_prompt()
 # for i in range(4):
 #     card_creator.create_Instant()
 

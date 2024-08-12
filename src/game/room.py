@@ -38,6 +38,7 @@ class Room:
     
     
     def __init__(self,players:list[tuple],room_server:"RoomServer") -> None:#((deck,user_name1),...)
+        print(players)
         self.room_server=room_server #room_server可以用来删除room 和更新用户的任务
 
         self.gamming=True #如果在游戏的话就是True，没有就是False

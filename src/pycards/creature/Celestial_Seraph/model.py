@@ -32,5 +32,6 @@ class Celestial_Seraph(Creature):
         self.image_path:str="cards/creature/Celestial Seraph/image.jpg"
 
 
-
+        self.flag_dict['lifelink']=True
+        self.flag_dict['flying']=True
         

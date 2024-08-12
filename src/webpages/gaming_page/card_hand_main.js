@@ -93,12 +93,31 @@ class Creature_Hand extends Card_Hand {
         const card=new Creature_Hand(4,5.62,[0,0,0],2,this.dynamic_canvas,this.color_fee,this.Org_Life,this.Org_Damage,this.Life,this.Damage,this.name,this.id,this.player)
         card.battle=this.battle
         console.log(card.battle)
+        card.buff_list=this.buff_list
+        card.flag_dict=this.flag_dict
+        card.counter_dict=this.counter_dict
         return card
     }
 
     change_state(Damage,Life){
         this.Damage=Damage
         this.Life=Life
+        if (this.battle){
+            this.battle.Damage=Damage
+            this.battle.Life=Life
+        }
+    }
+    append_buff(buff){
+        this.buff_list.push(buff)
+        
+        
+    }
+    remove_buff(buff){
+        this.buff_list=this.buff_list.filter(item => item.id !== buff.id);
+        if (this.battle){
+            this.battle.buff_list=this.buff_list
+        }
+        
     }
 
 }
@@ -113,11 +132,20 @@ class Land_Hand extends Card_Hand {
     }
     create_fee(ctx,fee_text,color_less,red,blue,green,gold,black){
     }
+    append_buff(buff){
+        this.buff_list.push(buff)
+        if (this.battle){
+            this.battle.buff_list.push(buff)
+        }
+        
+    }
 
     get_copy(){
         const card=new Land_Hand(4,5.62,[0,0,0],2,this.dynamic_canvas,this.color_fee,this.name,this.id,this.player)
         card.battle=this.battle
-        
+        card.buff_list=this.buff_list
+        card.flag_dict=this.flag_dict
+        card.counter_dict=this.counter_dict
         return card
     }
 }
@@ -130,6 +158,9 @@ class Sorcery_Hand extends Card_Hand {
     }
     get_copy(){
         const card=new Sorcery_Hand(4,5.62,[0,0,0],2,this.dynamic_canvas,this.color_fee,this.name,this.id,this.player)
+        card.buff_list=this.buff_list
+        card.flag_dict=this.flag_dict
+        card.counter_dict=this.counter_dict
         return card
     }
 }
@@ -142,6 +173,9 @@ class Instant_Hand extends Card_Hand {
     }
     get_copy(){
         const card=new Instant_Hand(4,5.62,[0,0,0],2,this.dynamic_canvas,this.color_fee,this.name,this.id,this.player)
+        card.buff_list=this.buff_list
+        card.flag_dict=this.flag_dict
+        card.counter_dict=this.counter_dict
         return card
     }
 

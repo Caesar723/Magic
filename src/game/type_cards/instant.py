@@ -70,8 +70,8 @@ class Instant(Card):
         Content=self.content
         Image_Path=self.image_path
         Fee=self.mana_cost
-        
-        return f"Instant({Flag_dict},{Counter_dict},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),{Fee})"
+        buffs=f"parameters({','.join([buff.text(player) for buff in self.buffs])})"
+        return f"Instant({Flag_dict},{Counter_dict},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),{Fee},{buffs})"
 
     def __repr__(self):
         content=f"({self.name},{self.type},{id(self)},{self.mana_cost})"

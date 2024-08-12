@@ -44,6 +44,7 @@ class Card_Hand extends Card{
 
         this.flag_dict={}
         this.counter_dict={}
+        this.buff_list=[]
     }
 
 
@@ -583,6 +584,13 @@ class Card_Hand extends Card{
             
 
     }
+    append_buff(buff){
+        this.buff_list.push(buff)
+    }
+    remove_buff(buff){
+        this.buff_list=this.buff_list.filter(item => item.id !== buff.id);
+        
+    }
 }
 
 
@@ -948,5 +956,7 @@ class Card_Hand_Oppo extends Card{
     }
 
     
-    
+    append_buff(buff){
+       
+    }
 }

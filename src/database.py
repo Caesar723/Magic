@@ -464,8 +464,32 @@ class DataBase:
 
 
 if __name__=="__main__":
-    
+    import argparse
+    parser = argparse.ArgumentParser(description="Initialize the database.")
+    parser.add_argument(
+        '--reset-table', 
+        action='store_true',
+        help='Whether reset table in database'
+    )
+    parser.add_argument(
+        '--reset-all-card', 
+        action='store_true',
+        help='Whether reset all cards in database'
+    )
+
+    parser.add_argument(
+        '--reset-packs', 
+        action='store_true',
+        help='Whether reset packs in database'
+    )
+    args = parser.parse_args()
+    if args.reset_table:
+        reset_table()
+    if args.reset_all_card:
+        reset_all_card()
+    if args.reset_packs:
+        reset_packs()
     #reset_table()
-    reset_all_card()
+    #reset_all_card()
     #reset_packs()
     pass

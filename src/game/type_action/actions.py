@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from game.card import Card
     from game.player import Player
-
+    from game.buffs import Buff
 import asyncio
 #from game.action import Action
 
@@ -16,8 +16,16 @@ class Action:
         self.object_hold:"Card|Player"=object_hold # store the controled card
         self.player:"Player"=player # who use the card
 
+    def check_inhand(self,obj:"Card|Player",player):
+        if (obj in self.player.opponent.hand or obj in self.player.hand):
+            select_text=obj.text(player,self.show_hide)
+        else:
+            select_text=obj.text(player)
+        return select_text
+    
     def text(self,player)-> str:
         pass
+
 
     def __repr__(self) -> str:
         return self.__class__.__name__
@@ -158,16 +166,48 @@ class Select_Object(Action):
 
 
 class Add_Buff(Select_Object):
-    def __init__(self,object_hold:"Card|Player",player:"Player",selected_object:"Card|Player",final_state:tuple,show_hide:bool) -> None:
+    def __init__(self,object_hold:"Card|Player",player:"Player",selected_object:"Card",color:str,type:str,final_state:tuple,buff:"Buff",show_hide:bool) -> None:
         self.show_hide:bool=show_hide # true show ,false hide
         self.object_hold:"Card|Player"=object_hold # store the controled card
         self.player:"Player"=player # who use the card
         self.object_selected:"Card|Player"=selected_object # store the selected_object card
         self.final_state:tuple=final_state
+        self.buff:'Buff'=buff
+        self.color=color
+        self.type=type
+
+    def text(self,player)-> str:
+        
+        final_state=f"state({','.join(map(str,self.final_state))})"
+        
+        select_text=self.check_inhand(self.object_selected,player)
+
+        object_hold=self.check_inhand(self.object_hold,player)
+
+        color=f"string({self.color})"
+        buff=self.buff.text(player)
+        return f"action(Add_Buff,parameters({object_hold},{self.player.text(player)},{select_text},{color},{self.type},{final_state},{buff}))"
+    
+class Lose_Buff(Select_Object):
+    def __init__(self,object_hold:"Card|Player",player:"Player",selected_object:"Card",final_state:tuple,buff:"Buff",show_hide:bool) -> None:
+        self.show_hide:bool=show_hide # true show ,false hide
+        self.object_hold:"Card|Player"=object_hold # store the controled card
+        self.player:"Player"=player # who use the card
+        self.object_selected:"Card|Player"=selected_object # store the selected_object card
+        self.final_state:tuple=final_state
+        self.buff:'Buff'=buff
+       
+
     def text(self,player)-> str:
         final_state=f"state({','.join(map(str,self.final_state))})"
         
-        return f"action(Add_Buff,parameters({self.object_hold.text(player)},{self.player.text(player)},{self.object_selected.text(player)},{final_state}))"
+        select_text=self.check_inhand(self.object_selected,player)
+
+        object_hold=self.check_inhand(self.object_hold,player)
+
+        
+        buff=self.buff.text(player)
+        return f"action(Lose_Buff,parameters({object_hold},{self.player.text(player)},{select_text},{final_state},{buff}))"
     
 
 

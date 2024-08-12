@@ -10,6 +10,7 @@ class Player{
         this.card_frame=new Card_frame()
 
         this.select_flag=false
+        this.buff_list=[]
         
     }
     initinal_all(content){

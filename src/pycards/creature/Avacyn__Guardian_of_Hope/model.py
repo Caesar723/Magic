@@ -32,5 +32,6 @@ class Avacyn__Guardian_of_Hope(Creature):
         self.image_path:str="cards/creature/Avacyn, Guardian of Hope/image.jpg"
 
 
-
+        self.flag_dict['lifelink']=True
+        self.flag_dict['flying']=True
         

@@ -82,6 +82,7 @@ class Message_Processor{
             "Reset_Ability":Reset_Ability,
             "Select_Object":Select_Object,
             "Add_Buff":Add_Buff,
+            "Lose_Buff":Lose_Buff,
             "Attack_To_Object":Attack_To_Object,
             "Cure_To_Object":Cure_To_Object,
             "Gain_Card":Gain_Card,
@@ -118,7 +119,8 @@ class Message_Processor{
             "end_bullet":this.end_bullet.bind(this),
             "select":this.select.bind(this),
             "end_select":this.end_select.bind(this),
-            "str2json":this.str2json.bind(this)
+            "str2json":this.str2json.bind(this),
+            "Buff":this.Buff.bind(this)
             
         }
         //this.state(1,2,3,4,5)
@@ -191,7 +193,7 @@ class Message_Processor{
         console.log(card)
         return 1
     }
-    Creature(flag_dict,counter_dict,player,id,name,type,type_card,rarity,content,image_path,fee,Org_Life,Life,Org_Damage,Damage){
+    Creature(flag_dict,counter_dict,player,id,name,type,type_card,rarity,content,image_path,fee,Org_Life,Life,Org_Damage,Damage,Buffs){
         let result=this.find_card(id)
         if (result && !(result instanceof Card_Hand_Oppo)){
             //return result
@@ -204,10 +206,12 @@ class Message_Processor{
                 const action=new Activate_Ability(result,player)
                 action.set_animate()
             }
+            result.flag_dict=flag_dict
+            result.counter_dict=counter_dict
+            result.buff_list=Buffs
         }
         
-        result.flag_dict=flag_dict
-        result.counter_dict=counter_dict
+        
 
         if (get_dict(flag_dict,'flying')){
             result.flying=true
@@ -218,7 +222,7 @@ class Message_Processor{
         return result
 
     }
-    Sorcery(flag_dict,counter_dict,player,id,name,type,type_card,rarity,content,image_path,fee){
+    Sorcery(flag_dict,counter_dict,player,id,name,type,type_card,rarity,content,image_path,fee,Buffs){
         let result=this.find_card(id)
         if (result && !(result instanceof Card_Hand_Oppo)){
             //return result
@@ -231,9 +235,10 @@ class Message_Processor{
         
         result.flag_dict=flag_dict
         result.counter_dict=counter_dict
+        result.buff_list=Buffs
         return result
     }
-    Instant(flag_dict,counter_dict,player,id,name,type,type_card,rarity,content,image_path,fee){
+    Instant(flag_dict,counter_dict,player,id,name,type,type_card,rarity,content,image_path,fee,Buffs){
         let result=this.find_card(id)
         if (result && !(result instanceof Card_Hand_Oppo)){
             //return result
@@ -245,9 +250,10 @@ class Message_Processor{
         
         result.flag_dict=flag_dict
         result.counter_dict=counter_dict
+        result.buff_list=Buffs
         return result
     }
-    Land(flag_dict,counter_dict,player,id,name,type,type_card,rarity,content,image_path,manas){
+    Land(flag_dict,counter_dict,player,id,name,type,type_card,rarity,content,image_path,manas,Buffs){
         let result=this.find_card(id)
         
         if (result && !(result instanceof Card_Hand_Oppo)){
@@ -260,6 +266,7 @@ class Message_Processor{
 
         result.flag_dict=flag_dict
         result.counter_dict=counter_dict
+        result.buff_list=Buffs
         if (get_dict(flag_dict,'tap')){
             Activate_Ability.check_battle(result,player)
             const action=new Activate_Ability(result,player)
@@ -462,6 +469,29 @@ class Message_Processor{
 
     str2json(string){
         return JSON.parse(string);
+    }
+
+    Buff(buff_name,image_url,content,id,card_id){
+        let result=this.find_card(card_id)
+        let result_buff=false
+        if (result && !(result instanceof Card_Hand_Oppo)){
+            for (let buff_result of result.buff_list){
+                if(buff_result.id==id){
+                    result_buff=buff_result
+                }
+            }
+            
+        }
+        if (result_buff){
+            return result_buff
+        }
+        else{
+            const buff=new Buff(buff_name,image_url,content,id)
+            console.log(buff)
+            return buff
+        }
+        
+        
     }
 
 

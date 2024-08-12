@@ -20,7 +20,7 @@ class Creature(Card):
         super().__init__(player)
 
         self.flag_dict:dict={}
-        self.buffs:list[Buff]=[]
+        
         
 
         #the CreaturePara for js
@@ -78,7 +78,13 @@ class Creature(Card):
 
 
         
-
+    def gains_life(self,card:Card,value:int,player: "Player" = None, opponent: "Player" = None):
+        self.actual_live+=value
+        if self.actual_live>self.live:
+            self.actual_live=self.live
+        self.when_being_treated(card,value,player,opponent)
+        return self.state[1]
+    
     def take_damage(self,card:Card,value:int,player: "Player" = None, opponent: "Player" = None)->int:# 可以受到来自各种卡牌的伤害
         print(value,card)
         self.actual_live-=value
@@ -88,9 +94,9 @@ class Creature(Card):
     # def grt_current_power_live(self)->tuple:# calculate power_live
     #     pass
 
-    async def attact_to_object(self,object:Union["Creature","Player"],power:int,color:str,type_missile:str):# it won't get hurt object can be card ot player
-        await super().attact_to_object(object,power,color,type_missile)
-        await self.when_harm_is_done(object,power,self.player,self.player.opponent)
+    # async def attact_to_object(self,object:Union["Creature","Player"],power:int,color:str,type_missile:str):# it won't get hurt object can be card ot player
+    #     await super().attact_to_object(object,power,color,type_missile)
+    #     await self.when_harm_is_done(object,power,self.player,self.player.opponent)
     
 
     #Here are listeners 注意，这个是异步函数
@@ -117,12 +123,12 @@ class Creature(Card):
         pass
 
     async def when_harm_is_done(self,card:Union["Creature","Player"],value:int,player: "Player" = None, opponent: "Player" = None):#当造成伤害时 OK
-        return value
+        return await super().when_harm_is_done(card,value,player,opponent)
 
     def when_hurt(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当受到伤害时 OK
         return value
 
-    def when_being_treated(self,player: "Player" = None, opponent: "Player" = None):#当受到治疗时
+    def when_being_treated(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#当受到治疗时
         pass
 
     def when_become_attacker(self,player: "Player" = None, opponent: "Player" = None):# OK
@@ -131,11 +137,7 @@ class Creature(Card):
     def when_become_defender(self,player: "Player" = None, opponent: "Player" = None):# OK
         pass
 
-    def when_gain_buff(self,player: "Player" = None, opponent: "Player" = None):#当获得+1+1的buff时 OK
-        pass
-
-    def when_loss_buff(self,player: "Player" = None, opponent: "Player" = None):#当失去+1+1的buff时 OK
-        pass
+    
 
     def when_kill_creature(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
         pass
@@ -146,27 +148,8 @@ class Creature(Card):
     def when_start_defend(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
-    def loss_buff(self,buff):
-        if buff in self.buffs:
-            self.buffs.remove(buff)
-            self.update_buff()
-            self.when_loss_buff(self.player,self.player.opponent)
-        else:
-            self.update_buff()
-        
-
-    def gain_buff(self,buff):
-        self.buffs.append(buff)
-        self.update_buff()
-        self.when_gain_buff(self.player,self.player.opponent)
-
-    def update_buff(self):
-        reset_instance_methods(self)
-        self.change_function_by_buff()
-        
-    def change_function_by_buff(self):#遍历buffs，改变函数
-        for buff in self.buffs:
-            buff.change_function(self)
+    
+    
 
     def when_targeted(self):#When this creature is targeted
         pass
@@ -230,6 +213,20 @@ class Creature(Card):
         self.actual_power=self.power
         reset_instance_methods(self)
 
+    def when_gain_buff(self,player: "Player" = None, opponent: "Player" = None,buff:Buff=None,card:'Card'=None):#当获得+1+1的buff时 OK
+        self.player.action_store.start_record()
+        
+    
+        
+        self.player.action_store.add_action(actions.Add_Buff(card,self.player,self,"rgba(236, 230, 233, 0.8)","Missile_Hit",self.state,buff,True))
+        self.player.action_store.end_record()
+
+    def when_loss_buff(self,player: "Player" = None, opponent: "Player" = None,buff:Buff=None,card:'Card'=None):#当失去+1+1的buff时 OK
+        self.player.action_store.start_record()
+
+        self.player.action_store.add_action(actions.Lose_Buff(card,self.player,self,self.state,buff,True))
+        self.player.action_store.end_record()
+
 
     def text(self,player:'Player',show_hide:bool=False)-> str:
         
@@ -252,7 +249,9 @@ class Creature(Card):
         Life=state[1]
         Org_Damage=self.power
         Damage=state[0]
-        return f"Creature({Flag_dict},{Counter_dict},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),{Fee},int({Org_Life}),int({Life}),int({Org_Damage}),int({Damage}))"
+        
+        buffs=f"parameters({','.join([buff.text(player) for buff in self.buffs])})"
+        return f"Creature({Flag_dict},{Counter_dict},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),{Fee},int({Org_Life}),int({Life}),int({Org_Damage}),int({Damage}),{buffs})"
 
 
 
@@ -260,8 +259,7 @@ class Creature(Card):
     
     def __repr__(self):
         power,live=self.state
-        flying=self.get_flag("flying")
-        active=self.get_flag("active")
+        
         content=f"({self.name},{self.type},{power}/{live},{id(self)},{self.mana_cost})"
         return content
 

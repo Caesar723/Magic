@@ -69,6 +69,14 @@ class Show_2D{
     draw_mouse_card(){
         if (!(this.mouse_card===undefined)){
             this.mouse_card.draw(this.camera,this.ctx,this.canvas)
+            for (let buff_index in this.mouse_card.buff_list){
+                console.log( [this.mouse_card.position_in_screen[1][1],this.mouse_card.position_in_screen[3][1]+buff_index*50])
+                const position=[
+                    (this.mouse_card.position_in_screen[2][0]+this.mouse_card.position_in_screen[1][0])/2-100,
+                    this.mouse_card.position_in_screen[1][1]+buff_index*50
+                ]
+                this.mouse_card.buff_list[buff_index].draw(position,this.ctx,this.canvas)
+            }
         }
     }
 }

@@ -32,5 +32,6 @@ class Luminous_Guardian(Creature):
         self.image_path:str="cards/creature/Luminous Guardian/image.jpg"
 
 
-
+        self.flag_dict['lifelink']=True
+        self.flag_dict['flying']=True
         

@@ -456,19 +456,48 @@ class Select_Object extends Animation{
     }
 }
 class Add_Buff extends Select_Object{
-    constructor(object_hold,player,selected_object,final_state){//selected_object hand or battle
+    constructor(object_hold,player,selected_object,color,type,final_state,buff){//selected_object hand or battle
         super(object_hold,player,selected_object)
+        console.log(selected_object.buff_list)
         this.final_state=final_state
+        this.buff=buff
+        this.special_effect=player.table.special_effects
         
 
-        this.new_card=Animation.check_hand(this.selected_object).card.get_copy()
-
+        
         this.action_finished=true
         this.name='Add Buff'
+        this.color=color
+        this.type=type
+        
+        this.new_card=Animation.check_hand(this.selected_object).get_copy()
+        this.new_card.Life=final_state[1]
+        this.new_card.Damage=final_state[0]
+        
+
+        this.missile=undefined
         
     }
     set_animate(){
-        this.selected_object.change_state(...this.final_state)
+        this.selected_object.append_buff(this.buff)
+        console.log(this.selected_object)
+        if (this.selected_object.type=="Creature"){
+            if (this.type=="None"){
+                this.selected_object.change_state(...this.final_state)
+            }
+            else{
+                if (this.object_hold.type=="Creature"){
+                    this.missile=this.special_effect.create_missile(this.object_hold,this.selected_object,this.color,this.type,this.final_state)
+                }
+                else
+                {
+                    this.missile=this.special_effect.create_missile(this.player,this.selected_object,this.color,this.type,this.final_state)
+                }
+                
+                this.player.music.play_music_effect("missile")
+            
+            }
+        }
 
     }
     draw_action(ctx,canvas,camera){
@@ -480,10 +509,57 @@ class Add_Buff extends Select_Object{
         this.new_card.draw(camera,ctx,canvas)
     }
     finished(){
+        if (this.type=="None"){
+            if (this.missile===undefined){
+                return true;
+            }
+            else{
+                return this.missile.disappear
+            }
+        }
+        else{
+            return true
+        }
+        //return this.action_finished
+    }
+}
+class Lose_Buff extends Select_Object{
+    constructor(object_hold,player,selected_object,final_state,buff){//selected_object hand or battle
+        super(object_hold,player,selected_object)
+        this.final_state=final_state
+        this.buff=buff
+        
+
+        this.new_card=Animation.check_hand(this.selected_object).get_copy()
+
+        this.action_finished=true
+        this.name='Add Buff'
+        console.log(object_hold,player,selected_object,final_state,buff)
+        
+    }
+    set_animate(){
+        console.log("change")
+        this.selected_object.remove_buff(this.buff)
+        if (this.selected_object.type=="Creature"){
+            console.log(this.selected_object,this.final_state)
+            this.selected_object.change_state(...this.final_state)
+        }
+        
+
+    }
+    draw_action(ctx,canvas,camera){
+        super.draw_action(ctx,canvas,camera)
+        ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
+
+        this.new_card.position[0]=20
+        this.new_card.update()
+        this.new_card.draw(camera,ctx,canvas)
+    }
+    finished(){
+        
         return this.action_finished
     }
 }
-
 class Attack_To_Object extends Select_Object{
     constructor(object_hold,player,selected_object,color,type,result_state){//selected_object hand
         super(object_hold,player,selected_object)
