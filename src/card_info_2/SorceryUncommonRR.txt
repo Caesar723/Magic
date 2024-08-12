@@ -1,2 +1,3 @@
 Please design a new Sorcery card for Magic: The Gathering. Each cards are different. The Cost must be ?RR (? should be integer or no ?). The Rarity must be Uncommon
 Name: [Name]#Rarity: Uncommon#Cost: 1RR#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Flamestrike Surge  #Rarity: Uncommon  #Cost: 1RR  #Story Background: In the heart of battle, when all seems lost, a surge of fiery energy can turn the tide.  #Ability: Flamestrike Surge deals 3 damage to any target and you may discard a card. If you do, draw a card.  #Appearance Description: The card shows a mage summoning a torrent of flames from the sky, engulfing their enemies in a fiery inferno.

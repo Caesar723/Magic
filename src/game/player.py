@@ -122,7 +122,7 @@ class Player:
             name,type,number=element.split("+")
             number=int(number)
             self.deck+=[CARD_DICTION[f"{name}_{type}"](self) for i in range(number)]
-        #random.shuffle(self.deck)
+        random.shuffle(self.deck)
         self.hand=self.deck[:7]# get 7 card to hand
         self.library=self.deck[7:]# the rest is in the library
 
@@ -223,11 +223,11 @@ class Player:
 
     async def play_a_card(self,card:Card):# player 打出一张牌
         checked_result=card.check_can_use(self)
-        print(checked_result)
+        #print(checked_result)
         if checked_result[0]:
             self.action_store.start_record()#
             result=await card.when_use_this_card(self,self.opponent)
-            print(result)
+            #(result)
             if result[1]=="cancel":
                 self.action_store.end_record()
                 await self.send_text("end_select()")
@@ -248,7 +248,7 @@ class Player:
             
             
             
-            print(result)
+            #print(result)
             #result[1]()
             return result
         else:
@@ -320,8 +320,8 @@ class Player:
         self.action_store.end_record()
 
     async def cleanup_step(self):#清理步骤（Cleanup Step）：玩家将手牌调整至最大手牌限制，移除所有“直到回合结束”类的效果，并移除所有受到的伤害。清空法术力（包括敌方）
-        self.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
-        self.opponent.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
+        # self.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
+        # self.opponent.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
         self.action_store.add_action(actions.Change_Mana(self,self,self.get_manas()))
         self.opponent.action_store.add_action(actions.Change_Mana(self.opponent,self.opponent,self.opponent.get_manas()))
 
@@ -409,7 +409,7 @@ class Player:
         async with self.selection_lock:
             cards=','.join([card.text(self,False) for card in selected_cards])
             await self.send_text(f"select(cards,parameters({cards}))")
-            data =await self.receive_text()# ...|player;区域;index
+            data =await self.receive_text()# 玩家｜cards｜index
             selected_card=self.get_object(selected_cards,data)
         
         if selected_card=="cancel" and selection_random:
@@ -522,7 +522,7 @@ class Player:
         }
         
         if position in position_dict:
-            print(position_dict[position])
+            #print(position_dict[position])
             cards=[card for card in position_dict[position] if  isinstance(card,card_type)]
             return cards
         return []

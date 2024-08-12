@@ -1,2 +1,3 @@
 Please design a new Instant card for Magic: The Gathering. Each cards are different. The Cost must be ?RR (? should be integer or no ?). The Rarity must be Common
 Name: [Name]#Rarity: Common#Cost: 1RR#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Blazeburst#Rarity: Common#Cost: 1RR#Story Background: In the heat of battle, a burst of flames can turn the tide.#Ability: Blazeburst deals 3 damage to any target.#Appearance Description: The card shows a fiery burst emanating from a central point, engulfing its target in flames.

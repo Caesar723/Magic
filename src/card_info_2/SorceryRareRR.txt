@@ -1,2 +1,3 @@
 Please design a new Sorcery card for Magic: The Gathering. Each cards are different. The Cost must be ?RR (? should be integer or no ?). The Rarity must be Rare
 Name: [Name]#Rarity: Rare#Cost: 1RR#Story Background: [Story Background]#Ability: [Ability Description]#Appearance Description: [Detailed Description of Appearance].
+Name: Flameblast#Rarity: Rare#Cost: 3RR#Story Background: In the depths of the mountains, dragons gather to unleash their fiery wrath.#Ability: Flameblast deals 5 damage to any target. If RRR was spent to cast Flameblast, it deals 7 damage instead.#Appearance Description: The card depicts a massive dragon breathing fire onto a group of warriors, with the landscape burning in the background.

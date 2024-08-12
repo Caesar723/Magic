@@ -44,7 +44,7 @@ class Instant(Card):
         return prepared_function
     
     async def attact_to_object(self,object:Union["Creature","Player"],power:int,color:str,type_missile:str):# it won't get hurt object can be card ot player
-        if isinstance(object,type(self.player)):
+        if isinstance(object,(type(self.player),type(self.player.opponent))):
             object.take_damage(self,power)
             self.player.action_store.add_action(actions.Attack_To_Object(self.player,self.player,object,color,type_missile,[object.life]))
             await object.check_dead()

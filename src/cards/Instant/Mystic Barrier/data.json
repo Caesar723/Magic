@@ -1,0 +1,9 @@
+{
+    
+    "Name": "Mystic Barrier",
+    "Rarity": "Uncommon",
+    "Cost": "1WW",
+    "Story Background": "The Mystic Barrier was created by a group of powerful mages to protect their city from invading armies. It has since become a valuable tool for any mage seeking to defend their territory.",
+    "Ability": "Choose one - Target creature gains hexproof until end of turn.Target player can't cast noncreature spells until end of turn.",
+    "Appearance Description": "The Mystic Barrier appears as a shimmering, translucent wall of energy that surrounds the target. The color of the energy varies depending on the caster's mana color."
+}

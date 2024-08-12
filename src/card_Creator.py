@@ -34,7 +34,7 @@ class Card_Creater:
         self.dic_type_path={"Creature":"card_info/creature.txt","Land":"card_info/land.txt","Sorcery":"card_info/sorcery.txt","Instant":"card_info/Instant.txt"}
         self.dic_cards_path={"Creature":"cards/creature","Land":"cards/land","Sorcery":"cards/sorcery","Instant":"cards/Instant"}
         
-        self.client = OpenAI(api_key="sk-BXIUJfFqAg1XqqTW7o5tQK9YyhyPQbwdNt9sMm4RIZuiStaW",base_url="https://api.chatanywhere.cn")
+        self.client = OpenAI(api_key="sk-BXIUJfFqAg1XqqTW7o5tQK9YyhyPQbwdNt9sMm4RIZuiStaW",base_url="https://api.chatanywhere.tech")
         self.messages_Creature=[
                 {"role": "system", "content": "Activate GPT-3.5-turbo assistant, set to Magic: The Gathering Creature card design mode. Each cards are different."},
                 {"role": "user", "content": "Please design a new Creature card for Magic: The Gathering."},
@@ -55,11 +55,11 @@ class Card_Creater:
                 {"role": "user", "content": "Please design a new Instant card for Magic: The Gathering."},
                 {"role": "assistant", "content": "Name: [Name]\nRarity: [Common/Uncommon/Rare/Mythic Rare]\nCost: [Mana Cost]\nStory Background: [Story Background]\nAbility: [Ability Description]\nAppearance Description: [Detailed Description of Appearance]."}
             ]
-        self.load_info()
+        #self.load_info()
         self.dic_each_arr={"Creature":self.messages_Creature,"Land":self.messages_Land,"Sorcery":self.messages_Sorcery,"Instant":self.messages_Instant}
 
 
-        self.COOKIE="eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..p7xMKgKXWBP4s-fA.Y0nNBw8qcLYOpl3Zvd9PVR_y1KS4RGasUn_YCB2luWIzOpEKXZuqgSex4jk_CPv1ONWt3DvcaP8c1Z-t1jbO_JPm6kXoaimttJxcvx7jqu2XY9ahP7OCdnuxB3jXqdJGPrLYtHdmd6o66dTF8awf8kSsa5_0TL_aKO9HYfR82bat3HA4fM7H-9EmACPoGydG3_8RfmCzvk3z2YqDARyewm8Osga3HQ4HL-BAAwgnFw6xQ2ongXMoSG-4BNrljSHtYRkYTVm1WNhxuQ9PoL-keXWaqnTAKVeWhGEtmECmyUqv5dv5HtA8xdgn2x_wXIZHsYyn1_QoFe0gcx9fzqQqHQLbiGe_RjvopwAMhOKdDjwRF5GXHMfZUMvcIP1s_PCoUrbaiJ0f8GEJi09yv69YAUEYFG2XJ7Hz_hbyo6bBavrOYomBL-rzag_P-kgwnq3mD2XU5-YtVmW0XjCIr8xy4Mh1AYMM_HZ1sUxAWM3DilXLP0XM4lbvGjFpW8akh5aaiA_diwwTOdmvXUHm3A-KbNoCtjLkXXYRkaCt7vymB7SK993sq1Og8PNqTpYSqDShv60ok8rIGSeF7hNYDJYf-L7cWPa7FiQPABoVx9Gq-xq8cQMjjVL10vVW_H7mtz2LTma_hPLJsZfhJWvsfVsxkfMyRsHS-c4NvusO9DOFr2KbjACP_ct7a9QBHBeBc-3UGNHXZGoUnRmu4FdRsDhw0GakT_j3A1EVt9BjZVR-kyZifc4VfdfNuTzYP-8CI2E_PCDIpA0_sffmsy9vQAUmUo-IJ0p9u64chRXxrN2v6ME1jY84YD8ZifT1jng5eyCUl4BpZSwTkotNoeOJ69jqGSj07_66i9iBNAjXj-DDgtjHoHkVXCvHmRkf4KEihpaj25QgryoT7h8VQnDpFEirvlgiePMdeCNnwgDpEznMmIqQAScHu_P6O_WrfZ4TJK8hIHddCyacSoh2GQjG40zmrInycvIXezFI2fSgeXgU9eKjIixDy4w79sDPP45bKp51k_3Iw69LMgKaMSm0c0KGwI2M-VnAtr-uu0_zTQmAYsbF74wYep0ABTbA9hq02mZ2LbaTsENYfHIfqTTOp92LAh6y8XEvq06QCUFR6pHTfbqPlH8NyPtOzEtGtn_bmSxAxXru_pFrdwS-_2GBQ5zYnW_TjZAVIbl2HgbCwMQjIn5XNv_yZk0RQgdZfo2XQcfx8FRKbN8Fua6U3w7dv6Pse0M0Qz6vN_GypKkBGTWD7arc06EjWHYC2PFEfPBL2CcCj0-ecoT_U4RjM3ZYA0m6R75-IiQ1CPzwDIxo-52nZjHLXEWmX59YDAyat81gzwCqPB_vxHEEPoGYaPDDwO2MTBDo9fsZV4hRxVAKaKH5RnqBIT4EQjNK0EHrZtFjORAHsoe5mvWf0tGUJYSHbF7_l77bG9Q5ZWXtXsTJ7HMQUpMuMZgYPUG0GRt_v1JtEiS1suUyDvhIPIYyXzCazOz5Vv_yhLm2f8a_MGUrvaRfXPGDmB9nzfTaKmqzeN8g4yJzeN-5R1YGFOAQu59xEtnDP-mvFTZd779wsB9wQpbWAkzxhcswUF_nskm3OO0km5Z3mA_WSsLOPpoeTaMLZNMu8zBrY767ei0Z8l05fKPf0KzjcDs8jkArw5whPWoGaYTImnESO0P1l4cjLDh_lA9itKn_oiwFBQLTOXnnojjhl-CQ8uSyxMcstOG5Wi2P1HMRNegzBNQS0oysDFF5EItadGiqinLHF_zhaKnWBNWysJfw5jLMTcGgMAoV0_3hnaQT8shTvaC4gz7rOVwEMoWiJLRuzRGaEIg9v5_Na0e5_nDrji1DQ_eYtgIpcNqcDb4MN-MUD7R7wfe3OpEpju36Zeror-PAGXZQUufzfEpNhoWEPGJNvLEJVE5nxAXaM8i7Jkyg4erHlTsVWajaiIIoIBveAFK6DcZUO2scqg8kD7cvIzG45FDRWkn0EiUTY0caHy2MDfr-MAbMuRTMfnfnfIOlhJwc24E_zAnyZYgebWJJdJaaXMe5zpy5tX_5AOfklPrtQW4d1SymZm1156FMoGbj77vuogkAW2LMpLbOj7uui9iFtWuJtMYpqtXYG39gfXL6nQh0moKF2BTBlpCylNBJ6eannKEcFNwjRSlavNrwf1zJkC7lwGKuV_gJVW03ajbND5_WBkkQa05_V1vStp5jzVVCOao0wU3xwS-9cBkvaZ_OLjle-iWHRu4y0wact-kle-5EOYDDfX1s_6feVfmXJdBNkQsFzP0Naic9d3lxnEwIx-3EXCVCcwWkHiqR_zLxkm1SuvoYpbhP4YiGnDle2d34v6Hw6cKwmSfMRWcss8Bp1Hg219uigDJq7vvCXmXlqR6ihSVFiOHTcchBNBPXbiWJpGijOufKPqI3xIeDeMwsrmxO5zhAC4xdMvDh2vZP9lzDKA6D7bB7PUK8ZrnLiVITsb_1woHE2nRHRYXkOn5VoJJGBGQxK1JOCz9ZHvzrr6u29V-wocAyVDUVSMlGWDbOLdq5uagsmhenBE9gF7GDDKpxX8G8HyHtl6ICKie751h_f2V1v8f_b4A1BES5hPhzZWvBl-5xrflBiGwo63wwOfi1ykAbLi1INqu_3j_eFaTNmXEVnzWSSfzn_gq7xex0syFL--VqfEAH3l7UTXCzSV3ah7yODpr3GQY-Hz-rKPyYvR0OAX5CwNOAMQz7phQgyogYjQ8lGZGGU8lzBKOisoX2Y8vFBss-d-V76bm_c-E5-5r57bIapM_Fjx1AWIzonT-zUYyFQlqpkwD6AMrgi7jLreiKC1Ms.IQ4fjBAjVviAWVjDhE4xhw"
+        self.COOKIE='eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..HhzT7kRJqjUSmB0H.upVv8NTPKUygtYdDxyO9xtZP5HpYiLT8eKqsEfrnbOit-oMBfpvOpsJU8P3MCUb-9T31kxhOFn3U8LJg2c-MUuroGI3GqmpV9Z7LSJI9JaYcoc3D26RdLGtZiq3rcdWd_8gFMXanXjCMUFm92V1GO0HZ8IZdhuZ6eutSwsLDLrkOheFcqA0IWuhCJJn7yZ-8vz4fhjERtBJV8kiEq3LCzJINTiecSSRDMHUx-kazymJteIS5Thye0H0qZTRQuc9arB3nJgmS-J9NpiDSsI-bvIWNKw1DYIbma9Qs7Jvte67X0MYuSti9iYZ0WxW76u3ejQ3iK7f4O1bOx3KxsbB3YKJc4dc_iYNGiO8Mky6dWY5QltWTN0SVudGFIbhlB4MyaShd-v8FPUNyNF5zpmkgEW9rz6Xmzvw-VwQVbAncdimCDEzULDPKFoYpFDgmTh-hd5c5gnMrSN4c8I-crOBHZWYnqFLfaPXJ9QQ0hKjWwxWEpBzPs9PwgbufJpAB_OoEdAGmUlJeFVu8P-dONkhyWmguzmQaqb0tmIZtNE_xsyy-IwokyAIl3kqeKy8cM6l1-EFPSOv2eA8YMtBYusLIMj7PFDWl3_jMGY5CE1Idvj9cM3ereYGNp0NfCQbpeUx6ABsU075aFcpiw8SoTX_dIANu92Y6knuGMqL8dYj9yjlSajbpYj6W9kWm-VKf6t4AE6oQjnwUdyoaw2w3v_c_LtvCOzBPmh2gINIq-DJBbBPfaqKvBtBdwiYeTsYrUZwlwYPTYRQ9pNb9pv4Mwsum7XMFytdOJ5EvNAb4colDUn-w_at116hUpbrMY9eBCd67Eez2Yv22OmgJdWs7Kv8mdmChJhyDMyCAsOKgSxUcl_RhoqvjEK2oyP98qUbzSZwUYABLF8hkmYRkGTB8TaWhoKehIw68JP5OZsMocAx5Pn8OEV1KvyWpVNBtc3FvM4WluqS-Ob_3D74_a3PiaEXlCaG3pIKg4W0nUuSUp1t3jSXIVB720kniBmGw3FSnjhQpP06L8O1kL07rBc076rh1M2wizcwoC27AzK0naHvkoM8_O1pt2hQs0urHaxG-EcFAiVZ2gB72qVQtwvlfgQw0oeNWx3-OUU29bXTOky_Hg_s2pXbCIyXTRBHNYYIQ2wwwG7BBu4jE7IkBYWNgvGuJJvMJCzCVAmvD8tZD1XCNyP4MKFs_HSTdX3TOqGoLfv2IuKTJLjtZTxGko1C2kvXq2fYviscu5LlYlCl6Pq5EAh6gtEYhj64RIhemN8mnGNbmCjLOymDmxg6pZ8DrPmrVF1D5eNJfkieehHVyupuGjqCPOQ7zoZ92WshHHOYLwQZNQ7CImTsj82yQab_w48eBJfWjAZUi2bXHtfwwfDf4TwWIAuRflqOu14c9YcudlzjDvnQhLD_JIK1qDMZtB5nESvKB30t8rKJ8TDtI_cmWdpSp0TDWSIhfsJGlUEaiv1q7xnstIfROsrt9jM9UquvNVP0QU7XIJ8E33pVnWpl9UyiYHn21MNneCXJh1gZxMFI5oE6P7aWYitGt2Xs-01pntQ9A5EEbDYNaLfsYyEJNJY7-l3KRkRqnLOxJXrAemwKq4zm-r8aBe5objqTilKYI5oKbXx4VZQpZFKcbi7vK6CTN78v_y1HhNck4OS2mYf7FoaYZV1BkqU9RvYvsi7kiNzGbBclab_4lQ6GQ9Hu0TWSdKFTto5KLrMAo5Y8NVwmjmfDQJpiV9InYrNWZPfaozhe-2kwMB1GvTnZ4acn1FS0TPyj_MGqJCsSUnUdp9zzt-W2MmVIEhINVlRzCCvakrLnLHyh-QKZrksUC1GTfH2ihiKgiwBoxxXevylqkW1xzYughEpJL97W2uD4Ddg3aP_4RBUH5mVzsFxH8XfT9s98RR6sq997pdqiru8B9gd58fkSpv-JSbE4heQESKnw_pbKDCs-QY7SJLs5rm5umSwoDPJFJiqZYQVua4YE1SxKB2WxI2pvYUszPYVSa0-Vb2Oj0QsYwH9fChZItu0jINH0cJESawKfy3PGADKKtpyI3rq76QKZp1GgV8x_YGodT-KY3kgsmZ4NMtkeqxkD7Bd-Z7iQN6csZT1TKm5tOKDDuZnJ5zpFWOaZDdKNqWXKKST9ImYwQV1s_Ec1SstAwfzjyEtlDZ-lhL8r0JLFn1FJFdtdsuu4rOY1imxtu4WUR8_QTqDNUB-nCZCRzORZJCm8cpX85aMeTyM_w05LpSO8Yq4upOR1jvrefIM6jhJPAD9hMtSzHm7UyaNhXgon_18Vaw_2eT6Z-k7m4WQdJ7tbDnvQtX5KbWbwD0aNCEAdWzMT4zLpVxlLIBwjxWxnovzYHmL5GapMc57dl4HrgcM6y8MtX6vJcMm-rIymanyRQJxvDit_kS49qynpkjxqR6hgXBd1Ev39zT98Cxoei3qE1Z8U2RslSOti4KBhaZy4ZygUYek7MEOC_ngd6McXm21YY9LTWaU2PrQuoPdjrcz_2f-EU8Yx12I8NLfnDj0VzfkZFOsebrmEe6isDg-9iArMLczwRONNTdWEUhllcnEKO-XHBY7R8cskno7ar_BsU5t_nk1KeaEbSsQviAhHfnKbwRbrCCJjOgIMuxiLa4fNkpGs8EgWefyPz2v4cLWQ79CI6nt5hu3ZUouUanC6wWMzIat8GebH4Qw6xE7NGFsiFojuXheKXALLolHKTWfijt7PQcF0h6uo6-jR1X4bQVpQOb-RCk_T9VpxyymUqQ5NVL4cF_SadDnNVCNGoJXKBBWky80AM_ovpKX0aPi4dUy1ONtXvREFTDRVGRnOJN2jJXpIc4fGdWTs6k8esAwNFIJHM5tltMFivlzsNreprK7Q5qqNxw3dMZ9F-dcmc10ImJkiLYvzrS4f7ayfbpP9O_Woilaokk_ZGVrYo7ac1eyUoyxBIl-Cfqewo7GAsB1Q9pVdEoDQ13tXO1dtyw9bk07KWtRXm_kVpbN4F.Uqt1r_0SF8tYEJMUwnUhxQ'
         self.llm = GPT4OpenAI(token=self.COOKIE, headless=False,
                         model='gpt-4' # DALL-E 3 only works with gpt-4
                         )
@@ -68,6 +68,7 @@ class Card_Creater:
 
     #
     def create_Creature(self):
+        #print(self.messages_Creature)
         response = self.client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=self.messages_Creature
@@ -78,6 +79,7 @@ class Card_Creater:
         successful_flag=self.process_data_gpt("Creature",response.choices[0].message.content)
         if successful_flag:
             self.save_info("Creature",response.choices[0].message.content)
+            
         
 
     def create_Land(self):
@@ -126,6 +128,7 @@ class Card_Creater:
         content=content.replace("\n","#")
         with open(f"{ORGPATH}/{self.dic_type_path[type]}","a") as file:
             file.write(f"{content}\n")
+        print("save successfully ",f"{ORGPATH}/{self.dic_type_path[type]}")
 
     def load_info(self):
         self.load("Creature",self.messages_Creature)
@@ -448,14 +451,15 @@ class Card_Creater:
 card_creator=Card_Creater()
 #print(ORGPATH)
 #card_creator.initinal_card_info()
-#card_creator.start_create_prompt()
+card_creator.start_create_prompt()
 # for i in range(4):
 #     card_creator.create_Instant()
 
-# for i in range(4):
+# for i in range(40):
 #     try:
 #         card_creator.create_Creature()
-#     except :
+#     except Exception as e:
+#         print(e)
 #         print("create unsuccessfully")
 
 # for i in range(4):

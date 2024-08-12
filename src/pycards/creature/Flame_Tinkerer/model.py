@@ -30,6 +30,7 @@ class Flame_Tinkerer(Creature):
         self.rarity:str="Common"
         self.content:str="When Flame Tinkerer enters the battlefield, you may pay R. If you do, it deals 1 damage to target creature."
         self.image_path:str="cards/creature/Flame Tinkerer/image.jpg"
+        self.select_range:str="all_creatures"
 
     @select_object("",1)
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
@@ -51,11 +52,12 @@ class Flame_Tinkerer(Creature):
     async def selection_step(self, player: "Player" = None, opponent: "Player" = None,selection_random:bool=False):
         selection1=self.create_selection("Pay R",1)
         selection2=self.create_selection("Do nothing",2)
-        card=await player.send_selection_cards([selection1,selection2],selection_random)
-        print(card)
+        # card=await player.send_selection_cards([selection1,selection2],selection_random)
+        card=selection1
+        #print(card)
         if card!="cancel" and card.selection_index==1 :
             if  (player.battlefield or opponent.battlefield):
-                creature=await send_select_request(self,"all_creatures",1,selection_random)
+                creature=await send_select_request(self,self.select_range,1,selection_random)
                 if creature!="cancel":
                     return creature
                 else:
@@ -63,6 +65,7 @@ class Flame_Tinkerer(Creature):
             return [selection2]
             
         return [card]
+    
 
 
         

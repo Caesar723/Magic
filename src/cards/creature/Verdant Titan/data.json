@@ -1,0 +1,11 @@
+{
+    "Name": "Verdant Titan",
+    "Rarity": "Mythic Rare",
+    "Type": "Elemental Creature",
+    "Power": 5,
+    "Toughness": 5,
+    "Cost": "3GG",
+    "Story Background": "Born from the heart of an ancient forest, the Verdant Titan is a living embodiment of nature's raw power. It roams the lands, nurturing and protecting all flora and fauna in its wake.",
+    "Ability": "Trample, Vigilance, When Verdant Titan enters the battlefield or attacks, you may search your library for a land card and put it onto the battlefield tapped. If you do, shuffle your library.",
+    "Appearance Description": "A towering figure made entirely of intertwining vines and moss-covered earth. Its eyes glow with an ethereal green light as nature itself seems to flow through its veins."
+}

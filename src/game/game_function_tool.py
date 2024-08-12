@@ -68,7 +68,6 @@ def get_object(data:str,room:'Room',type:str,card:'Card'):#名字，选择类型
         "opponent_battlefield":player.opponent.battlefield,
         "self_landfield":player.land_area,
         "opponent_landfield":player.opponent.land_area,
-        
     }
     player_dict={
         "self":player,
@@ -114,10 +113,11 @@ def check_select_valid(player:'Player',selected_object,type_selection:str):
         'your_lands':[self_player.land_area], 
     }
     type_player=type(self_player)
+    type_player_oppo=type(oppo_player)
 
     if type_selection in type_dict:
         for element in type_dict[type_selection]:
-            if isinstance(element,type_player)  :
+            if isinstance(element,type_player) or isinstance(element,type_player_oppo):
                 if selected_object==element:
                     return True
             else:
@@ -177,13 +177,14 @@ def select_object(type:Literal['all_roles',#分为两个阶段，准备阶段和
     key_random="selection_random"
 
     def new_decorator(func):
+        
         async def new_func(self:"Card",*args, **kwargs):
             if key_random in kwargs:
                 self.player.future_function=asyncio.create_task(send_select_request(self,type,number,kwargs[key_random]))
             else:
                 self.player.future_function=asyncio.create_task(send_select_request(self,type,number))
             objects=await self.player.future_function
-            print(objects)
+            #print(objects)
             if objects=="cancel":
                     return "cancel"
             kwargs[key_word] = objects
@@ -192,6 +193,7 @@ def select_object(type:Literal['all_roles',#分为两个阶段，准备阶段和
             async def prepared_function():
                 await func(self,*args,**kwargs)
             return prepared_function
+        new_func.select_range=type
         return new_func
     return new_decorator
 

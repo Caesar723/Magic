@@ -57,23 +57,8 @@ class Room:
         self.bullet_timer:int=0
         self.max_bullet_time:int=10
 
-        # used to store the players
-        self.player_1,self.player_2=Player(players[0][1],players[0][0],self.action_processor),\
-                                    Player(players[1][1],players[1][0],self.action_processor)
-        self.player_1.set_opponent_player(self.player_2,self)
-        self.player_2.set_opponent_player(self.player_1,self)
-        self.players:dict[Player]={
-            players[0][1]:self.player_1,
-            players[1][1]:self.player_2
-        }
-
-        #用来发送消息
-        
-        self.players_socket:dict["WebSocket"]={
-            players[0][1]:None,
-            players[1][1]:None
-        }
-        print(self.players_socket)
+        self.initinal_player(players)
+        #print(self.players_socket)
 
         #used to store the each flag like whether is bullet_time
         self.flag_dict:dict={}
@@ -120,7 +105,23 @@ class Room:
 
         
         
+    def initinal_player(self,players:list[tuple]):
+        # used to store the players
+        self.player_1,self.player_2=Player(players[0][1],players[0][0],self.action_processor),\
+                                    Player(players[1][1],players[1][0],self.action_processor)
+        self.player_1.set_opponent_player(self.player_2,self)
+        self.player_2.set_opponent_player(self.player_1,self)
+        self.players:dict[Player]={
+            players[0][1]:self.player_1,
+            players[1][1]:self.player_2
+        }
 
+        #用来发送消息
+        
+        self.players_socket:dict["WebSocket"]={
+            players[0][1]:None,
+            players[1][1]:None
+        }
     
     async def game_start(self):# start the game
         players=[self.player_1,self.player_2]
@@ -137,8 +138,8 @@ class Room:
         self.reset_turn_timer()
 
         #######test
-        print("发送消息")
-        asyncio.create_task(tasks(self))
+        #print("发送消息")
+        #asyncio.create_task(tasks(self))
         # asyncio.run(main())
 
 
@@ -163,7 +164,7 @@ class Room:
             #await self.room_server.settle_player(True,win_player)
             #await self.room_server.settle_player(False,lose_player)
         self.action_processor.end_record()
-        print(self.action_processor.action_cache)
+        #print(self.action_processor.action_cache)
 
         
 
@@ -208,7 +209,7 @@ class Room:
         if self.get_flag("bullet_time"):
             self.bullet_timer:int=self.max_bullet_time-round(time.perf_counter()-self.initinal_bullet_timer)
             await self.check_timer_change("timer_bullet",self.bullet_timer)
-            print(self.bullet_timer)
+            #print(self.bullet_timer)
             if self.bullet_timer<=0:
                 await self.end_bullet_time()
         else:
@@ -256,7 +257,7 @@ class Room:
         key="{}_bullet_time_flag"
         for un in self.players:#username
             self.flag_dict[key.format(un)]=False
-        print(self.stack)
+        #print(self.stack)
         while self.stack and not self.flag_dict["bullet_time"]:
             func,card=self.stack.pop()
             self.action_processor.start_record()
@@ -290,9 +291,9 @@ class Room:
             if self.get_flag("attacker_defenders"):#如果attacker_defenders还是True 那attacker 就去攻击敌方英雄
                 await self.start_attack(self.non_active_player)
                 self.flag_dict["attacker_defenders"]=False
-                print(self.flag_dict["attacker_defenders"])
+                #print(self.flag_dict["attacker_defenders"])
             await self.check_death()
-            print(self.attacker)
+            #print(self.attacker)
             if self.attacker:
                 self.action_processor.start_record()
                 self.attacker.tap()
@@ -313,7 +314,7 @@ class Room:
         self.initinal_bullet_timer=time.perf_counter()
 
     async def start_bullet_time(self):
-        print("start_bullet()1")
+        #print("start_bullet()1")
         self.reset_bullet_timer()
         self.flag_dict["bullet_time"]=True
         self._elapsed_time=time.perf_counter()
@@ -321,7 +322,7 @@ class Room:
             socket:"WebSocket"=self.players_socket[name_player]
             if socket!=None:
                 await socket.send_text("start_bullet()")
-        print("start_bullet()")
+        #print("start_bullet()")
 
 
     async def change_turn(self):# when active_player end turn
@@ -448,7 +449,7 @@ class Room:
         
     async def start_play_card(self,card:"Card",player:Player):
         result=await player.play_a_card(card)
-        print(result)
+        #print(result)
         if result[0]:
             await self.put_prepared_function_to_stack(result[1],card)
         else:
@@ -522,7 +523,7 @@ class Room:
             await self.room_server.settle_player(True,player)
         elif content=='lose':
             await self.room_server.settle_player(False,player)
-        print(player.opponent.get_flag("game_over"),player.get_flag("game_over"))
+        #print(player.opponent.get_flag("game_over"),player.get_flag("game_over"))
         if player.opponent.get_flag("game_over"):
             self.gamming=False
 
@@ -533,9 +534,9 @@ class Room:
     async def set_socket(self,socket:"WebSocket",username:str):#用来初始化socket
         
         self.players_socket[username]=socket
-        print(f"set socket {username} {self.players_socket}")
+        #print(f"set socket {username} {self.players_socket}")
         player=self.players[username]
-        print(self.text(player))
+        #print(self.text(player))
         await socket.send_text(self.text(player))
 
     def set_select_socket(self,socket:"WebSocket",username:str):
@@ -572,17 +573,17 @@ class Room:
                 await self.players[name].check_creature_die(creature)
         self.action_processor.end_record()
         if (died_player):
-            print(died_player)
+            #print(died_player)
             await self.game_end(died_player)
 
     async def action_sender(self):
         while self.gamming:
-            print("action_sender 检查一次")
+            #print("action_sender 检查一次")
             if not self.action_store_list_cache:
                 
                 async with self.action_store_list_cache_condition:
                     await self.action_store_list_cache_condition.wait_for(lambda: len(self.action_store_list_cache) > 0)  # 等待队列不为空
-            print(self.action_store_list_cache)
+            #print(self.action_store_list_cache)
             action:actions.List_Action=self.action_store_list_cache.pop(0)
             self.action_store_list+=action.list_action
             
@@ -593,10 +594,10 @@ class Room:
             # await func[0](*func[1]) 
             # await self.check_death()
     async def send_action(self,action:actions.List_Action):
-        print(self.players_socket)
+        #print(self.players_socket)
         for name in self.players_socket:
             player:Player=self.players[name]
-            print(player.name)
+            #print(player.name)
             socket:"WebSocket"=self.players_socket[name]
             if socket!=None:
                 print("准备发送",action)
@@ -664,6 +665,7 @@ bullet_time:{str(self.get_flag("bullet_time"))}
 attacter:{self.attacker}
 -----------------------------------------------------------------------------------
 player1:{player1}
+    live:{self.players[player1].life}
     battle_field:{self.players[player1].battlefield}
     hand:{self.players[player1].hand}
     land:{self.players[player1].land_area}
@@ -671,6 +673,7 @@ player1:{player1}
     mana:{self.players[player1].mana}
 
 player2:{player2}
+    live:{self.players[player2].life}
     battle_field:{self.players[player2].battlefield}
     hand:{self.players[player2].hand}
     land:{self.players[player2].land_area}

@@ -1,5 +1,6 @@
 
 from game.room import Room
+from game.player_agent_room import PVE_Room
 from server_function_tool import Deck_selected
 
 import game.custom_print
@@ -29,6 +30,13 @@ class RoomServer:
 
         await room.game_start()
 
+
+    async def create_new_pveroom(self,client_1:tuple):
+        room=PVE_Room([client_1],self)
+
+        self.client_room[client_1[1]]=room
+
+        await room.game_start()
 
         
 

@@ -44,6 +44,17 @@ class Home{
 
         document.getElementById('choose').addEventListener('click', choose_a_deck);
         
+        const start_gaming_ai = document.getElementById('tutorial');
+        start_gaming_ai.addEventListener('click', (event)=> {
+            console.log(this.decks.seleted_deck)
+            if (this.decks.seleted_deck){
+                this.start_matching_ai()
+            }
+            else{
+                choose_a_deck()
+            }
+            
+        });
         const start_gaming = document.getElementById('start');
         start_gaming.addEventListener('click', (event)=> {
             console.log(this.decks.seleted_deck)
@@ -58,7 +69,7 @@ class Home{
     }
     async start_matching(){
         
-        var responseData =await this.send_match_request()
+        var responseData =await this.send_match_request('/matching')
         while (responseData["state"]=="waiting"){
             await this.set_time()
             var responseData =await this.send_match_request()
@@ -80,13 +91,30 @@ class Home{
 
 
     }
+    async start_matching_ai(){
+        
+        var responseData =await this.send_match_request("/matching_ai")
+        
+
+        if (responseData["state"]!="find!"){
+            const response = await fetch('/matching_delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            });
+        }else{
+            window.location.href = '/gaming_ai';
+        }
+    }
+
     set_time(){
         return new Promise(resolve => setTimeout(resolve, 3000));
     }
 
-    async send_match_request(){
+    async send_match_request(name){
         
-        const response = await fetch('/matching', {
+        const response = await fetch(name, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

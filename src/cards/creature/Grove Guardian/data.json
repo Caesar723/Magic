@@ -1,0 +1,11 @@
+{
+    "Name": "Grove Guardian",
+    "Rarity": "Uncommon",
+    "Type": "Elemental Creature - Elemental",
+    "Power": 3,
+    "Toughness": 5,
+    "Cost": "3GG",
+    "Story Background": "The Grove Guardian is an ancient elemental spirit that watches over the sacred groves and forests, its presence a testament to the enduring power of nature. Its vigilant gaze safeguards the sanctity of the natural world.",
+    "Ability": "Reach, Hexproof (This creature can't be the target of spells or abilities your opponents control.)",
+    "Appearance Description": "The Grove Guardian is a towering figure formed from intertwining roots, vines, and shimmering foliage that exudes an aura of tranquil strength and boundless vitality. Its eyes gleam with serene wisdom, and its very essence resonates with the harmonious energy of verdant growth and unyielding resilience."
+}

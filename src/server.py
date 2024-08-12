@@ -240,6 +240,27 @@ async def matching(deck:Deck_selected,username: str = Depends(get_current_user(d
         return {"state":"unvalid deck"}
    
 
+@app.post("/matching_ai")
+async def game_page(deck:Deck_selected, username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        print(username)
+        return username
+    deck=await database.check_deck_real(deck.name,deck.id,username)
+    client_detail=(deck,username)
+    await room_server.create_new_pveroom(client_detail)
+    return {"state":"find!"}
+
+
+@app.get("/gaming_ai") 
+async def game_page(request: Request, username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        print(username)
+        return username
+    # deck=await database.check_deck_real(deck.name,deck.id,username)
+    # client_detail=(deck,username)
+    # await room_server.create_new_pveroom(client_detail)
+    return templates.TemplateResponse(f"webpages/gaming_page/gaming.html", { "request": request,"data": room_server.get_players_name(username)})
+
 
 
 
@@ -256,6 +277,7 @@ async def game_page(request: Request, username: str = Depends(get_current_user(d
         print(username)
         return username
     return templates.TemplateResponse(f"webpages/gaming_page/gaming.html", {"request": request, "data": room_server.get_players_name(username)})
+
 
 # @app.post("/players") 
 # async def matching_delete(username: str = Depends(get_current_user(database))):

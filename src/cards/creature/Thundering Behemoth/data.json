@@ -1,0 +1,11 @@
+{
+    "Name": "Thundering Behemoth",
+    "Rarity": "Rare",
+    "Type": "Beast Creature - Beast",
+    "Power": 6,
+    "Toughness": 5,
+    "Cost": "4GGG",
+    "Story Background": "The Thundering Behemoth is a colossal force of nature, an embodiment of primal strength and untamed fury. Its thunderous footsteps echo through the land, heralding the awesome power that resides within its titanic form.",
+    "Ability": "Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.), When Thundering Behemoth enters the battlefield, creatures you control gain trample until end of turn.",
+    "Appearance Description": "The Thundering Behemoth is a massive, hulking beast with rippling muscles and fur that crackles with latent energy. Its bellowing roar reverberates across the landscape, and its every movement sends shockwaves through the earth, leaving behemothic footprints in its wake."
+}

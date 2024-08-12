@@ -61,7 +61,7 @@ class List_Action_Processor:
         self.action_list[self.start_counter].append(action)
 
     async def notify_condition(self):
-        print(self.action_condition,"notify")
+        #print(self.action_condition,"notify")
         async with self.action_condition:
             self.action_condition.notify() 
 

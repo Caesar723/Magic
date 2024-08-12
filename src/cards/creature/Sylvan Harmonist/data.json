@@ -1,0 +1,11 @@
+{
+    "Name": "Sylvan Harmonist",
+    "Rarity": "Rare",
+    "Type": "Human Druid",
+    "Power": 2,
+    "Toughness": 3,
+    "Cost": "1GG",
+    "Story Background": "Born in the heart of the ancient forest, the Sylvan Harmonist is a protector of nature and a conduit for its untamed energies.",
+    "Ability": "When Sylvan Harmonist enters the battlefield, you may search your library for a basic land card and put it onto the battlefield tapped. If you do, shuffle your library.",
+    "Appearance Description": "A tall figure cloaked in woven leaves and adorned with growing vines, holding a staff carved from an ancient oak. The air around them hums with natural energy."
+}

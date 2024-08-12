@@ -1,0 +1,11 @@
+{
+    "Name": "Emberheart Dragonrider",
+    "Rarity": "Rare",
+    "Type": "Human Knight Creature",
+    "Power": 3,
+    "Toughness": 3,
+    "Cost": "1RR",
+    "Story Background": "In the volcanic region of Kaldheim, only the bravest knights dare to tame and ride the mighty dragons.",
+    "Ability": "When Emberheart Dragonrider enters the battlefield, you may pay R. If you do, target creature gains haste until end of turn.",
+    "Appearance Description": "A fearless knight adorned in fiery armor astride a majestic dragon with wings ablaze."
+}

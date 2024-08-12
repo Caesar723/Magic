@@ -48,6 +48,8 @@ class Card:
 
         self.selection_index:int
 
+        self.select_range:str=''
+
     @property
     def cost(self)->dict[int]:# colorless,red, green, blue,black,white
         return self.calculate_cost()
@@ -78,13 +80,13 @@ class Card:
         difference={key:cost[key]-player_mana[key] for key in player_mana}
         sum_negative_numbers = sum(difference[key] for key in difference if (difference[key] < 0 and key!='colorless'))
         difference["colorless"]+=sum_negative_numbers
-        print(player_mana,cost,difference)
+        #print(player_mana,cost,difference)
         land_store=[]
-        print(player.land_area)
+        #print(player.land_area)
         for land in player.land_area:
             if not land.get_flag("tap"):
                 mana=land.generate_mana()
-                print(mana)
+                #print(mana)
                 for key in mana:
                     if difference[key]>0:
                         difference[key]-=mana[key]
@@ -92,7 +94,7 @@ class Card:
                     elif difference["colorless"]>0:
                         difference["colorless"]-=mana[key]
                         land_store.append(land)
-        print(difference)
+        #print(difference)
         all_values_less_than_zero = all(value <= 0 for value in difference.values())
         if all_values_less_than_zero:
             return (True,land_store)#第二个list是如果用[。。。]这些就可以打出这个牌
@@ -110,7 +112,8 @@ class Card:
     
 
     async def attact_to_object(self,object:Union["Creature","Player"],power:int,color:str,type_missile:str):# it won't get hurt object can be card ot player
-        if isinstance(object,type(self.player)):
+
+        if isinstance(object,(type(self.player),type(self.player.opponent))):
             object.take_damage(self,power)
             self.player.action_store.add_action(actions.Attack_To_Object(self,self.player,object,color,type_missile,[object.life]))
             await object.check_dead()
@@ -125,7 +128,7 @@ class Card:
         
 
     async def cure_to_object(self,object:Union["Creature","Player"],power:int,color:str,type_missile:str):# it won't get hurt
-        if isinstance(object,type(self.player)):
+        if isinstance(object,(type(self.player),type(self.player.opponent))):
             object.gains_life(self,power)
             self.player.action_store.add_action(actions.Cure_To_Object(self,self.player,object,color,type_missile,[object.life]))
             await object.check_dead()
@@ -304,7 +307,8 @@ class Card:
         for buff in self.buffs:
             buff.change_function(self)
             
-    
+    def get_select_range(self):
+        pass
     def text(self,player:'Player',show_hide:bool=False)-> str:
         pass
 

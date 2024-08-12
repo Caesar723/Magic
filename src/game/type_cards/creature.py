@@ -86,7 +86,7 @@ class Creature(Card):
         return self.state[1]
     
     def take_damage(self,card:Card,value:int,player: "Player" = None, opponent: "Player" = None)->int:# 可以受到来自各种卡牌的伤害
-        print(value,card)
+        #print(value,card)
         self.actual_live-=value
         self.when_hurt(card,value,player,opponent)
         return self.state[1]
@@ -190,7 +190,7 @@ class Creature(Card):
         player.remove_card(self,"hand")
         player.append_card(self,"battlefield")
 
-        print("battlefield")
+        #print("battlefield")
         return prepared_function
         # player.hand.remove(self)
         # player.battlefield.append(self)

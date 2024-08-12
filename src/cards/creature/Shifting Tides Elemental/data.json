@@ -1,0 +1,11 @@
+{
+    "Name": "Shifting Tides Elemental",
+    "Rarity": "Uncommon",
+    "Type": "Elemental Creature - Elemental",
+    "Power": 2,
+    "Toughness": 3,
+    "Cost": "1UU",
+    "Story Background": "The Shifting Tides Elemental is a mercurial force of nature, embodying the ebb and flow of the tides and the ever-changing currents of the ocean. Its presence is a reminder of the fickle nature of water and its adaptability in shaping the world.",
+    "Ability": "Islandwalk (This creature can't be blocked as long as defending player controls an Island.), When Shifting Tides Elemental enters the battlefield, you may return target land to its owner's hand.",
+    "Appearance Description": "The Shifting Tides Elemental is a fluid, sinuous form that shimmers with iridescence, mirroring the shifting hues of ocean waves. Its movements are graceful and undulating, evoking the mesmerizing dance of water in all its forms."
+}
