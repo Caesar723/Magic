@@ -138,6 +138,7 @@ class PVE_Room(Room):
         # 获取state，done，计算reward
         #返回new state 和 reward 和 done
         message:str=await self.num2action(agent,action)
+        print(message)
         await self.message_receiver(message)
         # username,type,content=message.split("|")
         # await self.message_process_dict[type](username,content)
@@ -146,7 +147,7 @@ class PVE_Room(Room):
     
     def get_flag(self,flag_name:str):
         key="{}_bullet_time_flag"
-        if flag_name==key.format("Agent1") or flag_name=="game_over":
+        if flag_name==key.format("Agent1"):
             return True
         if flag_name in self.flag_dict:
             
@@ -381,7 +382,7 @@ class PVE_Room(Room):
     async def select_attacker(self, username: str, content: str):
         result=await super().select_attacker(username, content)
         if username!="Agent1" and result[0]:
-            await self.ask_agent_do_act()
+            print(await self.ask_agent_do_act())
         return result
     
     async def end_turn_time(self):

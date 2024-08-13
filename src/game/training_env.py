@@ -164,10 +164,13 @@ class Multi_Agent_Room(Room):
         new_reward=self.get_reward_red(agent)
         change_reward=new_reward-old_reward
 
+        await self.check_death()
         die_player=await self.check_player_die()
         if die_player and agent.life<=0:
             change_reward=-1
-        return self.get_state(agent),change_reward,die_player
+        elif die_player:
+            change_reward=1
+        return self.get_state(agent),change_reward,self.gamming
     
     async def check_player_die(self):
         died_player=[]
@@ -287,14 +290,14 @@ class Multi_Agent_Room(Room):
     #还有法力值上限也需要考虑
     #reward 是上面奖励的变化量
     def get_reward_red(self,agent:Agent_Train):#返回一个评分
-        self_live_reward=lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
+        self_live_reward=lambda x :x/20#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
         oppo_live_reward=lambda x :x/20
 
         score_life_self=self_live_reward(agent.life)
         score_oppo_self=oppo_live_reward(agent.opponent.life)
 
-        score_battle_self=sum([sum(card.state)/20 for card in agent.battlefield])#这个处以20表面随从不是很重要，重要的是敌方的血量
-        score_battle_oppo=sum([sum(card.state)/20 for card in agent.battlefield])
+        score_battle_self=sum([sum(card.state)/10 for card in agent.battlefield])#这个处以20表面随从不是很重要，重要的是敌方的血量
+        score_battle_oppo=sum([sum(card.state)/10 for card in agent.battlefield])
 
         score_mana=0
         for land in agent.land_area:
@@ -359,7 +362,7 @@ class Multi_Agent_Room(Room):
                 agent.store_data(state,action,reward,new_state,done)
 
                 #print(self)
-                await self.check_death()
+                
 
             self.gamming=True
             await self.initinal_environmrnt()
@@ -581,7 +584,7 @@ async def main():
         
 if __name__=="__main__":
     
-        
+    
     asyncio.run(main())
     # print(np.zeros((3)))
     # a=np.zeros((10))

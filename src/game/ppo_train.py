@@ -193,8 +193,8 @@ class Agent_PPO:
     #         p['lr'] = lr
 
     def load_pth(self,path_act,path_val):
-        self.model_act=torch.load(path_act)
-        self.model_val=torch.load(path_val)
+        self.model_act=torch.load(path_act, map_location=self.device)
+        self.model_val=torch.load(path_val, map_location=self.device)
 
 
     def init_graph(self):

@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 
-ORGPATH=os.path.dirname(os.path.abspath("/Users/xuanpeichen/Desktop/code/python/openai/src/server.py"))
+ORGPATH=os.path.dirname(os.path.abspath(f"{__file__}/.."))
 
 def validate_all_methods(cls):
     for attr_name, attr_value in cls.__dict__.items():

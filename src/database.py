@@ -14,8 +14,8 @@ import json
 from server_function_tool import split_message_deck,Deck_Response
 
 
-
-engine = create_engine("mysql+pymysql://root@localhost/Magic_fan_made")
+sql_name=os.getenv("DATABASE_PYURL", "mysql+pymysql://root@localhost/Magic_fan_made")
+engine = create_engine(sql_name)
 
 Base = declarative_base()
 
@@ -151,7 +151,8 @@ def reset_packs():
 class DataBase:
 
     def __init__(self) -> None:
-        self.async_engine = create_async_engine("mysql+aiomysql://root@localhost/Magic_fan_made")
+        sql_name=os.getenv("DATABASE_AIOURL", "mysql+aiomysql://root@localhost/Magic_fan_made")
+        self.async_engine = create_async_engine(sql_name)
         self.AsyncSessionLocal = sessionmaker(bind=self.async_engine, class_=AsyncSession, expire_on_commit=False)
 
 

@@ -398,9 +398,10 @@ class Room:
         player:Player=self.players[username]
         index=int(content)
         card:Creature=player.get_card_index(index,"battlefield")
+        print(card)
         if not card:
             return (False,"no card")
-        
+        print(player==self.non_active_player,self.get_flag("attacker_defenders"),not card.get_flag("tap"),(not self.attacker.get_flag("flying") or (card.get_flag("flying") or card.get_flag("reach"))))
         if player==self.non_active_player and \
         self.get_flag("attacker_defenders") and\
         not card.get_flag("tap") and \
@@ -430,7 +431,9 @@ class Room:
         for key in walk_dict:
             if card.get_flag(key) and any(isinstance(land,walk_dict[key]) for land in player.land_area):
                 return True
-        return False
+            elif card.get_flag(key):
+                return False
+        return True
 
     
 
@@ -516,7 +519,7 @@ class Room:
         player.flag_dict["game_over"]=True
 
         try:
-            socket.close()
+            await socket.close()
         except:pass
 
         if content=='win':

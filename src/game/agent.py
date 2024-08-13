@@ -5,7 +5,7 @@ from game.type_action.actions import List_Action_Processor
 from game.ppo_train import Agent_PPO
 from game.player import Player
 from initinal_file import CARD_DICTION
-
+from game.game_function_tool import ORGPATH
 
 
 
@@ -18,14 +18,22 @@ class Agent_Player_Red(Player):
 
         self.agent=Agent_PPO(271,352,train=False)
         self.agent.load_pth(
-            "/Users/xuanpeichen/Desktop/code/python/openai/model_complete_act.pth",
-            "/Users/xuanpeichen/Desktop/code/python/openai/model_complete_val.pth"
+            f"{ORGPATH}/game/agent_pth/agent_red/model_complete_act.pth",
+            f"{ORGPATH}/game/agent_pth/agent_red/model_complete_val.pth"
         )
         self.select_content:str=f'{name}|cancel'
                 
     def choose_action(self,num_state,cards_id,mask:torch.Tensor=None):
         return self.agent.choose_act(num_state,cards_id,mask)
     
+    def get_flag(self,flag_name:str):
+        if flag_name=="game_over":
+            return True
+        if flag_name in self.flag_dict:
+            return self.flag_dict[flag_name]
+        else:
+            return False
+        
 
     def initinal_decks(self,decks_detail:str):#generate cards
         id_counter=1
