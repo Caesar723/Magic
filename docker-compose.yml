@@ -6,8 +6,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 20040723Caesar  # 设置 root 用户的密码为 20040723Caesar
       MYSQL_DATABASE: Magic_fan_made  # 创建的数据库名称
-      MYSQL_USER: root  # 使用 root 用户
-      MYSQL_PASSWORD: 20040723Caesar  # root 用户的密码
+      
     ports:
       - "3306:3306"
     volumes:
@@ -15,7 +14,7 @@ services:
       - ./db/magic_backup.sql:/docker-entrypoint-initdb.d/magic_backup.sql  # 挂载 data.sql 文件
 
   web:
-    build: ./app
+    build: .
     ports:
       - "8000:8000"
     depends_on:
@@ -24,7 +23,7 @@ services:
       DATABASE_AIOURL: mysql+aiomysql://root:20040723Caesar@db/Magic_fan_made  # 使用  作为密码
       DATABASE_PYURL: mysql+pymysql://root:20040723Caesar@db/Magic_fan_made  # 使用  作为密码
     volumes:
-      - ./app:/app
+      - .:/app
 
 volumes:
   db_data:
