@@ -8,10 +8,10 @@ COPY . /app/
 ARG TARGETPLATFORM
 RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
         pip install torch==2.3.1 -f https://download.pytorch.org/whl/cpu/torch_stable.html; \
-    elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-        pip install torch==2.3.1; \
+    # elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+    #     pip install torch==2.3.1; \
     else \
-        pip install torch; \
+        pip install torch==2.3.1; \
     fi
 
 RUN pip install --no-cache-dir -r requirements.txt
