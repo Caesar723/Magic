@@ -26,8 +26,8 @@ class Multi_Agent_Room(Room):
     """
 
     def __init__(self) -> None:
-        self.agent1=Agent_PPO(271,352)
-        self.agent2=Agent_PPO(271,352)
+        self.agent1=Agent_PPO(271,352,name="agent1")
+        self.agent2=Agent_PPO(271,352,name="agent2")
         # self.agent1.load_pth(
         #     "/Users/xuanpeichen/Desktop/code/python/openai/model_complete_act.pth",
         #     "/Users/xuanpeichen/Desktop/code/python/openai/model_complete_val.pth"
@@ -146,7 +146,7 @@ class Multi_Agent_Room(Room):
         #返回new state 和 reward 和 done
         message:str=await self.num2action(agent,action)
         username,type,content=message.split("|")
-        old_reward=self.get_reward_red(agent)
+        #old_reward=self.get_reward_red(agent)
         #print(username,content,type)
         await self.message_process_dict[type](username,content)
 
@@ -156,21 +156,28 @@ class Multi_Agent_Room(Room):
             mask=self.create_action_mask(agent_oppo)
             action= agent_oppo.choose_action(*state,mask)
             #print(action)
-            new_state , reward , done=await self.process_action(agent_oppo,action)
-            agent_oppo.store_data(state,action,reward,new_state,done)
+            reward_func=await self.process_action(agent_oppo,action)
+            asyncio.create_task(agent_oppo.store_data(state,action,reward_func))
 
         elif action!=0:
             await self.end_bullet_time()
-        new_reward=self.get_reward_red(agent)
-        change_reward=new_reward-old_reward
 
-        await self.check_death()
-        die_player=await self.check_player_die()
-        if die_player and agent.life<=0:
-            change_reward=-1
-        elif die_player:
-            change_reward=1
-        return self.get_state(agent),change_reward,self.gamming
+        elif action==0:
+            agent.notify_reward=False
+        
+        #change_reward=new_reward-old_reward
+
+        async def next_state_function():
+            new_reward=self.get_reward_red(agent)
+            await self.check_death()
+            die_player=await self.check_player_die()
+            if die_player and agent.life<=0:
+                new_reward=-1
+            elif die_player:
+                new_reward=1
+            return self.get_state(agent),new_reward,self.gamming
+        return next_state_function
+        
     
     async def check_player_die(self):
         died_player=[]
@@ -344,8 +351,8 @@ class Multi_Agent_Room(Room):
 
     async def send_actioin_request(self,agent):#向agent发送需要动作的请求
         async with self.action_process_condition:
-                self.agent_cache.append(agent)
-                self.action_process_condition.notify() 
+            self.agent_cache.append(agent)
+            self.action_process_condition.notify() 
 
     async def action_process_system(self):#这个会等待，直到收到send_actioin_request发送的请求
         repeat_train=True
@@ -358,12 +365,12 @@ class Multi_Agent_Room(Room):
                 mask=self.create_action_mask(agent)
                 action=agent.choose_action(*state,mask)
                 #print(action)
-                new_state , reward , done=await self.process_action(agent,action)
-                agent.store_data(state,action,reward,new_state,done)
-
+                reward_func=await self.process_action(agent,action)
+                asyncio.create_task(agent.store_data(state,action,reward_func))
+                await self.check_death()
                 #print(self)
                 
-
+            #print("finish")
             self.gamming=True
             await self.initinal_environmrnt()
             
@@ -371,10 +378,15 @@ class Multi_Agent_Room(Room):
         #self.active_player.update()
         
 
-    async def game_end(self,died_player):
+    async def game_end(self,died_player:list[Agent_Train]):
         #self.gamming=False
-
         self.gamming=False
+
+        for player in [self.player_1,self.player_2]:
+            async with player.condition_reward:
+                player.notify_reward=True
+                player.condition_reward.notify()
+        
 
     def create_action_mask(self,agent:Agent_Train):
         oppo_agent=agent.opponent

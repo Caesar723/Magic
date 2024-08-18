@@ -331,7 +331,7 @@ class Room:
         await self.non_active_player.cancel_future_function()
         self.active_player,self.non_active_player=self.non_active_player,self.active_player
         
-        self.active_player.beginning_phase()
+        await self.active_player.beginning_phase()
         #触发一些回合开始的东西
 
     
@@ -398,7 +398,7 @@ class Room:
         player:Player=self.players[username]
         index=int(content)
         card:Creature=player.get_card_index(index,"battlefield")
-        print(card)
+        #print(card)
         if not card:
             return (False,"no card")
         print(player==self.non_active_player,self.get_flag("attacker_defenders"),not card.get_flag("tap"),(not self.attacker.get_flag("flying") or (card.get_flag("flying") or card.get_flag("reach"))))

@@ -269,7 +269,7 @@ class Player:
         return result
     
 
-    def beginning_phase(self):#开始阶段
+    async def beginning_phase(self):#开始阶段
         self.return_to_org_max_land()
         self.untap_step()
         self.upkeep_step()

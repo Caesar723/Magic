@@ -14,7 +14,7 @@ services:
       - ./db/magic_backup.sql:/docker-entrypoint-initdb.d/magic_backup.sql  # 挂载 data.sql 文件
 
   web:
-    build: .
+    image: registry.cn-shanghai.aliyuncs.com/magic_fan_made/server_magic
     ports:
       - "8000:8000"
     depends_on:
@@ -22,8 +22,7 @@ services:
     environment:
       DATABASE_AIOURL: mysql+aiomysql://root:20040723Caesar@db/Magic_fan_made  # 使用  作为密码
       DATABASE_PYURL: mysql+pymysql://root:20040723Caesar@db/Magic_fan_made  # 使用  作为密码
-    volumes:
-      - .:/app
+    
 
 volumes:
   db_data:

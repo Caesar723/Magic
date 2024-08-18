@@ -145,7 +145,9 @@ class RewardScaling:#Trick 4—Reward Scaling
 
 class Agent_PPO:
 
-    def __init__(self,state_size, action_size,device="cpu",train=True) -> None:
+    fig, ax = plt.subplots()
+
+    def __init__(self,state_size, action_size,name="Agent",device="cpu",train=True) -> None:
         self.normalization=Normalization(state_size)
         self.reward_scale=RewardScaling(0.99)
         self.gamma=0.99
@@ -155,6 +157,7 @@ class Agent_PPO:
         self.max_step=3000000
         self.total_step=0
         self.lr=3e-4
+        self.name=name
         
 
         self.state_num=[]
@@ -202,9 +205,10 @@ class Agent_PPO:
         self.step=0
         self.rewards_store=[]
         self.best_mean_reward=0
-        fig, self.ax = plt.subplots()
-        self.line, = self.ax.plot(self.rewards, label='Total Rewards per Episode', color='b')
-
+        
+        self.line, = self.ax.plot(self.rewards, label=f'Total Rewards per Episode {self.name}',alpha=0.2)
+        self.line_mean, =self.ax.plot(self.rewards, label=f'Total mean Rewards {self.name}')
+        #self.fill_std =self.ax.fill_between(self.rewards, label='Fill range',alpha=0.2)
         # 设置图表标题和标签
         self.ax.set_title('PPO Training Rewards Over Episodes')
         self.ax.set_xlabel('Episode')
@@ -216,6 +220,7 @@ class Agent_PPO:
 
 
     def store(self,state,action,reward,next_state,done):
+        reward=self.reward_scale(reward)
         state_num,state_id=state
         next_state_num,next_state_id=next_state
         self.state_num.append(state_num)
@@ -345,12 +350,20 @@ class Agent_PPO:
     def graph_on_rollout_end(self) -> None:
         if self.best_mean_reward<self.rewards/self.step:
             self.best_mean_reward=self.rewards/self.step
-            torch.save(self.model_act, 'model_complete_act.pth')
-            torch.save(self.model_val, 'model_complete_val.pth')
+        torch.save(self.model_act, f'model_complete_act_{self.name}.pth')
+        torch.save(self.model_val, f'model_complete_val_{self.name}.pth')
         self.rewards_store.append(self.rewards)
         self.rewards = 0
         self.step=0
-        self.line.set_data(range(len(self.rewards_store)), self.rewards_store)
+        x,y=range(len(self.rewards_store)), self.rewards_store
+        self.line.set_data(x,y)
+
+        width=10
+        y_mean=np.convolve(y,np.ones(width)/width,mode="valid")
+        x_mean=x[:len(y_mean)]
+        self.line_mean.set_data(x_mean, y_mean)
+
+       
     
         self.ax.set_xlim(0, len(self.rewards_store))
         self.ax.set_ylim(min(self.rewards_store) - 5, max(self.rewards_store) + 5)
