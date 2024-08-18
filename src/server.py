@@ -322,6 +322,10 @@ async def select_object(websocket: WebSocket,username: str = Depends(get_current
         
     
 
+@app.get("/tech_doc")
+async def login_form(request: Request):
+        
+        return templates.TemplateResponse(f"webpages/tech_doc/content.html", {"request": request})
 
 
 def main():

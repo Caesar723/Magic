@@ -1,15 +1,10 @@
-FROM python:3.9
+FROM registry.cn-shanghai.aliyuncs.com/magic_fan_made/python3.9
 
 WORKDIR /app
 
 COPY . /app/
 
 
-# RUN apt-get update && apt-get install -y \
-#     build-essential \
-#     pkg-config \
-#     libmariadb-dev \
-#     && rm -rf /var/lib/apt/lists/*
 ARG TARGETPLATFORM
 RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
         pip install torch==2.3.1+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html; \

@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from game.player import Player
     from game.card import Card
  
-from game.player import Player
+
 from game.type_cards.creature import Creature
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
