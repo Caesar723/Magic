@@ -1,4 +1,4 @@
-FROM registry.cn-shanghai.aliyuncs.com/magic_fan_made/python3.9
+FROM python:3.9
 
 WORKDIR /app
 
