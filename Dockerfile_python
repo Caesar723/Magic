@@ -1,0 +1,16 @@
+FROM python:3.9
+#registry.cn-shanghai.aliyuncs.com/magic_fan_made/python3.9:latest
+WORKDIR /pythonfile
+COPY requirements.txt /pythonfile/
+ARG TARGETPLATFORM
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+        pip install torch==2.3.1+cpu  -f https://download.pytorch.org/whl/cpu/torch_stable.html; \
+    #
+    elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+        pip install torch==2.3.1; \
+    else \
+        pip install torch; \
+    fi
+    
+
+RUN pip install --no-cache-dir -r requirements.txt
