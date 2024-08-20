@@ -1046,7 +1046,11 @@ class Winning_And_Losing{
 // })();
 
 
-
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('webpages/service-worker.js').then(function(registration) {
+        console.log('Service Worker registered with scope:', registration.scope);
+    });
+}
 const size_rat=7/10;
 var SIZE=1000*size_rat;
 var POSITION=[2000,-700,3000];
@@ -1055,6 +1059,7 @@ const client = new Game_Client();
 
 let lastTime = 0;
 function main(time){
+
     const deltaTime = (time - lastTime) / 1000;
     
     lastTime = time;
