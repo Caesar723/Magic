@@ -16,13 +16,14 @@ services:
   web:
     image: registry.cn-shanghai.aliyuncs.com/magic_fan_made/server_magic
     ports:
-      - "8000:8000"
+      - "443:443"
     depends_on:
       - db
     environment:
       DATABASE_AIOURL: mysql+aiomysql://root:20040723Caesar@db/Magic_fan_made  # 使用  作为密码
       DATABASE_PYURL: mysql+pymysql://root:20040723Caesar@db/Magic_fan_made  # 使用  作为密码
-    
+    cap_add:
+      - NET_BIND_SERVICE
 
 volumes:
   db_data:

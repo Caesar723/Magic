@@ -4,7 +4,16 @@ def main():
     #print(ip_address)
     #ip_address="10.208.15.84"
     ip_address="0.0.0.0"
-    uvicorn.run("server:app", host=ip_address, port=8000, ssl_keyfile="src/private.key", ssl_certfile="src/certificate.crt",reload=True)
+    #ip_address="localhost"
+    uvicorn.run(
+        "server:app",
+        host=ip_address,
+        port=443,
+        ssl_keyfile="src/xuanpei-chen.top_ssh/xuanpei-chen.top.key",
+        ssl_certfile="src/xuanpei-chen.top_ssh/xuanpei-chen.top_public.crt",
+        ssl_ca_certs="src/xuanpei-chen.top_ssh/xuanpei-chen.top_chain.crt",
+        reload=True
+    )
 def get_local_ip():
     import socket
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

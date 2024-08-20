@@ -1,5 +1,11 @@
 // 获取Canvas元素并设置其宽度和高度
 
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('webpages/service-worker.js').then(function(registration) {
+        console.log('Service Worker registered with scope:', registration.scope);
+    });
+}
+
 function set_Listener(){
     const draw = document.getElementById('exit');
     draw.addEventListener('click',  function () {
