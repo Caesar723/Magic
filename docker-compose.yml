@@ -16,7 +16,7 @@ services:
   web:
     image: registry.cn-shanghai.aliyuncs.com/magic_fan_made/server_magic
     ports:
-      - "443:443"
+      - "8000:8000"
     depends_on:
       - db
     environment:

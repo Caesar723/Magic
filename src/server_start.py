@@ -8,7 +8,7 @@ def main():
     uvicorn.run(
         "server:app",
         host=ip_address,
-        port=443,
+        port=8000,
         ssl_keyfile="src/xuanpei-chen.top_ssh/xuanpei-chen.top.key",
         ssl_certfile="src/xuanpei-chen.top_ssh/xuanpei-chen.top_public.crt",
         ssl_ca_certs="src/xuanpei-chen.top_ssh/xuanpei-chen.top_chain.crt",
