@@ -18,7 +18,33 @@
     
 
 }
-
+.rectangle-button {
+    position: absolute;
+    width: var(--width); /* 设置长方形的宽度 */
+    height: var(--height); /* 设置长方形的高度 */
+    background-color: var(--color); /* 设置背景颜色 */
+    cursor: pointer;
+    transition: transform 0.3s ease, background-color 0.3s ease ,animation 0.3s ease ,filter 0.3s ease; /* 过渡效果 */
+    transform: rotate(var(--rotate)); /* 旋转角度可调整 */
+    display: flex;
+    justify-content: center;
+    /* align-items: center; */
+    transform-origin: center; /* 旋转的基点 */
+    clip-path: none; /* 移除剪切路径 */
+    border-radius: 1vw; /* 设置圆角 */
+}
+.rectangle-button .image-container {
+    width: calc(var(--width) * 0.8); /* 图片宽度为按钮宽度的 80% */
+    height: calc(var(--width) * 0.8); /* 使图片保持正方形，高度同宽度 */
+    display: flex;
+    margin-top: 1vw;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10%; /* 为图片容器添加圆角 */
+    overflow: hidden; /* 隐藏超出容器部分 */
+    position: relative;
+    /* mask-image:radial-gradient(ellipse calc(var(--width) * 0.8) calc(var(--width) * 0.8) at center, white 70%, transparent 80%); */
+}
 
 .button-text {
     
@@ -38,6 +64,47 @@
     transform: scale(1.2) rotate(var(--rotate)); /* 变大和保持旋转 */
     filter: brightness(1.5); /* 变亮 */
 }
+
+
+@keyframes neon {
+    from {
+      box-shadow: 0 0 0.5vw var(--color), 0 0 1vw var(--color), 0 0 1.5vw var(--color);
+    }
+    to {
+      box-shadow: 0 0 0.25vw var(--color), 0 0 0.5vw var(--color), 0 0 0.75vw var(--color);
+    }
+  }
+.rectangle-button:hover {
+    transform: scale(1.1) rotate(var(--rotate)); /* 变大和保持旋转 */
+    filter: brightness(1.5); /* 变亮 */
+    /* text-shadow: 0 0 5px var(--color); */
+    animation: neon 1.5s ease-in-out infinite alternate;
+}
+.rectangle-button .image-container:hover {
+    transform: scale(1) rotate(0); /* 变大和保持旋转 */
+    filter: brightness(1);
+    filter: none;
+}
+
+.rectangle-button img {
+    flex-grow: 0;
+    flex-shrink: 0; /* 防止图片被压缩 */
+    width: 100%; /* 图片宽度占满按钮 */
+    position: absolute;
+    
+}
+.rectangle-button video {
+    flex-grow: 0;
+    flex-shrink: 0; 
+    width: 100%; 
+    position: absolute;
+    
+}
+.rectangle-button span {
+    font-size: calc(0.15 * var(--width)); /* 使用相对单位来定义文字大小 */
+    margin-top: calc(0.8 * var(--height));
+}
+
 
 .button-container {
     position: absolute;

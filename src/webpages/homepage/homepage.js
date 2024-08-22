@@ -14,9 +14,9 @@ const home= new Home(decks)
 
 function draw_picture(){
         
-        decks.draw()
-        
-        requestAnimationFrame(draw_picture);
-    }
+    decks.draw()
     
-    draw_picture()
+    requestAnimationFrame(draw_picture);
+}
+    
+draw_picture()

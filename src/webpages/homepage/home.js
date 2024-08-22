@@ -27,6 +27,8 @@ class Home{
 
     constructor(decks){
         this.set_listener()
+        this.set_image_video()
+        
         this.decks=decks
     }
 
@@ -123,5 +125,40 @@ class Home{
         });
         const responseData =await response.json()
         return responseData
+    }
+
+    set_image_video(){
+        var imageContainers = document.getElementsByClassName('image-container');
+        for (var i = 0; i < imageContainers.length; i++) {
+            // 在当前 'image-container' 中获取第一个 'img'
+            let img = imageContainers[i].querySelector('img');
+            // 在当前 'image-container' 中获取第一个 'video'
+            
+            let video = imageContainers[i].querySelector('video');
+            
+            imageContainers[i].addEventListener('mouseover', function() {
+                video.style.display = 'block';
+                video.currentTime = 0;
+                img.style.display = 'none';
+                
+                video.play().then(() => {
+                    //console.log('Playback initiated successfully.');
+                }).catch(error => {
+                    //console.error('Error attempting to play video:', error);
+                });
+                
+
+            });
+        
+            imageContainers[i].addEventListener('mouseout', function() {
+                video.pause();
+                video.style.display = 'none';
+                img.style.display = 'block';
+                
+            });
+        
+            
+        }
+        
     }
 }
