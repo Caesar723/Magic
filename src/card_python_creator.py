@@ -16,7 +16,7 @@ def get_dir_names(path):
 def initinal_init_file():
     directory_path=f"{ORGPATH}/pycards"
     types=('creature','Instant','land','sorcery')
-    with open("pycards/__init__.py",'w') as f:
+    with open(f"{ORGPATH}/pycards/__init__.py",'w') as f:
         
         for type in types:
             print(get_dir_names(f'{directory_path}/{type}'))
@@ -107,11 +107,12 @@ class {class_name}(Creature):
 
 
         """
-        path=f"pycards/creature/{class_name}"
+        path=f"{ORGPATH}/pycards/creature/{class_name}"
         if not os.path.exists(path):
-            os.makedirs(path)
-            with open(f"{path}/model.py",'w') as f:
-                f.write(content)
+            print(path)
+            # os.makedirs(path)
+            # with open(f"{path}/model.py",'w') as f:
+            #     f.write(content)
 
 def instant_creater():
     directory_path=f"{ORGPATH}/cards/Instant"
@@ -155,8 +156,9 @@ class {class_name}(Instant):
 
 
         """
-        path=f"pycards/Instant/{class_name}"
+        path=f"{ORGPATH}/pycards/Instant/{class_name}"
         if not os.path.exists(path):
+            #print(path)
             os.makedirs(path)
             with open(f"{path}/model.py",'w') as f:
                 f.write(content)      
@@ -203,7 +205,7 @@ class {class_name}(Sorcery):
 
 
         """
-        path=f"pycards/sorcery/{class_name}"
+        path=f"{ORGPATH}/pycards/sorcery/{class_name}"
         if not os.path.exists(path):
             os.makedirs(path)
             with open(f"{path}/model.py",'w') as f:
@@ -250,7 +252,7 @@ class {class_name}(Land):
 
 
         """
-        path=f"pycards/land/{class_name}"
+        path=f"{ORGPATH}/pycards/land/{class_name}"
         if not os.path.exists(path):
             os.makedirs(path)
         
@@ -263,6 +265,8 @@ def name_replace(name:str):
         name=name.replace(char,"_")
     return name
 if __name__=="__main__":
+    import sys
+    sys.path.append("/Users/xuanpeichen/Desktop/code/python/openai/src")
     #remove_py()
 
     creature_creater()

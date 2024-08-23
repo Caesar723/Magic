@@ -109,7 +109,7 @@ def reset_all_card():
                 data = json.load(file)
             
             if not check_in_data_base_card(session,data["Name"],type,data["Rarity"]):
-                #print(type,card)
+                print(type,card)
 
                 color=check_color(data["Cost"]) if type!="land" else check_type(data["Type"])
                 new_card = Card(name=data["Name"], relative_url=f"cards/{type}/{card}",rarity=data["Rarity"],type_card=type,color=color)
@@ -486,10 +486,13 @@ if __name__=="__main__":
     args = parser.parse_args()
     if args.reset_table:
         reset_table()
+        
     if args.reset_all_card:
         reset_all_card()
+        
     if args.reset_packs:
         reset_packs()
+        
     #reset_table()
     #reset_all_card()
     #reset_packs()
