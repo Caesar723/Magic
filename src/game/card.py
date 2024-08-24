@@ -212,22 +212,25 @@ class Card:
     #         return True
     #     return False
 
-    def when_a_creature_die(self,creature:"Creature",player: "Player" = None, opponent: "Player" = None):#当随从死亡时（放入一个死亡随从的参数）
+    async def when_a_creature_die(self,creature:"Creature",player: "Player" = None, opponent: "Player" = None):#当随从死亡时（放入一个死亡随从的参数）
         pass
 
-    def when_an_object_hert(self,object,player: "Player" = None, opponent: "Player" = None):#当一个card or 人物收到伤害，object是card 或者 player
+    async def when_an_object_hert(self,object,player: "Player" = None, opponent: "Player" = None):#当一个card or 人物收到伤害，object是card 或者 player
         pass
 
     def when_kill_creature(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
-    def when_start_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
+    async def when_start_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
-    def when_end_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
+    async def when_end_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
-    def aura(self,player: "Player" = None, opponent: "Player" = None):
+    async def aura(self,player: "Player" = None, opponent: "Player" = None):
+        pass
+
+    async def when_play_a_card(self,card:'Card',player:'Player'=None,opponent:'Player'=None):
         pass
 
     def create_selection(self,content:str,index:int):#生成一个selection，图片和名字是一样的，但是type_card和content是选项内容
@@ -258,16 +261,20 @@ class Card:
                 player.append_card(card,'library')
                 cards.remove(card)
 
-    def check_overwritten(self,player:"Player"):#检查card的一些特殊函数有没有重写，如果重写了就放进dictionary
+    def check_overwritten(self)->list:#检查card的一些特殊函数有没有重写，如果重写了就放进dictionary
         func_dict={#这里要和player的initinal_card_dict一致
             "end_step":(Card.when_end_turn,self.when_end_turn),
             "upkeep_step":(Card.when_start_turn,self.when_start_turn),
             "when_creature_die":(Card.when_a_creature_die,self.when_end_turn),
             "aura":(Card.aura,self.aura),
+            "when_play_a_card":(Card.when_play_a_card,self.when_play_a_card)
         }
+        result=[]
         for key in func_dict:
             if inspect.getsource(func_dict[key][0]) != inspect.getsource(func_dict[key][1]):
-                player.put_card_to_dict(key,self)
+                # player.put_card_to_dict(key,self)
+                result.append(key)
+        return result
         #inspect.getsource(Card.my_method) != inspect.getsource(Child.my_method):
 
 

@@ -23,7 +23,7 @@ class Forest_s_Embrace(Sorcery):
         self.color:str="green"
         self.type_card:str="Sorcery"
         self.rarity:str="Mythic Rare"
-        self.content:str="Search your library for up to three land cards, put them onto the battlefield tapped, then shuffle your library. "
+        self.content:str="Search your library for up to three land cards, put them onto the battlefield tapped, then shuffle your library."
         self.image_path:str="cards/sorcery/Forest's Embrace/image.jpg"
 
 

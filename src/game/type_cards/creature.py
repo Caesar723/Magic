@@ -116,10 +116,10 @@ class Creature(Card):
     async def when_die(self,player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
-    def when_start_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
+    async def when_start_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
-    def when_end_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
+    async def when_end_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
     async def when_harm_is_done(self,card:Union["Creature","Player"],value:int,player: "Player" = None, opponent: "Player" = None):#当造成伤害时 OK

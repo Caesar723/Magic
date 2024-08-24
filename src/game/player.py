@@ -139,7 +139,8 @@ class Player:
         
     def put_card_to_dict(self,key:str,card:Card)->None:# put a card to self.cards_store_dict
         if key in self.cards_store_dict:
-            self.cards_store_dict[key].append(card)
+            if card not in self.cards_store_dict[key]:
+                self.cards_store_dict[key].append(card)
         else:
             self.cards_store_dict[key]=[card]
     
@@ -226,6 +227,8 @@ class Player:
         #print(checked_result)
         if checked_result[0]:
             self.action_store.start_record()#
+            for card_when_play in self.get_cards_from_dict("when_play_a_card"):
+                await card_when_play.when_play_a_card(card,self,self.opponent)
             result=await card.when_use_this_card(self,self.opponent)
             #(result)
             if result[1]=="cancel":
@@ -272,7 +275,7 @@ class Player:
     async def beginning_phase(self):#开始阶段
         self.return_to_org_max_land()
         self.untap_step()
-        self.upkeep_step()
+        await self.upkeep_step()
         self.draw_step()
        
     def return_to_org_max_land(self):#让lands_summon_max 变回1
@@ -285,10 +288,10 @@ class Player:
         for creature in self.battlefield:
             creature.untap()
 
-    def upkeep_step(self):#保持步骤（Upkeep Step）：某些卡牌效果会在这个时候触发。
+    async def upkeep_step(self):#保持步骤（Upkeep Step）：某些卡牌效果会在这个时候触发。
         for card in self.get_cards_from_dict("upkeep_step"):
             self.action_store.start_record()
-            card.when_start_turn(self,self.opponent)
+            await card.when_start_turn(self,self.opponent)
             self.action_store.end_record()
 
     def draw_step(self):#抓牌步骤（Draw Step）通常情况下，玩家在这一步抓一张牌。
@@ -347,6 +350,9 @@ class Player:
             'exile_area':self.exile_area
         }
         if type in deck_type and card in deck_type[type]:
+            keys=card.check_overwritten()
+            for key in keys:
+                self.remove_card_from_dict(key,card)
             deck_type[type].remove(card)
             if type=='hand':
                 self.action_store.add_action(actions.Lose_Card(self,self,card,True))# 一定是需要的，这个动作
@@ -370,6 +376,9 @@ class Player:
         }
         
         if type in deck_type:
+            keys=card.check_overwritten()
+            for key in keys:
+                self.put_card_to_dict(key,card)
             deck_type[type].append(card)
         
             if type=='hand':

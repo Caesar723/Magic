@@ -171,8 +171,11 @@ class Room:
     async def start_attack(self,defender:Union[Creature,Player]):# attacker and defenders start attack
         self.action_processor.start_record()
         if isinstance(defender,Creature):
+            
             self.attacker.when_start_attcak(defender,self.attacker.player,self.attacker.player.opponent)
             defender.when_start_defend(self.attacker,defender.player,defender.player.opponent)
+            self.action_processor.end_record()
+            self.action_processor.start_record()
             rest_live=await self.attacker.deal_damage(defender,self.attacker.player,self.attacker.player.opponent)
             await defender.deal_damage(self.attacker,defender.player,defender.player.opponent)
             state_attacker=self.attacker.state
@@ -189,6 +192,8 @@ class Room:
 
         elif isinstance(defender,Player):
             self.attacker.when_start_attcak(defender,self.attacker.player,self.attacker.player.opponent)
+            self.action_processor.end_record()
+            self.action_processor.start_record()
             await self.attacker.deal_damage_player(defender,self.attacker.player,self.attacker.player.opponent)
             state_attacker=self.attacker.state
             self.action_processor.add_action(actions.Creature_Start_Attack(self.attacker,self.attacker.player,self.attacker.player.opponent,False,state_attacker,[self.attacker.player.opponent.life]))

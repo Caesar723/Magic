@@ -23,7 +23,7 @@ class Mystic_Reversal(Sorcery):
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Counter target spell unless its controller pays 3. If the spell is countered this way, exile it instead of putting it into its owner's graveyard. "
+        self.content:str="Counter target spell unless its controller pays 3. If the spell is countered this way, exile it instead of putting it into its owner's graveyard."
         self.image_path:str="cards/sorcery/Mystic Reversal/image.jpg"
 
 

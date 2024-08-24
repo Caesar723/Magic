@@ -15,15 +15,15 @@ class Flamestrike_Surge__(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
-        self.name:str="Flamestrike Surge  "
+        self.name:str="Flamestrike Surge"
 
         self.type:str="Sorcery"
 
-        self.mana_cost:str="1RR  "
+        self.mana_cost:str="1RR"
         self.color:str="colorless"
         self.type_card:str="Sorcery"
-        self.rarity:str="Uncommon  "
-        self.content:str="Flamestrike Surge deals 3 damage to any target and you may discard a card. If you do, draw a card.  "
+        self.rarity:str="Uncommon"
+        self.content:str="Flamestrike Surge deals 3 damage to any target and you may discard a card. If you do, draw a card."
         self.image_path:str="cards/sorcery/Flamestrike Surge  /image.jpg"
 
 
