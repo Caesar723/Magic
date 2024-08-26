@@ -109,10 +109,10 @@ class {class_name}(Creature):
         """
         path=f"{ORGPATH}/pycards/creature/{class_name}"
         if not os.path.exists(path):
-            print(path)
-            # os.makedirs(path)
-            # with open(f"{path}/model.py",'w') as f:
-            #     f.write(content)
+            #print(path)
+            os.makedirs(path)
+            with open(f"{path}/model.py",'w') as f:
+                f.write(content)
 
 def instant_creater():
     directory_path=f"{ORGPATH}/cards/Instant"

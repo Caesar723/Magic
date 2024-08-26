@@ -1,0 +1,9 @@
+{
+    "Name": "Mage's Veto",
+    "Rarity": "Rare",
+    "Type": "Instant",
+    "Cost": "1U",
+    "Story Background": "The Mage's Veto is a powerful spell used by mages to assert their dominance over the battlefield, preventing enemy spells from taking hold.",
+    "Ability": "Counter target spell. If that spell's mana cost is less than 3, search your library for a Sorcery card and put it into your hand.",
+    "Appearance Description": "A mystical force emanates from the mage's hands, enveloping and nullifying the opposing spell's energy."
+}

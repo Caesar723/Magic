@@ -1,0 +1,11 @@
+{
+    "Name": "Deep Sea Behemoth",
+    "Rarity": "Rare",
+    "Type": "Creature - Leviathan",
+    "Power": 7,
+    "Toughness": 7,
+    "Cost": "6UU",
+    "Story Background": "From the darkest depths of the ocean, the Deep Sea Behemoth rises to claim its prey.",
+    "Ability": "Stealth. When Deep Sea Behemoth attacks, all opponent's creatures lose all abilities until end of turn.",
+    "Appearance Description": "An enormous sea creature with tendrils and glowing eyes, it lurks in the depths, hidden from sight until it strikes."
+}

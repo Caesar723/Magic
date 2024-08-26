@@ -1,0 +1,9 @@
+{
+    "Name": "Necromancer's Soul Seize",
+    "Rarity": "Rare",
+    "Type": "Instant",
+    "Cost": "2B",
+    "Story Background": "Necromancers harness dark magic to disrupt enemy creatures, trading souls to reclaim lost power.",
+    "Ability": "Counter target creature spell. If the spell is countered this way, exile a card from your library, then return a card of the same type from your graveyard to your hand.",
+    "Appearance Description": "Dark tendrils of energy reach out, seizing the soul of the target creature as a spectral hand retrieves a forgotten relic."
+}

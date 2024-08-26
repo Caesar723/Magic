@@ -1,0 +1,11 @@
+{
+    "Name": "Temporal Traveler",
+    "Rarity": "Rare",
+    "Type": "Creature - Wizard",
+    "Power": 3,
+    "Toughness": 4,
+    "Cost": "4UU",
+    "Story Background": "The Temporal Traveler can bend time to his will, pulling spells from the past to aid in battle.",
+    "Ability": "Whenever Temporal Traveler attacks, you may cast an instant or sorcery card from your graveyard without paying its mana cost.",
+    "Appearance Description": "A robed figure with a staff that glows with arcane energy, his eyes seem to see through time itself."
+}

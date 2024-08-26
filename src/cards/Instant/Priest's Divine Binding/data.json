@@ -1,0 +1,9 @@
+{
+    "Name": "Priest's Divine Binding",
+    "Rarity": "Uncommon",
+    "Type": "Instant",
+    "Cost": "2W",
+    "Story Background": "Priests use their divine powers to protect their allies by nullifying harmful magic, binding it with holy energy.",
+    "Ability": "Counter target creature spell. You gain life equal to that creature's power.",
+    "Appearance Description": "A radiant light descends upon the battlefield, encasing the target spell in glowing chains of divine energy."
+}

@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING,Union
 import json
+
+#from game.player import Player
 if TYPE_CHECKING:
     from game.player import Player
     from game.type_cards.creature import Creature
@@ -76,3 +78,51 @@ class Instant(Card):
     def __repr__(self):
         content=f"({self.name},{self.type},{id(self)},{self.mana_cost})"
         return content
+    
+class Instant_Undo(Instant):
+    def __init__(self,player:"Player") -> None:
+        super().__init__(player)
+        self.undo_range="all"#all,Sorcery|Creature|Instant|Land这个是是all 或者是 Sorcery|Creature这样的组合
+        self.stack=player.room.stack
+        self.get_flag_room=player.room.get_flag
+
+    def check_can_use(self, player: 'Player') -> tuple[bool]:
+        result= super().check_can_use(player)
+        if not self.get_flag_room("bullet_time"):
+            return [False,"You can't use this card out of bullet time"]
+        
+        if self.undo_range=="all":
+            func,card=self.stack[-1]
+            if card.type=="Creature" and self.get_flag_room("attacker_defenders"):
+                return [False,"You can't use this card on a defense creature"]
+            else:
+                return result
+        else:
+            func,card=self.stack[-1]
+            ranges=self.undo_range.split("|")
+            if card.type in ranges:
+                if card.type=="Creature" and self.get_flag_room("attacker_defenders"):
+                    return [False,"You can't use this card on a defense creature"]
+                return result
+            else:
+                return [False,"You can't use this card"]
+        
+    
+
+    async def undo_stack(self,player:'Player'=None,opponent:'Player'=None)->tuple[callable,Card]:
+        
+        func,card=self.stack.pop()
+        if card.type=="Creature" :
+            if card in opponent.battlefield:
+                opponent.remove_card(card,"battlefield")
+                opponent.append_card(card,"graveyard")
+            else:
+                player.remove_card(card,"battlefield")
+                player.append_card(card,"graveyard")
+        return func,card
+
+        
+        
+    @select_object("",1)
+    async def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
+        pass

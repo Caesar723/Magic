@@ -1,0 +1,11 @@
+{
+    "Name": "Soul Devourer",
+    "Rarity": "Rare",
+    "Type": "Creature - Demon",
+    "Power": 4,
+    "Toughness": 4,
+    "Cost": "4BB",
+    "Story Background": "The Soul Devourer feeds on the essence of the fallen, growing stronger with each death.",
+    "Ability": "Whenever a creature dies, Soul Devourer gets +1/+1 counters equal to the power of that creature.",
+    "Appearance Description": "A dark, horned demon with burning eyes, surrounded by the spirits of those it has consumed."
+}

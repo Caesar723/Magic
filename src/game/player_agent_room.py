@@ -45,9 +45,9 @@ class PVE_Room(Room):
         #agents_deck="Eternal Phoenix+Creature+4|Raging Firekin+Creature+4|Emberheart Salamander+Creature+4|Arcane Inferno+Instant+4|Pyroblast Surge+Instant+4|Fiery Blast+Instant+4|Inferno Titan+Creature+4|Flame Tinkerer+Creature+4|Mountain+Land+24"
 
         # Agent_para=[(agents_deck,"Agent1")]
-        
-        self.player_1,self.player_2=Agent("Agent1",self.action_processor),\
-                                    Player(players[0][1],players[0][0],self.action_processor)
+        print(self.stack)
+        self.player_1,self.player_2=Agent("Agent1",self),\
+                                    Player(players[0][1],players[0][0],self)
         self.player_1.set_opponent_player(self.player_2,self)
         self.player_2.set_opponent_player(self.player_1,self)
         self.players:dict={

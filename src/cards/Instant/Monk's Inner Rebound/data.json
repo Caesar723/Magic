@@ -1,0 +1,9 @@
+{
+    "Name": "Monk's Inner Rebound",
+    "Rarity": "Uncommon",
+    "Type": "Instant",
+    "Cost": "1W",
+    "Story Background": "Monks reflect harmful magic back to its source, using their inner strength and discipline.",
+    "Ability": "Counter target noncreature spell. Redirect its effects back to its caster.",
+    "Appearance Description": "The monk stands calm and focused as the incoming spell rebounds, turning its energy against its originator."
+}

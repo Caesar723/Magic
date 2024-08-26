@@ -57,8 +57,6 @@ class Room:
         self.bullet_timer:int=0
         self.max_bullet_time:int=10
 
-        self.initinal_player(players)
-        #print(self.players_socket)
 
         #used to store the each flag like whether is bullet_time
         self.flag_dict:dict={}
@@ -80,7 +78,8 @@ class Room:
         #self.defenders:list[Card]=None
 
 
-        
+        self.initinal_player(players)
+        #print(self.players_socket)
 
 
         self.message_process_dict={
@@ -107,8 +106,8 @@ class Room:
         
     def initinal_player(self,players:list[tuple]):
         # used to store the players
-        self.player_1,self.player_2=Player(players[0][1],players[0][0],self.action_processor),\
-                                    Player(players[1][1],players[1][0],self.action_processor)
+        self.player_1,self.player_2=Player(players[0][1],players[0][0],self),\
+                                    Player(players[1][1],players[1][0],self)
         self.player_1.set_opponent_player(self.player_2,self)
         self.player_2.set_opponent_player(self.player_1,self)
         self.players:dict[Player]={

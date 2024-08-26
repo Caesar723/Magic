@@ -1,0 +1,9 @@
+{
+    "Name": "Thunderstrike",
+    "Rarity": "Rare",
+    "Type": "Sorcery",
+    "Cost": "3RR",
+    "Story Background": "A powerful bolt of lightning strikes down, wreaking havoc on the battlefield.",
+    "Ability": "Choose one creature. Thunderstrike deals 8 damage to that creature. If that creature dies, Thunderstrike deals the same amount of damage to each opponent.",
+    "Appearance Description": "A massive lightning bolt descends from the sky, striking a creature with explosive force."
+}

@@ -1,0 +1,9 @@
+{
+    "Name": "Alchemist's Chaotic Blend",
+    "Rarity": "Rare",
+    "Type": "Instant",
+    "Cost": "3R",
+    "Story Background": "Alchemists thrive on unpredictability, mixing volatile concoctions to create powerful, chaotic effects.",
+    "Ability": "Counter target spell. Then reveal a random card from your library and cast it without paying its mana cost.",
+    "Appearance Description": "A swirling mixture of colors and energies bursts from the alchemist's vial, consuming the target spell and transforming it into something unexpected."
+}

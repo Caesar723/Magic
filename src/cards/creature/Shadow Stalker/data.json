@@ -1,0 +1,11 @@
+{
+    "Name": "Shadow Stalker",
+    "Rarity": "Rare",
+    "Type": "Creature - Assassin",
+    "Power": 3,
+    "Toughness": 3,
+    "Cost": "3BB",
+    "Story Background": "A master of the shadows, the Shadow Stalker is unseen until it’s too late.",
+    "Ability": "Cannot be targeted by spells or abilities. Whenever Shadow Stalker attacks, the controller of the target creature discards a card.",
+    "Appearance Description": "A shadowy figure with glowing red eyes, its form shifts and blends into the darkness."
+}

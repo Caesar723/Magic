@@ -29,8 +29,9 @@ class Player:
 
     
 
-    def __init__(self,name:str,decks_detail:str,action_stroe:actions.List_Action_Processor) -> None:
+    def __init__(self,name:str,decks_detail:str,room:"Room") -> None:
         self.name=name
+        self.room=room
 
         self.opponent:Player#opponent player
 
@@ -79,7 +80,7 @@ class Player:
 
 
         #action store
-        self.action_store:actions.List_Action_Processor=action_stroe
+        self.action_store:actions.List_Action_Processor=room.action_processor
 
         #state of player Beginning Phase,In-Game State,Ending Phase
         self.state_of_gaming:str=""

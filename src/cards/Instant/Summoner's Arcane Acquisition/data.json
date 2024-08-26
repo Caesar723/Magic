@@ -1,0 +1,9 @@
+{
+    "Name": "Summoner's Arcane Acquisition",
+    "Rarity": "Rare",
+    "Type": "Instant",
+    "Cost": "2G",
+    "Story Background": "Summoners channel arcane energies to intercept enemy spells, transforming them into powerful elemental beings.",
+    "Ability": "Counter target spell. If the spell is countered this way, create an Elemental creature token with power and toughness equal to that spell's mana cost.",
+    "Appearance Description": "Arcane runes glow as the summoner conjures an elemental spirit, drawing power from the defeated spell."
+}

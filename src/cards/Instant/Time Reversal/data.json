@@ -1,0 +1,9 @@
+{
+    "Name": "Time Reversal",
+    "Rarity": "Rare",
+    "Type": "Instant",
+    "Cost": "5UU",
+    "Story Background": "The flow of time is reversed, undoing the enemy's recent actions.",
+    "Ability": "Undo all spells and effects from your opponent's last turn.",
+    "Appearance Description": "A swirling vortex of blue and purple energy, with clock-like gears and symbols spinning in reverse."
+}

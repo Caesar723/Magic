@@ -1,0 +1,11 @@
+{
+    "Name": "Dragon Lord",
+    "Rarity": "Rare",
+    "Type": "Creature - Dragon",
+    "Power": 6,
+    "Toughness": 6,
+    "Cost": "6RR",
+    "Story Background": "The Dragon Lord rules the skies, feared by all who dare challenge its reign.",
+    "Ability": "Flying. Whenever Dragon Lord deals damage to an opponent, create two 4/4 red Dragon creature tokens.",
+    "Appearance Description": "A colossal dragon with scales like molten lava, its wings span the horizon, and its eyes burn with ancient fire."
+}

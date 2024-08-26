@@ -53,8 +53,9 @@ class Multi_Agent_Room(Room):
 
         players=[(agents_deck,"Agent1"),(agents_deck,"Agent2")]
         
-        self.player_1,self.player_2=Agent_Train(players[0][1],self.action_processor,self.agent1),\
-                                    Agent_Train(players[1][1],self.action_processor,self.agent2)
+        self.player_1,self.player_2=Agent_Train(players[0][1],self,self.agent1),\
+                                    Agent_Train(players[1][1],self,self.agent2)
+        
         self.player_1.set_opponent_player(self.player_2,self)
         self.player_2.set_opponent_player(self.player_1,self)
         self.players:dict[Agent_Train]={

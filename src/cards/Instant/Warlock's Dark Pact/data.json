@@ -1,0 +1,9 @@
+{
+    "Name": "Warlock's Dark Pact",
+    "Rarity": "Rare",
+    "Type": "Instant",
+    "Cost": "2B",
+    "Story Background": "Warlocks make dark bargains, drawing upon forbidden powers to curse their enemies and twist their magic.",
+    "Ability": "Counter target spell. Its controller loses life equal to its mana cost.",
+    "Appearance Description": "A sinister shadow envelops the battlefield, draining life from the opponent as the spell is consumed by darkness."
+}

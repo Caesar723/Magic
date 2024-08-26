@@ -1,6 +1,9 @@
 import random
 import torch
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game.room import Room
 from game.type_action.actions import List_Action_Processor
 from game.ppo_train import Agent_PPO
 from game.player import Player
@@ -11,10 +14,10 @@ from game.game_function_tool import ORGPATH
 
 class Agent_Player_Red(Player):
 
-    def __init__(self, name: str, action_stroe: List_Action_Processor) -> None:
+    def __init__(self, name: str,room:"Room") -> None:
         decks_detail="Eternal Phoenix+Creature+4|Raging Firekin+Creature+4|Emberheart Salamander+Creature+4|Arcane Inferno+Instant+4|Pyroblast Surge+Instant+4|Fiery Blast+Instant+4|Inferno Titan+Creature+4|Flame Tinkerer+Creature+4|Mountain+Land+24"
         self.id_dict={}
-        super().__init__(name, decks_detail, action_stroe)
+        super().__init__(name, decks_detail, room)
 
         self.agent=Agent_PPO(271,352,train=False)
         self.agent.load_pth(

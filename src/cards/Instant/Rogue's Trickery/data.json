@@ -1,0 +1,9 @@
+{
+    "Name": "Rogue's Trickery",
+    "Rarity": "Rare",
+    "Type": "Instant",
+    "Cost": "1U",
+    "Story Background": "Rogues are masters of deception, turning the enemy's spells against them with a cunning smile.",
+    "Ability": "Counter target spell. If the spell is countered this way, exile it. You may cast it this turn by paying its mana cost.",
+    "Appearance Description": "A shadowy figure manipulates the threads of magic, twisting the spell's energy and redirecting it."
+}

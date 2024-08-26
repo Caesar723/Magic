@@ -1,0 +1,9 @@
+{
+    "Name": "Paladin's Judging Light",
+    "Rarity": "Uncommon",
+    "Type": "Instant",
+    "Cost": "2W",
+    "Story Background": "Paladins wield holy light to judge the wicked, punishing those who dare oppose their righteous cause.",
+    "Ability": "Counter target spell. Its controller takes light damage equal to its mana cost.",
+    "Appearance Description": "A blinding beam of light descends from the heavens, striking the spell and its caster with divine judgment."
+}

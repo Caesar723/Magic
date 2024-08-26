@@ -1,0 +1,11 @@
+{
+    "Name": "Ancient Stonewood",
+    "Rarity": "Rare",
+    "Type": "Creature - Treefolk",
+    "Power": 5,
+    "Toughness": 7,
+    "Cost": "4GG",
+    "Story Background": "The Ancient Stonewood has stood for centuries, its roots deep in the earth, unmoved by the passing of time.",
+    "Ability": "Indestructible. Whenever Ancient Stonewood is dealt damage, it deals that much damage to target creature an opponent controls.",
+    "Appearance Description": "A massive tree with a face carved in its trunk, its branches are thick and gnarled, reaching out like arms."
+}

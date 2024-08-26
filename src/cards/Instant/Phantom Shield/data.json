@@ -1,0 +1,9 @@
+{
+    "Name": "Phantom Shield",
+    "Rarity": "Rare",
+    "Type": "Instant",
+    "Cost": "2WW",
+    "Story Background": "The Phantom Shield protects your creatures from all harm, nullifying any attack.",
+    "Ability": "Until end of turn, your creatures gain 'Prevent all damage that would be dealt to this creature this turn.'",
+    "Appearance Description": "A shimmering, translucent shield surrounds each of your creatures, deflecting all incoming attacks."
+}

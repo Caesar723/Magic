@@ -1,0 +1,9 @@
+{
+    "Name": "Druid's Natural Fury",
+    "Rarity": "Rare",
+    "Type": "Instant",
+    "Cost": "3G",
+    "Story Background": "Druids channel the wrath of nature to disrupt enemy magic, summoning fierce beasts to aid them.",
+    "Ability": "Counter target spell. Then, create a green Beast creature token with power and toughness equal to that spell's mana cost.",
+    "Appearance Description": "The earth rumbles as the druid invokes the primal forces, summoning a beast from the natural world to devour the spell."
+}

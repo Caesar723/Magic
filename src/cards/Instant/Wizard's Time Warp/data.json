@@ -1,0 +1,9 @@
+{
+    "Name": "Wizard's Time Warp",
+    "Rarity": "Mythic Rare",
+    "Type": "Instant",
+    "Cost": "3U",
+    "Story Background": "Wizards manipulate time and space, bending the flow of magic to their will and disrupting enemy strategies.",
+    "Ability": "Counter target spell. Its controller skips their next draw step.",
+    "Appearance Description": "A swirling vortex of time opens, sucking the spell into its depths and leaving the opponent momentarily disoriented."
+}

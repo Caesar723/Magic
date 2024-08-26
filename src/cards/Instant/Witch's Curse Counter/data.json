@@ -1,0 +1,9 @@
+{
+    "Name": "Witch's Curse Counter",
+    "Rarity": "Rare",
+    "Type": "Instant",
+    "Cost": "2B",
+    "Story Background": "Witches weave dark curses, turning enemy spells against their owners and afflicting them with deadly hexes.",
+    "Ability": "Counter target spell. Then, its controller gains a curse for three turns, reducing their strength and stamina by half.",
+    "Appearance Description": "A cauldron bubbles as dark smoke rises, swirling around the target spell and inflicting a withering curse on its caster."
+}

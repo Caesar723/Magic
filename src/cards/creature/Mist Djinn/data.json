@@ -1,0 +1,11 @@
+{
+    "Name": "Mist Djinn",
+    "Rarity": "Rare",
+    "Type": "Creature - Djinn",
+    "Power": 4,
+    "Toughness": 6,
+    "Cost": "5UU",
+    "Story Background": "The Mist Djinn is an elusive spirit, its form shifting like the fog it commands.",
+    "Ability": "Mist Djinn can block any number of creatures.",
+    "Appearance Description": "A towering, ethereal being made of mist and vapor, with a serene, inscrutable expression."
+}

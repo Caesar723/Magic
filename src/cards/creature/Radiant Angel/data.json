@@ -1,0 +1,11 @@
+{
+    "Name": "Radiant Angel",
+    "Rarity": "Rare",
+    "Type": "Creature - Angel",
+    "Power": 4,
+    "Toughness": 4,
+    "Cost": "3WW",
+    "Story Background": "The Radiant Angel brings hope and light, driving away the darkness wherever it goes.",
+    "Ability": "Flying, Lifelink. Whenever Radiant Angel deals damage, it illuminates all creatures with dark attributes, making them unable to attack or block this turn.",
+    "Appearance Description": "A glowing angelic figure with golden wings, carrying a radiant sword that shines with divine light."
+}

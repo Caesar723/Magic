@@ -1,0 +1,9 @@
+{
+    "Name": "Roar of the Behemoth",
+    "Rarity": "Rare",
+    "Type": "Instant",
+    "Cost": "3GG",
+    "Story Background": "The roar of the behemoth is so terrifying that it renders enemies powerless.",
+    "Ability": "All enemy creatures get 0 power until the end of this turn.",
+    "Appearance Description": "A massive, fearsome creature roars, and all enemy creatures tremble, their strength sapped away."
+}

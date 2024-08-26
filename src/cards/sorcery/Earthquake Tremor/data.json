@@ -1,0 +1,9 @@
+{
+    "Name": "Earthquake Tremor",
+    "Rarity": "Rare",
+    "Type": "Sorcery",
+    "Cost": "6RR",
+    "Story Background": "The earth trembles as elemental forces rise, destroying all in their path.",
+    "Ability": "Destroy all non-creature permanents. For each permanent destroyed this way, create a 3/3 Elemental creature token.",
+    "Appearance Description": "The ground splits open, with flames and molten rock spewing forth, and elemental creatures emerging from the chaos."
+}

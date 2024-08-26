@@ -1,0 +1,9 @@
+{
+    "Name": "Ranger's Sniping Shot",
+    "Rarity": "Rare",
+    "Type": "Instant",
+    "Cost": "1G",
+    "Story Background": "Rangers strike from a distance, disrupting enemy plans with precise and deadly aim.",
+    "Ability": "Counter target spell. If that spell is a creature spell, deal damage to its controller equal to that creature's power.",
+    "Appearance Description": "An arrow, glowing with magical energy, strikes the target spell, causing it to explode in a shower of sparks."
+}

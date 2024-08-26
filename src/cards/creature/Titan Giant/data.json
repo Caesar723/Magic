@@ -1,0 +1,11 @@
+{
+    "Name": "Titan Giant",
+    "Rarity": "Rare",
+    "Type": "Creature - Giant",
+    "Power": 8,
+    "Toughness": 8,
+    "Cost": "5GG",
+    "Story Background": "The Titan Giant is a towering force of nature, crushing anything in its path.",
+    "Ability": "Whenever Titan Giant enters the battlefield, destroy all other creatures with power less than 5.",
+    "Appearance Description": "A massive giant made of stone and earth, its movements cause the ground to tremble."
+}

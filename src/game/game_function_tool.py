@@ -212,6 +212,7 @@ def get_cards_diction():
     import pycards
     
     types=["creature","Instant","land","sorcery"]
+    subclass_dict={"Instant_Undo":"Instant"}
     class_dict={}
 
     for type in types:
@@ -219,13 +220,19 @@ def get_cards_diction():
         for name in get_dir_names(directory_path):
 
             class_name=name_replace(name)
+
             class_dict[class_name]=name
 
     result_dict={}
     for subclass in Card.__subclasses__():
         for card in subclass.__subclasses__():
             try:
-                result_dict[f"{class_dict[card.__name__]}_{subclass.__name__}"]=card
+                class_name=card.__name__
+                if class_name in subclass_dict:
+                    for subcard in card.__subclasses__():
+                        result_dict[f"{class_dict[subcard.__name__]}_{subclass_dict[class_name]}"]=subcard
+                else:
+                    result_dict[f"{class_dict[card.__name__]}_{subclass.__name__}"]=card
             except KeyError as e:
                 print(card.__name__,"token")
     

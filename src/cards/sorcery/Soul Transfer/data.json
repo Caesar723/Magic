@@ -1,0 +1,9 @@
+{
+    "Name": "Soul Transfer",
+    "Rarity": "Rare",
+    "Type": "Sorcery",
+    "Cost": "4BB",
+    "Story Background": "The souls of the dead can be transferred to the living, granting them new powers.",
+    "Ability": "Choose one creature. That creature gains all abilities of a creature card in any graveyard of your choice.",
+    "Appearance Description": "Dark energy flows from a tombstone to a living creature, imbuing it with new, ominous power."
+}

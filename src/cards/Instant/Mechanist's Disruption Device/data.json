@@ -1,0 +1,9 @@
+{
+    "Name": "Mechanist's Disruption Device",
+    "Rarity": "Uncommon",
+    "Type": "Instant",
+    "Cost": "3U",
+    "Story Background": "Mechanists use advanced technology to disrupt enemy magic, creating duplicates of their mechanical creations in the process.",
+    "Ability": "Counter target spell. Then, create a token that's a copy of each artifact creature you control.",
+    "Appearance Description": "A mechanical device whirs and clicks as it emits a pulse of energy, disrupting the spell and replicating the mechanist's creations."
+}
