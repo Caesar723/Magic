@@ -9,6 +9,7 @@ from game.type_cards.instant import Instant,Instant_Undo
 from game.game_function_tool import select_object
 from game.type_cards.creature import Creature
 
+
 class Druid_s_Natural_Fury(Instant_Undo):
     
     
