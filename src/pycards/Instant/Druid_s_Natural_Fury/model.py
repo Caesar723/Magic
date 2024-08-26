@@ -34,6 +34,7 @@ class Druid_s_Natural_Fury(Instant_Undo):
         player.append_card(token,"battlefield")
 
 
+
 class Druid_s_Natural_Fury_token(Creature):
 
     def __init__(self,player,live=1,power=1) -> None:
