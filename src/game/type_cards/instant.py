@@ -91,13 +91,16 @@ class Instant_Undo(Instant):
         if not self.get_flag_room("bullet_time"):
             return [False,"You can't use this card out of bullet time"]
         
-        if self.undo_range=="all":
+        
+        if self.undo_range=="all" and self.stack:
             func,card=self.stack[-1]
             if card.type=="Creature" and self.get_flag_room("attacker_defenders"):
                 return [False,"You can't use this card on a defense creature"]
-            else:
+            elif card.type!="Land":
                 return result
-        else:
+            else:
+                return [False,"You can't use this card on a land"]
+        elif self.stack:
             func,card=self.stack[-1]
             ranges=self.undo_range.split("|")
             if card.type in ranges:
@@ -106,6 +109,8 @@ class Instant_Undo(Instant):
                 return result
             else:
                 return [False,"You can't use this card"]
+        else:
+            return [False,"You can't use this card"]
         
     
 
