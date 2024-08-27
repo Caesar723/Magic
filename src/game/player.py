@@ -319,7 +319,7 @@ class Player:
             self.action_store.end_record()
             
         self.action_store.start_record()
-        for buff in self.get_cards_from_dict("end_step_buff"):
+        for buff in list(self.get_cards_from_dict("end_step_buff")):
             buff.when_end_turn()
         self.action_store.end_record()
 

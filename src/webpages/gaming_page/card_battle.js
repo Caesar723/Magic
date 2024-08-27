@@ -209,15 +209,33 @@ class Card_Battle{
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.ctx.save()
+        let filter= '';
 
         if(this.activated==true){
-            this.ctx.filter = 'brightness(50%)';
-            this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
-            this.ctx.filter = 'none';
+            
+            filter =filter + "brightness(50%)"
+            
         }
-        else{
-            this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
+
+        for (const buff of this.buff_list){
+            if (buff.content=="frozen"){
+                filter=filter + " hue-rotate(180deg) saturate(1.2)"
+                break
+            }
         }
+        
+
+        // if(this.activated==true){
+        //     this.ctx.filter = 'brightness(50%)';
+        //     this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
+        //     this.ctx.filter = '';
+        // }
+        // else{
+        
+        this.ctx.filter=filter
+        this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
+        // }
+        this.ctx.filter = '';
         
         //this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
         this.ctx.restore()
@@ -678,9 +696,9 @@ class Card_Battle{
         return pos_rotate.toArray().flat();
     }
     check_inside(mouse_pos,position1,position2,position3,position4){//n shape of points
-        //console.log(position1,position2,position3,position4)
+        console.log(position1,position2,position3,position4)
         const positions=this.sortPositions([position1,position2,position3,position4])
-        //console.log(positions)
+        console.log(positions)
         return (
             this.create_function_x(mouse_pos,positions[1],positions[0])<0 &&
             this.create_function_y(mouse_pos,positions[3],positions[0])<0 &&
@@ -689,6 +707,8 @@ class Card_Battle{
         )
 
     }
+
+
     sortPositions(positions) {
         // Calculate the center point
         let centerX = 0;
@@ -699,25 +719,31 @@ class Card_Battle{
         });
         centerX /= positions.length;
         centerY /= positions.length;
-        //console.log(centerX,centerY)
+        console.log(centerX, centerY);
     
-        // Sort positions based on their relative quadrant
-        const new_pos=[]
-        for (let a of positions){
-            let index=-2
-            if (a[0] >= centerX && a[1] < centerY) index= 1; // Right bottom
-            else if (a[0] < centerX && a[1] < centerY) index= 2;  // Left bottom
-            else if (a[0] < centerX && a[1] >= centerY) index= 3; // Left top
-            else index= 0; // Right top
-
-            new_pos[index]=a
-        }
-        
-        
-        
+        // Calculate angles for each position relative to center
+        positions = positions.map(pos => ({
+            x: pos[0],
+            y: pos[1],
+            angle: Math.atan2(pos[1] - centerY, pos[0] - centerX)
+        }));
     
-        return new_pos;
+        // Adjust angles to start from the top right quadrant
+        positions.forEach(pos => {
+            pos.angle -= Math.PI*3/2 ; // Subtract 90 degrees
+            if (pos.angle < -Math.PI) pos.angle += 2 * Math.PI; // Normalize angle between -π and π
+        });
+    
+        // Sort positions by angle in clockwise order
+        positions.sort((a, b) => b.angle - a.angle); // Reverse sort to make it clockwise
+    
+        // Extract sorted positions without angle
+        const sortedPositions = positions.map(pos => [pos.x, pos.y]);
+    
+        return sortedPositions;
     }
+    
+    
     create_function_x(mouse_pos,position1,position2){// for x=... position1(lower x) x-...
         const k=(position2[0]-position1[0])/(position2[1]-position1[1]);
         const b=position1[0]-k*position1[1];

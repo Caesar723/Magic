@@ -28,11 +28,12 @@ class Buff:
     
     def set_end_of_turn(self):
         
-        self.card.player.put_card_to_dict("end_step_buff",self)
+        self.selected_card.player.put_card_to_dict("end_step_buff",self)
 
     def when_end_turn(self):
         self.selected_card.loss_buff(self,self.card)
-        self.card.player.remove_card_from_dict("end_step_buff",self)
+        
+        self.selected_card.player.remove_card_from_dict("end_step_buff",self)
 
     def text(self,player):
         image_link=self.card.image_path
@@ -79,3 +80,24 @@ class KeyBuff(Buff):
                 return True
             return result
         card.get_flag = types.MethodType(get_flag, card)
+
+class Frozen(Buff):
+    def __init__(self,card:"Card",selected_card:"Card") -> None:
+        super().__init__(card,selected_card)
+        self.card=card#这个buff是属于哪一张卡的
+        self.card_type:str="Frozen"#这个buff是用在那个类型的
+        self.content:str="frozen"#描述buff
+        self.buff_name=f"{card.name}"
+        self.set_end_of_turn()
+
+    def change_function(self,card:"Creature"):
+        previews_func=card.get_flag
+        def get_flag(self_card,key):
+            result=previews_func(key)
+            if key=="tap":
+                return True
+            
+            return result
+        card.get_flag = types.MethodType(get_flag, card)
+    
+    

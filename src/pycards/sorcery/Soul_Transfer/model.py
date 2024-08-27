@@ -59,5 +59,5 @@ class Soul_Transfer(Sorcery):
                 inspect.getsource(org_func) != inspect.getsource(type(card).when_die):
                     die_objs.append(card)
             new_buff=Soul_Transfer_buff(self,card,die_objs)
-            selected_object[0].gain_buff(new_buff,player)
+            selected_object[0].gain_buff(new_buff,self)
 

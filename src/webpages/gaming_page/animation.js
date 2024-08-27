@@ -491,7 +491,7 @@ class Add_Buff extends Select_Object{
                 }
                 else
                 {
-                    this.missile=this.special_effect.create_missile(this.player,this.selected_object,this.color,this.type,this.final_state)
+                    this.missile=this.special_effect.create_missile(this.object_hold.player,this.selected_object,this.color,this.type,this.final_state)
                 }
                 
                 this.player.music.play_music_effect("missile")

@@ -7,7 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
-
+from game.buffs import Frozen
 
 class Icy_Imprisonment(Sorcery):
     
@@ -27,5 +27,9 @@ class Icy_Imprisonment(Sorcery):
         self.image_path:str="cards/sorcery/Icy Imprisonment/image.jpg"
 
 
+    @select_object("",1)
+    async def card_ability(self,player: "Player",opponent: "Player",selected_object:tuple["Card"]):
+        for creature in opponent.battlefield:
+            buff=Frozen(self,creature)
+            creature.gain_buff(buff,self)
 
-        
