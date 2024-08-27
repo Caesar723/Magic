@@ -158,7 +158,7 @@ class Creature(Card):
     #     pass
     async def check_dead(self):#check whether creature die,or whether appear at battle field
         power,live=self.state
-        if live<=0:
+        if live<=0 or self.get_flag("die"):
             self.flag_dict["die"]=True
             return True
         else:
@@ -229,8 +229,11 @@ class Creature(Card):
 
 
     def text(self,player:'Player',show_hide:bool=False)-> str:
-        
-        Flag_dict=f"str2json(string({json.dumps(self.flag_dict)}))"
+        flags_dict=self.flag_dict.copy()
+        keys_flags=("reach","flying","Trample","haste","lifelink","summoning_sickness","Flash")
+        for key in keys_flags:
+            flags_dict[key]=self.get_flag(key)
+        Flag_dict=f"str2json(string({json.dumps(flags_dict)}))"
         Counter_dict=f"str2json(string({json.dumps(self.counter_dict)}))"
         Player=self.player.text(player)
         Id=id(self)

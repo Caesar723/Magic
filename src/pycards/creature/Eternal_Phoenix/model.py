@@ -49,7 +49,7 @@ class Eternal_Phoenix(Creature):
 
     async def when_die(self,player: "Player" = None, opponent: "Player" = None):#OK
         if not self.get_flag("feather_Eternal_Phoenix"):
-            new_creature=Eternal_Phoenix(player)
+            new_creature=type(self)(player)
             player.append_card(new_creature,"battlefield")
             new_creature.flag_dict["feather_Eternal_Phoenix"]=True
 

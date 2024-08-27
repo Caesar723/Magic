@@ -26,6 +26,21 @@ class Thunderstrike(Sorcery):
         self.content:str="Choose one creature. Thunderstrike deals 8 damage to that creature. If that creature dies, Thunderstrike deals the same amount of damage to each opponent."
         self.image_path:str="cards/sorcery/Thunderstrike/image.jpg"
 
-
+    @select_object("all_creatures",1)
+    async def card_ability(self, player: "Player", opponent: "Player", selected_object: tuple["Card"]):
+        if selected_object:
+            damage=8
+            player.action_store.start_record()
+            await self.attact_to_object(selected_object[0],damage,"rgba(255,0,0,1)","Missile_Hit")
+            life=selected_object[0].state[1]
+            if await selected_object[0].check_dead() and life<=0:
+                damage+=life
+                player.action_store.start_record()
+                for creature in opponent.battlefield:
+                    if creature!=selected_object[0]:
+                        await self.attact_to_object(creature,damage,"rgba(255,0,0,1)","Missile_Hit")
+                await self.attact_to_object(opponent,damage,"rgba(255,0,0,1)","Missile_Hit")
+                player.action_store.end_record()
+            player.action_store.end_record()
 
         

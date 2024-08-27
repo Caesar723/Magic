@@ -38,7 +38,7 @@ class Cataclysmic_Inferno(Sorcery):
             player.action_store.start_record()
             
             await self.attact_to_object(card,power,random.choice(colors),"High_Missile")
-            if card.check_dead():
+            if await card.check_dead():
                 token_counter+=1
         for i in range(token_counter):
             player.append_card(Elemental_Creature_Cataclysmic_Inferno(player),'battlefield')

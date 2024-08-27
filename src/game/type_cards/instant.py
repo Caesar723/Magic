@@ -55,6 +55,12 @@ class Instant(Card):
             self.player.action_store.add_action(actions.Attack_To_Object(self.player,self.player,object,color,type_missile,object.state))
             if await object.check_dead():
                 self.when_kill_creature(object,self.player,self.player.opponent)
+                
+    async def destroy_object(self,object:"Creature",color:str,type_missile:str):
+        object.flag_dict["die"]=True
+        self.player.action_store.add_action(actions.Attack_To_Object(self.player,self.player,object,color,type_missile,object.state))
+        if await object.check_dead():
+            self.when_kill_creature(object,self.player,self.player.opponent)
     
     
     def text(self,player:'Player',show_hide:bool=False)-> str:
@@ -128,6 +134,4 @@ class Instant_Undo(Instant):
 
         
         
-    @select_object("",1)
-    async def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
-        pass
+    
