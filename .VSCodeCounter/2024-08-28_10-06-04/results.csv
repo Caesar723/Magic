@@ -1,0 +1,598 @@
+"filename", "language", "Python", "HTML", "JavaScript", "CSS", "JSON", "YAML", "SQL", "Properties", "XML", "Markdown", "pip requirements", "Docker", "Shell Script", "comment", "blank", "total"
+"/Users/xuanpeichen/Desktop/code/python/openai/Dockerfile", "Docker", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 10, 10, 27
+"/Users/xuanpeichen/Desktop/code/python/openai/README.md", "Markdown", 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 3, 5
+"/Users/xuanpeichen/Desktop/code/python/openai/db/magic_backup.sql", "SQL", 0, 0, 0, 0, 0, 0, 142, 0, 0, 0, 0, 0, 0, 48, 32, 222
+"/Users/xuanpeichen/Desktop/code/python/openai/docker-compose.yml", "YAML", 0, 0, 0, 0, 0, 25, 0, 0, 0, 0, 0, 0, 0, 0, 5, 30
+"/Users/xuanpeichen/Desktop/code/python/openai/init.sh", "Shell Script", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 13, 5, 19
+"/Users/xuanpeichen/Desktop/code/python/openai/nginx/nginx.conf", "Properties", 0, 0, 0, 0, 0, 0, 0, 21, 0, 0, 0, 0, 0, 0, 5, 26
+"/Users/xuanpeichen/Desktop/code/python/openai/requirements.txt", "pip requirements", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 101, 0, 0, 0, 1, 102
+"/Users/xuanpeichen/Desktop/code/python/openai/src/card_Creator.py", "Python", 372, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 31, 116, 519
+"/Users/xuanpeichen/Desktop/code/python/openai/src/card_python_creator.py", "Python", 199, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 78, 280
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Alchemist's Chaotic Blend/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Aquatic Evasion/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Arcane Inferno/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Arcane Insight/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Arcane Intervention/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Arcane Reflection/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Astral Resurgence/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Avenging Light/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Blaze of Fury/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Blazeburst/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Blazing Reversal/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Celestial Convergence/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Celestial Intervention/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Celestial Rebirth/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Divine Intervention/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Divine Reprisal/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Divine Sanctuary/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Druid's Natural Fury/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Ephemeral Bolt/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Ephemeral Insight/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Ephemeral Response/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Ephemeral Vision/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Ethereal Convergence/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Ethereal Reversal/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Ethereal Surge/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Fiery Blast/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Flames of Fury/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Flamespark/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Honorable Protection/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Mage's Veto/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Mechanist's Disruption Device/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Mindweave/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Monk's Inner Rebound/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Mystic Barrier/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Mystic Confluence/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Mystic Convergence/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Mystic Evasion/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Mystic Evocation/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Mystic Insight/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Mystic Reflection/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Mystic Reversal/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Mystic Rupture/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Mystic Tide/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Mystic Tides/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Mystical Barrier/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Mystical Shift/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Naturalize/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Nature's Reprisal/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Necromancer's Soul Seize/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Overgrowth Surge/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Paladin's Judging Light/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Phantasmal Distortion/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Phantom Shield/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Priest's Divine Binding/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Primal Surge/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Pyroblast Surge/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Ranger's Sniping Shot/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Resurgence/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Roar of the Behemoth/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Rogue's Trickery/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Sacred Reinforcement/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Shadow Snare/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Shadowform Surge/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Shadowstrike/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Summoner's Arcane Acquisition/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Summoner's Respite/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Swift Response/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Swift Ward/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Temporal Manipulation/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Temporal Reversal/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Temporal Shift/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Time Reversal/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Time Warp/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Timeless Intervention/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Titan's Strength/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Veil of Serenity/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Veiled Concealment/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Vengeful Retribution/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Vengeful Wrath/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Verdant Blessing/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Verdant Growth/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Verdant Surge/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Warlock's Dark Pact/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Warrior's Forced Challenge/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Wild Growth Rush/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Wild Growth/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Witch's Curse Counter/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/Instant/Wizard's Time Warp/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Aetherweaver/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Ancient Stonewood/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Angelic Protector/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Avacyn, Guardian of Hope/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Blazeheart Berserker  /data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Blightsteel Colossus/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Celestial Guardian/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Celestial Herald/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Celestial Sentinel/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Celestial Seraph/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Celestial Skyweaver/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Chronostrider/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Deep Sea Behemoth/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Dragon Lord/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Dreamweaver Archivist/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Elite Squire/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Elvish Trailblazer/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Emberheart Berserker  /data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Emberheart Dragonrider/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Emberheart Salamander/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Essence Channeler/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Eternal Phoenix/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Flame Tinkerer/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Flameblade Pyromancer/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Grove Guardian/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Guardian of the Grove  /data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Harbinger of the Eternal Tides/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Igni the Pyromancer/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Inferno Titan/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Ironclad Crusader/data.json", "JSON", 0, 0, 0, 0, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Kothar the Soul Reaper/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Luminous Angel/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Luminous Guardian/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Merfolk Wayfinder/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Mindshaper Sphinx/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Mist Djinn/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Mistweaver Adept/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Mistweaver Drake/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Mystic Tidecaller/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Night Stalker  /data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Nighthaunt Assassin/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Nyxborn Serpent/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Oblivion Devourer/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Pious Courser/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Radiant Angel/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Raging Firekin/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Ralgar, the Inferno King  /data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Ravaging Ghoul/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Sage of the Ancient Grove/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Seraph of the Eternal Flame/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Shadow Stalker/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Shadowtide Leviathan/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Shifting Tides Elemental/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Soul Devourer/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Spectral Harbinger/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Storm Bringer/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Sunlit Priestess/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Sylvan Harmonist/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Sylvan Warden/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Temporal Traveler/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Thalassian Tidecaller/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Thornroot Druid/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Thornwood Guardian/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Thornwood Ranger/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Thornwood Sentinel/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Thunderclap Behemoth/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Thundering Behemoth/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Tidal Sprite/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Titan Giant/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Torrent Elemental/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Verdant Titan/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Verdant Wyrm/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Voidwisp Harbinger/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/creature/Vorinclex, Apex of Mutation/data.json", "JSON", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Aetheric Nexus/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Arcane Haven/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Arcane Sanctuary/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Celestial Haven/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Elysian Grove/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Forest/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Island/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Luminous Glade/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Mountain/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Mystic Reflection Pool/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Nexus of the Eternal Seas/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Plains/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Sanctum of Eternal Flames/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Sanctum of Verdant Growth/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Swamp/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Verdant Sanctuary/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/land/Volcanic Fumaroles/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Abyssal Echoes/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Angelic Blessing/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Apocalypse Riders/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Arcane Convergence/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Arcane Torrent/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Awaken the Elemental/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Call of the Ancient Ones/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Call of the Tides/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Call to Unity/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Cataclysmic Inferno/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Cataclysmic Surge/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Celestial Blessing/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Celestial Purge/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Celestial Renewal/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Chaos Unleashed/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Chaotic Eruption/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Dark Offering/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Demonic Ascendance/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Divine Blessing/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Divine Intervention/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Divine Offering/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Divine Rebirth/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Divine Reckoning/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Earthquake Tremor/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Eldritch Rebirth/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Ephemeral Eruption/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Falling Stars/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Fiery Burst/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Flameblast/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Flames of Fury/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Flamestrike Surge  /data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Fleeting Insight/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Forest's Embrace/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Harvest Blessing/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Icy Imprisonment/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Judgment Day/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Mind's Insight/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Mindful Manipulation/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Mindful Reflection/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Mystic Insight/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Mystic Reversal/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Natural Growth/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Natural Harmony/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Naturalize/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Nature's Embrace/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Overgrowth/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Rift in Reality/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Righteous Conviction/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Soul Siphon/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Soul Transfer/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Spectral Embrace/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Temporal Distortion/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Temporal Flux/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Thunderstrike/data.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Time Rift Convergence/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Time Warp/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Torrential Manipulation/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Treasure Hunt/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Unearthly Blaze/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Unleash the Elements/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Unyielding Resolve/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Vampiric Revelry/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Verdant Genesis/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Verdant Harvest/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/cards/sorcery/Wild Growth/data.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/xuanpeichen/Desktop/code/python/openai/src/clean_space.py", "Python", 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 5, 26
+"/Users/xuanpeichen/Desktop/code/python/openai/src/database.py", "Python", 377, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 98, 500
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/agent.py", "Python", 57, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 24, 84
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/buffs.py", "Python", 77, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 25, 103
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/card.py", "Python", 235, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 27, 73, 335
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/custom_print.py", "Python", 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 4, 18
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/game_function_tool.py", "Python", 200, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 56, 265
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/player.py", "Python", 377, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 40, 138, 555
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/player_agent_room.py", "Python", 289, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 29, 110, 428
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/ppo_train.py", "Python", 260, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 29, 96, 385
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/pydantic_model.py", "Python", 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 25
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/room.py", "Python", 530, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 71, 189, 790
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/room_server.py", "Python", 73, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 122
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/train_agent.py", "Python", 38, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 17, 58
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/training_env.py", "Python", 328, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 120, 159, 607
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/type_action/actions.py", "Python", 230, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 116, 353
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/type_cards/creature.py", "Python", 158, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 93, 273
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/type_cards/instant.py", "Python", 99, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 37, 137
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/type_cards/land.py", "Python", 96, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 40, 137
+"/Users/xuanpeichen/Desktop/code/python/openai/src/game/type_cards/sorcery.py", "Python", 63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21, 84
+"/Users/xuanpeichen/Desktop/code/python/openai/src/image.py", "Python", 66, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 32, 106
+"/Users/xuanpeichen/Desktop/code/python/openai/src/initinal_file.py", "Python", 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/main.py", "Python", 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 14
+"/Users/xuanpeichen/Desktop/code/python/openai/src/packet/math.min.js", "JavaScript", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+"/Users/xuanpeichen/Desktop/code/python/openai/src/packs.py", "Python", 124, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 33, 162
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Alchemist_s_Chaotic_Blend/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Aquatic_Evasion/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Arcane_Inferno/model.py", "Python", 29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 44
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Arcane_Insight/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Arcane_Intervention/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Arcane_Reflection/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Astral_Resurgence/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Avenging_Light/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Blaze_of_Fury/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Blazeburst/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Blazing_Reversal/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Celestial_Convergence/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Celestial_Intervention/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Celestial_Rebirth/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Divine_Intervention/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Divine_Reprisal/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Divine_Sanctuary/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Druid_s_Natural_Fury/model.py", "Python", 41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 64
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Ephemeral_Bolt/model.py", "Python", 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 65
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Ephemeral_Insight/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Ephemeral_Response/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Ephemeral_Vision/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Ethereal_Convergence/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Ethereal_Reversal/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Ethereal_Surge/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Fiery_Blast/model.py", "Python", 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 38
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Flames_of_Fury/model.py", "Python", 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 41
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Flamespark/model.py", "Python", 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 37
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Honorable_Protection/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Mage_s_Veto/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Mechanist_s_Disruption_Device/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Mindweave/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Monk_s_Inner_Rebound/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Mystic_Barrier/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Mystic_Confluence/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Mystic_Convergence/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Mystic_Evasion/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Mystic_Evocation/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Mystic_Insight/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Mystic_Reflection/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Mystic_Reversal/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Mystic_Rupture/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Mystic_Tide/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Mystic_Tides/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Mystical_Barrier/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Mystical_Shift/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Naturalize/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Nature_s_Reprisal/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Necromancer_s_Soul_Seize/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Overgrowth_Surge/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Paladin_s_Judging_Light/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Phantasmal_Distortion/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Phantom_Shield/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Priest_s_Divine_Binding/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Primal_Surge/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Pyroblast_Surge/model.py", "Python", 28, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 43
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Ranger_s_Sniping_Shot/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Resurgence/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Roar_of_the_Behemoth/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Rogue_s_Trickery/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Sacred_Reinforcement/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Shadow_Snare/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Shadowform_Surge/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Shadowstrike/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Summoner_s_Arcane_Acquisition/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Summoner_s_Respite/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Swift_Response/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Swift_Ward/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Temporal_Manipulation/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Temporal_Reversal/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Temporal_Shift/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Time_Reversal/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Time_Warp/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Timeless_Intervention/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Titan_s_Strength/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Veil_of_Serenity/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Veiled_Concealment/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Vengeful_Retribution/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Vengeful_Wrath/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Verdant_Blessing/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Verdant_Growth/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Verdant_Surge/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Warlock_s_Dark_Pact/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Warrior_s_Forced_Challenge/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Wild_Growth/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Wild_Growth_Rush/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Witch_s_Curse_Counter/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Wizard_s_Time_Warp/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/__init__.py", "Python", 244, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 245
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Aetherweaver/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Ancient_Stonewood/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Angelic_Protector/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Avacyn__Guardian_of_Hope/model.py", "Python", 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 37
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Blazeheart_Berserker__/model.py", "Python", 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 47
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Blightsteel_Colossus/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Celestial_Guardian/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Celestial_Herald/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Celestial_Sentinel/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Celestial_Seraph/model.py", "Python", 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 37
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Celestial_Skyweaver/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Chronostrider/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Deep_Sea_Behemoth/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Dragon_Lord/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Dreamweaver_Archivist/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Elite_Squire/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Elvish_Trailblazer/model.py", "Python", 39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 55
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Emberheart_Berserker__/model.py", "Python", 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 48
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Emberheart_Dragonrider/model.py", "Python", 34, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 46
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Emberheart_Salamander/model.py", "Python", 28, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 43
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Essence_Channeler/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Eternal_Phoenix/model.py", "Python", 35, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21, 56
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Flame_Tinkerer/model.py", "Python", 48, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 20, 71
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Flameblade_Pyromancer/model.py", "Python", 51, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 28, 80
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Grove_Guardian/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Guardian_of_the_Grove__/model.py", "Python", 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 43
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Harbinger_of_the_Eternal_Tides/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Igni_the_Pyromancer/model.py", "Python", 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 45
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Inferno_Titan/model.py", "Python", 33, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 47
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Ironclad_Crusader/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Kothar_the_Soul_Reaper/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Luminous_Angel/model.py", "Python", 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 43
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Luminous_Guardian/model.py", "Python", 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 37
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Merfolk_Wayfinder/model.py", "Python", 26, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 38
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Mindshaper_Sphinx/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Mist_Djinn/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Mistweaver_Adept/model.py", "Python", 37, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 53
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Mistweaver_Drake/model.py", "Python", 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 38
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Mystic_Tidecaller/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Night_Stalker__/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Nighthaunt_Assassin/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Nyxborn_Serpent/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Oblivion_Devourer/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Pious_Courser/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Radiant_Angel/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Raging_Firekin/model.py", "Python", 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 38
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Ralgar__the_Inferno_King__/model.py", "Python", 34, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 50
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Ravaging_Ghoul/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Sage_of_the_Ancient_Grove/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Seraph_of_the_Eternal_Flame/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Shadow_Stalker/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Shadowtide_Leviathan/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Shifting_Tides_Elemental/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Soul_Devourer/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Spectral_Harbinger/model.py", "Python", 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 39
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Storm_Bringer/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Sunlit_Priestess/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Sylvan_Harmonist/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Sylvan_Warden/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Temporal_Traveler/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Thalassian_Tidecaller/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Thornroot_Druid/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Thornwood_Guardian/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Thornwood_Ranger/model.py", "Python", 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 37
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Thornwood_Sentinel/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Thunderclap_Behemoth/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Thundering_Behemoth/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Tidal_Sprite/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Titan_Giant/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Torrent_Elemental/model.py", "Python", 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 39
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Verdant_Titan/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Verdant_Wyrm/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Voidwisp_Harbinger/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Vorinclex__Apex_of_Mutation/model.py", "Python", 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Aetheric_Nexus/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Arcane_Haven/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Arcane_Sanctuary/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Celestial_Haven/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Elysian_Grove/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Forest/model.py", "Python", 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Island/model.py", "Python", 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 32
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Luminous_Glade/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Mountain/model.py", "Python", 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 32
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Mystic_Reflection_Pool/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Nexus_of_the_Eternal_Seas/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Plains/model.py", "Python", 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 32
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Sanctum_of_Eternal_Flames/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Sanctum_of_Verdant_Growth/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Swamp/model.py", "Python", 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 32
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Verdant_Sanctuary/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/land/Volcanic_Fumaroles/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Abyssal_Echoes/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Angelic_Blessing/model.py", "Python", 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 32
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Apocalypse_Riders/model.py", "Python", 44, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 69
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Arcane_Convergence/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Arcane_Torrent/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Awaken_the_Elemental/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Call_of_the_Ancient_Ones/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Call_of_the_Tides/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Call_to_Unity/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Cataclysmic_Inferno/model.py", "Python", 51, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 73
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Cataclysmic_Surge/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Celestial_Blessing/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Celestial_Purge/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Celestial_Renewal/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Chaos_Unleashed/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Chaotic_Eruption/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Dark_Offering/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Demonic_Ascendance/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Divine_Blessing/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Divine_Intervention/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Divine_Offering/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Divine_Rebirth/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Divine_Reckoning/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Earthquake_Tremor/model.py", "Python", 51, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 74
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Eldritch_Rebirth/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Ephemeral_Eruption/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Falling_Stars/model.py", "Python", 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 69
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Fiery_Burst/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Flameblast/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Flames_of_Fury/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Flamestrike_Surge__/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Fleeting_Insight/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Forest_s_Embrace/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Harvest_Blessing/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Icy_Imprisonment/model.py", "Python", 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 36
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Judgment_Day/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Mind_s_Insight/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Mindful_Manipulation/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Mindful_Reflection/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Mystic_Insight/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Mystic_Reversal/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Natural_Growth/model.py", "Python", 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 38
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Natural_Harmony/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Naturalize/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Nature_s_Embrace/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Overgrowth/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Rift_in_Reality/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Righteous_Conviction/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Soul_Siphon/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Soul_Transfer/model.py", "Python", 47, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 64
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Spectral_Embrace/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Temporal_Distortion/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Temporal_Flux/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Thunderstrike/model.py", "Python", 34, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 46
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Time_Rift_Convergence/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Time_Warp/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Torrential_Manipulation/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Treasure_Hunt/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Unearthly_Blaze/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Unleash_the_Elements/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Unyielding_Resolve/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Vampiric_Revelry/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Verdant_Genesis/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Verdant_Harvest/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Wild_Growth/model.py", "Python", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 31
+"/Users/xuanpeichen/Desktop/code/python/openai/src/pydantic_model.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3
+"/Users/xuanpeichen/Desktop/code/python/openai/src/security.py", "Python", 53, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 18, 75
+"/Users/xuanpeichen/Desktop/code/python/openai/src/server.py", "Python", 232, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 26, 80, 338
+"/Users/xuanpeichen/Desktop/code/python/openai/src/server_function_tool.py", "Python", 180, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 46, 226
+"/Users/xuanpeichen/Desktop/code/python/openai/src/server_start.py", "Python", 26, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 3, 33
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/audio/audio_fun_hall.js", "JavaScript", 0, 0, 48, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 17, 81
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/audio/audio_gamming.html", "HTML", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/audio/audio_hall.html", "HTML", 0, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 18
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/audio/audio_hall.js", "JavaScript", 0, 0, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 12, 52
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/block.js", "JavaScript", 0, 0, 258, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 92, 369
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/button.js", "JavaScript", 0, 0, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 23
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/card.js", "JavaScript", 0, 0, 611, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 46, 166, 823
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/cardpack/cardpack.html", "HTML", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/cards_main.js", "JavaScript", 0, 0, 84, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 25, 118
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/deck_cards.js", "JavaScript", 0, 0, 207, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 44, 262
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/deckpage/book.js", "JavaScript", 0, 0, 784, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 180, 988
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/deckpage/deck.html", "HTML", 0, 41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 14, 57
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/deckpage/deck.js", "JavaScript", 0, 0, 37, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 12, 50
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/deckpage/style.css", "CSS", 0, 0, 0, 186, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 19, 207
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/draw_card/draw.html", "HTML", 0, 28, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 33
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/draw_card/draw.js", "JavaScript", 0, 0, 54, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 22, 106
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/draw_card/draw_card.js", "JavaScript", 0, 0, 217, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 37, 260
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/draw_card/pack.js", "JavaScript", 0, 0, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 41, 173
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/draw_card/style.css", "CSS", 0, 0, 0, 102, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 17, 120
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/error.css", "CSS", 0, 0, 0, 21, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 23
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/error.js", "JavaScript", 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 20
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/2D_show.js", "JavaScript", 0, 0, 67, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 13, 82
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/action_bar.js", "JavaScript", 0, 0, 187, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 51, 256
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/animation.js", "JavaScript", 0, 0, 706, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 65, 186, 957
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/buff.js", "JavaScript", 0, 0, 53, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 14, 76
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/card_battle.js", "JavaScript", 0, 0, 587, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 52, 187, 826
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/card_battle_main.js", "JavaScript", 0, 0, 163, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 44, 223
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/card_hand.js", "JavaScript", 0, 0, 623, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 259, 962
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/card_hand_main.js", "JavaScript", 0, 0, 140, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 31, 182
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/fundation_func.js", "JavaScript", 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/gaming.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/gaming.html", "HTML", 0, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28, 77
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/gaming.js", "JavaScript", 0, 0, 708, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 156, 221, 1085
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/hand.js", "JavaScript", 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/mana_bar.js", "JavaScript", 0, 0, 129, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 15, 148
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/message_processor.js", "JavaScript", 0, 0, 380, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 98, 72, 550
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/music_effect.js", "JavaScript", 0, 0, 95, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 12, 111
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/player.js", "JavaScript", 0, 0, 210, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 72, 306
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/selection_page.js", "JavaScript", 0, 0, 234, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 40, 284
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/special_effects.js", "JavaScript", 0, 0, 463, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 37, 108, 608
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/table.js", "JavaScript", 0, 0, 203, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42, 73, 318
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/table_block.js", "JavaScript", 0, 0, 282, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 95, 389
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/timmer.js", "JavaScript", 0, 0, 553, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 135, 738
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/homepage/deck_holder.js", "JavaScript", 0, 0, 149, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 28, 180
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/homepage/decks.js", "JavaScript", 0, 0, 109, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 26, 136
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/homepage/home.js", "JavaScript", 0, 0, 120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 39, 164
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/homepage/homepage.js", "JavaScript", 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 6, 22
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/homepage/protectpage.html", "HTML", 0, 125, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 149
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/homepage/style.css", "CSS", 0, 0, 0, 243, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 46, 295
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/image_source/deck_process/choose.svg", "XML", 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 4
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/image_source/deck_process/delete.svg", "XML", 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 4
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/loginpage/login.html", "HTML", 0, 91, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 18, 117
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/loginpage/login.js", "JavaScript", 0, 0, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 18, 72
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/loginpage/signup.html", "HTML", 0, 51, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 58
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/loginpage/signup.js", "JavaScript", 0, 0, 42, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 58
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/loginpage/style.css", "CSS", 0, 0, 0, 413, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 85, 511
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/rotation.js", "JavaScript", 0, 0, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 27
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/security.js", "JavaScript", 0, 0, 46, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 50
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/service-worker.js", "JavaScript", 0, 0, 41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 48
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/studio/creating_page.html", "HTML", 0, 44, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 51
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/tech_doc/content.html", "HTML", 0, 1400, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 46, 466, 1912
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/tech_doc/contentstyle.css", "CSS", 0, 0, 0, 153, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 47, 206
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/tech_doc/create_dir.js", "JavaScript", 0, 0, 54, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 33, 91
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/tech_doc/prism.css", "CSS", 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 4
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/tech_doc/prism.js", "JavaScript", 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 9
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/tech_doc/style_top_footer.css", "CSS", 0, 0, 0, 197, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 100, 307
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/tech_doc/subtitle.js", "JavaScript", 0, 0, 135, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 66, 231
+"/Users/xuanpeichen/Desktop/code/python/openai/src/webpages/tech_doc/top_footer.js", "JavaScript", 0, 0, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 16, 68
+"Total", "-", 10288, 1844, 9120, 1316, 2206, 25, 142, 21, 8, 2, 101, 7, 1, 1587, 8545, 35213
