@@ -101,14 +101,14 @@ class Creature_Battle extends Card_Battle {
 
     attack_to_prepared(target_position,changed_state,attacted_obj,state_attacted_obj){//target_position[x,y,z]  撞一下然后返回原来的位置
         super.attack_to_prepared(target_position)
-        console.log(changed_state)
+        // console.log(changed_state)
     }
     attack_to(target_position,changed_state,attacted_obj,state_attacted_obj){//target_position[x,y,z]  撞一下然后返回原来的位置
         super.attack_to(target_position)
     }
     attack_to_finish(target_position,changed_state,attacted_obj,state_attacted_obj){//state_attacted_obj[power,life] or [life] for player
         super.attack_to_finish(target_position)
-        console.log(changed_state)
+        // console.log(changed_state)
         const [power,life]=changed_state
         this.Life=life
         this.Damage=power
@@ -137,7 +137,7 @@ class Creature_Battle extends Card_Battle {
         
         const [unitVector,distance]=this.calculate_vector_move(target_position)
         this.min_distance_difference=distance;
-        console.log(distance)
+        // console.log(distance)
         const a=math.sqrt(distance*2/math.pi)
         const time_consume=1/distance+2
         
@@ -158,7 +158,7 @@ class Creature_Battle extends Card_Battle {
         this.position[2]=new_pos[2]
         this.moving_precentage+=TIME_INTERVAL*time_consume
         this.check_distance_to_target(target_position)
-        console.log(this.position,target_position,this.calculate_vector_move(target_position),this.moving_precentage,this.min_distance_difference)
+        //console.log(this.position,target_position,this.calculate_vector_move(target_position),this.moving_precentage,this.min_distance_difference)
         
     }
     move_to_flying_finish(target_position){

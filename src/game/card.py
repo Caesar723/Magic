@@ -139,7 +139,7 @@ class Card:
                 self.when_kill_creature(object,self.player,self.player.opponent)
     
     async def destroy_object(self,object:"Creature",color:str,type_missile:str):
-        object.flag_dict["die"]=True
+        object.die()
         self.player.action_store.add_action(actions.Attack_To_Object(self,self.player,object,color,type_missile,object.state))
         if await object.check_dead():
             self.when_kill_creature(object,self.player,self.player.opponent)

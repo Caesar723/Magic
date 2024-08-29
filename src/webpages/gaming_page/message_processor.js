@@ -155,14 +155,14 @@ class Message_Processor{
 
     }
     find_card(id){//返回的为card hand 
-        console.log()
+        // console.log()
         for (let card_oppo_hand of this.client.oppo_player.cards){
             if (card_oppo_hand.id==id){
                 return card_oppo_hand
             }
         }
         for (let card_self_hand of this.client.self_player.cards){
-            console.log(this.client.self_player.cards,this.client.self_player.cards[1],card_self_hand,card_self_hand.id,id)
+            //console.log(this.client.self_player.cards,this.client.self_player.cards[1],card_self_hand,card_self_hand.id,id)
             if (card_self_hand.id==id){
                 return card_self_hand
             }
@@ -190,7 +190,7 @@ class Message_Processor{
         return false
     }
     create_new(card){
-        console.log(card)
+        // console.log(card)
         return 1
     }
     Creature(flag_dict,counter_dict,player,id,name,type,type_card,rarity,content,image_path,fee,Org_Life,Life,Org_Damage,Damage,Buffs){
@@ -309,8 +309,8 @@ class Message_Processor{
         // return number+test
     }
     initinal_all(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_oppo,len_deck_self,len_deck_oppo,your_turn){
-        console.log(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_oppo,len_deck_self,len_deck_oppo,your_turn)
-        console.log(this.client,this.client.self_player)
+        // console.log(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_oppo,len_deck_self,len_deck_oppo,your_turn)
+        // console.log(this.client,this.client.self_player)
         const self_player=this.client.self_player
         const oppo_player=this.client.oppo_player
 
@@ -435,7 +435,7 @@ class Message_Processor{
 
 
     async select(type,cards){
-        console.log(type,cards)
+        // console.log(type,cards)
         this.client.selectionPage.start_selection(type,cards)
         let object=await this.client.get_selected_input()
         if (object=="cancel"){
@@ -448,7 +448,7 @@ class Message_Processor{
         }
         else{
             const values = this.client.selectionPage.get_object_parameter(object);//名字，选择类型（field或者cards），（场地名{self_battlefield,opponent_battlefield,self_landfield,opponent_landfield}或者player{self,oppo}），如果是场地index。cards直接index
-            console.log(values)
+            // console.log(values)
             this.client.selectionPage.end_selection()
             this.client.socket_select.send(values.join('|'));
             return
@@ -460,7 +460,7 @@ class Message_Processor{
 
     end_select(){
         if (this.client.selectionPage.in_selection){
-            console.log("end")
+            // console.log("end")
             this.client.selectionPage.end_selection()
             this.client.resolveSelectInput("cancel")
             
@@ -487,7 +487,7 @@ class Message_Processor{
         }
         else{
             const buff=new Buff(buff_name,image_url,content,id)
-            console.log(buff)
+            // console.log(buff)
             return buff
         }
         
@@ -524,7 +524,7 @@ class Message_Processor{
             }
             else if (char=="," && numBraL==0){
                 const result=this.extractParts(para)
-                console.log(para)
+                //console.log(para)
                 result_para.push(result)
                 para=""
             }

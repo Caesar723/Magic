@@ -49,7 +49,7 @@ class Card_Battle{
             "back_to":[this.back_to.bind(this),this.back_to_prepared.bind(this),this.back_to_finish.bind(this)],
             "disappear":[this.disappear.bind(this),this.disappear_prepared.bind(this),this.disappear_finish.bind(this)]
         }
-        console.log([this.move_to,this.move_to_prepared])
+        //console.log([this.move_to,this.move_to_prepared])
         this.current_moving=null;//this.move_to_horizontal.....
         this.finish_moving=null;
         this.moving_parameters=[];
@@ -466,7 +466,7 @@ class Card_Battle{
         
     }
     disappear_finish(target_position){//target_position[x,y,z]
-        console.log(this.player)
+        //console.log(this.player)
         if (this.player=="opponent"){
             this.table.opponent_battlefield_delete.push(this);
             
@@ -516,7 +516,7 @@ class Card_Battle{
 
 
     attack_to_prepared(target_position){//target_position[x,y,z]  撞一下然后返回原来的位置
-        console.log(this,target_position,this.calculate_vector_move)
+        //console.log(this,target_position,this.calculate_vector_move)
         const [unitVector,distance]=this.calculate_vector_move(target_position)
         this.min_distance_difference=distance;
         const a=math.sqrt(distance*(4)/math.pi)
@@ -528,7 +528,7 @@ class Card_Battle{
         const unitVector=this.moving_store[1];
         const time_consume=this.moving_store[2];
         
-        console.log(time_consume)
+        //console.log(time_consume)
         const x=((a*math.pi/2)/100)*this.moving_precentage
         
         
@@ -543,20 +543,20 @@ class Card_Battle{
         this.moving_precentage+=TIME_INTERVAL*time_consume
 
         this.check_distance_to_target(target_position)
-        console.log(this.position)
+        //console.log(this.position)
     }
     attack_to_finish(target_position){//target_position[x,y,z]  撞一下然后返回原来的位置
         
         this.position[0]=target_position[0]
         this.position[1]=target_position[1]
         this.position[2]=target_position[2]
-        console.log(this.accurate_position)
+        //console.log(this.accurate_position)
         this.start_moving('back_to',[this.accurate_position])
     }
 
 
     back_to_prepared(target_position){
-        console.log(this,target_position,this.calculate_vector_move)
+        //console.log(this,target_position,this.calculate_vector_move)
         const [unitVector,distance]=this.calculate_vector_move(target_position)
         this.min_distance_difference=distance;
         const a=math.sqrt(distance*(4)/math.pi)
@@ -568,7 +568,7 @@ class Card_Battle{
         const unitVector=this.moving_store[1];
         const time_consume=this.moving_store[2];
         
-        console.log(time_consume)
+        //console.log(time_consume)
         const x=a*math.pi/2+((a*math.pi/2)/100)*this.moving_precentage
         
         var vel=a*Math.pow(Math.sin(x/a),2)/((100/(TIME_INTERVAL*time_consume))/(a*math.pi/2))
@@ -581,7 +581,7 @@ class Card_Battle{
         this.moving_precentage+=TIME_INTERVAL*time_consume
 
         this.check_distance_to_target(target_position)
-        console.log(this.position)
+        //console.log(this.position)
     }
     back_to_finish(target_position){
         this.position[0]=target_position[0]
@@ -594,7 +594,7 @@ class Card_Battle{
 
 
     rotate_to_point_prepared(target_position){//让它指向目标点 x,y,z  target_position position or tap
-        console.log(target_position,this.accurate_position,this.position)
+        //console.log(target_position,this.accurate_position,this.position)
         const direction_vector=this.get_vector_point()
         if (Array.isArray(target_position)) {
             var [unitVector,distance]=this.calculate_vector_move(target_position)
@@ -648,7 +648,7 @@ class Card_Battle{
         
     }
     rotate_to_point(target_position){//让它指向目标点
-        console.log("rotate")
+        //console.log("rotate")
         const a=this.moving_store[1];
         const thetaRadians=this.moving_store[0];
         const time_consume=this.moving_store[2];
@@ -696,9 +696,9 @@ class Card_Battle{
         return pos_rotate.toArray().flat();
     }
     check_inside(mouse_pos,position1,position2,position3,position4){//n shape of points
-        console.log(position1,position2,position3,position4)
+        //console.log(position1,position2,position3,position4)
         const positions=this.sortPositions([position1,position2,position3,position4])
-        console.log(positions)
+        //console.log(positions)
         return (
             this.create_function_x(mouse_pos,positions[1],positions[0])<0 &&
             this.create_function_y(mouse_pos,positions[3],positions[0])<0 &&
@@ -719,7 +719,7 @@ class Card_Battle{
         });
         centerX /= positions.length;
         centerY /= positions.length;
-        console.log(centerX, centerY);
+        //console.log(centerX, centerY);
     
         // Calculate angles for each position relative to center
         positions = positions.map(pos => ({
@@ -743,7 +743,7 @@ class Card_Battle{
         return sortedPositions;
     }
     
-    
+
     create_function_x(mouse_pos,position1,position2){// for x=... position1(lower x) x-...
         const k=(position2[0]-position1[0])/(position2[1]-position1[1]);
         const b=position1[0]-k*position1[1];

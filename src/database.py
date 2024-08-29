@@ -143,7 +143,11 @@ def reset_packs():
     session.commit()
     session.close()     
     
-
+def reset_all_packs():
+    # Pack.__table__.drop(engine)
+    # Pack.__table__.create(engine)
+    # reset_packs()
+    pass
 
 
 
@@ -304,7 +308,7 @@ class DataBase:
         else:
             return "Pack not found."
         
-    async def find_user(self,session,username):
+    async def find_user(self,session,username)->User:
         stmt = select(User).where(User.username == username)
         result = await session.execute(stmt)
         element = result.scalars().first()
@@ -461,6 +465,11 @@ class DataBase:
                 return deck.content
             else:
                 return False
+            
+    async def get_currency(self,username)->int:
+        async with self.AsyncSessionLocal() as session:
+            user=await self.find_user(session,username)
+            return user.virtual_currency
 
 
 
@@ -483,6 +492,14 @@ if __name__=="__main__":
         action='store_true',
         help='Whether reset packs in database'
     )
+
+    parser.add_argument(
+        '--reset-all-packs', 
+        action='store_true',
+        help='Whether reset packs in database'
+    )
+
+
     args = parser.parse_args()
     if args.reset_table:
         reset_table()
@@ -492,6 +509,9 @@ if __name__=="__main__":
         
     if args.reset_packs:
         reset_packs()
+
+    if args.reset_all_packs:
+        reset_all_packs()
         
     #reset_table()
     #reset_all_card()

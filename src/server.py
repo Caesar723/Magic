@@ -101,6 +101,9 @@ async def protected_page(request: Request, username: str = Depends(get_current_u
         print(username)
         return username
     
+    currency=await database.get_currency(username)
+    print(currency)
+    
     return templates.TemplateResponse(f"/webpages/homepage/protectpage.html", {"request": request, "username": username})
 
 @app.post("/login/cards_show")

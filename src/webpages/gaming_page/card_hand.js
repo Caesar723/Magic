@@ -16,7 +16,7 @@ class Card_Hand extends Card{
             "enlarge":[this.enlarge.bind(this),this.enlarge_prepared.bind(this),this.enlarge_finish.bind(this)],
             "change_size_animation":[this.change_size_animation.bind(this),this.change_size_animation_prepared.bind(this),this.change_size_animation_finish.bind(this)]
         }
-        console.log([this.move_to,this.move_to_prepared])
+        //console.log([this.move_to,this.move_to_prepared])
         this.current_moving=null;//this.move_to_horizontal.....
         this.finish_moving=null;
         this.moving_parameters=[];

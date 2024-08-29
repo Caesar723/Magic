@@ -293,7 +293,10 @@ class Room:
             self.reset_bullet_timer()
 
             if self.get_flag("attacker_defenders"):#如果attacker_defenders还是True 那attacker 就去攻击敌方英雄
-                await self.start_attack(self.non_active_player)
+                
+                await self.attacker.check_dead()
+                if not ( self.attacker.get_flag("die") or  self.attacker.get_flag("exile")):
+                    await self.start_attack(self.non_active_player)
                 self.flag_dict["attacker_defenders"]=False
                 #print(self.flag_dict["attacker_defenders"])
             await self.check_death()

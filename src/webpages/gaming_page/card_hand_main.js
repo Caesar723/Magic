@@ -92,7 +92,7 @@ class Creature_Hand extends Card_Hand {
     get_copy(){
         const card=new Creature_Hand(4,5.62,[0,0,0],2,this.dynamic_canvas,this.color_fee,this.Org_Life,this.Org_Damage,this.Life,this.Damage,this.name,this.id,this.player)
         card.battle=this.battle
-        console.log(card.battle)
+        //console.log(card.battle)
         card.buff_list=this.buff_list
         card.flag_dict=this.flag_dict
         card.counter_dict=this.counter_dict

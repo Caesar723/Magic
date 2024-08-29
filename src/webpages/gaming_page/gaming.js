@@ -809,7 +809,7 @@ class Game_Client{
     check_cards_list(mouse_pos,arr){
         for (let i in arr){
             const index=arr.length-i-1
-            console.log(arr[index],arr[index].position_in_screen,arr[index].check_inside(mouse_pos,...arr[index].position_in_screen))
+            //console.log(arr[index],arr[index].position_in_screen,arr[index].check_inside(mouse_pos,...arr[index].position_in_screen))
             if (arr[index].check_inside(mouse_pos,...arr[index].position_in_screen)){
                 return arr[index]
             }

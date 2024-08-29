@@ -156,10 +156,13 @@ class Creature(Card):
 
     # def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card
     #     pass
+    def die(self):
+        self.flag_dict["die"]=True
+
     async def check_dead(self):#check whether creature die,or whether appear at battle field
         power,live=self.state
         if live<=0 or self.get_flag("die"):
-            self.flag_dict["die"]=True
+            self.die()
             return True
         else:
             return False

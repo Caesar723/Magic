@@ -3,7 +3,7 @@ class Animation{//action
     constructor(object_hold,player){///object can be card and 
         this.name="Action"
         this.object_hold=object_hold
-        console.log(player)
+        //console.log(player)
         if (this.object_hold instanceof Player){
             this.new_ring_hold=this.object_hold.player_life_ring.get_copy()
         }
@@ -12,7 +12,7 @@ class Animation{//action
             this.object_hold_new=this.object_hold.get_copy()
         }
         
-        console.log(object_hold)
+        //console.log(object_hold)
         this.player=player
 
         this.width=50
@@ -50,7 +50,7 @@ class Animation{//action
             //this.new_ring.draw(camera,ctx,canvas)
         }
         else{
-            console.log(this.object_hold)
+            //console.log(this.object_hold)
             this.ctx.drawImage(this.object_hold.orginal_image,0,0,this.width,this.height)
         }
         //console.log(this.ctx,this.object_hold.orginal_image,this.object_hold)
@@ -200,9 +200,26 @@ class Animation{//action
         }
         else if(card instanceof Creature_Hand || card instanceof Land_Hand){
             if (card.battle===undefined && card instanceof Land_Hand){
+                
                 new Land_Battle(6,5,[-25,-20,0],0.3,card,card.player.type_name,card.player.table)
             }
             else if (card.battle===undefined && card instanceof Creature_Hand){
+                if (card.player instanceof Self){
+                    for (let card_batt of  card.player.table.self_battlefield){
+                        if (card_batt.id==card.id){
+                            card.battle=card_batt
+                            return card.battle
+                        }
+                    }
+                }
+                else{
+                    for (let card_batt of  card.player.table.opponent_battlefield){
+                        if (card_batt.id==card.id){
+                            card.battle=card_batt
+                            return card.battle
+                        }
+                    }
+                }
                 new Creature_Battle(6,5,[-25,-20,0],0.3,card,card.player.type_name,card.player.table)
             }
             return card.battle
@@ -232,7 +249,7 @@ class Creature_Start_Attack extends Animation{
         this.state_attacted=state_attacted
         this.name='Creature Start Attack'
 
-        console.log(attack_obj)
+        //console.log(attack_obj)
 
         
         if (attack_obj instanceof Player){
@@ -386,11 +403,11 @@ class Activate_Ability extends Animation{//就是将卡牌横置
         this.object_hold.battle.activated=true
         this.object_hold.battle.moving_cache.push(["rotate_to_point",[0]])
         
-        console.log(this.object_hold.battle.accurate_position,this.object_hold.battle.position,[
-            this.object_hold.battle.accurate_position[0]+1,
-            this.object_hold.battle.accurate_position[1],
-            this.object_hold.battle.accurate_position[2],
-        ])
+        // console.log(this.object_hold.battle.accurate_position,this.object_hold.battle.position,[
+        //     this.object_hold.battle.accurate_position[0]+1,
+        //     this.object_hold.battle.accurate_position[1],
+        //     this.object_hold.battle.accurate_position[2],
+        // ])
     //    this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
     //     this.object_hold.battle.accurate_position[0]+1,
     //     this.object_hold.battle.accurate_position[1],
@@ -458,7 +475,7 @@ class Select_Object extends Animation{
 class Add_Buff extends Select_Object{
     constructor(object_hold,player,selected_object,color,type,final_state,buff){//selected_object hand or battle
         super(object_hold,player,selected_object)
-        console.log(selected_object.buff_list)
+        //console.log(selected_object.buff_list)
         this.final_state=final_state
         this.buff=buff
         this.special_effect=player.table.special_effects
@@ -480,7 +497,7 @@ class Add_Buff extends Select_Object{
     }
     set_animate(){
         this.selected_object.append_buff(this.buff)
-        console.log(this.selected_object)
+        //console.log(this.selected_object)
         if (this.selected_object.type=="Creature"){
             if (this.type=="None"){
                 this.selected_object.change_state(...this.final_state)
@@ -534,14 +551,14 @@ class Lose_Buff extends Select_Object{
 
         this.action_finished=true
         this.name='Add Buff'
-        console.log(object_hold,player,selected_object,final_state,buff)
+        //console.log(object_hold,player,selected_object,final_state,buff)
         
     }
     set_animate(){
-        console.log("change")
+        //console.log("change")
         this.selected_object.remove_buff(this.buff)
         if (this.selected_object.type=="Creature"){
-            console.log(this.selected_object,this.final_state)
+            //console.log(this.selected_object,this.final_state)
             this.selected_object.change_state(...this.final_state)
         }
         
@@ -586,7 +603,7 @@ class Attack_To_Object extends Select_Object{
     }
     set_animate(){
         
-        
+        console.log(this.object_hold)
         this.missile=this.special_effect.create_missile(this.object_hold,this.selected_object,this.color,this.type,this.result_state)
         this.player.music.play_music_effect("missile")
 
@@ -737,7 +754,7 @@ class Gain_Card extends Select_Object{
         this.selected_object.position=[0,60*this.player.unit,-20]
         this.player.cards.push(this.selected_object)
         this.player.music.play_music_effect("card_pic")
-        console.log(this.player.cards)
+        //console.log(this.player.cards)
         //this.selected_object.moving_cache.push(["rotate_to_point",[this.attacked_obj.position]])
     }
     draw_action(ctx,canvas,camera){
@@ -755,8 +772,8 @@ class Lose_Card extends Select_Object{
     constructor(object_hold,player,selected_object){//selected_object hand
         super(object_hold,player,selected_object)
         this.selected_object=Animation.check_hand(selected_object,false,player)
-        console.log(this.selected_object)
-        console.log(arguments,object_hold,player,selected_object)
+        //console.log(this.selected_object)
+        //console.log(arguments,object_hold,player,selected_object)
         this.new_card=Animation.check_hand(this.selected_object).get_copy()
         this.name='Lose Card'
         
@@ -823,7 +840,7 @@ class Summon extends Animation{
     }
     set_animate(){
         //this.selected_object.position=[0,60*this.player.unit,-20]
-        console.log(this.object_hold)
+        // console.log(this.object_hold)
         this.object_hold.battle.position=[0,-20,-20*this.player.unit]
         if (this.object_hold instanceof Creature_Hand){
             if (this.player instanceof Opponent){
@@ -863,7 +880,7 @@ class Turn extends Animation{
         this.name='Turn'
     }
     set_animate(){
-        console.log(this.player,this.player.table.player_self.my_turn)
+        // console.log(this.player,this.player.table.player_self.my_turn)
         if (this.player instanceof Opponent){
             this.player.table.timmer_turn.change_yellow()
             this.player.table.player_self.my_turn=false
@@ -872,7 +889,7 @@ class Turn extends Animation{
             this.player.table.timmer_turn.change_green()
             this.player.table.player_self.my_turn=true
         }
-        console.log(this.player.table.player_self.my_turn)
+        // console.log(this.player.table.player_self.my_turn)
     }
 }
 
@@ -881,7 +898,7 @@ class Change_Mana extends Animation{
     constructor(object_hold,player,mana_cost){///player must be self  mana_cost[blue,white,black,red,green]
         super(object_hold,player)
         this.mana_cost=mana_cost
-        console.log(object_hold,player,mana_cost)
+        // console.log(object_hold,player,mana_cost)
 
         this.new_mana_bar=new Mana_Bar()
         this.new_mana_bar.set_mana(this.mana_cost)
@@ -889,7 +906,7 @@ class Change_Mana extends Animation{
         
     }
     set_animate(){
-        console.log(this.object_hold_new,this.player,this.mana_cost)
+        // console.log(this.object_hold_new,this.player,this.mana_cost)
         this.player.mana_bar.set_mana(this.mana_cost)
 
     }
@@ -907,7 +924,7 @@ class Change_Mana extends Animation{
         
     }
     finished(){
-        console.log(this.player.mana_bar.check_finish())
+        //console.log(this.player.mana_bar.check_finish())
         return this.player.mana_bar.check_finish()
     }
 }

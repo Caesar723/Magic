@@ -19,7 +19,7 @@ class Judgment_Day(Sorcery):
 
         self.type:str="Sorcery"
 
-        self.mana_cost:str="5WW (7 Mana)"
+        self.mana_cost:str="5WW"
         self.color:str="colorless"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"

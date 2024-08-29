@@ -146,13 +146,16 @@ class Magic_Missile{
             var startpos=object_hold.player_life_ring.position
         }
         else{
+            object_hold=Animation.check_hand(object_hold,true)
             var startpos=object_hold.battle.position
         }
+
 
         if (attacked_obj instanceof Player){
             var endpos=attacked_obj.player_life_ring.position
         }
         else{
+            attacked_obj=Animation.check_hand(attacked_obj,true)
             var endpos=attacked_obj.battle.position
         }
 
@@ -313,7 +316,7 @@ class Magic_Missile{
             arr.push(point)
             if (bezier_points.length-2==i){
                 if (bezier_points.length==2){
-                    console.log(point)
+                    //console.log(point)
                     this.position=point
                 }
                 else{

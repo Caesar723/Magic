@@ -515,7 +515,7 @@ class Card_frame{
         
         const ctx_canvas_battle = canvas_battle.getContext('2d');
         
-        console.log(background,image_path,rar)
+        //console.log(background,image_path,rar)
         Promise.all([
             loadImage(background),
             loadImage(image_path),
