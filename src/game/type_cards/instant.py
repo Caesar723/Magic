@@ -55,7 +55,19 @@ class Instant(Card):
             self.player.action_store.add_action(actions.Attack_To_Object(self.player,self.player,object,color,type_missile,object.state))
             if await object.check_dead():
                 self.when_kill_creature(object,self.player,self.player.opponent)
-                
+
+    async def cure_to_object(self,object:Union["Creature","Player"],power:int,color:str,type_missile:str):# it won't get hurt
+        if isinstance(object,(type(self.player),type(self.player.opponent))):
+            object.gains_life(self,power)
+            self.player.action_store.add_action(actions.Cure_To_Object(self.player,self.player,object,color,type_missile,[object.life]))
+            await object.check_dead()
+        else:
+            object.gains_life(self,power,object.player,object.player.opponent) 
+            self.player.action_store.add_action(actions.Cure_To_Object(self.player,self.player,object,color,type_missile,object.state))
+            if await object.check_dead():
+               self.when_kill_creature(object,self.player,self.player.opponent)
+    
+
     async def destroy_object(self,object:"Creature",color:str,type_missile:str):
         object.flag_dict["die"]=True
         self.player.action_store.add_action(actions.Attack_To_Object(self.player,self.player,object,color,type_missile,object.state))

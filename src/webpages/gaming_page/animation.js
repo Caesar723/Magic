@@ -661,6 +661,7 @@ class Cure_To_Object extends Select_Object{
 
     }
     set_animate(){
+        console.log(this.object_hold)
         this.missile=this.special_effect.create_missile(this.object_hold,this.selected_object,this.color,this.type,this.result_state)
         this.player.music.play_music_effect("missile")
 

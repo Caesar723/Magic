@@ -21,8 +21,6 @@ class Creature(Card):
 
         self.flag_dict:dict={}
         
-        
-
         #the CreaturePara for js
         
         self.live:int
@@ -56,6 +54,14 @@ class Creature(Card):
 
     # def start_defense(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#当两个creature 对战的时候,这个creature是defender
     #     self.deal_damage(card,player,opponent)
+
+
+    async def fight_to_creature(self,defender:"Creature|Player"):
+        attacker_backup=self.player.room.attacker
+        self.player.room.attacker=self
+        await self.player.room.start_attack(defender)
+        self.player.room.attacker=attacker_backup
+
 
     async def deal_damage(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):# 用在所有造成伤害的功能
         power,life=self.state
@@ -197,6 +203,8 @@ class Creature(Card):
         return prepared_function
         # player.hand.remove(self)
         # player.battlefield.append(self)
+
+
 
     async def when_clicked(self):
         pass
