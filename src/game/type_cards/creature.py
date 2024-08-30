@@ -267,9 +267,6 @@ class Creature(Card):
         buffs=f"parameters({','.join([buff.text(player) for buff in self.buffs])})"
         return f"Creature({Flag_dict},{Counter_dict},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),{Fee},int({Org_Life}),int({Life}),int({Org_Damage}),int({Damage}),{buffs})"
 
-
-
-    
     
     def __repr__(self):
         power,live=self.state
