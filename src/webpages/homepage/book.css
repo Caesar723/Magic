@@ -1,0 +1,211 @@
+@import url(https://fonts.googleapis.com/css?family=Gentium+Book+Basic);
+*,
+*:before,
+*:after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+@-webkit-keyframes leafLeft {
+  0% {
+    -webkit-transform-origin: 0 0;
+    transform-origin: 0 0;
+    -webkit-transform: perspective(1700px) rotateY(0deg);
+    transform: perspective(1700px) rotateY(0deg);
+  }
+  100% {
+    -webkit-transform-origin: 0 0;
+    transform-origin: 0 0;
+    -webkit-transform: perspective(1700px) rotateY(-180deg);
+    transform: perspective(1700px) rotateY(-180deg);
+  }
+}
+@keyframes leafLeft {
+  0% {
+    -webkit-transform-origin: 0 0;
+    transform-origin: 0 0;
+    -webkit-transform: perspective(1700px) rotateY(0deg);
+    transform: perspective(1700px) rotateY(0deg);
+  }
+  100% {
+    -webkit-transform-origin: 0 0;
+    transform-origin: 0 0;
+    -webkit-transform: perspective(1700px) rotateY(-180deg);
+    transform: perspective(1700px) rotateY(-180deg);
+  }
+}
+
+center {
+  margin: 1.7vw auto;
+  font: 400 1.7vw / 1.2 "Gentium Book Basic";
+}
+p + p {
+  margin-top: 1.7vw;
+}
+.book {
+  background: -webkit-linear-gradient(top, #60584a, #26231e);
+  
+  background: linear-gradient(to bottom, #60584a, #26231e);
+  height: 42.5vw;
+  width: 66.3vw;
+  margin: 10vw auto;
+  /* box-shadow: 0 1.7vw 5.1vw rgba(0, 0, 0, 0.3); */
+  padding-top: 1.19vw;
+  padding-bottom: 1.36vw;
+  padding-left: 3.57vw;
+  padding-right: 4.42vw;
+  background-image: url('book.png');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  z-index: 1;
+  background-repeat: no-repeat;
+
+  z-index: 9999; 
+}
+.book:hover {
+  cursor: pointer;
+}
+.book .pages-container {
+  background: #d5d6bc;
+  height: 100%;
+  width: 100%;
+  /* box-shadow: 0 0 0.51vw rgba(0, 0, 0, 0.3); */
+  position: relative;
+}
+.book .pages-container .page {
+  position: absolute;
+  height: inherit;
+  width: 50%;
+  padding: 1.7vw;
+  font: 400 1.7vw / 1.2 "Gentium Book Basic";
+}
+.book .pages-container .page:first-of-type,
+.book .pages-container .page.back {
+  background: -webkit-linear-gradient(right, #978c79, #d5d6bc 20%, rgb(212, 191, 155) 100%);
+  background: linear-gradient(to left, #978c79, #d5d6bc 20%, rgb(212, 191, 155) 100%);
+}
+.book .pages-container .page:last-of-type,
+.book .pages-container .page.front {
+  background: -webkit-linear-gradient(left, #978c79, #d5d6bc 20%, rgb(212, 191, 155) 100%);
+  background: linear-gradient(to right, #978c79, #d5d6bc 20%, rgb(212, 191, 155) 100%);
+  margin-left: 50%;
+}
+.book .pages-container .page.duplex {
+  -webkit-animation-duration: 1s;
+  animation-duration: 1s;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+  margin-left: 50%;
+  z-index: 1;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+.book .pages-container .page.duplex.leaf-left {
+  -webkit-animation-direction: normal;
+  animation-direction: normal;
+  -webkit-animation-name: leafLeft;
+  animation-name: leafLeft;
+}
+.book .pages-container .page.duplex.leaf-left .back {
+  background: -webkit-linear-gradient(right, #978c79, #d5d6bc 20%, rgb(212, 191, 155) 100%);
+  background: linear-gradient(to left, #978c79, #d5d6bc 20%, rgb(212, 191, 155) 100%);
+}
+.book .pages-container .page.duplex.leaf-right {
+  -webkit-animation-direction: reverse;
+  animation-direction: reverse;
+  -webkit-animation-name: leafLeft;
+  animation-name: leafLeft;
+}
+.book .pages-container .page.duplex.leaf-right .back {
+  background: -webkit-linear-gradient(right, #978c79, #d5d6bc 20%, rgb(212, 191, 155) 100%);
+  background: linear-gradient(to left, #978c79, #d5d6bc 20%, rgb(212, 191, 155) 100%);
+}
+.book .pages-container .page.duplex .front,
+.book .pages-container .page.duplex .back {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  width: 100%;
+  margin: 0;
+}
+.book .pages-container .page.duplex .back {
+  -webkit-transform: rotateY(180deg);
+  transform: rotateY(180deg);
+}
+
+
+
+/* cross */
+.wrapper {
+  position: absolute;
+  bottom: 1vw;
+  left: 1vw;
+  transform: none;
+}
+
+.wrapper .icon {
+  margin: 1vw;
+}
+
+.nav-icon {
+  width: 3.5vw;
+  height: 3vw;
+  margin: 1vw 1vw;
+  position: relative;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.nav-icon span {
+  background-color: #2b2a2a;
+  position: absolute;
+  border-radius: 0.2vw;
+  transition: .3s cubic-bezier(.8, .5, .2, 1.4);
+  width: 100%;
+  height: 0.4vw;
+  transition-duration: 500ms;
+}
+
+.nav-icon span:nth-child(1) {
+  top: 0vw;
+  left: 0vw;
+}
+
+.nav-icon span:nth-child(2) {
+  top: 1.3vw;
+  left: 0vw;
+  opacity: 1;
+}
+
+.nav-icon span:nth-child(3) {
+  bottom: 0vw;
+  left: 0vw;
+}
+
+.nav-icon:not(.open):hover span:nth-child(1) {
+  transform: rotate(-3deg) scaleY(1.1);
+}
+
+.nav-icon:not(.open):hover span:nth-child(2) {
+  transform: rotate(3deg) scaleY(1.1);
+}
+
+.nav-icon:not(.open):hover span:nth-child(3) {
+  transform: rotate(-4deg) scaleY(1.1);
+}
+
+.nav-icon.open span:nth-child(1) {
+  transform: rotate(45deg);
+  top: 1.3vw;
+}
+
+.nav-icon.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-icon.open span:nth-child(3) {
+  transform: rotate(-45deg);
+  top: 1.3vw;
+}

@@ -70,23 +70,65 @@ class Home{
         });
     }
     async start_matching(){
+        let cross_flag=true
+        const cross = document.createElement('div');
+        cross.classList.add('wrapper')
+        const icon=document.createElement('div')
+        icon.classList.add('icon')
+        icon.classList.add('nav-icon')
+        icon.innerHTML = `
+            <span></span><span></span><span></span>
+        `;
+
+        icon.addEventListener('click', (event) =>
+        {
+            container.classList.remove('blur');
+            document.body.removeChild(book.book_html);
+            cross_flag=false
+        });
+        icon.addEventListener('mouseover', (event) =>
+        {
+            icon.classList.toggle("open");
+        });
+        icon.addEventListener('mouseout', (event) =>
+        {
+            icon.classList.toggle("open");
+        });
+        cross.appendChild(icon)
+
+        const book=new Book(cross);
+        document.body.appendChild(book.book_html);
+        book.init()
         
         var responseData =await this.send_match_request('/matching')
-        while (responseData["state"]=="waiting"){
+        var container=document.getElementById('button-container')
+        container.classList.add('blur');
+
+        
+
+
+
+        while (responseData["state"]=="waiting" && cross_flag){
+            
             await this.set_time()
-            var responseData =await this.send_match_request()
+            book.turn_page(false)
+            var responseData =await this.send_match_request('/matching')
             console.log(responseData)
         }
 
-        if (responseData["state"]!="find!"){
+        if (responseData["state"]=="find!"){
+            await this.set_time()
+            book.turn_page(true)
+            await this.set_time()
+            window.location.href = '/gaming';
+        }else{
             const response = await fetch('/matching_delete', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
             });
-        }else{
-            window.location.href = '/gaming';
+            
         }
 
         
