@@ -32,7 +32,7 @@ def validate_all_methods(cls):
 
 
 
-async def send_select_request(card:'Card',type:str,number:int,selection_random:bool=False):
+async def send_select_request(card:'Card',type:str,number:int,selection_random:bool=False,auto_select:bool=False):
     try:
         room=card.player.room
         player=card.player
@@ -40,12 +40,16 @@ async def send_select_request(card:'Card',type:str,number:int,selection_random:b
         if type:
             for i in range(number):
                 async with player.selection_lock:
-                    await player.send_text(f"select({type})")
-                    data =await player.receive_text()# ...|player;区域;index
-                    obj=get_object(data,room,type,card)
-                    if obj:
-                        if ("cancel"==obj and selection_random):
-                            obj=random_select(player,type)
+                    if not auto_select:
+                        await player.send_text(f"select({type})")
+                        data =await player.receive_text()# ...|player;区域;index
+                        obj=get_object(data,room,type,card)
+                        if obj:
+                            if ("cancel"==obj and selection_random):
+                                obj=random_select(player,type)
+                            objects.append(obj)
+                    else:
+                        obj=random_select(player,type)
                         objects.append(obj)
 
             #return objects
@@ -148,8 +152,12 @@ def random_select(player:'Player',type_selection:str):
             combined_list.append(item)
         else:
             combined_list+=item
+    
     if combined_list:
-        return random.choice(combined_list)
+        obj=random.choice(combined_list)
+        player.action_store.add_action(actions.Point_To(player,player,obj))
+        return obj
+        
     else:
         return "cancel"
 
@@ -176,13 +184,16 @@ def select_object(type:Literal['all_roles',#分为两个阶段，准备阶段和
 
     key_random="selection_random"
 
+    key_auto="auto_select"
+
     def new_decorator(func):
         
         async def new_func(self:"Card",*args, **kwargs):
-            if key_random in kwargs:
-                self.player.future_function=asyncio.create_task(send_select_request(self,type,number,kwargs[key_random]))
-            else:
-                self.player.future_function=asyncio.create_task(send_select_request(self,type,number))
+            args_select=(self,type,number,key_random in kwargs,key_auto in kwargs)
+            
+            
+                
+            self.player.future_function=asyncio.create_task(send_select_request(*args_select))
             objects=await self.player.future_function
             #print(objects)
             if objects=="cancel":
@@ -190,6 +201,8 @@ def select_object(type:Literal['all_roles',#分为两个阶段，准备阶段和
             kwargs[key_word] = objects
             if key_random in kwargs:
                 del kwargs[key_random]
+            if key_auto in kwargs:
+                del kwargs[key_auto]
             async def prepared_function():
                 await func(self,*args,**kwargs)
             return prepared_function

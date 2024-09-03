@@ -521,7 +521,7 @@ class Player:
         else:
             return False
         
-    def get_cards_by_pos_type(self,position:str,card_type:tuple["Creature|Land|Sorcery|Instant"]):
+    def get_cards_by_pos_type(self,position:str,card_type:tuple["Creature|Land|Sorcery|Instant"],except_type:tuple["Creature|Land|Sorcery|Instant"]=()):
         position_dict={
             'battlefield':self.battlefield,
             'hand':self.hand,
@@ -533,7 +533,7 @@ class Player:
         
         if position in position_dict:
             #print(position_dict[position])
-            cards=[card for card in position_dict[position] if  isinstance(card,card_type)]
+            cards=[card for card in position_dict[position] if  isinstance(card,card_type) and not isinstance(card,except_type)]
             return cards
         return []
 

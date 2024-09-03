@@ -374,6 +374,7 @@ class Room:
                 async with self.message_process_condition:
                     await self.message_process_condition.wait_for(lambda: len(self.message_process_queue) > 0)  # 等待队列不为空
             func=self.message_process_queue.pop(0)
+            print(func[1])
             await func[0](*func[1]) 
             await self.check_death()
 
