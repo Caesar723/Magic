@@ -31,6 +31,8 @@ class Sunlit_Priestess(Creature):
         self.content:str="When Sunlit Priestess enters the battlefield, you gain 3 life."
         self.image_path:str="cards/creature/Sunlit Priestess/image.jpg"
 
-
-
+    
+    @select_object("",1)
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        await self.cure_to_object(player,3,"rgba(245, 238, 145, 0.8)","Missile_Hit")
         

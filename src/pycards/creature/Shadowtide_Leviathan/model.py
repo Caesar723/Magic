@@ -31,6 +31,12 @@ class Shadowtide_Leviathan(Creature):
         self.content:str="Islandwalk (This creature can't be blocked as long as defending player controls an Island), When Shadowtide Leviathan enters the battlefield, you may return target nonland permanent an opponent controls to its owner's hand."
         self.image_path:str="cards/creature/Shadowtide Leviathan/image.jpg"
 
-
+        self.flag_dict["Islandwalk"]=True
 
         
+    @select_object("opponent_creatures",1)
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        if selected_object:
+            new_card=type(selected_object[0])(opponent)
+            opponent.remove_card(selected_object[0],"battlefield")
+            opponent.append_card(new_card,"hand")

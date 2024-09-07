@@ -118,10 +118,10 @@ class Card:
             self.player.action_store.add_action(actions.Attack_To_Object(self,self.player,object,color,type_missile,[object.life]))
             await object.check_dead()
         else:
-            object.take_damage(self,power,object.player,object.player.opponent) 
+            await object.take_damage(self,power,object.player,object.player.opponent) 
             self.player.action_store.add_action(actions.Attack_To_Object(self,self.player,object,color,type_missile,object.state))
             if await object.check_dead():
-                self.when_kill_creature(object,self.player,self.player.opponent)
+                await self.when_kill_creature(object,self.player,self.player.opponent)
 
         await self.when_harm_is_done(object,power,self.player,self.player.opponent)
         
@@ -133,17 +133,22 @@ class Card:
             self.player.action_store.add_action(actions.Cure_To_Object(self,self.player,object,color,type_missile,[object.life]))
             await object.check_dead()
         else:
-            object.gains_life(self,power,object.player,object.player.opponent) 
+            await object.gains_life(self,power,object.player,object.player.opponent) 
             self.player.action_store.add_action(actions.Cure_To_Object(self,self.player,object,color,type_missile,object.state))
             if await object.check_dead():
-                self.when_kill_creature(object,self.player,self.player.opponent)
+                await self.when_kill_creature(object,self.player,self.player.opponent)
     
     async def destroy_object(self,object:"Creature",color:str,type_missile:str):
         object.die()
         self.player.action_store.add_action(actions.Attack_To_Object(self,self.player,object,color,type_missile,object.state))
         if await object.check_dead():
-            self.when_kill_creature(object,self.player,self.player.opponent)
-    
+            await self.when_kill_creature(object,self.player,self.player.opponent)
+
+
+    async def exile_object(self,object:"Creature",color:str,type_missile:str):
+        object.flag_dict["exile"]=True
+        self.player.action_store.add_action(actions.Attack_To_Object(self,self.player,object,color,type_missile,object.state))
+        
 
     async def selection_step(self, player: "Player" = None, opponent: "Player" = None,selection_random:bool=False)->list:# 当打出牌是，会调用此函数，给用户发送卡牌选项,返回项必须是数组
         return []
@@ -225,7 +230,7 @@ class Card:
     async def when_an_object_hert(self,object,player: "Player" = None, opponent: "Player" = None):#当一个card or 人物收到伤害，object是card 或者 player
         pass
 
-    def when_kill_creature(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
+    async def when_kill_creature(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
     async def when_start_turn(self,player: "Player" = None, opponent: "Player" = None):#OK

@@ -1,0 +1,194 @@
+Name:Ironclad Crusader#Rarity:Common#Type:Creature#Power/Toughness:2/2#Cost:1WW#Ability:When Ironclad Crusader enters the battlefield, you may tap target creature an opponent controls. That creature doesn't untap during its controller's next untap step.
+Name:Mistweaver Drake#Rarity:Common#Type:Creature#Power/Toughness:2/1#Cost:1U#Ability:Flash (You may cast this spell any time you could cast an instant)
+Name:Celestial Skyweaver#Rarity:Rare#Type:Creature#Power/Toughness:2/5#Cost:2WW#Ability:Flying, Whenever you cast an enchantment spell, you may tap target creature an opponent controls.
+Name:Voidwisp Harbinger#Rarity:Rare#Type:Creature#Power/Toughness:2/4#Cost:2UU#Ability:Flash, Flying, When Voidwisp Harbinger enters the battlefield, you may scry 2. (To scry 2, look at the top two cards of your library, then put any number of them on the bottom of your library and the rest on top in any order.)
+Name:Nighthaunt Assassin#Rarity:Rare#Type:Creature#Power/Toughness:2/1#Cost:2B#Ability:When Nighthaunt Assassin enters the battlefield, you may destroy target creature with converted mana cost 2 or less.
+Name:Seraph of the Eternal Flame#Rarity:Rare#Type:Creature#Power/Toughness:4/4#Cost:1WW#Ability:Radiant Aura - Whenever Seraph of the Eternal Flame attacks, creatures you control gain indestructible until end of turn.
+Name:Soul Devourer#Rarity:Rare#Type:Creature#Power/Toughness:4/4#Cost:4BB#Ability:Whenever a creature dies, Soul Devourer gets +1/+1 counters equal to the power of that creature.
+Name:Tidal Sprite#Rarity:Common#Type:Creature#Power/Toughness:1/1#Cost:1U#Ability:Flying (This creature can't be blocked except by creatures with flying or reach.)
+Name:Sylvan Warden#Rarity:Rare#Type:Creature#Power/Toughness:2/4#Cost:4G#Ability:When Sylvan Warden enters the battlefield, you may search your library for a basic land card and put it onto the battlefield tapped. If you do, shuffle your library.
+Name:Aetherweaver#Rarity:Mythic Rare#Type:Creature#Power/Toughness:2/2#Cost:3U#Ability:When Aetherweaver enters the battlefield, you may return target artifact or enchantment from your graveyard to your hand.
+Name:Thornwood Guardian#Rarity:Rare#Type:Creature#Power/Toughness:5/4#Cost:3GG#Ability:Reach, Trample (This creature can block creatures with flying, and it can deal excess combat damage to the player or planeswalker it's attacking.)
+Name:Mystic Tidecaller#Rarity:Mythic Rare#Type:Creature#Power/Toughness:2/3#Cost:3U#Ability:Flash, When Mystic Tidecaller enters the battlefield, you may return target nonland permanent to its owner's hand.
+Name:Essence Channeler#Rarity:Rare#Type:Creature#Power/Toughness:2/2#Cost:1G#Ability:Whenever you cast a creature spell, you may add G to your mana pool.
+Name:Harbinger of the Eternal Tides#Rarity:Rare#Type:Creature#Power/Toughness:2/4#Cost:2UU#Ability:Flash, When Harbinger of the Eternal Tides enters the battlefield, tap target creature an opponent controls. It doesn't untap during its controller's next untap step.
+Name:Torrent Elemental#Rarity:Uncommon#Type:Creature#Power/Toughness:2/3#Cost:1U#Ability:Flash (You may cast this spell any time you could cast an instant) and Flying
+Name:Thornroot Druid#Rarity:Uncommon#Type:Creature#Power/Toughness:2/2#Cost:1G#Ability:When Thornroot Druid enters the battlefield, you may search your library for a basic land card, reveal it, put it into your hand, then shuffle your library.
+Name:Thalassian Tidecaller#Rarity:Rare#Type:Creature#Power/Toughness:2/2#Cost:1U#Ability:Whenever you cast a Merfolk spell, you may tap or untap target permanent.
+Name:Storm Bringer#Rarity:Rare#Type:Creature#Power/Toughness:5/5#Cost:4UU (6 Mana)#Ability:Flying. When Storm Bringer enters the battlefield, it deals 3 damage to each opponent and you gain 3 life.
+Name:Thundering Behemoth#Rarity:Rare#Type:Creature#Power/Toughness:6/5#Cost:4GGG#Ability:Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.), When Thundering Behemoth enters the battlefield, creatures you control gain trample until end of turn.
+Name:Thornwood Ranger#Rarity:Common#Type:Creature#Power/Toughness:2/1#Cost:1G#Ability:Reach (This creature can block creatures with flying.)
+Name:Elite Squire#Rarity:Uncommon#Type:Creature#Power/Toughness:2/2#Cost:1W#Ability:Vigilance (This creature doesn't tap when it attacks)
+Name:Sunlit Priestess#Rarity:Common#Type:Creature#Power/Toughness:2/2#Cost:1W#Ability:When Sunlit Priestess enters the battlefield, you gain 3 life.
+Name:Pious Courser#Rarity:Common#Type:Creature#Power/Toughness:2/2#Cost:1W#Ability:When Pious Courser enters the battlefield, you gain 2 life.
+Name:Thornwood Sentinel#Rarity:Common#Type:Creature#Power/Toughness:2/3#Cost:1G#Ability:Reach (This creature can block creatures with flying)
+Name:Ancient Stonewood#Rarity:Rare#Type:Creature#Power/Toughness:5/7#Cost:4GG#Ability:Indestructible. Whenever Ancient Stonewood is dealt damage, it deals that much damage to target creature an opponent controls.
+Name:Shadow Stalker#Rarity:Rare#Type:Creature#Power/Toughness:3/3#Cost:3BB#Ability:Cannot be targeted by spells or abilities. Whenever Shadow Stalker attacks, the controller of the target creature discards a card.
+Name:Titan Giant#Rarity:Rare#Type:Creature#Power/Toughness:8/8#Cost:5GG#Ability:Whenever Titan Giant enters the battlefield, destroy all other creatures with power less than 5.
+Name:Shadowtide Leviathan#Rarity:Mythic Rare#Type:Creature#Power/Toughness:8/8#Cost:5UUU#Ability:Islandwalk (This creature can't be blocked as long as defending player controls an Island), When Shadowtide Leviathan enters the battlefield, you may return target nonland permanent an opponent controls to its owner's hand.
+Name:Celestial Herald#Rarity:Mythic Rare#Type:Creature#Power/Toughness:3/3#Cost:1W#Ability:Flying, Lifelink. At the beginning of your upkeep, you may exile target nonland permanent. Return that permanent to the battlefield under its owner's control at the beginning of the next end step.
+Name:Sage of the Ancient Grove#Rarity:Rare#Type:Creature#Power/Toughness:4/4#Cost:2GG#Ability:Reach, When Sage of the Ancient Grove enters the battlefield, you may search your library for a basic land card, put it onto the battlefield tapped, then shuffle your library.
+Name:Celestial Guardian#Rarity:Rare#Type:Creature#Power/Toughness:3/3#Cost:3W#Ability:Flying, Vigilance
+Name:Celestial Seraph#Rarity:Mythic Rare#Type:Creature#Power/Toughness:5/5#Cost:3WWW#Ability:Flying, Lifelink (Damage dealt by this creature also causes you to gain that much life), Whenever Celestial Seraph attacks, you may exile target nonland permanent an opponent controls until Celestial Seraph leaves the battlefield.
+Name:Night Stalker#Rarity:Common#Type:Creature#Power/Toughness:2/1#Cost:1B#Ability:Menace (This creature can't be blocked except by two or more creatures.)
+Name:Blightsteel Colossus#Rarity:Mythic Rare#Type:Creature#Power/Toughness:11/11#Cost:12#Ability:Trample, Infect (This creature deals damage to creatures in the form of -1/-1 counters and to players in the form of poison counters.), Indestructible (This creature can't be destroyed by damage or effects that say "destroy.")
+Name:Nyxborn Serpent#Rarity:Uncommon#Type:Creature#Power/Toughness:3/3#Cost:4U#Ability:Constellation - Whenever Nyxborn Serpent or another enchantment enters the battlefield under your control, you may tap target creature an opponent controls.
+Name:Sylvan Harmonist#Rarity:Rare#Type:Creature#Power/Toughness:2/3#Cost:1GG#Ability:When Sylvan Harmonist enters the battlefield, you may search your library for a basic land card and put it onto the battlefield tapped. If you do, shuffle your library.
+Name:Dragon Lord#Rarity:Rare#Type:Creature#Power/Toughness:6/6#Cost:6RR#Ability:Flying. Whenever Dragon Lord deals damage to an opponent, create two 4/4 red Dragon creature tokens.
+Name:Dreamweaver Archivist#Rarity:Rare#Type:Creature#Power/Toughness:2/2#Cost:1U#Ability:When Dreamweaver Archivist enters the battlefield, you may draw a card. If you do, discard a card.
+Name:Grove Guardian#Rarity:Uncommon#Type:Creature#Power/Toughness:3/5#Cost:3GG#Ability:Reach, Hexproof (This creature can't be the target of spells or abilities your opponents control.)
+Name:Spectral Harbinger#Rarity:Rare#Type:Creature#Power/Toughness:2/3#Cost:2WW#Ability:Flying, Lifelink (Damage dealt by this creature also causes you to gain that much life), When Spectral Harbinger enters the battlefield, you may exile target creature card from a graveyard. If you do, you gain 2 life.
+Name:Thunderclap Behemoth#Rarity:Rare#Type:Creature#Power/Toughness:6/6#Cost:4GG#Ability:Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.), Whenever Thunderclap Behemoth attacks, it deals 3 damage to each creature defending player controls if you control another creature with power 4 or greater.
+Name:Radiant Angel#Rarity:Rare#Type:Creature#Power/Toughness:4/4#Cost:3WW#Ability:Flying, Lifelink. Whenever Radiant Angel deals damage, it illuminates all creatures with dark attributes, making them unable to attack or block this turn.
+Name:Luminous Guardian#Rarity:Rare#Type:Creature#Power/Toughness:3/3#Cost:2WW#Ability:Flying, Lifelink (Damage dealt by this creature also causes you to gain that much life), When Luminous Guardian enters the battlefield, you may exile target creature with power 3 or greater an opponent controls until Luminous Guardian leaves the battlefield.
+Name:Chronostrider#Rarity:Mythic Rare#Type:Creature#Power/Toughness:2/4#Cost:3G#Ability:Flash, Haste. When Chronostrider enters the battlefield, you may take an extra turn after this one.
+Name:Kothar the Soul Reaper#Rarity:Mythic Rare#Type:Creature#Power/Toughness:5/5#Cost:4B#Ability:When Kothar the Soul Reaper enters the battlefield, each opponent sacrifices a creature. Whenever a creature dies, Kothar gets a +1/+1 counter.
+Name:Shifting Tides Elemental#Rarity:Uncommon#Type:Creature#Power/Toughness:2/3#Cost:1UU#Ability:Islandwalk (This creature can't be blocked as long as defending player controls an Island.), When Shifting Tides Elemental enters the battlefield, you may return target land to its owner's hand.
+Name:Vorinclex, Apex of Mutation#Rarity:Mythic Rare#Type:Creature#Power/Toughness:6/6#Cost:3GG#Ability:Trample, Infect, and whenever you cast a spell, proliferate. Whenever an opponent proliferates, they must pay 2 life for each permanent type they've chose (Artifact, creature, enchantment, land, planeswalker, or any combination thereof).
+Name:Deep Sea Behemoth#Rarity:Rare#Type:Creature#Power/Toughness:7/7#Cost:6UU#Ability:Stealth. When Deep Sea Behemoth attacks, all opponent's creatures lose all abilities until end of turn.
+Name:Angelic Protector#Rarity:Uncommon#Type:Creature#Power/Toughness:2/2#Cost:1W#Ability:When Angelic Protector enters the battlefield, you may tap target creature. It doesn't untap during its controller's next untap step.
+Name:Verdant Wyrm#Rarity:Rare#Type:Creature#Power/Toughness:4/4#Cost:3GG#Ability:Trample, When Verdant Wyrm enters the battlefield, you may search your library for a land card, put it onto the battlefield tapped, then shuffle your library.
+Name:Ravaging Ghoul#Rarity:Uncommon#Type:Creature#Power/Toughness:2/2#Cost:1B#Ability:When Ravaging Ghoul enters the battlefield, target opponent loses 2 life unless they sacrifice a creature.
+Name:Temporal Traveler#Rarity:Rare#Type:Creature#Power/Toughness:3/4#Cost:4UU#Ability:Whenever Temporal Traveler attacks, you may cast an instant or sorcery card from your graveyard without paying its mana cost.
+Name:Mindshaper Sphinx#Rarity:Rare#Type:Creature#Power/Toughness:4/4#Cost:3UU#Ability:Flying, When Mindshaper Sphinx enters the battlefield, scry 3, then draw a card. (To scry 3, look at the top three cards of your library, then put any number of them on the bottom of your library and the rest on top in any order.)
+Name:Celestial Sentinel#Rarity:Rare#Type:Creature#Power/Toughness:3/3#Cost:1W#Ability:Flying, Vigilance
+Name:Raging Firekin#Rarity:Uncommon#Type:Creature#Power/Toughness:3/2#Cost:1R#Ability:Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)
+Name:Mist Djinn#Rarity:Rare#Type:Creature#Power/Toughness:4/6#Cost:5UU#Ability:Mist Djinn can block any number of creatures.
+Name:Avacyn, Guardian of Hope#Rarity:Mythic Rare#Type:Creature#Power/Toughness:5/4#Cost:3W#Ability:Flying, Vigilance, Lifelink. When Avacyn, Guardian of Hope enters the battlefield, creatures you control gain indestructible until end of turn.
+Name:Verdant Titan#Rarity:Mythic Rare#Type:Creature#Power/Toughness:5/5#Cost:3GG#Ability:Trample, Vigilance, When Verdant Titan enters the battlefield or attacks, you may search your library for a land card and put it onto the battlefield tapped. If you do, shuffle your library.
+Name:Oblivion Devourer#Rarity:Rare#Type:Creature#Power/Toughness:6/6#Cost:5BB#Ability:Menace (This creature can't be blocked except by two or more creatures), When Oblivion Devourer attacks, you may sacrifice another creature. If you do, target player discards two cards.
+Name:Beast#Rarity:Rare#Type:Creature#Power/Toughness:1/1#Cost:G#Ability:
+Name:Elemental Creature#Rarity:Mythic Rare#Type:Creature#Power/Toughness:1/1#Cost:R#Ability:haste
+Name:Star Beast#Rarity:Rare#Type:Creature#Power/Toughness:7/7#Cost:R#Ability:
+Name:Elemental#Rarity:Rare#Type:Creature#Power/Toughness:3/3#Cost:R#Ability:
+Name:Apocalypse Riders Knight#Rarity:Rare#Type:Creature#Power/Toughness:2/2#Cost:W#Ability:
+Name:Honorable Protection#Rarity:Uncommon#Type:Instant#Cost:1W#Ability:Target creature you control gains indestructible until end of turn. If it's a Knight, put a +1/+1 counter on it.
+Name:Ephemeral Insight#Rarity:Uncommon#Type:Instant#Cost:1U#Ability:Scry 2, then draw a card. If Ephemeral Insight is in your graveyard, you may cast it by paying 3 life in addition to its mana cost. If you do, exile it as it resolves.
+Name:Veil of Serenity#Rarity:Uncommon#Type:Instant#Cost:2W#Ability:Exile target enchantment or creature spell.
+Name:Verdant Growth#Rarity:Rare#Type:Instant#Cost:1G#Ability:Target creature gets +4/+4 until end of turn. If it's a Treefolk creature, it gains trample until end of turn.
+Name:Mystic Insight#Rarity:Rare#Type:Instant#Cost:1U#Ability:Scry 3, then draw a card.
+Name:Mystic Convergence#Rarity:Rare#Type:Instant#Cost:2GW#Ability:Prevent all combat damage that would be dealt this turn. At the beginning of your next main phase, add X mana in any combination of colors to your mana pool, where X is the amount of combat damage prevented this way.
+Name:Timeless Intervention#Rarity:Rare#Type:Instant#Cost:4GW#Ability:Exile all creatures and planeswalkers. Return all exiled creatures and planeswalkers to the battlefield under their owners' control at the beginning of the next end step.
+Name:Primal Surge#Rarity:Mythic Rare#Type:Instant#Cost:2G#Ability:Target player shuffles their hand and graveyard into their library, then draws that many cards. They may play an additional land this turn.
+Name:Mystic Evocation#Rarity:Uncommon#Type:Instant#Cost:1U#Ability:Counter target noncreature spell unless its controller pays 1. If that spell is countered this way, scry 1.
+Name:Astral Resurgence#Rarity:Rare#Type:Instant#Cost:1WW#Ability:Return all creature cards from your graveyard to the battlefield. They gain lifelink until end of turn.
+Name:Vengeful Retribution#Rarity:Mythic Rare#Type:Instant#Cost:4B#Ability:Target opponent sacrifices two creatures. If a creature was sacrificed this way, Vengeful Retribution deals damage to any target equal to the total power of the sacrificed creatures.
+Name:Temporal Shift#Rarity:Rare#Type:Instant#Cost:2UU#Ability:You may take an extra turn after this one. Exile Temporal Shift.
+Name:Celestial Intervention#Rarity:Rare#Type:Instant#Cost:2WW#Ability:Until end of turn, creatures you control gain indestructible. You may draw a card.
+Name:Wild Growth Rush#Rarity:Rare#Type:Instant#Cost:1G#Ability:Target creature gains +2/+2 and trample until end of turn. Then, if you control a Forest, you may search your library for a basic land card and put it onto the battlefield tapped.
+Name:Shadowstrike#Rarity:Uncommon#Type:Instant#Cost:1B#Ability:Destroy target tapped creature. If a creature was destroyed this way, you may draw a card.
+Name:Verdant Surge#Rarity:Uncommon#Type:Instant#Cost:1GG#Ability:Target creature you control gets +3/+3 until end of turn. If that creature is a Druid, it also gains trample until end of turn.
+Name:Mystic Evasion#Rarity:Uncommon#Type:Instant#Cost:2UU#Ability:Return target attacking creature to its owner's hand. Draw a card.
+Name:Mystical Barrier#Rarity:Uncommon#Type:Instant#Cost:1UU#Ability:Counter target spell unless its controller pays 3. If Mystical Barrier is countered this way, you may draw a card.
+Name:Swift Ward#Rarity:Common#Type:Instant#Cost:1W#Ability:Target creature gets +1/+1 until end of turn and gains hexproof until end of turn.
+Name:Ethereal Convergence#Rarity:Rare#Type:Instant#Cost:3UU#Ability:Return all creatures to their owners' hands. You may search your library for a creature card, reveal it, put it into your hand, then shuffle your library.
+Name:Nature's Reprisal#Rarity:Common#Type:Instant#Cost:1G#Ability:Destroy target artifact or enchantment.
+Name:Overgrowth Surge#Rarity:Uncommon#Type:Instant#Cost:1G#Ability:Target creature gets +3/+3 until end of turn. If that creature is a Treefolk, it also gains trample until end of turn.
+Name:Celestial Convergence#Rarity:Mythic Rare#Type:Instant#Cost:2W#Ability:Exile target permanent. If that permanent's mana value is 3 or less, its controller gains life equal to its mana value.
+Name:Wild Growth#Rarity:Common#Type:Instant#Cost:G#Ability:Search your library for a basic land card and put it onto the battlefield tapped, then shuffle your library.
+Name:Aquatic Evasion#Rarity:Common#Type:Instant#Cost:1U#Ability:Target creature you control gains hexproof until end of turn. Draw a card.
+Name:Sacred Reinforcement#Rarity:Common#Type:Instant#Cost:1W#Ability:Tap up to two target creatures. They gain +1/+1 until end of turn.
+Name:Temporal Reversal#Rarity:Mythic Rare#Type:Instant#Cost:1U#Ability:Return target nonland permanent to its owner's hand. You may untap up to two lands.
+Name:Blaze of Fury#Rarity:Rare#Type:Instant#Cost:1RR#Ability:Blaze of Fury deals 3 damage to any target. If a creature is dealt damage this way, it can't block this turn.
+Name:Ephemeral Response#Rarity:Common#Type:Instant#Cost:1U#Ability:Counter target spell unless its controller pays 2.
+Name:Mystic Reversal#Rarity:Rare#Type:Instant#Cost:1UU#Ability:Counter target spell. If that spell is countered this way, its controller may cast it without paying its mana cost during their next turn.
+Name:Shadowform Surge#Rarity:Rare#Type:Instant#Cost:2B#Ability:Target creature gets -3/-3 until end of turn. If that creature dies this turn, create a 2/2 black Shade creature token with lifelink.
+Name:Resurgence#Rarity:Rare#Type:Instant#Cost:3RW#Ability:Creatures you control gain double strike and lifelink until end of turn. Return target creature card with converted mana cost 3 or less from your graveyard to the battlefield.
+Name:Summoner's Respite#Rarity:Rare#Type:Instant#Cost:3GW#Ability:Prevent all combat damage that would be dealt this turn. You gain 4 life. Put a +1/+1 counter on each creature you control.
+Name:Mystic Tides#Rarity:Common#Type:Instant#Cost:1U#Ability:Counter target creature spell unless its controller pays 2.
+Name:Mystical Shift#Rarity:Common#Type:Instant#Cost:U#Ability:Counter target spell unless its controller pays X. If X is 3 or more, draw a card.
+Name:Blazeburst#Rarity:Common#Type:Instant#Cost:1RR#Ability:Blazeburst deals 3 damage to any target.
+Name:Arcane Intervention#Rarity:Rare#Type:Instant#Cost:2UU#Ability:Return target permanent to its owner's hand. Draw a card.
+Name:Mystic Reflection#Rarity:Common#Type:Instant#Cost:1UU#Ability:Choose target creature. If another creature with the same name is on the battlefield, transform that creature into a copy of the chosen creature until end of turn.
+Name:Mystic Rupture#Rarity:Rare#Type:Instant#Cost:3UU#Ability:Return all nonland permanents to their owner's hands. Each player may search their library for a basic land card, put it onto the battlefield tapped, then shuffle their library.
+Name:Ephemeral Vision#Rarity:Common#Type:Instant#Cost:1U#Ability:Draw a card. Scry 2.
+Name:Ethereal Surge#Rarity:Rare#Type:Instant#Cost:UU#Ability:Counter target spell with converted mana cost X. If that spell is countered this way, return it to its owner's hand instead of putting it into their graveyard.
+Name:Mystic Tide#Rarity:Rare#Type:Instant#Cost:1U#Ability:Counter target spell unless its controller pays 3. If you control an Island, you may return target creature to its owner's hand.
+Name:Arcane Insight#Rarity:Uncommon#Type:Instant#Cost:2U#Ability:Draw two cards, then discard a card unless you discard an instant or sorcery card.
+Name:Ethereal Reversal#Rarity:Rare#Type:Instant#Cost:2UU#Ability:Return target nonland permanent to its owner's hand. You may cast a spell with converted mana cost equal to or less than the returned card's from your hand without paying its mana cost.
+Name:Divine Intervention#Rarity:Rare#Type:Instant#Cost:1W#Ability:Choose up to two target creatures. Prevent all damage that would be dealt to those creatures this turn. Gain life equal to the total damage prevented this way.
+Name:Shadow Snare#Rarity:Common#Type:Instant#Cost:2B#Ability:Target creature gets -3/-3 until end of turn.
+Name:Temporal Manipulation#Rarity:Mythic Rare#Type:Instant#Cost:3U#Ability:Take an extra turn after this one.
+Name:Celestial Rebirth#Rarity:Rare#Type:Instant#Cost:2WWW#Ability:Return target creature card from your graveyard to the battlefield. It gains indestructible until end of turn. Exile Celestial Rebirth.
+Name:Time Warp#Rarity:Rare#Type:Instant#Cost:3UU#Ability:Time Warp allows you to take an extra turn after this one. You skip the untap step of that turn.
+Name:Flamespark#Rarity:Uncommon#Type:Instant#Cost:1RR#Ability:Flamespark deals 3 damage to any target. If you control a Mountain, it deals 5 damage instead.
+Name:Phantasmal Distortion#Rarity:Rare#Type:Instant#Cost:1UU#Ability:Until end of turn, target creature you control becomes a copy of another target creature, except it retains its abilities. Return that creature to its owner's hand at the beginning of the next end step.
+Name:Arcane Reflection#Rarity:Rare#Type:Instant#Cost:1U#Ability:Arcane Reflection allows you to return target instant or sorcery card from your graveyard to your hand.
+Name:Mystic Confluence#Rarity:Uncommon#Type:Instant#Cost:4U#Ability:Choose three. You may choose the same mode more than once. Counter target spell unless its controller pays 3. Return target creature to its owner's hand. Draw a card.
+Name:Divine Reprisal#Rarity:Uncommon#Type:Instant#Cost:2W#Ability:Destroy target attacking creature.
+Name:Naturalize#Rarity:Uncommon#Type:Instant#Cost:1G#Ability:Destroy target artifact or enchantment.
+Name:Blazing Reversal#Rarity:Rare#Type:Instant#Cost:1UR#Ability:Change the target of target spell or ability with a single target. You may choose new targets for the redirection. If Blazing Reversal is in your graveyard, you may cast it by sacrificing a Mountain and paying its flashback cost. If you do, exile it as it resolves.
+Name:Verdant Blessing#Rarity:Rare#Type:Instant#Cost:1GG#Ability:Verdant Blessing allows you to search your library for a basic land card and put it onto the battlefield tapped. Then, shuffle your library.
+Name:Swift Response#Rarity:Common#Type:Instant#Cost:1WW#Ability:Instantly destroy target attacking or blocking creature with power 2 or less.
+Name:Avenging Light#Rarity:Rare#Type:Instant#Cost:3W#Ability:Exile target nonland permanent. If it was a creature, you gain life equal to its power.
+Name:Veiled Concealment#Rarity:Common#Type:Instant#Cost:U#Ability:Target creature is unblockable until end of turn. Draw a card.
+Name:Mindweave#Rarity:Rare#Type:Instant#Cost:UU#Ability:Counter target spell unless its controller pays X. If that spell is countered this way, you may draw X cards.
+Name:Mystic Barrier#Rarity:Uncommon#Type:Instant#Cost:1WW#Ability:Choose one - Target creature gains hexproof until end of turn.Target player can't cast noncreature spells until end of turn.
+Name:Nexus of the Eternal Seas#Rarity:Rare#Type:Land#Cost:#Ability:Nexus of the Eternal Seas enters the battlefield untapped and adds one blue mana to your mana pool. You may tap Nexus of the Eternal Seas to return target creature to its owner's hand.
+Name:Aetheric Nexus#Rarity:Rare#Type:Land#Cost:#Ability:Aetheric Nexus enters the battlefield untapped and adds one colorless mana to your mana pool. You may also tap Aetheric Nexus to add one mana of any color, but only if you control an artifact.
+Name:Sanctum of Eternal Flames#Rarity:Rare#Type:Land#Cost:#Ability:Sanctum of Eternal Flames enters the battlefield untapped and adds one red mana to your mana pool. You may also tap Sanctum of Eternal Flames and pay 2 mana to deal 2 damage to any target.
+Name:Verdant Sanctuary#Rarity:Rare#Type:Land#Cost:#Ability:Verdant Sanctuary enters the battlefield untapped and adds one green mana to your mana pool. You may also tap Verdant Sanctuary and pay 2 mana to search your library for a basic Forest card and put it onto the battlefield tapped.
+Name:Arcane Sanctuary#Rarity:Rare#Type:Land#Cost:#Ability:Arcane Sanctuary enters the battlefield untapped and adds one colorless mana to your mana pool. You may also tap Arcane Sanctuary and pay 2 mana to scry 1 and draw a card.
+Name:Arcane Haven#Rarity:Rare#Type:Land#Cost:#Ability:Arcane Haven enters the battlefield untapped and adds one colorless mana to your mana pool. You may also tap Arcane Haven to add one mana of any color to your mana pool if you control a wizard.
+Name:Celestial Haven#Rarity:Rare#Type:Land#Cost:#Ability:Celestial Haven enters the battlefield untapped and adds one white mana to your mana pool. Additionally, you may pay 3 life and tap Celestial Haven to prevent all combat damage that would be dealt this turn.
+Name:Elysian Grove#Rarity:Rare#Type:Land#Cost:#Ability:Elysian Grove enters the battlefield untapped and adds one green mana to your mana pool. You may tap Elysian Grove to untap target land.
+Name:Mystic Reflection Pool#Rarity:Rare#Type:Land#Cost:#Ability:Mystic Reflection Pool enters the battlefield untapped and adds one blue mana to your mana pool. Additionally, you may tap Mystic Reflection Pool and pay 1 mana to scry 2, then draw a card.
+Name:Luminous Glade#Rarity:Rare#Type:Land#Cost:#Ability:Luminous Glade enters the battlefield untapped and adds one white mana to your mana pool. You may tap Luminous Glade to prevent the next 1 damage that would be dealt to target creature or player this turn.
+Name:Sanctum of Verdant Growth#Rarity:Rare#Type:Land#Cost:#Ability:Sanctum of Verdant Growth enters the battlefield untapped and adds one green mana to your mana pool. You may tap Sanctum of Verdant Growth and pay 2 mana to search your library for a basic Forest card and put it onto the battlefield tapped.
+Name:Volcanic Fumaroles#Rarity:Rare#Type:Land#Cost:#Ability:Volcanic Fumaroles enters the battlefield untapped and adds one red mana to your mana pool. You may tap Volcanic Fumaroles to deal 1 damage to target creature or player.
+Name:Ephemeral Eruption#Rarity:Rare#Type:Sorcery#Cost:2RR#Ability:Ephemeral Eruption deals 4 damage to each creature. At the beginning of the next end step, sacrifice Ephemeral Eruption and return all creatures dealt damage this way to the battlefield under their owner's control.
+Name:Celestial Blessing#Rarity:Uncommon#Type:Sorcery#Cost:1WW#Ability:Choose up to two target creatures you control. They gain lifelink until end of turn.
+Name:Righteous Conviction#Rarity:Uncommon#Type:Sorcery#Cost:1W#Ability:Choose a creature you control. Until end of turn, that creature gets +2/+2 and gains lifelink.
+Name:Treasure Hunt#Rarity:Common#Type:Sorcery#Cost:U#Ability:Reveal the top X cards of your library. Put all land cards revealed this way into your hand and the rest on the bottom of your library in any order.
+Name:Forest's Embrace#Rarity:Mythic Rare#Type:Sorcery#Cost:3GG#Ability:Search your library for up to three land cards, put them onto the battlefield tapped, then shuffle your library.
+Name:Mystic Insight#Rarity:Common#Type:Sorcery#Cost:1U#Ability:Scry 2, then draw a card.
+Name:Nature's Embrace#Rarity:Mythic Rare#Type:Sorcery#Cost:3G#Ability:Search your library for a creature card and put it onto the battlefield tapped. Then shuffle your library.
+Name:Spectral Embrace#Rarity:Rare#Type:Sorcery#Cost:2WW#Ability:Spectral Embrace gives all creatures you control +2/+2 until end of turn and prevents all damage that would be dealt to them this turn.
+Name:Temporal Flux#Rarity:Mythic Rare#Type:Sorcery#Cost:3U#Ability:Take an extra turn after this one.
+Name:Temporal Distortion#Rarity:Rare#Type:Sorcery#Cost:2UU#Ability:Temporal Distortion allows you to take an extra turn after this one. Exile Temporal Distortion.
+Name:Unearthly Blaze#Rarity:Common#Type:Sorcery#Cost:1RR#Ability:Unearthly Blaze deals 3 damage to any target.
+Name:Arcane Torrent#Rarity:Rare#Type:Sorcery#Cost:3UU#Ability:Arcane Torrent allows you to search your library for a sorcery card, reveal it, and put it into your hand. Then shuffle your library.
+Name:Chaos Unleashed#Rarity:Rare#Type:Sorcery#Cost:2BR#Ability:Chaos Unleashed deals 3 damage to each creature and each player.
+Name:Awaken the Elemental#Rarity:Rare#Type:Sorcery#Cost:4GG#Ability:Return a creature card from your graveyard to the battlefield, then put five +1/+1 counters on it until end of turn.
+Name:Divine Blessing#Rarity:Common#Type:Sorcery#Cost:1WW#Ability:Target creature gets +2/+2 until end of turn.
+Name:Vampiric Revelry#Rarity:Rare#Type:Sorcery#Cost:1B#Ability:Target player sacrifices a creature. You gain life equal to that creature's toughness.
+Name:Flames of Fury#Rarity:Uncommon#Type:Sorcery#Cost:1R#Ability:Flames of Fury deals 3 damage to target creature or player. If you control a Mountain, Flames of Fury deals 1 additional damage.
+Name:Wild Growth#Rarity:Uncommon#Type:Sorcery#Cost:1G#Ability:Search your library for a basic land card and put it onto the battlefield tapped. Then shuffle your library.
+Name:Mind's Insight#Rarity:Rare#Type:Sorcery#Cost:4U#Ability:Draw three cards, then discard two cards unless you discard an island.
+Name:Fiery Burst#Rarity:Common#Type:Sorcery#Cost:1R#Ability:Fiery Burst deals 2 damage to target creature or player.
+Name:Soul Siphon#Rarity:Uncommon#Type:Sorcery#Cost:1B#Ability:Target opponent sacrifices a creature. You gain life equal to that creature's power.
+Name:Mystic Reversal#Rarity:Rare#Type:Sorcery#Cost:1U#Ability:Counter target spell unless its controller pays 3. If the spell is countered this way, exile it instead of putting it into its owner's graveyard.
+Name:Mindful Reflection#Rarity:Uncommon#Type:Sorcery#Cost:1U#Ability:Draw two cards, then discard a card.
+Name:Torrential Manipulation#Rarity:Mythic Rare#Type:Sorcery#Cost:1U#Ability:Return target nonland permanent to its owner's hand. You may cast an instant or sorcery spell without paying its mana cost.
+Name:Fleeting Insight#Rarity:Common#Type:Sorcery#Cost:1U#Ability:Draw a card, then discard a card.
+Name:Rift in Reality#Rarity:Rare#Type:Sorcery#Cost:2UU#Ability:Rift in Reality allows you to exile target permanent. At the beginning of the next end step, return the exiled card to the battlefield under its owner's control with a sleight of hand counter on it. If it doesn't have sleight of hand counter on it, it's owner draws a card.
+Name:Time Rift Convergence#Rarity:Mythic Rare#Type:Sorcery#Cost:2UUU#Ability:Time Rift Convergence allows you to take an extra turn after this one. Exile Time Rift Convergence.
+Name:Flameblast#Rarity:Rare#Type:Sorcery#Cost:3RR#Ability:Flameblast deals 5 damage to any target. If RRR was spent to cast Flameblast, it deals 7 damage instead.
+Name:Divine Reckoning#Rarity:Rare#Type:Sorcery#Cost:4W#Ability:Destroy all non-angel creatures. Each player gains life equal to the number of creatures they controlled that were destroyed this way.
+Name:Verdant Harvest#Rarity:Uncommon#Type:Sorcery#Cost:1GG#Ability:Search your library for a basic land card and put it onto the battlefield tapped, then shuffle your library.
+Name:Arcane Convergence#Rarity:Rare#Type:Sorcery#Cost:3UU#Ability:Arcane Convergence allows you to untap all lands you control and add X mana in any combination of colors to your mana pool, where X is the number of sorcery cards in your graveyard.
+Name:Overgrowth#Rarity:Rare#Type:Sorcery#Cost:1G#Ability:Search your library for a basic land card and put it onto the battlefield tapped. Then shuffle your library.
+Name:Harvest Blessing#Rarity:Uncommon#Type:Sorcery#Cost:1G#Ability:Search your library for a basic land card, put it onto the battlefield tapped, then shuffle your library.
+Name:Celestial Purge#Rarity:Rare#Type:Sorcery#Cost:1W#Ability:Exile target black or red permanent.
+Name:Divine Rebirth#Rarity:Mythic Rare#Type:Sorcery#Cost:3W#Ability:Return target creature card from your graveyard to the battlefield. If it's an Angel, create two 4/4 white Angel creature tokens with flying tapped and attacking.
+Name:Call of the Tides#Rarity:Common#Type:Sorcery#Cost:3UU#Ability:Draw two cards, then discard a card.
+Name:Divine Intervention#Rarity:Mythic Rare#Type:Sorcery#Cost:2W#Ability:Exile all nonland permanents. For each permanent exiled this way, its controller may search their library for a basic land card and put it onto the battlefield tapped.
+Name:Celestial Renewal#Rarity:Rare#Type:Sorcery#Cost:3GW#Ability:Celestial Renewal allows you to return all creature cards from your graveyard to the battlefield. Those creatures gain hexproof until end of turn.
+Name:Unleash the Elements#Rarity:Rare#Type:Sorcery#Cost:2RG#Ability:Unleash the Elements deals 3 damage to each creature. If a creature dealt damage this way would die this turn, exile it instead.
+Name:Mindful Manipulation#Rarity:Uncommon#Type:Sorcery#Cost:1U#Ability:Draw two cards, then put one card from your hand on top of your library.
+Name:Divine Offering#Rarity:Common#Type:Sorcery#Cost:1W#Ability:Destroy target artifact. Its controller gains 3 life.
+Name:Time Warp#Rarity:Mythic Rare#Type:Sorcery#Cost:3UU#Ability:Take an extra turn after this one.
+Name:Abyssal Echoes#Rarity:Rare#Type:Sorcery#Cost:5BB#Ability:Search your library for a creature card with a mana value of 7 or greater and put it onto the battlefield.
+Name:Unyielding Resolve#Rarity:Rare#Type:Sorcery#Cost:3WW#Ability:Unyielding Resolve gives all creatures you control indestructible until end of turn. Creatures you control gain lifelink until end of turn.
+Name:Chaotic Eruption#Rarity:Rare#Type:Sorcery#Cost:2R#Ability:Destroy target land. For each land destroyed this way, its controller may discard a card. If they don't, create a 3/3 Elemental token.
+Name:Demonic Ascendance#Rarity:Mythic Rare#Type:Sorcery#Cost:3B#Ability:Target opponent reveals their hand. You may choose a creature card from it and put it onto the battlefield under your control. That creature gains haste. Sacrifice it at the beginning of the next end step.
+Name:Flamestrike Surge#Rarity:Uncommon#Type:Sorcery#Cost:1RR#Ability:Flamestrike Surge deals 3 damage to any target and you may discard a card. If you do, draw a card.
+Name:Naturalize#Rarity:Common#Type:Sorcery#Cost:1G#Ability:Destroy target artifact or enchantment.
+Name:Call of the Ancient Ones#Rarity:Rare#Type:Sorcery#Cost:3BB#Ability:Call of the Ancient Ones allows you to return target creature card from a graveyard to the battlefield under your control. That creature gains haste until end of turn and must be sacrificed at the beginning of the next end step.
+Name:Dark Offering#Rarity:Common#Type:Sorcery#Cost:1B#Ability:Target player loses 2 life and you gain 2 life.
+Name:Natural Harmony#Rarity:Rare#Type:Sorcery#Cost:1G#Ability:Search your library for a basic land card and put it onto the battlefield tapped, then shuffle your library. You gain 2 life.
+Name:Angelic Blessing#Rarity:Uncommon#Type:Sorcery#Cost:1W#Ability:Target creature gets +3/+3 and gains vigilance until end of turn.
+Name:Call to Unity#Rarity:Common#Type:Sorcery#Cost:1W#Ability:Create two 1/1 white Human creature tokens.
+Name:Cataclysmic Surge#Rarity:Rare#Type:Sorcery#Cost:3RR#Ability:Cataclysmic Surge deals 5 damage to each creature and each player. If a creature dealt damage this way would die this turn, exile it instead.
+Name:Eldritch Rebirth#Rarity:Rare#Type:Sorcery#Cost:2GG#Ability:Eldritch Rebirth allows you to return all creature cards with converted mana cost 3 or less from your graveyard to the battlefield. If Eldritch Rebirth was cast from your graveyard, you may return all creature cards with converted mana cost 4 or greater from your graveyard to the battlefield instead.
+Name:Verdant Genesis#Rarity:Mythic Rare#Type:Sorcery#Cost:2G#Ability:Search your library for up to two land cards, put them onto the battlefield tapped, then shuffle your library. You may put a +1/+1 counter on each creature you control.

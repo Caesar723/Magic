@@ -31,6 +31,6 @@ class Pious_Courser(Creature):
         self.content:str="When Pious Courser enters the battlefield, you gain 2 life."
         self.image_path:str="cards/creature/Pious Courser/image.jpg"
 
-
-
-        
+    @select_object("",1)
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        await self.cure_to_object(player,2,"rgba(245, 238, 145, 0.8)","Missile_Hit")

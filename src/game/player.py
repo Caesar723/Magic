@@ -204,11 +204,12 @@ class Player:
 
     def select_attacker(self,card:Creature):# select_creature_as_attacker, the index of battlefield
         
-        card.when_become_attacker()
+        #card.when_become_attacker()
+        return 
 
     def select_defender(self,card:Creature):# select_creature_as_defender
-        card.when_become_defender()
-
+        #card.when_become_defender()
+        return
     def deal_damage_player(self):# Deal damage to player
         pass
 
@@ -228,8 +229,7 @@ class Player:
         #print(checked_result)
         if checked_result[0]:
             self.action_store.start_record()#
-            for card_when_play in self.get_cards_from_dict("when_play_a_card"):
-                await card_when_play.when_play_a_card(card,self,self.opponent)
+            
             result=await card.when_use_this_card(self,self.opponent)
             #(result)
             if result[1]=="cancel":
@@ -241,6 +241,9 @@ class Player:
                 if not await land.when_clicked(self,self.opponent):
                     self.action_store.end_record()
                     return (False,"Can't use land")
+            for card_when_play in self.get_cards_from_dict("when_play_a_card"):
+                if card_when_play!=card:
+                    await card_when_play.when_play_a_card(card,self,self.opponent)
             self.action_store.add_action(actions.Change_Mana(self,self,self.get_manas()))
             self.action_store.end_record()
 
@@ -288,6 +291,10 @@ class Player:
             land.untap()
         for creature in self.battlefield:
             creature.untap()
+            if creature.get_flag("Double strike"):
+                creature.set_counter_dict("attack_counter",2)
+            else:
+                creature.set_counter_dict("attack_counter",1)
 
     async def upkeep_step(self):#保持步骤（Upkeep Step）：某些卡牌效果会在这个时候触发。
         for card in self.get_cards_from_dict("upkeep_step"):

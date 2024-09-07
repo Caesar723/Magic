@@ -24,7 +24,7 @@ class Divine_Sanctuary_Buff(Buff):
         previews_func_flag=card.get_flag
         previews_func_take_damage=card.take_damage
 
-        def take_damage(self_card,card,value,player, opponent):# 可以受到来自各种卡牌的伤害
+        async def take_damage(self_card,card,value,player, opponent):# 可以受到来自各种卡牌的伤害
             result=previews_func_take_damage(card,0,player,opponent)
             return result
 

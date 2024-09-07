@@ -31,6 +31,6 @@ class Elite_Squire(Creature):
         self.content:str="Vigilance (This creature doesn't tap when it attacks)"
         self.image_path:str="cards/creature/Elite Squire/image.jpg"
 
-
+        self.flag_dict["Vigilance"]=True
 
         

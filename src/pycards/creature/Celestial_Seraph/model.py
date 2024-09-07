@@ -1,6 +1,7 @@
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
+import random
 if TYPE_CHECKING:
     from game.player import Player
     from game.card import Card
@@ -28,10 +29,24 @@ class Celestial_Seraph(Creature):
         self.color:str="gold"
         self.type_card:str="Angel Creature - Angel"
         self.rarity:str="Mythic Rare"
-        self.content:str="Flying, Lifelink (Damage dealt by this creature also causes you to gain that much life), Whenever Celestial Seraph attacks, you may exile target nonland permanent an opponent controls until Celestial Seraph leaves the battlefield."
+        self.content:str="Flying, Lifelink (Damage dealt by this creature also causes you to gain that much life), Whenever Celestial Seraph attacks, you may exile random nonland permanent an opponent controls until Celestial Seraph leaves the battlefield."
         self.image_path:str="cards/creature/Celestial Seraph/image.jpg"
 
 
         self.flag_dict['lifelink']=True
         self.flag_dict['flying']=True
+
+        self.creature_store=[]
+
+    async def when_start_attcak(self, card: "Creature | Player", player: "Player" = None, opponent: "Player" = None):
+        creature=random.choice(opponent.battlefield)
+        await self.exile_object(creature,"rgba(239, 228, 83, 0.8)","Missile_Hit")
+        self.creature_store.append(creature)
         
+
+    async def when_leave_battlefield(self, player: "Player" = None, opponent: "Player" = None, name: str = 'battlefield'):
+        result= await super().when_leave_battlefield(player, opponent, name)
+        for creature in self.creature_store:
+            new_creature=type(creature)(opponent)
+            opponent.append_card(new_creature,"battlefield")
+        return result

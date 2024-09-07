@@ -30,7 +30,17 @@ class Thunderclap_Behemoth(Creature):
         self.rarity:str="Rare"
         self.content:str="Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.), Whenever Thunderclap Behemoth attacks, it deals 3 damage to each creature defending player controls if you control another creature with power 4 or greater."
         self.image_path:str="cards/creature/Thunderclap Behemoth/image.jpg"
+        self.flag_dict["Trample"]=True
 
+    async def when_start_attcak(self,defender:Creature,player:Player,opponent:Player):
+        flag=False
+        for creature in player.battlefield:
+            if creature.state[0]>=4:
+                flag=True
+                break
+        if flag:
+            #for creature in opponent.battlefield:
+            await self.attact_to_object(defender,3,"rgba(243, 243, 243, 0.9)","Missile_Hit")
 
 
         

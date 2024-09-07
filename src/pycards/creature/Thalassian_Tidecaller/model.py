@@ -1,6 +1,7 @@
 
 from __future__ import annotations
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from game.player import Player
     from game.card import Card
@@ -28,9 +29,12 @@ class Thalassian_Tidecaller(Creature):
         self.color:str="blue"
         self.type_card:str="Merfolk Creature"
         self.rarity:str="Rare"
-        self.content:str="Whenever you cast a Merfolk spell, you may tap or untap target permanent."
+        self.content:str="Whenever you cast a blue spell, you may draw a card."
         self.image_path:str="cards/creature/Thalassian Tidecaller/image.jpg"
 
-
+    async def when_play_a_card(self, card: "Card", player: "Player", opponent: "Player"):
+        if card.color=="blue" and self in player.battlefield:
+            player.draw_card(1)
+        
 
         

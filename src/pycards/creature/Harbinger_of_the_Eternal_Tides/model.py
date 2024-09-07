@@ -7,7 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.creature import Creature
 from game.game_function_tool import select_object
-
+from game.buffs import Tap
 
 class Harbinger_of_the_Eternal_Tides(Creature):
     
@@ -31,6 +31,14 @@ class Harbinger_of_the_Eternal_Tides(Creature):
         self.content:str="Flash, When Harbinger of the Eternal Tides enters the battlefield, tap target creature an opponent controls. It doesn't untap during its controller's next untap step."
         self.image_path:str="cards/creature/Harbinger of the Eternal Tides/image.jpg"
 
+        self.flag_dict["Flash"]=True
+
+    @select_object("opponent_creatures",1)
+    async def when_enter_battlefield(self,player:"Player",opponent:"Player",selected_object:tuple['Card']=()):
+        if selected_object:
+            buff=Tap(self,selected_object[0])
+            selected_object[0].gain_buff(buff,self)
 
 
+        
         

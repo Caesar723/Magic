@@ -33,7 +33,7 @@ class Emberheart_Berserker__(Creature):
         self.image_path:str="cards/creature/Emberheart Berserker  /image.jpg"
 
 
-    def when_start_defend(self, card: "Creature | Player", player: "Player" = None, opponent: "Player" = None):
+    async def when_start_defend(self, card: "Creature | Player", player: "Player" = None, opponent: "Player" = None):
         for land in player.land_area:
             if isinstance(land,Mountain):
                 buff=StateBuff(self,self,0,1)
@@ -42,6 +42,6 @@ class Emberheart_Berserker__(Creature):
                 
 
 
-        return super().when_start_defend(card, player, opponent)
+        return await super().when_start_defend(card, player, opponent)
 
 

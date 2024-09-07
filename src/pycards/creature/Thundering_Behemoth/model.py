@@ -1,6 +1,7 @@
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
+
 if TYPE_CHECKING:
     from game.player import Player
     from game.card import Card
@@ -8,6 +9,7 @@ if TYPE_CHECKING:
 from game.type_cards.creature import Creature
 from game.game_function_tool import select_object
 
+from game.buffs import KeyBuff
 
 class Thundering_Behemoth(Creature):
     
@@ -31,6 +33,13 @@ class Thundering_Behemoth(Creature):
         self.content:str="Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.), When Thundering Behemoth enters the battlefield, creatures you control gain trample until end of turn."
         self.image_path:str="cards/creature/Thundering Behemoth/image.jpg"
 
+        self.flag_dict["Trample"]=True
 
 
+    @select_object("",1)
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        for creature in player.battlefield:
+            buff = KeyBuff(self,creature,"Trample")
+            buff.set_end_of_turn()
+            creature.gain_buff(buff,self)
         

@@ -31,6 +31,12 @@ class Mystic_Tidecaller(Creature):
         self.content:str="Flash, When Mystic Tidecaller enters the battlefield, you may return target nonland permanent to its owner's hand."
         self.image_path:str="cards/creature/Mystic Tidecaller/image.jpg"
 
-
+    @select_object("all_creatures",1)
+    async def when_enter_battlefield(self,player:"Player",opponent:"Player",selected_object:tuple['Card']=()):
+        if selected_object:
+            selected_object[0].player.remove_card(selected_object[0],"battlefield")
+            new_card=type(selected_object[0])(selected_object[0].player)
+            selected_object[0].player.append_card(new_card,"hand")
+            
 
         

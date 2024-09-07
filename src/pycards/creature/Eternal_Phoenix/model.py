@@ -37,7 +37,7 @@ class Eternal_Phoenix(Creature):
     async def when_move_to_graveyard(self, player: "Player" = None, opponent: "Player" = None):#移入墓地 OK
         
         
-        self.when_leave_battlefield(player,opponent,'graveyard')
+        await self.when_leave_battlefield(player,opponent,'graveyard')
         
 
         player.action_store.start_record()

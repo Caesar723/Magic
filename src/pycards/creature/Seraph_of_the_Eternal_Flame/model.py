@@ -7,7 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.creature import Creature
 from game.game_function_tool import select_object
-
+from game.buffs import Indestructible
 
 class Seraph_of_the_Eternal_Flame(Creature):
     
@@ -32,5 +32,11 @@ class Seraph_of_the_Eternal_Flame(Creature):
         self.image_path:str="cards/creature/Seraph of the Eternal Flame/image.jpg"
 
 
+    async def when_start_attcak(self,card:"Creature|Player",player: "Player" = None, opponent: "Player" = None):#OK
+        for creature in player.battlefield:
+            buff=Indestructible(self,creature)
+            buff.set_end_of_turn()
+            creature.gain_buff(buff,self)
 
-        
+
+

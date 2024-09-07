@@ -264,16 +264,58 @@ def name_replace(name:str):
     for char in replace_list:
         name=name.replace(char,"_")
     return name
+
+
+def check_unmake_cards():
+    from initinal_file import CARD_DICTION
+    from game.type_cards.creature import Creature
+    from game.type_cards.instant import Instant
+    from game.type_cards.land import Land
+    from game.type_cards.sorcery import Sorcery
+    types=(Creature,Instant,Land,Sorcery)
+    def get_card_info(card_class):
+        card:"Creature|Instant|Land|Sorcery"=card_class(None)
+        if issubclass(card_class,Creature):
+            parameters={"Name":card.name,"Rarity":card.rarity,"Type":card.type,"Power/Toughness":f"{card.power}/{card.live}","Cost":card.mana_cost,"Ability":card.content}
+        elif issubclass(card_class,Instant):
+            parameters={"Name":card.name,"Rarity":card.rarity,"Type":card.type,"Cost":card.mana_cost,"Ability":card.content}
+        elif issubclass(card_class,Land):
+            parameters={"Name":card.name,"Rarity":card.rarity,"Type":card.type,"Cost":card.mana_cost,"Ability":card.content}
+        elif issubclass(card_class,Sorcery):
+            parameters={"Name":card.name,"Rarity":card.rarity,"Type":card.type,"Cost":card.mana_cost,"Ability":card.content}
+        para_str="#".join([f"{key}:{value}" for key,value in parameters.items()])
+        return para_str+"\n"
+    for type in types:
+        for card_class in type.__subclasses__():
+            if not get_overridden_methods(card_class,type):
+                info=get_card_info(card_class)
+                with open(f"{ORGPATH}/card_info/unmake_cards.txt",'a') as f:
+                    f.write(info)
+
+
+
+def get_overridden_methods(child_class, parent_class):
+    overridden_methods = []
+    for method in dir(child_class):
+        if method.startswith('__') and method.endswith('__'):
+            continue  # 忽略特殊方法
+        if method in dir(parent_class) and callable(getattr(child_class, method)):
+            if getattr(child_class, method) is not getattr(parent_class, method):
+                overridden_methods.append(method)
+    return overridden_methods
+
+
 if __name__=="__main__":
     import sys
     sys.path.append("/Users/xuanpeichen/Desktop/code/python/openai/src")
+    check_unmake_cards()
     #remove_py()
 
-    creature_creater()
-    land_creater()
-    sorcery_creater()
-    instant_creater()
+    # creature_creater()
+    # land_creater()
+    # sorcery_creater()
+    # instant_creater()
 
     
-    initinal_init_file()
+    # initinal_init_file()
     

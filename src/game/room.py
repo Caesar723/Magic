@@ -169,10 +169,12 @@ class Room:
 
     async def start_attack(self,defender:Union[Creature,Player]):# attacker and defenders start attack
         self.action_processor.start_record()
+        self.attacker.add_counter_dict("attack_counter",-1)
+            
         if isinstance(defender,Creature):
             
-            self.attacker.when_start_attcak(defender,self.attacker.player,self.attacker.player.opponent)
-            defender.when_start_defend(self.attacker,defender.player,defender.player.opponent)
+            await self.attacker.when_start_attcak(defender,self.attacker.player,self.attacker.player.opponent)
+            await defender.when_start_defend(self.attacker,defender.player,defender.player.opponent)
             self.action_processor.end_record()
             self.action_processor.start_record()
             rest_live=await self.attacker.deal_damage(defender,self.attacker.player,self.attacker.player.opponent)
@@ -190,7 +192,7 @@ class Room:
 
 
         elif isinstance(defender,Player):
-            self.attacker.when_start_attcak(defender,self.attacker.player,self.attacker.player.opponent)
+            await self.attacker.when_start_attcak(defender,self.attacker.player,self.attacker.player.opponent)
             self.action_processor.end_record()
             self.action_processor.start_record()
             await self.attacker.deal_damage_player(defender,self.attacker.player,self.attacker.player.opponent)
@@ -301,7 +303,10 @@ class Room:
                 #print(self.flag_dict["attacker_defenders"])
             await self.check_death()
             #print(self.attacker)
-            if self.attacker:
+            if self.attacker and\
+                not self.attacker.get_flag("Vigilance") and\
+                self.attacker.get_counter_from_dict("attack_counter")<=0:
+                
                 self.action_processor.start_record()
                 self.attacker.tap()
                 self.action_processor.end_record()
@@ -388,13 +393,13 @@ class Room:
 
         if player==self.active_player and not self.get_flag('attacker_defenders') and\
         (not card.get_flag("summoning_sickness") or card.get_flag("haste")) and\
-        not card.get_flag("tap"):
+        not card.get_flag("tap") and (card.get_counter_from_dict("attack_counter")>0):
             self.action_processor.start_record()
             self.action_processor.add_action(actions.Creature_Prepare_Attack(card,player))
             player.select_attacker(card)
             self.flag_dict['attacker_defenders']=True
             self.attacker=card
-            card.when_become_attacker(player,player.opponent)
+            await card.when_become_attacker(player,player.opponent)
             await self.start_bullet_time()
             self.action_processor.end_record()
             
@@ -409,7 +414,7 @@ class Room:
         #print(card)
         if not card:
             return (False,"no card")
-        print(player==self.non_active_player,self.get_flag("attacker_defenders"),not card.get_flag("tap"),(not self.attacker.get_flag("flying") or (card.get_flag("flying") or card.get_flag("reach"))))
+        #print(player==self.non_active_player,self.get_flag("attacker_defenders"),not card.get_flag("tap"),(not self.attacker.get_flag("flying") or (card.get_flag("flying") or card.get_flag("reach"))))
         if player==self.non_active_player and \
         self.get_flag("attacker_defenders") and\
         not card.get_flag("tap") and \
@@ -422,7 +427,7 @@ class Room:
                 return "defender"
             #prepared_function=lambda: "defender"
             await self.put_prepared_function_to_stack(prepared_function,card)
-            card.when_become_defender(player,player.opponent)
+            await card.when_become_defender(player,player.opponent)
             self.action_processor.end_record()
             return (True,"success")
         else:

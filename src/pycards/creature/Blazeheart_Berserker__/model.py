@@ -33,7 +33,7 @@ class Blazeheart_Berserker__(Creature):
         self.content:str="Whenever Blazeheart Berserker attacks, it gets +1/+0 until end of turn for each Mountain you control."
         self.image_path:str="cards/creature/Blazeheart Berserker  /image.jpg"
 
-    def when_start_attcak(self, card: "Creature | Player", player: "Player" = None, opponent: "Player" = None):
+    async def when_start_attcak(self, card: "Creature | Player", player: "Player" = None, opponent: "Player" = None):
         for land in player.land_area:
             if isinstance(land,Mountain):
                 buff=StateBuff(self,self,1,0)
@@ -42,6 +42,6 @@ class Blazeheart_Berserker__(Creature):
                 
 
 
-        return super().when_start_attcak(card, player, opponent)
+        return await super().when_start_attcak(card, player, opponent)
 
         

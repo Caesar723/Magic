@@ -31,6 +31,11 @@ class Voidwisp_Harbinger(Creature):
         self.content:str="Flash, Flying, When Voidwisp Harbinger enters the battlefield, you may scry 2. (To scry 2, look at the top two cards of your library, then put any number of them on the bottom of your library and the rest on top in any order.)"
         self.image_path:str="cards/creature/Voidwisp Harbinger/image.jpg"
 
+        self.flag_dict["flying"]=True
+        self.flag_dict["Flash"]=True
 
+    @select_object("",1)
+    async def when_enter_battlefield(self,player:'Player',opponent:'Player',selected_object:tuple['Card']=()):
+        await self.Scry(player,opponent,2)
 
         

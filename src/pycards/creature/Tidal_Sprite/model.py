@@ -31,6 +31,8 @@ class Tidal_Sprite(Creature):
         self.content:str="Flying (This creature can't be blocked except by creatures with flying or reach.)"
         self.image_path:str="cards/creature/Tidal Sprite/image.jpg"
 
-
-
+        self.flag_dict["flying"]=True
         
+
+
+

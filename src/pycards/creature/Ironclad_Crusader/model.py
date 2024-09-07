@@ -1,12 +1,14 @@
 
 from __future__ import annotations
 from typing import TYPE_CHECKING
+import types
 if TYPE_CHECKING:
     from game.player import Player
     from game.card import Card
  
 from game.type_cards.creature import Creature
 from game.game_function_tool import select_object
+from game.buffs import Tap
 
 
 class Ironclad_Crusader(Creature):
@@ -33,4 +35,11 @@ class Ironclad_Crusader(Creature):
 
 
 
-        
+    @select_object("opponent_creatures", 1)
+    async def when_enter_battlefield(self,player:Player,opponent:Player,selected_object:tuple['Card']=()) -> None:
+        """Trigger ability when Ironclad Crusader enters the battlefield.
+        Tap target creature an opponent controls. That creature doesn't untap during its controller's next untap step."""
+        if selected_object:
+            buff=Tap(self,selected_object[0])
+            selected_object[0].gain_buff(buff,self)
+            

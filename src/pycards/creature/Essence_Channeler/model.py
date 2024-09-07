@@ -7,7 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.creature import Creature
 from game.game_function_tool import select_object
-
+from game.type_action.actions import Change_Mana
 
 class Essence_Channeler(Creature):
     
@@ -31,6 +31,12 @@ class Essence_Channeler(Creature):
         self.content:str="Whenever you cast a creature spell, you may add G to your mana pool."
         self.image_path:str="cards/creature/Essence Channeler/image.jpg"
 
+    async def when_play_a_card(self,card:'Card',player:'Player'=None,opponent:'Player'=None):
+        if isinstance(card,Creature) and self in player.battlefield:
+            player.mana["G"]+=1
+            player.action_store.add_action(Change_Mana(self,player,player.get_manas()))
+            
 
+        
 
         

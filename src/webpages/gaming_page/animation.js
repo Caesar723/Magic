@@ -3,16 +3,16 @@ class Animation{//action
     constructor(object_hold,player){///object can be card and 
         this.name="Action"
         this.object_hold=object_hold
-        //console.log(player)
+        console.log(object_hold)
         if (this.object_hold instanceof Player){
             this.new_ring_hold=this.object_hold.player_life_ring.get_copy()
         }
         else{
-            this.object_hold=Animation.check_hand(this.object_hold)
+            this.object_hold=Animation.check_hand(this.object_hold,true)
             this.object_hold_new=this.object_hold.get_copy()
         }
         
-        //console.log(object_hold)
+        console.log(object_hold)
         this.player=player
 
         this.width=50

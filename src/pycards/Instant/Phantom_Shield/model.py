@@ -22,7 +22,7 @@ class Phantom_Shield_Buff(Buff):
     
     def change_function(self,card:"Creature"):
         previews_func=card.take_damage
-        def take_damage(self_card,card,value,player, opponent):# 可以受到来自各种卡牌的伤害
+        async def take_damage(self_card,card,value,player, opponent):# 可以受到来自各种卡牌的伤害
             result=previews_func(card,0,player,opponent)
             return result
         card.take_damage = types.MethodType(take_damage, card)

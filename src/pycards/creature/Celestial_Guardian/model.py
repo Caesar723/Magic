@@ -31,6 +31,7 @@ class Celestial_Guardian(Creature):
         self.content:str="Flying, Vigilance"
         self.image_path:str="cards/creature/Celestial Guardian/image.jpg"
 
-
+        self.flag_dict["flying"]=True
+        self.flag_dict["Vigilance"]=True
 
         
