@@ -6,6 +6,6 @@
     "Toughness": 3,
     "Cost": "1W",
     "Story Background": "Born from the planes of blinding light, the Celestial Herald embodies divine justice and protection, swooping down to defend the innocent and punish the wicked.",
-    "Ability": "Flying, Lifelink. At the beginning of your upkeep, you may exile target nonland permanent. Return that permanent to the battlefield under its owner's control at the beginning of the next end step.",
+    "Ability": "Flying, Lifelink. At the beginning of your upkeep, exile random nonland opponent's permanent. Return that permanent to the battlefield under its owner's control at the beginning of the next end step.",
     "Appearance Description": "The Celestial Herald is a radiant figure with iridescent wings, emanating a soft, golden glow. Its gaze is piercing, yet benevolent, and its presence inspires hope and courage."
 }

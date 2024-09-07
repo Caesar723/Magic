@@ -155,7 +155,7 @@ def get_card_info(card_class):
     elif issubclass(card_class,Instant):
         parameters={"Name":card.name,"Rarity":card.rarity,"Cost":card.mana_cost,"Ability":card.content}
     elif issubclass(card_class,Land):
-        parameters={"Name":card.name,"Rarity":card.rarity,"Type":card.type,"Ability":card.content}
+        parameters={"Name":card.name,"Rarity":card.rarity,"Ability":card.content}
     elif issubclass(card_class,Sorcery):
         parameters={"Name":card.name,"Rarity":card.rarity,"Cost":card.mana_cost,"Ability":card.content}
     return parameters

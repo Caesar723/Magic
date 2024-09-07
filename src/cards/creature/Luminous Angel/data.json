@@ -6,6 +6,6 @@
     "Toughness": 4,
     "Cost": "3WW",
     "Story Background": "The Luminous Angel is a celestial being of radiant beauty and unwavering compassion. Its presence brings hope and healing to those in need, its luminous wings symbolizing the enduring light of grace and benevolence.",
-    "Ability": "Flying, Lifelink (Damage dealt by this creature also causes you to gain that much life.), At the beginning of your upkeep, if you have at least 30 or more life, transform Luminous Angel.",
+    "Ability": "Flying, Lifelink (Damage dealt by this creature also causes you to gain that much life.), At the beginning of your upkeep, if you have at least 20 or more life, gain +1/+1",
     "Appearance Description": "The Luminous Angel is a resplendent figure with opalescent wings that shimmer with ethereal radiance. Its serene countenance emanates a soothing warmth that envelops all in its vicinity, and its eyes exude an otherworldly serenity that inspires awe and reverence."
 }

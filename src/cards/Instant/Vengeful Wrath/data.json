@@ -4,6 +4,6 @@
     "Type": "Instant",
     "Cost": "3BB",
     "Story Background": "The wrath of the fallen is unleashed, bringing retribution to those who dared strike them down.",
-    "Ability": "When your creature dies, deal damage equal to its power to target opponent's creature.",
+    "Ability": "Destroy target creature. Deal damage equal to its power to a random creature your opponent controls.",
     "Appearance Description": "A dark, fiery aura bursts forth from a dying creature, lashing out at the opponent's forces."
 }

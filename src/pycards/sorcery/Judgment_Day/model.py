@@ -21,7 +21,7 @@ class Judgment_Day(Sorcery):
         self.type:str="Sorcery"
 
         self.mana_cost:str="5WW"
-        self.color:str="colorless"
+        self.color:str="gold"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
         self.content:str="Destroy all creatures. Then, each player may return one creature card from their graveyard to the battlefield."

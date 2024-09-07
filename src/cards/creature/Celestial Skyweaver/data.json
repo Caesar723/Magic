@@ -6,6 +6,6 @@
     "Toughness": 5,
     "Cost": "2WW",
     "Story Background": "The Celestial Skyweaver is a guardian spirit that weaves the threads of the heavens, guiding lost souls to their celestial resting place. Its presence brings tranquility to troubled hearts and solace to weary travelers.",
-    "Ability": "Flying, Whenever you cast an enchantment spell, you may tap target creature an opponent controls.",
+    "Ability": "Flying, Whenever you cast an instant or sorcery spell, you may tap target creature an opponent controls.",
     "Appearance Description": "The Celestial Skyweaver appears as a luminous figure adorned with billowing, ethereal wings that seem to dance with the shimmering light of the stars. Its eyes radiate a gentle warmth and its serene visage encourages peace and serenity to all who behold it."
 }

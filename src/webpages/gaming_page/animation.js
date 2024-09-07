@@ -8,7 +8,7 @@ class Animation{//action
             this.new_ring_hold=this.object_hold.player_life_ring.get_copy()
         }
         else{
-            this.object_hold=Animation.check_hand(this.object_hold,true)
+            this.object_hold=Animation.check_hand(this.object_hold)
             this.object_hold_new=this.object_hold.get_copy()
         }
         
@@ -268,7 +268,7 @@ class Creature_Start_Attack extends Animation{
     }
     set_animate(){//
 
-
+        this.object_hold=Animation.check_hand(this.object_hold,true)
         if (this.attacked_obj instanceof Player){
             this.object_hold.battle.moving_cache.push(["rotate_to_point",[this.attacked_obj.player_life_ring.position]])
             this.object_hold.battle.moving_cache.push(["attack_to",[this.attacked_obj.player_life_ring.position,this.state_self,this.attacked_obj,this.state_attacted]])
@@ -370,12 +370,14 @@ class Creature_Prepare_Defense extends Animation{
         this.name='Creature Prepare Defense'
     }
     set_animate(){
+        this.object_hold=Animation.check_hand(this.object_hold,true)
         this.object_hold.battle.mode="defence"
         this.object_hold.battle.moving_cache.push(["rotate_to_point",[this.attacked_obj.position]])
     }
 
 
     draw_action(ctx,canvas,camera){
+        
         super.draw_action(ctx,canvas,camera)
         ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
 
@@ -397,6 +399,7 @@ class Activate_Ability extends Animation{//就是将卡牌横置
 
     }
     set_animate(){
+        this.object_hold=Animation.check_hand(this.object_hold,true)
         
         //console.log(this.object_hold.battle,this.object_hold)
         this.object_hold.battle.z_index=-1;
@@ -430,6 +433,7 @@ class Reset_Ability extends Animation{//就是将卡牌解除横置
 
     }
     set_animate(){
+        this.object_hold=Animation.check_hand(this.object_hold,true)
         this.object_hold.battle.z_index=1;
         this.object_hold.battle.activated=false
         this.object_hold.battle.moving_cache.push(["rotate_to_point",[[
@@ -504,6 +508,7 @@ class Add_Buff extends Select_Object{
             }
             else{
                 if (this.object_hold.type=="Creature"){
+                    this.object_hold=Animation.check_hand(this.object_hold,true)
                     this.missile=this.special_effect.create_missile(this.object_hold,this.selected_object,this.color,this.type,this.final_state)
                 }
                 else
@@ -604,6 +609,7 @@ class Attack_To_Object extends Select_Object{
     set_animate(){
         
         console.log(this.object_hold)
+        
         this.missile=this.special_effect.create_missile(this.object_hold,this.selected_object,this.color,this.type,this.result_state)
         this.player.music.play_music_effect("missile")
 

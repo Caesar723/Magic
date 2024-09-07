@@ -25,11 +25,11 @@ class Guardian_of_the_Grove__(Creature):
         self.type:str="Creature"
 
         self.mana_cost:str="1WW"
-        self.color:str="colorless"
+        self.color:str="gold"
         self.type_card:str="Elemental Creature"
         self.rarity:str="Uncommon"
         self.content:str="Whenever Guardian of the Grove enters the battlefield, you may search your library for a basic Forest card and put it onto the battlefield tapped."
-        self.image_path:str="cards/creature/Guardian of the Grove  /image.jpg"
+        self.image_path:str="cards/creature/Guardian of the Grove/image.jpg"
     @select_object("",1)
     async def when_enter_battlefield(self,player: "Player" = None,opponent: "Player" = None,selected_object:tuple['Card']=()):
         for card in player.library:

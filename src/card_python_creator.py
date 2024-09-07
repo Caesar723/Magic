@@ -269,7 +269,7 @@ def name_replace(name:str):
 def check_unmake_cards():
     from initinal_file import CARD_DICTION
     from game.type_cards.creature import Creature
-    from game.type_cards.instant import Instant
+    from game.type_cards.instant import Instant,Instant_Undo
     from game.type_cards.land import Land
     from game.type_cards.sorcery import Sorcery
     types=(Creature,Instant,Land,Sorcery)
@@ -287,6 +287,10 @@ def check_unmake_cards():
         return para_str+"\n"
     for type in types:
         for card_class in type.__subclasses__():
+            # if card_class!=Instant_Undo:
+            #     obj=card_class(None)
+            #     if obj.color=="colorless":
+            #         print(card_class.__name__)
             if not get_overridden_methods(card_class,type):
                 info=get_card_info(card_class)
                 with open(f"{ORGPATH}/card_info/unmake_cards.txt",'a') as f:

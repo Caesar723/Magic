@@ -1,11 +1,11 @@
 {
-    "Name": "Ralgar, the Inferno King  ",
-    "Rarity": "Mythic Rare  ",
-    "Type": "Elemental Creature  ",
+    "Name": "Ralgar, the Inferno King",
+    "Rarity": "Mythic Rare",
+    "Type": "Elemental Creature",
     "Power": 5,
     "Toughness": 4,
-    "Cost": "3RR  ",
+    "Cost": "3RR",
     "Story Background": "Born from the heart of a volcano, Ralgar wields the power of fire and magma.  ",
-    "Ability": "When Ralgar enters the battlefield, it deals 3 damage to any target. Whenever you cast an instant or sorcery spell, Ralgar gets +1/+0 until end of turn.  ",
+    "Ability": "When Ralgar enters the battlefield, it deals 3 damage to any target. Whenever you cast an instant or sorcery spell, Ralgar gets +1/+0 until end of turn.",
     "Appearance Description": "Ralgar is a towering figure made of molten lava and burning embers, with flames dancing around his form and leaving a trail of smoke in his wake"
 }

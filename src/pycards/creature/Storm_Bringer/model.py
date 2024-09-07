@@ -24,8 +24,8 @@ class Storm_Bringer(Creature):
         self.type_creature:str="Creature - Elemental"
         self.type:str="Creature"
 
-        self.mana_cost:str="4UU (6 Mana)"
-        self.color:str="colorless"
+        self.mana_cost:str="4UU"
+        self.color:str="blue"
         self.type_card:str="Creature - Elemental"
         self.rarity:str="Rare"
         self.content:str="Flying. When Storm Bringer enters the battlefield, it deals 3 damage to each opponent and you gain 3 life."

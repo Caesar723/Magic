@@ -27,11 +27,11 @@ class Blazeheart_Berserker__(Creature):
         self.type:str="Creature"
 
         self.mana_cost:str="1RR"
-        self.color:str="colorless"
+        self.color:str="red"
         self.type_card:str="Human Warrior"
         self.rarity:str="Uncommon"
         self.content:str="Whenever Blazeheart Berserker attacks, it gets +1/+0 until end of turn for each Mountain you control."
-        self.image_path:str="cards/creature/Blazeheart Berserker  /image.jpg"
+        self.image_path:str="cards/creature/Blazeheart Berserker/image.jpg"
 
     async def when_start_attcak(self, card: "Creature | Player", player: "Player" = None, opponent: "Player" = None):
         for land in player.land_area:

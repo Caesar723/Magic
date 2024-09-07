@@ -6,6 +6,6 @@
     "Toughness": 2,
     "Cost": "3U",
     "Story Background": "A young mage who discovered the secrets of harnessing the power of the aether.",
-    "Ability": "When Aetherweaver enters the battlefield, you may return target artifact or enchantment from your graveyard to your hand.",
+    "Ability": "When Aetherweaver enters the battlefield, look at the top three cards of your library. You may put an instant or sorcery card from among them into your hand. Put the rest on the bottom of your library in any order.",
     "Appearance Description": "Aetherweaver is cloaked in flowing robes adorned with intricate symbols of energy, with crackling arcs of aether energy emanating from their fingertips."
 }

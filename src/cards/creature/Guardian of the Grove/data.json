@@ -1,11 +1,11 @@
 {
-    "Name": "Guardian of the Grove  ",
-    "Rarity": "Uncommon  ",
-    "Type": "Elemental Creature  ",
+    "Name": "Guardian of the Grove",
+    "Rarity": "Uncommon",
+    "Type": "Elemental Creature",
     "Power": 3,
     "Toughness": 3,
-    "Cost": "1WW  ",
+    "Cost": "1WW",
     "Story Background": "Born from the ancient trees of the forest, the Guardian of the Grove protects its woodland home with unwavering loyalty.  ",
-    "Ability": "Whenever Guardian of the Grove enters the battlefield, you may search your library for a basic Forest card and put it onto the battlefield tapped.  ",
+    "Ability": "Whenever Guardian of the Grove enters the battlefield, you may search your library for a basic Forest card and put it onto the battlefield tapped.",
     "Appearance Description": "The Guardian of the Grove is a towering figure made of intertwining branches and shimmering leaves, with eyes that glow with the wisdom of nature"
 }

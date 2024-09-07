@@ -27,11 +27,11 @@ class Ralgar__the_Inferno_King__(Creature):
         self.type:str="Creature"
 
         self.mana_cost:str="3RR"
-        self.color:str="colorless"
+        self.color:str="red"
         self.type_card:str="Elemental Creature"
         self.rarity:str="Mythic Rare"
         self.content:str="When Ralgar enters the battlefield, it deals 3 damage to any target. Whenever you cast an instant or sorcery spell, Ralgar gets +1/+0 until end of turn."
-        self.image_path:str="cards/creature/Ralgar, the Inferno King  /image.jpg"
+        self.image_path:str="cards/creature/Ralgar, the Inferno King/image.jpg"
 
     @select_object("all_roles",1)
     async def when_enter_battlefield(self,player:'Player',opponent:'Player',selected_object:tuple['Card']=()):

@@ -223,6 +223,9 @@ def get_cards_diction():
     
     from game.card import Card
     import pycards
+    import re
+
+    #pattern = r'__(?=\w+$)'
     
     types=["creature","Instant","land","sorcery"]
     subclass_dict={"Instant_Undo":"Instant"}
@@ -240,13 +243,16 @@ def get_cards_diction():
     for subclass in Card.__subclasses__():
         for card in subclass.__subclasses__():
             try:
-                class_name=card.__name__
+                
+                class_name = re.sub(r'__$', '', card.__name__)
+                
                 if class_name in subclass_dict:
                     for subcard in card.__subclasses__():
                         result_dict[f"{class_dict[subcard.__name__]}_{subclass_dict[class_name]}"]=subcard
                 else:
-                    result_dict[f"{class_dict[card.__name__]}_{subclass.__name__}"]=card
+                    result_dict[f"{class_dict[class_name]}_{subclass.__name__}"]=card
             except KeyError as e:
+                #print(class_name)
                 print(card.__name__,"token")
     
     return result_dict

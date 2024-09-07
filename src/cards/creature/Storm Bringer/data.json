@@ -4,7 +4,7 @@
     "Type": "Creature - Elemental",
     "Power": 5,
     "Toughness": 5,
-    "Cost": "4UU (6 Mana)",
+    "Cost": "4UU",
     "Story Background": "The Storm Bringer is a manifestation of the wildest tempests, bringing lightning and fury to the battlefield.",
     "Ability": "Flying. When Storm Bringer enters the battlefield, it deals 3 damage to each opponent and you gain 3 life.",
     "Appearance Description": "A swirling mass of storm clouds and lightning, vaguely humanoid in shape, with eyes that crackle with electricity."

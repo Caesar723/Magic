@@ -26,11 +26,11 @@ class Emberheart_Berserker__(Creature):
         self.type:str="Creature"
 
         self.mana_cost:str="1RR"
-        self.color:str="colorless"
+        self.color:str="red"
         self.type_card:str="Human"
         self.rarity:str="Common"
         self.content:str="Whenever Emberheart Berserker defends, it gets +0/+1 until end of turn for each Mountain you control."
-        self.image_path:str="cards/creature/Emberheart Berserker  /image.jpg"
+        self.image_path:str="cards/creature/Emberheart Berserker/image.jpg"
 
 
     async def when_start_defend(self, card: "Creature | Player", player: "Player" = None, opponent: "Player" = None):
