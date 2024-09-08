@@ -93,6 +93,7 @@ class Creature(Card):
     
     async def take_damage(self,card:Card,value:int,player: "Player" = None, opponent: "Player" = None)->int:# 可以受到来自各种卡牌的伤害
         #print(value,card)
+        value=max(value,0)
         self.actual_live-=value
         await self.when_hurt(card,value,player,opponent)
         return self.state[1]

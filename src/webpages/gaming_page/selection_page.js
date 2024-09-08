@@ -72,8 +72,9 @@ class Selection_Page{
                 }
                 else{
                     for (let card of element()){
-                        card.select_flag=true
-
+                        if (!get_dict(card.flag_dict,'Hexproof')){
+                            card.select_flag=true
+                        }
                     }
                     console.log(element())
                 }

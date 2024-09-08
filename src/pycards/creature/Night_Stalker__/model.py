@@ -31,6 +31,10 @@ class Night_Stalker__(Creature):
         self.content:str="Menace (This creature can't be blocked except by two or more creatures.)"
         self.image_path:str="cards/creature/Night Stalker/image.jpg"
 
+        self.flag_dict["Menace"]=True
+
+
+
 
 
         

@@ -1,8 +1,8 @@
 def main():
     import uvicorn
     ip_address = get_local_ip()
-    #print(ip_address)
-    #ip_address="10.208.15.84"
+    print(ip_address)
+    ip_address="172.20.10.7"
     ip_address="0.0.0.0"
     #ip_address="localhost"
     uvicorn.run(

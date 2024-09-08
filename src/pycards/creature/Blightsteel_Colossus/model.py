@@ -7,7 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.creature import Creature
 from game.game_function_tool import select_object
-
+from game.buffs import Infect,Indestructible
 
 class Blightsteel_Colossus(Creature):
     
@@ -31,6 +31,13 @@ class Blightsteel_Colossus(Creature):
         self.content:str="Trample, Infect (This creature deals damage to creatures in the form of -1/-1 counters and to players in the form of poison counters.), Indestructible (This creature can't be destroyed by damage or effects that say \"destroy.\")"
         self.image_path:str="cards/creature/Blightsteel Colossus/image.jpg"
 
+        self.flag_dict["Trample"]=True
+
+        buff_infect=Infect(self,self)
+        self.gain_buff(buff_infect,self)
+
+        buff_indestructible=Indestructible(self,self)
+        self.gain_buff(buff_indestructible,self)
 
 
         

@@ -97,8 +97,8 @@ class Player:
 
         #游戏还没有开始
         self.deck:list[Card]=[]
-        self.initinal_decks(decks_detail)
-        self.initinal_card_dict()
+        self.deck_detail:str=decks_detail
+        
 
         #the socket used to select object
         self.socket_select_object:"WebSocket"
@@ -110,6 +110,8 @@ class Player:
     def set_opponent_player(self,opponent:"Player",room:'Room'):
         self.opponent:"Player"=opponent
         self.room:'Room'=room
+        self.initinal_decks(self.deck_detail)
+        self.initinal_card_dict()
 
 
     def set_socket(self,socket):
@@ -192,6 +194,7 @@ class Player:
 
    
     def take_damage(self,card:Card,value:int)->int:
+        value=max(value,0)
         self.life-=value
         self.when_dealt_damage(card,value)
 
@@ -331,8 +334,8 @@ class Player:
         self.action_store.end_record()
 
     async def cleanup_step(self):#清理步骤（Cleanup Step）：玩家将手牌调整至最大手牌限制，移除所有“直到回合结束”类的效果，并移除所有受到的伤害。清空法术力（包括敌方）
-        # self.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
-        # self.opponent.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
+        self.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
+        self.opponent.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
         self.action_store.add_action(actions.Change_Mana(self,self,self.get_manas()))
         self.opponent.action_store.add_action(actions.Change_Mana(self.opponent,self.opponent,self.opponent.get_manas()))
 

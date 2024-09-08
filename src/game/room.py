@@ -281,7 +281,7 @@ class Room:
 
                 #if not card.get_flag("die") and not self.attacker.get_flag("die"):#如果是有Menace 就记数，有两个defender才会让attacker_defenders变false 
                 if not (card.get_flag("die") or self.attacker.get_flag("die") or card.get_flag("exile") or self.attacker.get_flag("exile")):
-                    max_defender_number=1
+                    max_defender_number=1 if not self.attacker.get_flag("Menace") else 2
                     self.add_counter_dict("defender_number",1)
                     if self.counter_dict["defender_number"]>=max_defender_number:
                         self.flag_dict["attacker_defenders"]=False
@@ -306,7 +306,7 @@ class Room:
             if self.attacker and\
                 not self.attacker.get_flag("Vigilance") and\
                 self.attacker.get_counter_from_dict("attack_counter")<=0:
-                
+
                 self.action_processor.start_record()
                 self.attacker.tap()
                 self.action_processor.end_record()

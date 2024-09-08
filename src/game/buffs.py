@@ -1,7 +1,10 @@
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from game.card import Card
+    from game.player import Player
     from game.type_cards.creature import Creature
+    from game.type_action import actions
 
 
 import types
@@ -143,7 +146,7 @@ class Indestructible(Buff):
             power,live=self_card.state
             if live-value<=0:
                 value=live-1
-            result=previews_func_take_damage(card,value,player,opponent)
+            result=await previews_func_take_damage(card,value,player,opponent)
             return result
 
         def get_flag(self_card,key):
@@ -157,3 +160,44 @@ class Indestructible(Buff):
         card.get_flag = types.MethodType(get_flag, card)
         card.take_damage = types.MethodType(take_damage, card)
         card.die = types.MethodType(die, card)
+
+class Infect(Buff):
+    def __init__(self,card:"Card",selected_card:"Card") -> None:
+        super().__init__(card,selected_card)
+        self.card=card#这个buff是属于哪一张卡的
+        self.card_type:str="Infect"#这个buff是用在那个类型的
+        self.content:str="infect"#描述buff
+        self.buff_name=f"{card.name}"
+
+    def change_function(self, card: "Creature"):
+        previews_func_deal=card.deal_damage
+        previews_func_attact_to_object=card.attact_to_object
+        async def deal_damage(self_card,card:"Creature",player: "Player" = None, opponent: "Player" = None):# 用在所有造成伤害的功能
+            power,life=self_card.state
+
+            buff=StateBuff(self_card,card,-power,-power)
+            card.gain_buff(buff,self_card)
+            rest_live=await card.take_damage(self_card,0,card.player,card.player.opponent) 
+            
+            
+            await self_card.when_harm_is_done(card,power,player,opponent)
+            if await card.check_dead():
+                await self_card.when_kill_creature(card,player,opponent)
+            return rest_live
+        
+        async def attact_to_object(self_card,object,power,color,type_missile):# it won't get hurt object can be card ot player
+
+            if isinstance(object,(type(self_card.player),type(self_card.player.opponent))):
+                # object.take_damage(self_card,power)
+                # self_card.player.action_store.add_action(actions.Attack_To_Object(self_card,self_card.player,object,color,type_missile,[object.life]))
+                # await object.check_dead()
+                await previews_func_attact_to_object(object,power,color,type_missile)
+            else:
+                buff=StateBuff(self_card,object,-power,-power)
+                object.gain_buff(buff,self_card)
+                await previews_func_attact_to_object(object,0,color,type_missile)
+
+        
+        card.deal_damage = types.MethodType(deal_damage, card)
+        card.attact_to_object = types.MethodType(attact_to_object, card)
+        

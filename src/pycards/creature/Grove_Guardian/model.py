@@ -31,6 +31,9 @@ class Grove_Guardian(Creature):
         self.content:str="Reach, Hexproof (This creature can't be the target of spells or abilities your opponents control.)"
         self.image_path:str="cards/creature/Grove Guardian/image.jpg"
 
+        self.flag_dict["reach"]=True
+        self.flag_dict["Hexproof"]=True
+
 
 
         
