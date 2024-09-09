@@ -134,7 +134,7 @@ class Player:
         self.cards_store_dict["end_step"]=[]
         self.cards_store_dict["aura"]=[]#光环，存具有光环效果的牌，每当用户发送信息的时候都会触发一下光环来检查光环也没有失效
         self.cards_store_dict["when_creature_die"]=[]
-    def get_cards_from_dict(self,key:str):
+    def get_cards_from_dict(self,key:str)->list[Card]:
         if key in self.cards_store_dict:
             return self.cards_store_dict[key]
         else:
@@ -272,6 +272,12 @@ class Player:
         result=await card.check_dead()
         if result:
             #self.action_store.start_record()
+            for card_self in self.get_cards_from_dict("when_creature_die"):
+                if card_self!=card:
+                    await card_self.when_a_creature_die(card,card_self.player,card_self.player.opponent)
+            for card_opponent in self.opponent.get_cards_from_dict("when_creature_die"):
+                if card_opponent!=card:
+                    await card_opponent.when_a_creature_die(card,card_opponent.player,card_opponent.player.opponent)
             await card.when_move_to_graveyard(self,self.opponent)
             #self.action_store.end_record()
             # card.when_die(self,self.opponent)
@@ -334,8 +340,8 @@ class Player:
         self.action_store.end_record()
 
     async def cleanup_step(self):#清理步骤（Cleanup Step）：玩家将手牌调整至最大手牌限制，移除所有“直到回合结束”类的效果，并移除所有受到的伤害。清空法术力（包括敌方）
-        self.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
-        self.opponent.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
+        # self.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
+        # self.opponent.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
         self.action_store.add_action(actions.Change_Mana(self,self,self.get_manas()))
         self.opponent.action_store.add_action(actions.Change_Mana(self.opponent,self.opponent,self.opponent.get_manas()))
 

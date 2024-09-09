@@ -22,6 +22,10 @@ class Soul_Transfer_buff(Buff):
 
         self.target_cards=target_cards
 
+        self.init_params.update({
+            "target_cards": target_cards,
+        })
+
     def change_function(self,card:"Creature"):
         previews_func=card.when_die
         async def when_die(self_card,player,opponent):

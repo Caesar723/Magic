@@ -34,4 +34,19 @@ class Luminous_Guardian(Creature):
 
         self.flag_dict['lifelink']=True
         self.flag_dict['flying']=True
+
+        self.card_store=False
         
+    @select_object("all_creatures",1)
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        if selected_object and selected_object[0].state[0]>=3:
+            await self.exile_object(selected_object[0],"rgba(255,215,0,0.5)","Missile_Hit")
+            self.card_store=selected_object[0]
+
+    async def when_leave_battlefield(self,player: "Player" = None, opponent: "Player" = None,name:str='battlefield'):
+        await super().when_leave_battlefield(player,opponent,name)
+        if self.card_store:
+            self.card_store.player.remove_card(self.card_store,"exile_area")
+            new_card=type(self.card_store)(self.card_store.player)
+            self.card_store.player.append_card(new_card,"battlefield")
+            self.card_store=False

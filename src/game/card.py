@@ -277,7 +277,7 @@ class Card:
         func_dict={#这里要和player的initinal_card_dict一致
             "end_step":(Card.when_end_turn,self.when_end_turn),
             "upkeep_step":(Card.when_start_turn,self.when_start_turn),
-            "when_creature_die":(Card.when_a_creature_die,self.when_end_turn),
+            "when_creature_die":(Card.when_a_creature_die,self.when_a_creature_die),
             "aura":(Card.aura,self.aura),
             "when_play_a_card":(Card.when_play_a_card,self.when_play_a_card)
         }

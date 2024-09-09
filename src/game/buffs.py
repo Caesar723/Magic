@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 
 import types
-
+import inspect
 
 
 
@@ -23,9 +23,13 @@ class Buff:
         self.color_missile="rgba(203, 203, 203, 0.9)"
         self.buff_name="Buff"
         self.selected_card=selected_card
-        
-        
+        self.init_params = {
+            "card": card,
+            "selected_card": selected_card
+        }
 
+        
+    
     def change_function(self,card:"Card"):
         pass
     
@@ -56,6 +60,10 @@ class StateBuff(Buff):
         self.power=power
         self.live=live
         self.buff_name=f"{card.name}"
+        self.init_params.update({
+            "power": power,
+            "live": live
+        })
 
     def change_function(self,card:"Creature"):
         previews_func=card.calculate_state
@@ -75,6 +83,9 @@ class KeyBuff(Buff):
         self.content:str=f"{key_name}"#描述buff
         self.key_name=key_name
         self.buff_name=f"{card.name}"
+        self.init_params.update({
+            "key_name": key_name,
+        })
     def change_function(self,card:"Creature"):
         previews_func=card.get_flag
         def get_flag(self_card,key):
@@ -92,6 +103,7 @@ class Frozen(Buff):
         self.content:str="frozen"#描述buff
         self.buff_name=f"{card.name}"
         self.set_end_of_turn()
+        
 
     def change_function(self,card:"Creature"):
         previews_func=card.get_flag

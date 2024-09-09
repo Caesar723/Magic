@@ -342,7 +342,11 @@ class Room:
         await self.active_player.ending_phase()
         await self.active_player.cancel_future_function()
         await self.non_active_player.cancel_future_function()
-        self.active_player,self.non_active_player=self.non_active_player,self.active_player
+
+        if self.active_player.get_counter_from_dict("extra_turn")<=0:
+            self.active_player,self.non_active_player=self.non_active_player,self.active_player
+        else:
+            self.active_player.add_counter_dict("extra_turn",-1)
         
         await self.active_player.beginning_phase()
         #触发一些回合开始的东西

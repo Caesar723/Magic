@@ -31,6 +31,11 @@ class Chronostrider(Creature):
         self.content:str="Flash, Haste. When Chronostrider enters the battlefield, you may take an extra turn after this one."
         self.image_path:str="cards/creature/Chronostrider/image.jpg"
 
+        self.flag_dict["haste"]=True
+        self.flag_dict["Flash"]=True
 
+    @select_object("",1)
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
 
+        player.add_counter_dict("extra_turn",1)
         
