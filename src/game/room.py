@@ -280,7 +280,7 @@ class Room:
                 await self.attacker.check_dead()
 
                 #if not card.get_flag("die") and not self.attacker.get_flag("die"):#如果是有Menace 就记数，有两个defender才会让attacker_defenders变false 
-                if not (card.get_flag("die") or self.attacker.get_flag("die") or card.get_flag("exile") or self.attacker.get_flag("exile")):
+                if not (card.get_flag("die") or self.attacker.get_flag("die") or card.get_flag("exile") or self.attacker.get_flag("exile"))  or self.attacker.get_flag("Menace"):
                     max_defender_number=1 if not self.attacker.get_flag("Menace") else 2
                     self.add_counter_dict("defender_number",1)
                     if self.counter_dict["defender_number"]>=max_defender_number:
@@ -297,7 +297,8 @@ class Room:
             if self.get_flag("attacker_defenders"):#如果attacker_defenders还是True 那attacker 就去攻击敌方英雄
                 
                 await self.attacker.check_dead()
-                if not ( self.attacker.get_flag("die") or  self.attacker.get_flag("exile")):
+                
+                if not ( self.attacker.get_flag("die") or  self.attacker.get_flag("exile")) or self.attacker.get_flag("Menace"):
                     await self.start_attack(self.non_active_player)
                 self.flag_dict["attacker_defenders"]=False
                 #print(self.flag_dict["attacker_defenders"])

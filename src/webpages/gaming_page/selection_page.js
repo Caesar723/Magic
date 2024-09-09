@@ -72,7 +72,9 @@ class Selection_Page{
                 }
                 else{
                     for (let card of element()){
-                        if (!get_dict(card.flag_dict,'Hexproof')){
+
+                        if ((!get_dict(card.flag_dict,'Hexproof')) || card.player===this.self_player.type_name){
+
                             card.select_flag=true
                         }
                     }
@@ -106,6 +108,10 @@ class Selection_Page{
     }
 
     check_card_in_list(card){// 返回true false
+        
+        if (get_dict(card.flag_dict,'Hexproof') && card.player==this.oppo_player.type_name){
+            return false
+        }
         if (this.selection_mode=="cards"){
             for(let element of this.selection_list){
                 if (element===card){

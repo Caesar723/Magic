@@ -127,7 +127,7 @@ def check_select_valid(player:'Player',selected_object,type_selection:str):
             else:
                 #print(element)
                 
-                if selected_object in element and not selected_object.get_flag("Hexproof"):
+                if selected_object in element and (not selected_object.get_flag("Hexproof") or selected_object.player==player):
                     return True
     return False
             
