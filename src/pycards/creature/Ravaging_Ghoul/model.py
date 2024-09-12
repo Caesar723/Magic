@@ -28,9 +28,10 @@ class Ravaging_Ghoul(Creature):
         self.color:str="black"
         self.type_card:str="Zombie Creature"
         self.rarity:str="Uncommon"
-        self.content:str="When Ravaging Ghoul enters the battlefield, target opponent loses 2 life unless they sacrifice a creature."
+        self.content:str="When Ravaging Ghoul enters the battlefield, target opponent loses 2 life ."
         self.image_path:str="cards/creature/Ravaging Ghoul/image.jpg"
 
-
-
+    @select_object("",1)
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        await self.attact_to_object(opponent,2,"rgba(0,0,0,1)","Cure")
         

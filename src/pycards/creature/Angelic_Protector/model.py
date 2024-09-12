@@ -4,10 +4,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from game.player import Player
     from game.card import Card
- 
 from game.type_cards.creature import Creature
 from game.game_function_tool import select_object
-
+from game.buffs import Tap
 
 class Angelic_Protector(Creature):
     
@@ -31,6 +30,12 @@ class Angelic_Protector(Creature):
         self.content:str="When Angelic Protector enters the battlefield, you may tap target creature. It doesn't untap during its controller's next untap step."
         self.image_path:str="cards/creature/Angelic Protector/image.jpg"
 
+
+    @select_object("all_creatures",1)
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        if selected_object:
+            buff=Tap(self,selected_object[0])
+            selected_object[0].gain_buff(buff,self)
 
 
         
