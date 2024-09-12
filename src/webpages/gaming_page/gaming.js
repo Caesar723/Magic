@@ -27,6 +27,7 @@ class Game_Client{
         this.card_frame=new Card_frame()
         this.action_bar=new Action_Bar()
         this.show_2d=new Show_2D(this.canvas_table,this.ctx_table)
+        this.buttons=new Buttons(this)
 
         this.selectionPage=new Selection_Page(this.canvas_table,this.ctx_table,this.table,this.self_player,this.oppo_player)
         
@@ -162,6 +163,7 @@ class Game_Client{
         this.self_player.update()
         
         this.show_2d.update()
+        this.buttons.update()
         this.selectionPage.update()
 
         this.blur_changing()
@@ -186,6 +188,7 @@ class Game_Client{
         }
         this.action_bar.draw(this.canvas_table,this.ctx_table,this.self_player.camera)
         this.show_2d.draw()
+        this.buttons.draw(this.canvas_table,this.ctx_table)
         if ((this.selectionPage.in_selection && this.selectionPage.selection_mode=="cards")||(this.win_lose.finish) ){
             this.blur_effect(this.grayscale,this.blur_value)
         }
@@ -247,324 +250,325 @@ class Game_Client{
         
 
         
-        this.main_canvas.focus()
-        this.main_canvas.addEventListener('keydown', (event) => {
-            console.log("A key pressed");
-            if (event.key === "w" || event.key === "W") {
-                // 执行W键按下时的操作
-                this.table.camera.position[2]=this.table.camera.position[2]+1
-            } else if (event.key === "a" || event.key === "A") {
-                // 执行A键按下时的操作
-                this.table.camera.position[0]=this.table.camera.position[0]-1
-            } else if (event.key === "s" || event.key === "S") {
-                // 执行S键按下时的操作
-                this.table.camera.position[2]=this.table.camera.position[2]-1
-            } else if (event.key === "d" || event.key === "D") {
-                // 执行D键按下时的操作
-                this.table.camera.position[0]=this.table.camera.position[0]+1
-            }
-            else if (event.key ===' ') {
-                // 执行D键按下时的操作
-                this.table.camera.position[1]=this.table.camera.position[1]-1
-            }
-            else if (event.shiftKey) {
-                // 执行D键按下时的操作
-                this.table.camera.position[1]=this.table.camera.position[1]+1
-            }
-            else if (event.key === "i" || event.key === "I") {
-                // 执行D键按下时的操作
-                this.table.self_battlefield[0].start_moving("move_to",[[0,-20,-30]])
-            }
-            else if (event.key === "p" ) {
-                // 执行D键按下时的操作
-                console.log(this.table.self_battlefield[0].card.get_copy())
-                const action=new Creature_Start_Attack(this.table.self_battlefield[0].card.get_copy(),this.self_player,this.oppo_player,[10,10],[2])
-                action.set_animate()
-                this.action_bar.actions.push(action)
-                // this.table.self_battlefield[0].moving_cache.push(["attack_to",[[15,-20,-10],[10,10]]])
-                // this.table.self_battlefield[0].moving_cache.push(["rotate_to_point",[[
-                //     this.table.self_battlefield[0].accurate_position[0],
-                //     this.table.self_battlefield[0].accurate_position[1],
-                //     this.table.self_battlefield[0].accurate_position[2]+1,
-                // ]]])
-            }
-            else if (event.key === "q") {
-                // 执行D键按下时的操作
-                console.log(this.table.self_battlefield[0].card.get_copy())
-                const action=new Creature_Start_Attack(this.table.self_battlefield[0].card.get_copy(),this.self_player,this.table.opponent_battlefield[0],[10,10],[10,2])
-                action.set_animate()
-                this.action_bar.actions.push(action)
-                // this.table.self_battlefield[0].moving_cache.push(["attack_to",[[15,-20,-10],[10,10]]])
-                // this.table.self_battlefield[0].moving_cache.push(["rotate_to_point",[[
-                //     this.table.self_battlefield[0].accurate_position[0],
-                //     this.table.self_battlefield[0].accurate_position[1],
-                //     this.table.self_battlefield[0].accurate_position[2]+1,
-                // ]]])
-            }
-            else if (event.key === "o" || event.key === "O") {
-                // 执行D键按下时的操作
-                this.table.self_battlefield[0].moving_cache.push(["rotate_to_point",[[15,-20,-10]]])
-            }
-            else if (event.key === "u" || event.key === "U") {
-                // 执行D键按下时的操作
-                //this.table.self_battlefield[0].moving_cache.push(["disappear",[[0,-20,-20]]])
-                const action=new Die(this.table.self_battlefield[0].card,this.self_player)
-                action.set_animate()
-                this.action_bar.actions.push(action)
-            }
-            else if (event.key === "y" || event.key === "Y") {
-                // 执行D键按下时的操作
-                //this.table.opponent_battlefield[0].start_moving("disappear",[[0,-20,20]])
-                const action=new Die(this.table.opponent_battlefield[0].card,this.oppo_player)
-                action.set_animate()
-                this.action_bar.actions.push(action)
-            }
-            else if (event.key === "l" || event.key === "L"){
-                const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-                const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,20,20,"Caesar",1122334455)
-                const card_battle=new Creature_Battle(6,5,[-25,-25,0],0.3,card,"self",this.table)
+        // this.main_canvas.focus()
+        // this.main_canvas.addEventListener('keydown', (event) => {
+        //     console.log("A key pressed");
+        //     if (event.key === "w" || event.key === "W") {
+        //         // 执行W键按下时的操作
+        //         this.table.camera.position[2]=this.table.camera.position[2]+1
+        //     } else if (event.key === "a" || event.key === "A") {
+        //         // 执行A键按下时的操作
+        //         this.table.camera.position[0]=this.table.camera.position[0]-1
+        //     } else if (event.key === "s" || event.key === "S") {
+        //         // 执行S键按下时的操作
+        //         this.table.camera.position[2]=this.table.camera.position[2]-1
+        //     } else if (event.key === "d" || event.key === "D") {
+        //         // 执行D键按下时的操作
+        //         this.table.camera.position[0]=this.table.camera.position[0]+1
+        //     }
+        //     else if (event.key ===' ') {
+        //         // 执行D键按下时的操作
+        //         this.table.camera.position[1]=this.table.camera.position[1]-1
+        //     }
+        //     else if (event.shiftKey) {
+        //         // 执行D键按下时的操作
+        //         this.table.camera.position[1]=this.table.camera.position[1]+1
+        //     }
+        //     else if (event.key === "i" || event.key === "I") {
+        //         // 执行D键按下时的操作
+        //         this.table.self_battlefield[0].start_moving("move_to",[[0,-20,-30]])
+        //     }
+        //     else if (event.key === "p" ) {
+        //         // 执行D键按下时的操作
+        //         console.log(this.table.self_battlefield[0].card.get_copy())
+        //         const action=new Creature_Start_Attack(this.table.self_battlefield[0].card.get_copy(),this.self_player,this.oppo_player,[10,10],[2])
+        //         action.set_animate()
+        //         this.action_bar.actions.push(action)
+        //         // this.table.self_battlefield[0].moving_cache.push(["attack_to",[[15,-20,-10],[10,10]]])
+        //         // this.table.self_battlefield[0].moving_cache.push(["rotate_to_point",[[
+        //         //     this.table.self_battlefield[0].accurate_position[0],
+        //         //     this.table.self_battlefield[0].accurate_position[1],
+        //         //     this.table.self_battlefield[0].accurate_position[2]+1,
+        //         // ]]])
+        //     }
+        //     else if (event.key === "q") {
+        //         // 执行D键按下时的操作
+        //         console.log(this.table.self_battlefield[0].card.get_copy())
+        //         const action=new Creature_Start_Attack(this.table.self_battlefield[0].card.get_copy(),this.self_player,this.table.opponent_battlefield[0],[10,10],[10,2])
+        //         action.set_animate()
+        //         this.action_bar.actions.push(action)
+        //         // this.table.self_battlefield[0].moving_cache.push(["attack_to",[[15,-20,-10],[10,10]]])
+        //         // this.table.self_battlefield[0].moving_cache.push(["rotate_to_point",[[
+        //         //     this.table.self_battlefield[0].accurate_position[0],
+        //         //     this.table.self_battlefield[0].accurate_position[1],
+        //         //     this.table.self_battlefield[0].accurate_position[2]+1,
+        //         // ]]])
+        //     }
+        //     else if (event.key === "o" || event.key === "O") {
+        //         // 执行D键按下时的操作
+        //         this.table.self_battlefield[0].moving_cache.push(["rotate_to_point",[[15,-20,-10]]])
+        //     }
+        //     else if (event.key === "u" || event.key === "U") {
+        //         // 执行D键按下时的操作
+        //         //this.table.self_battlefield[0].moving_cache.push(["disappear",[[0,-20,-20]]])
+        //         const action=new Die(this.table.self_battlefield[0].card,this.self_player)
+        //         action.set_animate()
+        //         this.action_bar.actions.push(action)
+        //     }
+        //     else if (event.key === "y" || event.key === "Y") {
+        //         // 执行D键按下时的操作
+        //         //this.table.opponent_battlefield[0].start_moving("disappear",[[0,-20,20]])
+        //         const action=new Die(this.table.opponent_battlefield[0].card,this.oppo_player)
+        //         action.set_animate()
+        //         this.action_bar.actions.push(action)
+        //     }
+        //     else if (event.key === "l" || event.key === "L"){
+        //         const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
+        //         const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,20,20,"Caesar",1122334455)
+        //         const card_battle=new Creature_Battle(6,5,[-25,-25,0],0.3,card,"self",this.table)
 
 
-                //this.table.self_battlefield.push(card_battle)
+        //         //this.table.self_battlefield.push(card_battle)
 
-                const action=new Summon(card,this.self_player)
-                action.set_animate()
-                this.action_bar.actions.push(action)
-            }
-            else if (event.key === "k" || event.key === "K"){
-                const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-                const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,20,20,"Caesar",1122334455)
-                const card_battle=new Creature_Battle(6,5,[-25,-20,0],0.3,card,"opponent",this.table)
+        //         const action=new Summon(card,this.self_player)
+        //         action.set_animate()
+        //         this.action_bar.actions.push(action)
+        //     }
+        //     else if (event.key === "k" || event.key === "K"){
+        //         const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
+        //         const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,20,20,"Caesar",1122334455)
+        //         const card_battle=new Creature_Battle(6,5,[-25,-20,0],0.3,card,"opponent",this.table)
 
-                card_battle.flying=true
+        //         card_battle.flying=true
 
-                const action=new Summon(card,this.oppo_player)
-                action.set_animate()
-                this.action_bar.actions.push(action)
-                //this.table.opponent_battlefield.push(card_battle)
-            }
-            else if (event.key === "m" || event.key === "M"){
-                this.self_player.cards[0].moving_cache.push(["move_to",[[0,0,0]]])
-            }
-            else if (event.key === "n" || event.key === "N"){
-                this.self_player.cards[0].moving_cache.push(["move_to",[[5,0,0]]])
-            }
-            else if (event.key === "b" || event.key === "B"){
-                const canvas_dynamic=this.self_player.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-                const card=new Creature_Hand(4,5.62,[0,60,-20],1.5,canvas_dynamic,"3U",20,20,20,20,"Caesar",1122334455,this.self_player)
+        //         const action=new Summon(card,this.oppo_player)
+        //         action.set_animate()
+        //         this.action_bar.actions.push(action)
+        //         //this.table.opponent_battlefield.push(card_battle)
+        //     }
+        //     else if (event.key === "m" || event.key === "M"){
+        //         this.self_player.cards[0].moving_cache.push(["move_to",[[0,0,0]]])
+        //     }
+        //     else if (event.key === "n" || event.key === "N"){
+        //         this.self_player.cards[0].moving_cache.push(["move_to",[[5,0,0]]])
+        //     }
+        //     else if (event.key === "b" || event.key === "B"){
+        //         const canvas_dynamic=this.self_player.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
+        //         const card=new Creature_Hand(4,5.62,[0,60,-20],1.5,canvas_dynamic,"3U",20,20,20,20,"Caesar",1122334455,this.self_player)
         
-                //this.self_player.cards.push(card)
+        //         //this.self_player.cards.push(card)
 
-                const action=new Gain_Card(this.self_player,this.self_player,card)
-                action.set_animate()
-                this.action_bar.actions.push(action)
-            }
-            else if (event.key === "v" || event.key === "V") {
+        //         const action=new Gain_Card(this.self_player,this.self_player,card)
+        //         action.set_animate()
+        //         this.action_bar.actions.push(action)
+        //     }
+        //     else if (event.key === "v" || event.key === "V") {
                 
-                //this.self_player.cards[0].moving_cache.push(["disappear",[[0,60,-20]]])
-                const action=new Lose_Card(this.self_player,this.self_player,this.self_player.cards[0])
-                action.set_animate()
-                this.action_bar.actions.push(action)
-            }
-            else if (event.key === "c" || event.key === "C") {
-                const card=new Card_Hand_Oppo(4,5.62,[0,-60,-20],0.7,1122334455,this.oppo_player)
-                const action=new Gain_Card(this.oppo_player,this.oppo_player,card)
-                action.set_animate()
-                this.action_bar.actions.push(action)
+        //         //this.self_player.cards[0].moving_cache.push(["disappear",[[0,60,-20]]])
+        //         const action=new Lose_Card(this.self_player,this.self_player,this.self_player.cards[0])
+        //         action.set_animate()
+        //         this.action_bar.actions.push(action)
+        //     }
+        //     else if (event.key === "c" || event.key === "C") {
+        //         const card=new Card_Hand_Oppo(4,5.62,[0,-60,-20],0.7,1122334455,this.oppo_player)
+        //         const action=new Gain_Card(this.oppo_player,this.oppo_player,card)
+        //         action.set_animate()
+        //         this.action_bar.actions.push(action)
         
-                //this.oppo_player.cards.push(card)
-            }
+        //         //this.oppo_player.cards.push(card)
+        //     }
 
-            else if (event.key === "x" || event.key === "X") {
-                this.table.timmer_turn.animate_set(this.table.timmer_turn.time-5,this.table.timmer_turn.time)
+        //     else if (event.key === "x" || event.key === "X") {
+        //         this.table.timmer_turn.animate_set(this.table.timmer_turn.time-5,this.table.timmer_turn.time)
         
-                //this.oppo_player.cards.push(card)
-            }
-            else if (event.key === "z" || event.key === "Z") {
-                this.table.timmer_turn.animate_set(this.table.timmer_turn.time+5,this.table.timmer_turn.time)
+        //         //this.oppo_player.cards.push(card)
+        //     }
+        //     else if (event.key === "z" || event.key === "Z") {
+        //         this.table.timmer_turn.animate_set(this.table.timmer_turn.time+5,this.table.timmer_turn.time)
         
-                //this.oppo_player.cards.push(card)
-            }
-            else if (event.key === "f" || event.key === "F") {
-                //this.table.timmer_turn.animate_set(this.table.timmer_turn.time+5,this.table.timmer_turn.time)
-                this.self_player.player_life_ring.animate_set(this.self_player.player_life_ring.life+1,this.self_player.player_life_ring.life)
-                //this.oppo_player.cards.push(card)
-            }
-            else if (event.key === "g" || event.key === "G") {
-                //this.table.timmer_turn.animate_set(this.table.timmer_turn.time+5,this.table.timmer_turn.time)
-                this.self_player.player_life_ring.animate_set(this.self_player.player_life_ring.life-3,this.self_player.player_life_ring.life)
-                //this.oppo_player.cards.push(card)
-            }
-            else if (event.key === "e" || event.key === "E") {
-                //this.table.timmer_turn.animate_set(this.table.timmer_turn.time+5,this.table.timmer_turn.time)
-                const action=new Change_Mana(this.self_player,this.self_player,[0,2,15,6,10])
-                action.set_animate()
-                this.action_bar.actions.push(action)
-                //this.self_player.mana_bar.set_mana([0,2,15,6,10])
-                //this.oppo_player.cards.push(card)
-            }
-            else if (event.key === "r" || event.key === "R") {
-                this.table.special_effects.create_missile(this.table.self_battlefield[0].card,this.oppo_player,"","Arrow","")
-                // const action=new Attack_To_Object(this.self_player,this.self_player,this.oppo_player,"rgba(0, 243, 0, 0.9)","Cure",[5])
-                // action.set_animate()
-                // this.action_bar.actions.push(action)
+        //         //this.oppo_player.cards.push(card)
+        //     }
+        //     else if (event.key === "f" || event.key === "F") {
+        //         //this.table.timmer_turn.animate_set(this.table.timmer_turn.time+5,this.table.timmer_turn.time)
+        //         this.self_player.player_life_ring.animate_set(this.self_player.player_life_ring.life+1,this.self_player.player_life_ring.life)
+        //         //this.oppo_player.cards.push(card)
+        //     }
+        //     else if (event.key === "g" || event.key === "G") {
+        //         //this.table.timmer_turn.animate_set(this.table.timmer_turn.time+5,this.table.timmer_turn.time)
+        //         this.self_player.player_life_ring.animate_set(this.self_player.player_life_ring.life-3,this.self_player.player_life_ring.life)
+        //         //this.oppo_player.cards.push(card)
+        //     }
+        //     else if (event.key === "e" || event.key === "E") {
+        //         //this.table.timmer_turn.animate_set(this.table.timmer_turn.time+5,this.table.timmer_turn.time)
+        //         const action=new Change_Mana(this.self_player,this.self_player,[0,2,15,6,10])
+        //         action.set_animate()
+        //         this.action_bar.actions.push(action)
+        //         //this.self_player.mana_bar.set_mana([0,2,15,6,10])
+        //         //this.oppo_player.cards.push(card)
+        //     }
+        //     else if (event.key === "r" || event.key === "R") {
+        //         this.table.special_effects.create_missile(this.table.self_battlefield[0].card,this.oppo_player,"","Arrow","")
+        //         // const action=new Attack_To_Object(this.self_player,this.self_player,this.oppo_player,"rgba(0, 243, 0, 0.9)","Cure",[5])
+        //         // action.set_animate()
+        //         // this.action_bar.actions.push(action)
                 
-            }
-            else if (event.key === "t" || event.key === "T") {
+        //     }
+        //     else if (event.key === "t" || event.key === "T") {
                 
-                for (let i in this.table.opponent_battlefield){
-                    const action=new Attack_To_Object(this.table.self_battlefield[0].card,this.self_player,this.table.opponent_battlefield[i].card,"rgba(0, 243, 0, 0.9)","Missile_Hit",[5,5])
-                    //action.set_animate()
-                    this.action_bar.add_actions(action)
-                    //this.action_bar.actions.push(action)
-                }
-                const action=new Attack_To_Object(this.table.self_battlefield[0].card,this.self_player,this.self_player,"rgba(0, 243, 0, 0.9)","Missile_Hit",[5])
-                this.action_bar.add_actions(action)
-                this.action_bar.add_actions(false)
-                // action.set_animate()
-                // this.action_bar.actions.push(action)
-                
-                
-            }
-            else if (event.key === "[" || event.key === "{") {
-                var action_1=new Attack_To_Object(this.self_player,this.self_player,this.oppo_player,"rgba(0, 243, 0, 0.9)","Cure",[5])
-                //action.set_animate()
-                this.action_bar.add_actions(action_1)
-                
-                //this.action_bar.actions.push(action)
-
-
-                var action_2=new Play_Cards(this.self_player.cards[0],this.self_player,this.self_player.cards[0],this.show_2d)
-                //action.set_animate()
-                //this.action_bar.actions.push(action)
-                this.action_bar.add_actions(action_2)
-
-                this.action_bar.add_actions(false)
-                var action_1=new Attack_To_Object(this.self_player,this.self_player,this.oppo_player,"rgba(0, 243, 0, 0.9)","Cure",[5])
-                //action.set_animate()
-                this.action_bar.add_actions(action_1)
-                
-                //this.action_bar.actions.push(action)
-
-
-                var action_2=new Play_Cards(this.self_player.cards[1],this.self_player,this.self_player.cards[1],this.show_2d)
-                //action.set_animate()
-                //this.action_bar.actions.push(action)
-                this.action_bar.add_actions(action_2)
-
-                this.action_bar.add_actions(false)
-
-                var action_1=new Attack_To_Object(this.self_player,this.self_player,this.oppo_player,"rgba(0, 243, 0, 0.9)","Cure",[5])
-                //action.set_animate()
-                this.action_bar.add_actions(action_1)
-                
-                //this.action_bar.actions.push(action)
-
-
-                var action_2=new Play_Cards(this.self_player.cards[2],this.self_player,this.self_player.cards[2],this.show_2d)
-                //action.set_animate()
-                //this.action_bar.actions.push(action)
-                this.action_bar.add_actions(action_2)
-
-                this.action_bar.add_actions(false)
+        //         for (let i in this.table.opponent_battlefield){
+        //             const action=new Attack_To_Object(this.table.self_battlefield[0].card,this.self_player,this.table.opponent_battlefield[i].card,"rgba(0, 243, 0, 0.9)","Missile_Hit",[5,5])
+        //             //action.set_animate()
+        //             this.action_bar.add_actions(action)
+        //             //this.action_bar.actions.push(action)
+        //         }
+        //         const action=new Attack_To_Object(this.table.self_battlefield[0].card,this.self_player,this.self_player,"rgba(0, 243, 0, 0.9)","Missile_Hit",[5])
+        //         this.action_bar.add_actions(action)
+        //         this.action_bar.add_actions(false)
+        //         // action.set_animate()
+        //         // this.action_bar.actions.push(action)
                 
                 
-            }
-            else if (event.key === "]" || event.key === "】") {
-                const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-                const card=new Land_Hand(4,5.62,[0,0,60],1.6,canvas,"Caesar",1122334455)
-                const card_battle=new Land_Battle(6,5,[-25,-20,0],0.3,card,"self",this.table)
-
-
-                //this.table.self_battlefield.push(card_battle)
-
-                const action=new Summon(card,this.self_player)
-                action.set_animate()
-                this.action_bar.actions.push(action)
-
-
-
-                const canvas2=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-                const card2=new Land_Hand(4,5.62,[0,0,60],1.6,canvas2,"Caesar",1122334455)
-                const card_battle2=new Land_Battle(6,5,[-25,-20,0],0.3,card2,"opponent",this.table)
-
-
-                //this.table.self_battlefield.push(card_battle)
-
-                const action2=new Summon(card2,this.oppo_player)
-                action2.set_animate()
-                this.action_bar.actions.push(action2)
-            }
-            else if (event.key === "\\" || event.key === "、") {
-                const canvas=this.table.card_frame.generate_card("blue","Bacon","creature","Common","shausoaishaisuhai","cards/creature/Aetherweaver/image.jpg")
-                const card=new Land_Hand(4,5.62,[0,0,60],1.6,canvas,"Bacon",1122334455)
-                const card_battle=new Land_Battle(6,5,[-25,-20,0],0.3,card,"self",this.table)
-
-
-                //this.table.self_battlefield.push(card_battle)
-
-                const action=new Summon(card,this.self_player)
-                action.set_animate()
-                this.action_bar.actions.push(action)
-
-
-                const canvas2=this.table.card_frame.generate_card("blue","Bacon","creature","Common","shausoaishaisuhai","cards/creature/Aetherweaver/image.jpg")
-                const card2=new Land_Hand(4,5.62,[0,0,60],1.6,canvas2,"Bacon",1122334455)
-                const card_battle2=new Land_Battle(6,5,[-25,-20,0],0.3,card2,"opponent",this.table)
-
-
-                //this.table.self_battlefield.push(card_battle)
-
-                const action2=new Summon(card2,this.oppo_player)
-                action2.set_animate()
-                this.action_bar.actions.push(action2)
-            }
-            else if (event.key === ";" || event.key === ";") {
+        //     }
+        //     else if (event.key === "[" || event.key === "{") {
+        //         var action_1=new Attack_To_Object(this.self_player,this.self_player,this.oppo_player,"rgba(0, 243, 0, 0.9)","Cure",[5])
+        //         //action.set_animate()
+        //         this.action_bar.add_actions(action_1)
                 
-                const action=new Activate_Ability(this.table.self_battlefield[0].card,this.self_player)
-                action.set_animate()
-                this.action_bar.actions.push(action)
+        //         //this.action_bar.actions.push(action)
 
-            }
-            // else if (event.key === "'" || event.key === "'") {
+
+        //         var action_2=new Play_Cards(this.self_player.cards[0],this.self_player,this.self_player.cards[0],this.show_2d)
+        //         //action.set_animate()
+        //         //this.action_bar.actions.push(action)
+        //         this.action_bar.add_actions(action_2)
+
+        //         this.action_bar.add_actions(false)
+        //         var action_1=new Attack_To_Object(this.self_player,this.self_player,this.oppo_player,"rgba(0, 243, 0, 0.9)","Cure",[5])
+        //         //action.set_animate()
+        //         this.action_bar.add_actions(action_1)
                 
-            //     const action=new Activate_Ability(this.table.self_landfield[3].card,this.self_player)
-            //     action.set_animate()
-            //     this.action_bar.actions.push(action)
+        //         //this.action_bar.actions.push(action)
 
 
-            //     const action2=new Reset_Ability(this.table.self_battlefield[0].card,this.self_player)
-            //     action2.set_animate()
-            //     this.action_bar.actions.push(action2)
+        //         var action_2=new Play_Cards(this.self_player.cards[1],this.self_player,this.self_player.cards[1],this.show_2d)
+        //         //action.set_animate()
+        //         //this.action_bar.actions.push(action)
+        //         this.action_bar.add_actions(action_2)
 
-            // }
-            // else if (event.key === "/" || event.key === "/") {
+        //         this.action_bar.add_actions(false)
+
+        //         var action_1=new Attack_To_Object(this.self_player,this.self_player,this.oppo_player,"rgba(0, 243, 0, 0.9)","Cure",[5])
+        //         //action.set_animate()
+        //         this.action_bar.add_actions(action_1)
                 
-            //     this.message_processor.extractParts("action_list(action(Play_Cards,parameters(Land(0,0,player(CC,Self),int(4319679728),string(Island),blue,Land,Uncommon,string(),cards/land/Island/image.jpg),player(CC,Self),showOBJ())),action(Lose_Card,parameters(player(CC,Self),player(CC,Self),Opponent(player(CC,Self),int(4319679728)))),action(Summon,parameters(Land(0,0,player(CC,Self),int(4319679728),string(Island),blue,Land,Uncommon,string(),cards/land/Island/image.jpg),player(CC,Self))))")
+        //         //this.action_bar.actions.push(action)
 
 
-            // }
-            else if (event.key === "'" || event.key === "'") {
+        //         var action_2=new Play_Cards(this.self_player.cards[2],this.self_player,this.self_player.cards[2],this.show_2d)
+        //         //action.set_animate()
+        //         //this.action_bar.actions.push(action)
+        //         this.action_bar.add_actions(action_2)
+
+        //         this.action_bar.add_actions(false)
                 
-                this.table.opponent_battlefield[0].flying=true
-
-
-            }
-            else if (event.key === "/" || event.key === "/") {
                 
-                this.table.opponent_battlefield[0].flying=false
+        //     }
+        //     else if (event.key === "]" || event.key === "】") {
+        //         const canvas=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
+        //         const card=new Land_Hand(4,5.62,[0,0,60],1.6,canvas,"Caesar",1122334455)
+        //         const card_battle=new Land_Battle(6,5,[-25,-20,0],0.3,card,"self",this.table)
 
 
-            }
+        //         //this.table.self_battlefield.push(card_battle)
+
+        //         const action=new Summon(card,this.self_player)
+        //         action.set_animate()
+        //         this.action_bar.actions.push(action)
+
+
+
+        //         const canvas2=this.table.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
+        //         const card2=new Land_Hand(4,5.62,[0,0,60],1.6,canvas2,"Caesar",1122334455)
+        //         const card_battle2=new Land_Battle(6,5,[-25,-20,0],0.3,card2,"opponent",this.table)
+
+
+        //         //this.table.self_battlefield.push(card_battle)
+
+        //         const action2=new Summon(card2,this.oppo_player)
+        //         action2.set_animate()
+        //         this.action_bar.actions.push(action2)
+        //     }
+        //     else if (event.key === "\\" || event.key === "、") {
+        //         const canvas=this.table.card_frame.generate_card("blue","Bacon","creature","Common","shausoaishaisuhai","cards/creature/Aetherweaver/image.jpg")
+        //         const card=new Land_Hand(4,5.62,[0,0,60],1.6,canvas,"Bacon",1122334455)
+        //         const card_battle=new Land_Battle(6,5,[-25,-20,0],0.3,card,"self",this.table)
+
+
+        //         //this.table.self_battlefield.push(card_battle)
+
+        //         const action=new Summon(card,this.self_player)
+        //         action.set_animate()
+        //         this.action_bar.actions.push(action)
+
+
+        //         const canvas2=this.table.card_frame.generate_card("blue","Bacon","creature","Common","shausoaishaisuhai","cards/creature/Aetherweaver/image.jpg")
+        //         const card2=new Land_Hand(4,5.62,[0,0,60],1.6,canvas2,"Bacon",1122334455)
+        //         const card_battle2=new Land_Battle(6,5,[-25,-20,0],0.3,card2,"opponent",this.table)
+
+
+        //         //this.table.self_battlefield.push(card_battle)
+
+        //         const action2=new Summon(card2,this.oppo_player)
+        //         action2.set_animate()
+        //         this.action_bar.actions.push(action2)
+        //     }
+        //     else if (event.key === ";" || event.key === ";") {
+                
+        //         const action=new Activate_Ability(this.table.self_battlefield[0].card,this.self_player)
+        //         action.set_animate()
+        //         this.action_bar.actions.push(action)
+
+        //     }
+        //     // else if (event.key === "'" || event.key === "'") {
+                
+        //     //     const action=new Activate_Ability(this.table.self_landfield[3].card,this.self_player)
+        //     //     action.set_animate()
+        //     //     this.action_bar.actions.push(action)
+
+
+        //     //     const action2=new Reset_Ability(this.table.self_battlefield[0].card,this.self_player)
+        //     //     action2.set_animate()
+        //     //     this.action_bar.actions.push(action2)
+
+        //     // }
+        //     // else if (event.key === "/" || event.key === "/") {
+                
+        //     //     this.message_processor.extractParts("action_list(action(Play_Cards,parameters(Land(0,0,player(CC,Self),int(4319679728),string(Island),blue,Land,Uncommon,string(),cards/land/Island/image.jpg),player(CC,Self),showOBJ())),action(Lose_Card,parameters(player(CC,Self),player(CC,Self),Opponent(player(CC,Self),int(4319679728)))),action(Summon,parameters(Land(0,0,player(CC,Self),int(4319679728),string(Island),blue,Land,Uncommon,string(),cards/land/Island/image.jpg),player(CC,Self))))")
+
+
+        //     // }
+        //     else if (event.key === "'" || event.key === "'") {
+                
+        //         this.table.opponent_battlefield[0].flying=true
+
+
+        //     }
+        //     else if (event.key === "/" || event.key === "/") {
+                
+        //         this.table.opponent_battlefield[0].flying=false
+
+
+        //     }
 
 
 
             
-        });
+        // });
         this.main_canvas.addEventListener('mousedown', (event) => { 
             const mouse_pos=this.get_mouse_pos(event,this.main_canvas)
             const card=this.find_cards_by_mouse(mouse_pos)
             const timer=this.find_timers_by_mouse(mouse_pos)
+            const button=this.find_button_by_mouse(mouse_pos)
 
             const object=this.selectionPage.check_mouse_in_selection(mouse_pos)
             if (object===undefined && this.selectionPage.in_selection){
@@ -593,6 +597,9 @@ class Game_Client{
                 
                 
             }
+            if (!(button===undefined)){
+                button.click()
+            }
             
             
             
@@ -620,12 +627,13 @@ class Game_Client{
                 const card=this.find_cards_by_mouse(mouse_pos)
                 const timer=this.find_timers_by_mouse(mouse_pos)
                 const action=this.action_bar.check_mouse(mouse_pos)
+                const button=this.find_button_by_mouse(mouse_pos)
 
                 const object=this.selectionPage.check_mouse_in_selection(mouse_pos)
 
 
 
-                if ( ((!(card===undefined)||!(timer===undefined))&&!this.selectionPage.in_selection) || (this.selectionPage.in_selection&&!(object===undefined)) ){
+                if ( ((!(card===undefined)||!(timer===undefined )||!(button===undefined ))&&!this.selectionPage.in_selection) || (this.selectionPage.in_selection&&!(object===undefined)) ){
                     this.main_canvas.style.cursor = 'pointer';
                 }
                 else{
@@ -730,7 +738,8 @@ class Game_Client{
                         this.self_player.change_to_focus()
                     }
                     else{
-                        this.hand_move_activate(this.card_hold[0])
+                        const mouse_pos=this.get_mouse_pos(event,this.main_canvas)
+                        this.hand_move_activate(this.card_hold[0],mouse_pos)
                     }
                     // if (this.card_hold[1]){
                         
@@ -740,7 +749,9 @@ class Game_Client{
                 this.card_hold=[undefined,false,false]
             }
             else{
-                if (performance.now()-this.startTime<0.15*1000){
+                const mouse_pos=this.get_mouse_pos(event,this.main_canvas)
+                const timer=this.find_timers_by_mouse(mouse_pos)
+                if (performance.now()-this.startTime<0.15*1000 && (timer===undefined) ){
                     this.self_player.change_to_ignore()
                         
                     //console.log("click")
@@ -827,6 +838,10 @@ class Game_Client{
         }
         return undefined
     }
+    find_button_by_mouse(mouse_pos){
+        
+        return this.buttons.find_button_by_mouse(mouse_pos)
+    }
     get_mouse_pos(event,canvas){
         var rect = canvas.getBoundingClientRect();
         // 计算鼠标相对于canvas的位置
@@ -895,7 +910,7 @@ class Game_Client{
         return false   
     }
     battle_move_activate(card){
-        if (card instanceof Creature_Battle && ((card.position_in_screen[1][1]+card.position_in_screen[2][1])/2<this.canvas_table.height/3)){
+        if (card instanceof Creature_Battle && ((card.position_in_screen[1][1]+card.position_in_screen[2][1])/2<this.canvas_table.height/2.5)){
             if (this.table.player_self.my_turn){
                 for (let card_self_battle_i in this.table.self_battlefield){
                     if(this.table.self_battlefield[card_self_battle_i]===card){
@@ -918,9 +933,9 @@ class Game_Client{
         }
         return false
     }
-    hand_move_activate(card){
-        console.log((card.position_in_screen[1][1]+card.position_in_screen[2][1])/2<this.canvas_table.height/3)
-        if ((card.position_in_screen[1][1]+card.position_in_screen[2][1])/2<this.canvas_table.height/3){
+    hand_move_activate(card,mouse_pos){
+        //(card.position_in_screen[1][1]+card.position_in_screen[2][1])/2
+        if (mouse_pos[1]<this.canvas_table.height/2){
             for (let card_self_hand_i in this.self_player.cards){
                 if(this.self_player.cards[card_self_hand_i]===card){
                     const values = [this.self_player.name,'play_card',card_self_hand_i];

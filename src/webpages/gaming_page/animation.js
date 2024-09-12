@@ -820,7 +820,7 @@ class Die extends Animation{
         this.name='Die'
     }
     set_animate(){
-        
+        this.object_hold=Animation.check_hand(this.object_hold,true)
         this.object_hold.battle.moving_cache.push(["disappear",[[0,-20,-20*this.player.unit]]])
         
     }

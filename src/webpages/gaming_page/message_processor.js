@@ -120,7 +120,8 @@ class Message_Processor{
             "select":this.select.bind(this),
             "end_select":this.end_select.bind(this),
             "str2json":this.str2json.bind(this),
-            "Buff":this.Buff.bind(this)
+            "Buff":this.Buff.bind(this),
+            "auto_passing":this.auto_passing.bind(this)
             
         }
         //this.state(1,2,3,4,5)
@@ -308,9 +309,9 @@ class Message_Processor{
         // console.log(number,test)
         // return number+test
     }
-    initinal_all(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_oppo,len_deck_self,len_deck_oppo,your_turn){
+    initinal_all(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_oppo,len_deck_self,len_deck_oppo,your_turn,auto_pass){
         // console.log(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_oppo,len_deck_self,len_deck_oppo,your_turn)
-        // console.log(this.client,this.client.self_player)
+        
         const self_player=this.client.self_player
         const oppo_player=this.client.oppo_player
 
@@ -430,6 +431,15 @@ class Message_Processor{
     }
     end_bullet(){
         this.client.table.timmer_bullet.change_yellow()
+    }
+
+    auto_passing(para_str){
+        if (para_str=="true"){
+            this.client.buttons.auto_pass.start()
+        }
+        else if (para_str=="false"){
+            this.client.buttons.auto_pass.end()
+        }
     }
 
 

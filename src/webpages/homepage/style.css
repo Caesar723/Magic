@@ -32,6 +32,7 @@
     transform-origin: center; /* 旋转的基点 */
     clip-path: none; /* 移除剪切路径 */
     border-radius: 1vw; /* 设置圆角 */
+    top: calc(var(--top) - 5vw) !important;
 }
 .rectangle-button .image-container {
     width: calc(var(--width) * 0.8); /* 图片宽度为按钮宽度的 80% */
@@ -101,10 +102,13 @@
     
 }
 .rectangle-button span {
-    font-size: calc(0.15 * var(--width)); /* 使用相对单位来定义文字大小 */
+    font-size: calc(0.07*(var(--width) + var(--height))); /* 使用相对单位来定义文字大小 */
     margin-top: calc(0.8 * var(--height));
 }
-
+#currency span {
+    font-size: calc(0.15*(var(--width) + var(--height)));
+    margin-top: calc(0.2* var(--height));
+}
 
 .button-container {
     position: absolute;
@@ -113,6 +117,10 @@
     width: 100%;
     height: 100%;
     transition: filter 0.3s ease; /* 平滑过渡效果 */
+}
+:root {
+    --bodyFontFamily: "Times New Roman", Times, serif;
+    --bodyFontFamilyFallback: "Times New Roman", Times, serif;
 }
 body {
     background-color: #2c3338;
@@ -132,8 +140,11 @@ body {
   }
 
 #img_coin{
-    width: 1.5vw;
-    height: 1.5vw;
+    position: relative;
+    width: 2.5vw;
+    height: 2.5vw;
+    
+    
 }
 
 #box_decks {

@@ -147,7 +147,7 @@ class PVE_Room(Room):
     
     def get_flag(self,flag_name:str):
         key="{}_bullet_time_flag"
-        if flag_name==key.format("Agent1"):
+        if flag_name==key.format("Agent1") and not (self.get_flag('attacker_defenders') and not self.attacker in self.player_1.battlefield):
             return True
         if flag_name in self.flag_dict:
             
@@ -394,6 +394,13 @@ class PVE_Room(Room):
         await super().game_start()
         if self.active_player.name=="Agent1":
             await self.ask_agent_do_act()
+
+    async def select_defender(self, username: str, content: str):
+        result= await super().select_defender(username, content)
+        if username=="Agent1":
+            await self.message_receiver("Agent1|end_bullet|")
+            
+        return result
          
 
 

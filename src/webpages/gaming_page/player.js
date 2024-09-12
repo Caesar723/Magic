@@ -200,7 +200,7 @@ class Self extends Player{
 
                 //position=math.multiply(rotateZ(-angle_between),position);
                 
-                const position_arr=[position.get([0,0]),position.get([1,0])+radius+15,position.get([2,0])]
+                const position_arr=[position.get([0,0]),position.get([1,0])+radius+13,position.get([2,0])]
                 this.cards[card_i].start_moving("enlarge",[position_arr])
                 //this.cards[card_i].moving_cache.push(["enlarge",[position_arr]])
                 this.cards[card_i].angle_z=start_angle+card_i*angle_between
@@ -266,7 +266,7 @@ class Self extends Player{
 
                 //position=math.multiply(rotateZ(-angle_between),position);
                 
-                const position_arr=[position.get([0,0]),position.get([1,0])+radius+15,position.get([2,0])]
+                const position_arr=[position.get([0,0]),position.get([1,0])+radius+13,position.get([2,0])]
                 this.cards[card_i].start_moving("move_to",[position_arr])
                 this.cards[card_i].angle_z=start_angle+card_i*angle_between
             }

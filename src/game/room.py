@@ -51,7 +51,7 @@ class Room:
 
         #used to count the time for a turn
         self.turn_timer:int=0
-        self.max_turn_time:int=60
+        self.max_turn_time:int=120
 
         #used to count the time when player use instant and in bullet_time
         self.bullet_timer:int=0
@@ -91,7 +91,9 @@ class Room:
             "activate_ability":self.activate_ability,
             "concede":self.concede,
             "end_bullet":self.end_bullet,
-            "close_game":self.close_game
+            "close_game":self.close_game,
+            "auto_passing":self.auto_passing,
+            
 
         }
         self.message_process_condition=asyncio.Condition()#当list是空的时候就会调用这个，让程序有序运行
@@ -331,9 +333,19 @@ class Room:
         self.reset_bullet_timer()
         self.flag_dict["bullet_time"]=True
         self._elapsed_time=time.perf_counter()
+
+        start=True
+        key="{}_bullet_time_flag"
+        for un in self.players:#username
+            if not self.get_flag(key.format(un)) and not self.players[un].get_flag("auto_pass"):
+                start=False
+        if start:
+            await self.end_bullet_time()
+            return 
+
         for name_player in self.players_socket:
             socket:"WebSocket"=self.players_socket[name_player]
-            if socket!=None:
+            if socket!=None and not self.players[name_player].get_flag("auto_pass"):
                 await socket.send_text("start_bullet()")
         #print("start_bullet()")
 
@@ -405,8 +417,9 @@ class Room:
             self.flag_dict['attacker_defenders']=True
             self.attacker=card
             await card.when_become_attacker(player,player.opponent)
-            await self.start_bullet_time()
             self.action_processor.end_record()
+            await self.start_bullet_time()
+            
             
             return (True,"success")# bool, reason
         else:
@@ -489,6 +502,7 @@ class Room:
         pass
 
     async def end_bullet(self,username:str,content:str):
+        if not self.flag_dict["bullet_time"]:return (False,"not in bullet")
         key="{}_bullet_time_flag"
         #player:Player=self.players[key.format(username)]
         self.flag_dict[key.format(username)]=True
@@ -501,7 +515,7 @@ class Room:
             await socket.send_text("end_bullet()")
 
         for un in self.players:#username
-            if not self.get_flag(key.format(un)):
+            if not self.get_flag(key.format(un)) and not self.players[un].get_flag("auto_pass"):
                 start=False
         if start:
             
@@ -548,6 +562,21 @@ class Room:
         if player.opponent.get_flag("game_over"):
             self.gamming=False
 
+    async def auto_passing(self,username:str,content:str):
+        player:Player=self.players[username]
+        socket:"WebSocket"=self.players_socket[username]
+        
+        if content=="true":
+            player.flag_dict["auto_pass"]=True
+            if socket!=None:
+                await socket.send_text(f"auto_passing(true)")
+        else:
+            player.flag_dict["auto_pass"]=False
+            if socket!=None:
+                await socket.send_text(f"auto_passing(false)")
+
+    
+
 
     async def concede(self,username:str,content:str):
         pass
@@ -572,9 +601,9 @@ class Room:
             await self.update_timer()
             
     async def put_prepared_function_to_stack(self,prepared_function,card:Card):
-        
-        await self.start_bullet_time()
         self.stack.append((prepared_function,card))
+        await self.start_bullet_time()
+        
 
 
     def add_counter_dict(self,key:str,number:int)->None:# change the numebr of counter_dict
@@ -661,7 +690,8 @@ class Room:
         len_deck_self=f'int({len(self_player.library)})'
         len_deck_oppo=f'int({len(oppo_player.library)})'
         your_turn=f'int({int(self_player==self.active_player)})'
-        return f"Initinal_all(parameters({self_hand}),parameters({oppo_hand}),parameters({self_battle}),parameters({oppo_battle}),parameters({self_lands}),parameters({oppo_lands}),parameters({actions_text}),parameters({manas}),{time_turn},{time_bullet},{life_self},{life_oppo},{len_deck_self},{len_deck_oppo},{your_turn})"
+        auto_pass_flag=int(player.get_flag("auto_pass"))
+        return f"Initinal_all(parameters({self_hand}),parameters({oppo_hand}),parameters({self_battle}),parameters({oppo_battle}),parameters({self_lands}),parameters({oppo_lands}),parameters({actions_text}),parameters({manas}),{time_turn},{time_bullet},{life_self},{life_oppo},{len_deck_self},{len_deck_oppo},{your_turn},int({auto_pass_flag}))"
 
 
 
