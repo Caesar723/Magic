@@ -238,7 +238,10 @@ class Room:
             for name_player in self.players_socket:
                 socket:"WebSocket"=self.players_socket[name_player]
                 if socket!=None:
-                    await socket.send_text(f"{name}({time})")
+                    try:
+                        await socket.send_text(f"{name}({time})")
+                    except:
+                        pass
                     
 
         
@@ -260,7 +263,10 @@ class Room:
         for name_player in self.players_socket:
             socket:"WebSocket"=self.players_socket[name_player]
             if socket!=None:
-                await socket.send_text("end_bullet()")
+                try:
+                    await socket.send_text("end_bullet()")
+                except:
+                    pass
 
         key="{}_bullet_time_flag"
         for un in self.players:#username
@@ -346,7 +352,10 @@ class Room:
         for name_player in self.players_socket:
             socket:"WebSocket"=self.players_socket[name_player]
             if socket!=None and not self.players[name_player].get_flag("auto_pass"):
-                await socket.send_text("start_bullet()")
+                try:
+                    await socket.send_text("start_bullet()")
+                except:
+                    pass
         #print("start_bullet()")
 
 
@@ -512,7 +521,10 @@ class Room:
         
         socket:"WebSocket"=self.players_socket[username]
         if socket!=None:
-            await socket.send_text("end_bullet()")
+            try:
+                await socket.send_text("end_bullet()")
+            except:
+                pass
 
         for un in self.players:#username
             if not self.get_flag(key.format(un)) and not self.players[un].get_flag("auto_pass"):
@@ -569,11 +581,17 @@ class Room:
         if content=="true":
             player.flag_dict["auto_pass"]=True
             if socket!=None:
-                await socket.send_text(f"auto_passing(true)")
+                try:
+                    await socket.send_text(f"auto_passing(true)")
+                except:
+                    pass
         else:
             player.flag_dict["auto_pass"]=False
             if socket!=None:
-                await socket.send_text(f"auto_passing(false)")
+                try:
+                    await socket.send_text(f"auto_passing(false)")
+                except:
+                    pass
 
     
 
