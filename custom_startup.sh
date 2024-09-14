@@ -10,5 +10,5 @@ until mysqladmin ping &>/dev/null; do
 done
 
 echo "MySQL 服务已启动"
-
+python3 src/database.py --reset-all-card --reset-packs --reset-table
 # 执行原始的 Kasm 启动脚本

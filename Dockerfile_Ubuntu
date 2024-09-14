@@ -3,7 +3,7 @@ FROM registry.cn-shanghai.aliyuncs.com/magic_fan_made/ubuntu_caesar:latest
 COPY . /home/kasm-user/Desktop/MagicFanMade
 
 WORKDIR /home/kasm-user/Desktop/MagicFanMade
-RUN service mysql start && python3 src/database.py --reset-all-card --reset-packs --reset-table
+# RUN service mysql start && python3 src/database.py --reset-all-card --reset-packs --reset-table
 
 # COPY custom_startup.sh /dockerstartup/custom_startup.sh
 
