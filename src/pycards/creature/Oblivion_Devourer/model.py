@@ -1,6 +1,7 @@
 
 from __future__ import annotations
 from typing import TYPE_CHECKING
+import random
 if TYPE_CHECKING:
     from game.player import Player
     from game.card import Card
@@ -28,9 +29,29 @@ class Oblivion_Devourer(Creature):
         self.color:str="black"
         self.type_card:str="Eldrazi Creature - Eldrazi"
         self.rarity:str="Rare"
-        self.content:str="Menace (This creature can't be blocked except by two or more creatures), When Oblivion Devourer attacks, you may sacrifice another creature. If you do, target player discards two cards."
+        self.content:str="Menace (This creature can't be blocked except by two or more creatures), When Oblivion Devourer attacks, you may sacrifice another minimum state creature. If you do, target player discards two cards."
         self.image_path:str="cards/creature/Oblivion Devourer/image.jpg"
 
+        self.flag_dict["Menace"]=True
+
+    async def when_start_attcak(self, card: 'Creature | Player', player: 'Player' = None, opponent: 'Player' = None):
+        result= await super().when_start_attcak(card, player, opponent)
+        min_state_creature=False
+        min_state=999
+        for creature in player.battlefield:
+            power,life=creature.state
+            state=power+life
+            if state<min_state and creature!=self:
+                min_state=state
+                min_state_creature=creature
+        if min_state_creature:
+            await self.destroy_object(min_state_creature,"rgba(0,0,0,0.8)","Cure")
+            
+            for i in range(2):
+                if opponent.hand:
+                    card_hand=random.choice(opponent.hand)
+                    opponent.discard(card_hand)
 
 
+        return result
         

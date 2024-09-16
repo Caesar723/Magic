@@ -185,11 +185,15 @@ class Room:
             state_defender=defender.state
             self.action_processor.add_action(actions.Creature_Start_Attack(self.attacker,self.attacker.player,defender,False,state_attacker,state_defender))
 
-            if self.attacker.get_flag("Trample") and rest_live<0:
-            #opponent.take_damage(self,abs(rest_live))
-                self.action_processor.start_record()
-                await self.attacker.attact_to_object(self.attacker.player.opponent,int(abs(rest_live)),"rgba(243, 243, 243, 0.9)","Missile_Hit")
-                self.action_processor.end_record()
+
+            self.action_processor.start_record()
+            await self.attacker.when_finish_attcak(defender,self.attacker.player,self.attacker.player.opponent,rest_live)
+            await defender.when_finish_defend(self.attacker,defender.player,defender.player.opponent)
+            # if self.attacker.get_flag("Trample") and rest_live<0:
+            # #opponent.take_damage(self,abs(rest_live))
+                
+            #     await self.attacker.attact_to_object(self.attacker.player.opponent,int(abs(rest_live)),"rgba(243, 243, 243, 0.9)","Missile_Hit")
+            self.action_processor.end_record()
             
 
 
@@ -200,6 +204,10 @@ class Room:
             await self.attacker.deal_damage_player(defender,self.attacker.player,self.attacker.player.opponent)
             state_attacker=self.attacker.state
             self.action_processor.add_action(actions.Creature_Start_Attack(self.attacker,self.attacker.player,self.attacker.player.opponent,False,state_attacker,[self.attacker.player.opponent.life]))
+
+            self.action_processor.start_record()
+            await self.attacker.when_finish_attcak(defender,self.attacker.player,self.attacker.player.opponent)
+            self.action_processor.end_record()
 
         #self.attacker=None
         self.action_processor.end_record()
@@ -290,12 +298,13 @@ class Room:
                 #if not card.get_flag("die") and not self.attacker.get_flag("die"):#如果是有Menace 就记数，有两个defender才会让attacker_defenders变false 
                 if not (card.get_flag("die") or self.attacker.get_flag("die") or card.get_flag("exile") or self.attacker.get_flag("exile"))  or self.attacker.get_flag("Menace"):
                     max_defender_number=1 if not self.attacker.get_flag("Menace") else 2
+                    await self.start_attack(card)
                     self.add_counter_dict("defender_number",1)
                     if self.counter_dict["defender_number"]>=max_defender_number:
                         self.flag_dict["attacker_defenders"]=False
                         self.counter_dict["defender_number"]=0
                     
-                    await self.start_attack(card)
+                    
             
 
         #self.stack 用pop()把每一个函数调用

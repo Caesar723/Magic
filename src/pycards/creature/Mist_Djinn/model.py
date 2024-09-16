@@ -31,6 +31,7 @@ class Mist_Djinn(Creature):
         self.content:str="Mist Djinn can block any number of creatures."
         self.image_path:str="cards/creature/Mist Djinn/image.jpg"
 
-
+    async def when_finish_defend(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
+        pass
 
         

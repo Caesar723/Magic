@@ -5,6 +5,7 @@ if TYPE_CHECKING:
     from game.player import Player
     from game.card import Card
  
+
 from game.type_cards.instant import Instant
 from game.game_function_tool import select_object
 
@@ -23,9 +24,18 @@ class Ephemeral_Insight(Instant):
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
-        self.content:str="Scry 2, then draw a card. If Ephemeral Insight is in your graveyard, you may cast it by paying 3 life in addition to its mana cost. If you do, exile it as it resolves."
+        self.content:str="Scry 2, then draw a card. Put this card to your hand again."
         self.image_path:str="cards/Instant/Ephemeral Insight/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+       await self.Scry(player,opponent,2)
+       player.draw_card(1)
 
-
+       if not self.get_flag("been used"):
+           new_card=type(self)(player)
+           new_card.flag_dict["been used"]=True
+           player.action_store.start_record()
+           player.append_card(new_card,"hand")
+           player.action_store.end_record()
         

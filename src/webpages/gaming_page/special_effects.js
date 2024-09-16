@@ -147,6 +147,7 @@ class Magic_Missile{
         }
         else{
             object_hold=Animation.check_hand(object_hold,true)
+            console.log(object_hold)
             var startpos=object_hold.battle.position
         }
 

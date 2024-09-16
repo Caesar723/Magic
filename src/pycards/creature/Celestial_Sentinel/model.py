@@ -30,7 +30,8 @@ class Celestial_Sentinel(Creature):
         self.rarity:str="Rare"
         self.content:str="Flying, Vigilance"
         self.image_path:str="cards/creature/Celestial Sentinel/image.jpg"
-
+        self.flag_dict["flying"]=True
+        self.flag_dict["Vigilance"]=True
 
 
         

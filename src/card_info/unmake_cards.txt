@@ -49,7 +49,8 @@ Name:Deep Sea Behemoth#Rarity:Rare#Type:Creature#Power/Toughness:7/7#Cost:6UU#Ab
 Name:Angelic Protector#Rarity:Uncommon#Type:Creature#Power/Toughness:2/2#Cost:1W#Ability:When Angelic Protector enters the battlefield, you may tap target creature. It doesn't untap during its controller's next untap step.
 Name:Verdant Wyrm#Rarity:Rare#Type:Creature#Power/Toughness:4/4#Cost:3GG#Ability:Trample, When Verdant Wyrm enters the battlefield, you may search your library for a land card, put it onto the battlefield tapped, then shuffle your library.
 Name:Ravaging Ghoul#Rarity:Uncommon#Type:Creature#Power/Toughness:2/2#Cost:1B#Ability:When Ravaging Ghoul enters the battlefield, target opponent loses 2 life unless they sacrifice a creature.
-Name:Temporal Traveler#Rarity:Rare#Type:Creature#Power/Toughness:3/4#Cost:4UU#Ability:Whenever Temporal Traveler attacks, you may cast an instant or sorcery card from your graveyard without paying its mana cost.
+
+！Name:Temporal Traveler#Rarity:Rare#Type:Creature#Power/Toughness:3/4#Cost:4UU#Ability:Whenever Temporal Traveler attacks, you may cast an instant or sorcery card from your graveyard without paying its mana cost.
 Name:Mindshaper Sphinx#Rarity:Rare#Type:Creature#Power/Toughness:4/4#Cost:3UU#Ability:Flying, When Mindshaper Sphinx enters the battlefield, scry 3, then draw a card. (To scry 3, look at the top three cards of your library, then put any number of them on the bottom of your library and the rest on top in any order.)
 Name:Celestial Sentinel#Rarity:Rare#Type:Creature#Power/Toughness:3/3#Cost:1W#Ability:Flying, Vigilance
 Name:Raging Firekin#Rarity:Uncommon#Type:Creature#Power/Toughness:3/2#Cost:1R#Ability:Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)
@@ -62,6 +63,7 @@ Name:Elemental Creature#Rarity:Mythic Rare#Type:Creature#Power/Toughness:1/1#Cos
 Name:Star Beast#Rarity:Rare#Type:Creature#Power/Toughness:7/7#Cost:R#Ability:
 Name:Elemental#Rarity:Rare#Type:Creature#Power/Toughness:3/3#Cost:R#Ability:
 Name:Apocalypse Riders Knight#Rarity:Rare#Type:Creature#Power/Toughness:2/2#Cost:W#Ability:
+
 Name:Honorable Protection#Rarity:Uncommon#Type:Instant#Cost:1W#Ability:Target creature you control gains indestructible until end of turn. If it's a Knight, put a +1/+1 counter on it.
 Name:Ephemeral Insight#Rarity:Uncommon#Type:Instant#Cost:1U#Ability:Scry 2, then draw a card. If Ephemeral Insight is in your graveyard, you may cast it by paying 3 life in addition to its mana cost. If you do, exile it as it resolves.
 Name:Veil of Serenity#Rarity:Uncommon#Type:Instant#Cost:2W#Ability:Exile target enchantment or creature spell.

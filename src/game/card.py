@@ -114,7 +114,7 @@ class Card:
     async def attact_to_object(self,object:Union["Creature","Player"],power:int,color:str,type_missile:str):# it won't get hurt object can be card ot player
 
         if isinstance(object,(type(self.player),type(self.player.opponent))):
-            object.take_damage(self,power)
+            await object.take_damage(self,power)
             self.player.action_store.add_action(actions.Attack_To_Object(self,self.player,object,color,type_missile,[object.life]))
             await object.check_dead()
         else:
@@ -129,7 +129,7 @@ class Card:
 
     async def cure_to_object(self,object:Union["Creature","Player"],power:int,color:str,type_missile:str):# it won't get hurt
         if isinstance(object,(type(self.player),type(self.player.opponent))):
-            object.gains_life(self,power)
+            await object.gains_life(self,power)
             self.player.action_store.add_action(actions.Cure_To_Object(self,self.player,object,color,type_missile,[object.life]))
             await object.check_dead()
         else:
@@ -227,7 +227,7 @@ class Card:
     async def when_a_creature_die(self,creature:"Creature",player: "Player" = None, opponent: "Player" = None):#当随从死亡时（放入一个死亡随从的参数）
         pass
 
-    async def when_an_object_hert(self,object,player: "Player" = None, opponent: "Player" = None):#当一个card or 人物收到伤害，object是card 或者 player
+    async def when_an_object_hert(self,object:"Player|Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当一个card or 人物收到伤害，object是card 或者 player
         pass
 
     async def when_kill_creature(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
@@ -265,21 +265,28 @@ class Card:
             card=await player.send_selection_cards(cards+[selection_end])
             if card=="cancel":
                 await player.send_text("end_select()")
+                for card_remove in cards:
+                    player.remove_card(card_remove,'library')
+                    player.append_card(card_remove,'library')
+
                 return
             elif card.content=="End Selection":
+                for card_remove in cards:
+                    player.remove_card(card_remove,'library')
+                    player.append_card(card_remove,'library')
                 return 
             else:
-                player.remove_card(card,'library')
-                player.append_card(card,'library')
+                
                 cards.remove(card)
-
+        
     def check_overwritten(self)->list:#检查card的一些特殊函数有没有重写，如果重写了就放进dictionary
         func_dict={#这里要和player的initinal_card_dict一致
             "end_step":(Card.when_end_turn,self.when_end_turn),
             "upkeep_step":(Card.when_start_turn,self.when_start_turn),
             "when_creature_die":(Card.when_a_creature_die,self.when_a_creature_die),
             "aura":(Card.aura,self.aura),
-            "when_play_a_card":(Card.when_play_a_card,self.when_play_a_card)
+            "when_play_a_card":(Card.when_play_a_card,self.when_play_a_card),
+            "when_an_object_hert":(Card.when_an_object_hert,self.when_an_object_hert)
         }
         result=[]
         for key in func_dict:

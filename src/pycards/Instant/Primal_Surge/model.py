@@ -26,6 +26,19 @@ class Primal_Surge(Instant):
         self.content:str="Target player shuffles their hand and graveyard into their library, then draws that many cards. They may play an additional land this turn."
         self.image_path:str="cards/Instant/Primal Surge/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        for card_hand in list(player.hand):
+            player.remove_card(card_hand,"hand")
+            player.append_card(card_hand,"library")
 
+            player.draw_card(1)
 
+        player.add_counter_dict("lands_summon_max",1)
+        self.flag_dict["return land max"]=True
+
+    async def when_end_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
+        if self.get_flag("return land max"):
+            player.add_counter_dict("lands_summon_max",-1)
+        self.flag_dict["return land max"]=False
         

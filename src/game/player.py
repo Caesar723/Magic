@@ -185,18 +185,18 @@ class Player:
         self.action_store.end_record()
             
 
-    def gains_life(self,card:Card,value:int):
+    async def gains_life(self,card:Card,value:int):
         
         self.life+=value
         if self.life>self.ini_life:
             self.life=self.ini_life
-        self.when_gaining_life(card,value)
+        await self.when_gaining_life(card,value)
 
    
-    def take_damage(self,card:Card,value:int)->int:
+    async def take_damage(self,card:Card,value:int)->int:
         value=max(value,0)
         self.life-=value
-        self.when_dealt_damage(card,value)
+        await self.when_dealt_damage(card,value)
 
     async def check_dead(self):
        if self.life<=0:
@@ -219,10 +219,14 @@ class Player:
     def gain_life_player(self):# gain life to player
         pass
 
-    def when_dealt_damage(self,card:"Card",value:int):#when players live decrease
-        pass
+    async def when_dealt_damage(self,card:"Card",value:int):#when players live decrease
+        for card_self in self.get_cards_from_dict("when_an_object_hert"):
+            await card_self.when_an_object_hert(self,value,card_self.player,card_self.player.opponent)
 
-    def when_gaining_life(self,card:"Card",value:int):#when players live increase
+        for card_oppo in self.opponent.get_cards_from_dict("when_an_object_hert"):
+            await card_oppo.when_an_object_hert(self,value,card_oppo.player,card_oppo.player.opponent)
+
+    async def when_gaining_life(self,card:"Card",value:int):#when players live increase
         pass
 
     
@@ -340,8 +344,8 @@ class Player:
         self.action_store.end_record()
 
     async def cleanup_step(self):#清理步骤（Cleanup Step）：玩家将手牌调整至最大手牌限制，移除所有“直到回合结束”类的效果，并移除所有受到的伤害。清空法术力（包括敌方）
-        # self.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
-        # self.opponent.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
+        self.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
+        self.opponent.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
         self.action_store.add_action(actions.Change_Mana(self,self,self.get_manas()))
         self.opponent.action_store.add_action(actions.Change_Mana(self.opponent,self.opponent,self.opponent.get_manas()))
 

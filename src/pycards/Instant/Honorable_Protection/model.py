@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from game.player import Player
     from game.card import Card
- 
+
 from game.type_cards.instant import Instant
 from game.game_function_tool import select_object
-
+from game.buffs import StateBuff,Indestructible
 
 class Honorable_Protection(Instant):
     
@@ -27,5 +27,12 @@ class Honorable_Protection(Instant):
         self.image_path:str="cards/Instant/Honorable Protection/image.jpg"
 
 
-
-        
+    @select_object("all_creatures",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        if selected_object:
+            buff_i=Indestructible(self,selected_object[0])
+            buff_i.set_end_of_turn()
+            selected_object[0].gain_buff(buff_i,self)
+            if "Knight" in selected_object[0].type_card:
+                buff=StateBuff(self,selected_object[0],1,1)
+                selected_object[0].gain_buff(buff,self)

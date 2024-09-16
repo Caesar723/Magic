@@ -7,7 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.creature import Creature
 from game.game_function_tool import select_object
-
+from game.buffs import Indestructible
 
 class Avacyn__Guardian_of_Hope(Creature):
     
@@ -34,4 +34,11 @@ class Avacyn__Guardian_of_Hope(Creature):
 
         self.flag_dict['lifelink']=True
         self.flag_dict['flying']=True
-        
+        self.flag_dict["Vigilance"]=True
+
+    @select_object("",1)
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        for creature in player.battlefield:
+            buff=Indestructible(self,creature)
+            buff.set_end_of_turn()
+            creature.gain_buff(buff,self)

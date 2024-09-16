@@ -77,7 +77,7 @@ class Creature(Card):
 
     async def deal_damage_player(self,player:"Player",player_attacker: "Player" = None, opponent_attacker: "Player" = None):
         power,life=self.state
-        player.take_damage(self,power)
+        await player.take_damage(self,power)
         await self.when_harm_is_done(player,power,player_attacker,opponent_attacker)
         await player.check_dead()
             
@@ -88,6 +88,7 @@ class Creature(Card):
         self.actual_live+=value
         if self.actual_live>self.live:
             self.actual_live=self.live
+        
         await self.when_being_treated(card,value,player,opponent)
         return self.state[1]
     
@@ -133,9 +134,14 @@ class Creature(Card):
         return await super().when_harm_is_done(card,value,player,opponent)
 
     async def when_hurt(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当受到伤害时 OK
+        for card_self in player.get_cards_from_dict("when_an_object_hert"):
+            await card_self.when_an_object_hert(self,value,card_self.player,card_self.player.opponent)
+
+        for card_oppo in opponent.get_cards_from_dict("when_an_object_hert"):
+            await card_oppo.when_an_object_hert(self,value,card_oppo.player,card_oppo.player.opponent)
         return value
 
-    async def when_being_treated(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#当受到治疗时
+    async def when_being_treated(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当受到治疗时
         pass
 
     async def when_become_attacker(self,player: "Player" = None, opponent: "Player" = None):# OK
@@ -154,6 +160,13 @@ class Creature(Card):
 
     async def when_start_defend(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
         pass
+
+    async def when_finish_attcak(self,card:Union["Creature","Player"],player: "Player" = None, opponent: "Player" = None,rest_live:int=-1):#OK
+        if isinstance(card,Creature) and self.get_flag("Trample") and rest_live<0:
+            await self.attact_to_object(self.player.opponent,int(abs(rest_live)),"rgba(243, 243, 243, 0.9)","Missile_Hit")
+
+    async def when_finish_defend(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
+        self.tap()
 
     
     

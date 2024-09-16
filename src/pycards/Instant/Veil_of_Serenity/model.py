@@ -26,6 +26,9 @@ class Veil_of_Serenity(Instant):
         self.content:str="Exile target enchantment or creature spell."
         self.image_path:str="cards/Instant/Veil of Serenity/image.jpg"
 
-
-
+    @select_object("all_creatures",1)
+    async def card_ability(self, player: 'Player' = None, opponent: 'Player' = None, selected_object: tuple['Card'] = ...):
+        if selected_object:
+            await self.exile_object(selected_object[0],"rgba(255,255,0,0.7)","Missile_Hit")
+            
         

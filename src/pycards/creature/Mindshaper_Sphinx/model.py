@@ -32,5 +32,10 @@ class Mindshaper_Sphinx(Creature):
         self.image_path:str="cards/creature/Mindshaper Sphinx/image.jpg"
 
 
+        self.flag_dict["flying"]=True
 
-        
+
+    @select_object("",1)
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        await self.Scry(player,opponent,3)
+        player.draw_card(1)

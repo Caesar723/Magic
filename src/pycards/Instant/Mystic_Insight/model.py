@@ -26,6 +26,9 @@ class Mystic_Insight(Instant):
         self.content:str="Scry 3, then draw a card."
         self.image_path:str="cards/Instant/Mystic Insight/image.jpg"
 
-
+    @select_object("",1)
+    async def card_ability(self, player: 'Player' = None, opponent: 'Player' = None, selected_object: tuple['Card'] = ...):
+        await self.Scry(player,opponent,3)
+        player.draw_card(1)
 
         
