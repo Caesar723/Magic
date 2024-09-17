@@ -36,7 +36,8 @@ Magic-Fan-Made is a card game that combines elements of Magic: The Gathering and
 
 Once inside the Ubuntu development environment, open a terminal and execute the following commands to start the server:
 ```bash
-bash custom_startup.sh bash init.sh
+bash custom_startup.sh
+bash init.sh
 ```
 
 ## How to View the Technical Documentation
