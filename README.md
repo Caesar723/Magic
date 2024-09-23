@@ -1,8 +1,6 @@
 # Magic-Fan-Made
 
-https://github.com/Caesar723/Magic/assets/76422688/1b1334d8-efcb-4a2d-b21e-675b05e6f39b
-
-
+<img width="1133" alt="demo" src="https://github.com/user-attachments/assets/37c45b03-0abf-4046-a990-06bfac5d9537">
 
 
 Magic-Fan-Made is a card game that combines elements of Magic: The Gathering and Hearthstone, closely resembling Magic: The Gathering but with some unique differences.
@@ -43,3 +41,9 @@ bash init.sh
 ## How to View the Technical Documentation
 
 For technical documentation, visit: [https://www.xuanpei-chen.top:8000/tech_doc](https://www.xuanpei-chen.top:8000/tech_doc)
+
+# Demos 
+https://github.com/Caesar723/Magic/assets/76422688/1b1334d8-efcb-4a2d-b21e-675b05e6f39b
+
+https://github.com/user-attachments/assets/ab7ae5d5-c432-4ac9-b15e-4661196be8ec
+
