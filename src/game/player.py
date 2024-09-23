@@ -324,18 +324,18 @@ class Player:
 
     async def ending_phase(self):#结束阶段 清空法术力（包括敌方）
         #self.action_store.start_record()
-        self.end_step()
+        await self.end_step()
         await self.cleanup_step()
         #self.action_store.end_record()
         
 
-    def end_step(self):#结束步骤（End Step）：某些卡牌效果会在这个时候触发。
+    async def end_step(self):#结束步骤（End Step）：某些卡牌效果会在这个时候触发。
         for creature in self.battlefield:
             creature.end_summoning_sickness()
 
         for card in self.get_cards_from_dict("end_step"):
             self.action_store.start_record()
-            card.when_end_turn(self,self.opponent)
+            await card.when_end_turn(self,self.opponent)
             self.action_store.end_record()
             
         self.action_store.start_record()
