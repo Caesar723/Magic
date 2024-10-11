@@ -7,7 +7,7 @@ import random
 from bs4 import BeautifulSoup
 from gpt4_openai import GPT4OpenAI
 
-
+from PIL import Image
 
 
 ORGPATH=os.path.dirname(os.path.abspath(__file__))
@@ -453,9 +453,19 @@ class Card_Creater:
         return contents
 
 
+    def change_format(self,path):
+        with Image.open(path) as img:
+            print(path)
+            img.convert('RGB').save(path, 'JPEG')
+        
 
-
-
+    def change_format_all(self):
+        for key in self.dic_cards_path:
+            for file in os.listdir(f"{ORGPATH}/{self.dic_cards_path[key]}"):
+                path=f"{ORGPATH}/{self.dic_cards_path[key]}/{file}/image.jpg"
+                
+                if file!=".DS_Store":
+                    self.change_format(path)
     
 
     
@@ -514,6 +524,6 @@ content={
 
 
 
-card_creator.process_data_hand_make(content)
-
+#card_creator.process_data_hand_make(content)
+card_creator.change_format_all()
   
