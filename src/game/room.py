@@ -414,7 +414,7 @@ class Room:
                 async with self.message_process_condition:
                     await self.message_process_condition.wait_for(lambda: len(self.message_process_queue) > 0)  # 等待队列不为空
             func=self.message_process_queue.pop(0)
-            print(func[1])
+            # print(func[1])
             await func[0](*func[1]) 
             await self.check_death()
 
@@ -677,12 +677,12 @@ class Room:
             #print(player.name)
             socket:"WebSocket"=self.players_socket[name]
             if socket!=None:
-                print("准备发送",action)
+                # print("准备发送",action)
                 try:
                     await socket.send_text(action.text(player))
                 except:
                     pass
-                print("发送成功")
+                # print("发送成功")
 
     # async def selection_process_queue(self):
     #     while self.gamming:

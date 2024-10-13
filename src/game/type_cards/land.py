@@ -125,7 +125,7 @@ class Land(Card):
                 num=manas[mana]
             result_mana.append(str(num))
         result_mana=','.join(result_mana)
-        print(result_mana)
+        # print(result_mana)
         buffs=f"parameters({','.join([buff.text(player) for buff in self.buffs])})"
         return f"Land({Flag_dict},{Counter_dict},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),state({result_mana}),{buffs})"
 

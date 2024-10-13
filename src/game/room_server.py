@@ -28,6 +28,8 @@ class RoomServer:
         self.client_room[client_1[1]]=room
         self.client_room[client_2[1]]=room
 
+        print(self.client_room)
+
         await room.game_start()
 
 
@@ -35,6 +37,7 @@ class RoomServer:
         room=PVE_Room([client_1],self)
 
         self.client_room[client_1[1]]=room
+        print(self.client_room)
 
         await room.game_start()
 
@@ -107,6 +110,12 @@ class RoomServer:
 
         if name in self.client_room:
             del self.client_room[name]
+
+    def __repr__(self):
+        import datetime
+        now = datetime.datetime.now()
+        formatted_date = now.strftime("%Y-%m-%d %H:%M:%S")
+        return f"Date:{formatted_date},RoomServer({self.database})"
 
         
     

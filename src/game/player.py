@@ -344,8 +344,8 @@ class Player:
         self.action_store.end_record()
 
     async def cleanup_step(self):#清理步骤（Cleanup Step）：玩家将手牌调整至最大手牌限制，移除所有“直到回合结束”类的效果，并移除所有受到的伤害。清空法术力（包括敌方）
-        self.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
-        self.opponent.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
+        # self.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
+        # self.opponent.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
         self.action_store.add_action(actions.Change_Mana(self,self,self.get_manas()))
         self.opponent.action_store.add_action(actions.Change_Mana(self.opponent,self.opponent,self.opponent.get_manas()))
 

@@ -138,7 +138,7 @@ class PVE_Room(Room):
         # 获取state，done，计算reward
         #返回new state 和 reward 和 done
         message:str=await self.num2action(agent,action)
-        print(message)
+        # print(message)
         await self.message_receiver(message)
         # username,type,content=message.split("|")
         # await self.message_process_dict[type](username,content)
@@ -369,7 +369,7 @@ class PVE_Room(Room):
         state=self.get_state(agent)
         mask=self.create_action_mask(agent)
         action=agent.choose_action(*state,mask)
-        print(action)
+        # print(action)
         return await self.process_action(agent,action)
 
 
