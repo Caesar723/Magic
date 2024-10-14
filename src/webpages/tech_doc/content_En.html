@@ -21,7 +21,7 @@
                 <span id="logo_1">
                     Magic Fan Made
                 </span>
-                   技术文档
+                   Technical Documentation
             </h1>
     
             <span id="split_top">
@@ -33,7 +33,8 @@
     
             
         </div>
-        <a href="/tech_doc/en" style="position: absolute; top: 10px; right: 10px; font-size: 24px; font-weight: bold; text-align: center; text-shadow: 0 0 10px orange; text-decoration: none; background-color: #f0f0f0; padding: 10px 20px; border-radius: 10px; color: #ff4500; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">English</a>
+        <!-- 右上角创建一个按钮，点击进入 /webpages/tech_doc/content.html -->
+        <a href="/tech_doc/zh" style="position: absolute; top: 10px; right: 10px; font-size: 24px; font-weight: bold; text-align: center; text-shadow: 0 0 10px orange; text-decoration: none; background-color: #f0f0f0; padding: 10px 20px; border-radius: 10px; color: #ff4500; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">Chinese</a>
         <!-- <div id="Path">
             <a href="/homepage">home</a>
              / 
@@ -44,6 +45,7 @@
     </div>
 </div>
     <div id="Black_Top_Bar">
+      
     </div>
 
     <div id="main_body">
@@ -51,8 +53,8 @@
         <!-- <li >
             <a class="link active" href="#pseudocode" onclick="scrollToTarget(event)">Player</a>
             <div class="sublinks">
-                <a class="sublink" href="#styles" onclick="scrollToTarget(event)">Player 属性</a>
-                <a class="sublink" href="#variables" onclick="scrollToTarget(event)">Player 函数</a>
+                <a class="sublink" href="#styles" onclick="scrollToTarget(event)">Player Attributes</a>
+                <a class="sublink" href="#variables" onclick="scrollToTarget(event)">Player Functions</a>
                 <a class="sublink" href="#start" onclick="scrollToTarget(event)">Start/Finish</a>
                 <a class="sublink" href="#testP" onclick="scrollToTarget(event)">Test yourself</a>
             </div>
@@ -91,10 +93,10 @@
 
 <div id = "pseudocode" class="title_content">
     <div class = "top">
-        <h1>Player 类</h2> 
+        <h1>Player Class</h2> 
     </div>
         <div id = "styles"></div>
-        <h2>Player 类所有属性</h2> 
+        <h2>Player Class Attributes</h2> 
         
         <pre><code class="lang-python">
 class Player:
@@ -110,13 +112,13 @@ def __init__(self,name:str,decks_detail:str,action_stroe:actions.List_Action_Pro
     self.ini_life:int=20
     self.life:int=20
 
-    #list of Graveyard 墓地 这里可以包含所有的卡牌而不只是随从
+    #list of Graveyard
     self.graveyard:list[Card]=[]
 
-    #list of Library牌库
+    #list of Library
     self.library:list[Card]=[]
 
-    #list of Battlefield 场地
+    #list of Battlefield
     self.battlefield:list[Creature]=[]
 
     #land area
@@ -136,84 +138,84 @@ def __init__(self,name:str,decks_detail:str,action_stroe:actions.List_Action_Pro
     self.counter_dict["lands_summon_max"]=1
 
 
-    #Aura光环 pool
+    #Aura pool
     self.aura_pool:list[Card]=[]
 
 
     
          </code></pre>
-        <h3>敌方玩家</h3> 
+        <h3>Opponent Player</h3> 
         <pre><code class="lang-python">
 self.opponent:Player
         </code></pre>
-        <p>这个属性是存储敌方玩家，类型也是Player</p>
-        <h3>玩家的血量</h3> 
+        <p>This attribute stores the opponent player, the type is also Player</p>
+        <h3>Player's Life</h3> 
         <pre><code class="lang-python">
 self.ini_life:int=20
 self.life:int=20
         </code></pre>
 
-        <p>ini_life 存储的是血量的上限，比如你使用了回血的卡牌，回复的血量是不会超过这个上限的</p>
-        <p>life 存储的是玩家目前的血量，如果有一张卡牌想要查看我方玩家的血量，就可以使用次属性查看，但是扣血或者加血的时候不可以直接使用此属性。如果需要加血或者扣血可以使用
+        <p>ini_life stores the upper limit of life. For example, if you use a healing card, the restored life will not exceed this limit</p>
+        <p>life stores the player's current life. If a card wants to check the player's life, it can use this attribute to check. However, when adding or subtracting life, this attribute cannot be used directly. If you need to add or subtract life, you can use
           <a class="link_in_content" href="#setOp" onclick="scrollToTarget(event)">await Card.attact_to_object(player,power,color,type_missile)</a>
-          或者是
+          or
           <a class="link_in_content" href="#setOp" onclick="scrollToTarget(event)">await Card.cure_to_object(player,power,color,type_missile)</a>
         </p>
 
 
-        <h3>墓地</h3> 
+        <h3>Graveyard</h3> 
         <pre><code class="lang-python">
 self.graveyard:list[Card]=[]
         </code></pre>
-        <p>这个属性是list的类，类里存储的是card。存储所有移进墓地的卡牌，比如死亡后的随从，或者是打出的法术牌，可以调用这个来遍历每一张卡牌。如果想要往牌库里加牌，不可以使用append，需要调用
-          <a class="link_in_content" href="#append_card" onclick="scrollToTarget(event)">Player.append_card(卡牌,"graveyard")</a>
+        <p>This attribute is a list class, and the class stores cards. It stores all the cards that have moved into the graveyard, such as creatures that have died or spells that have been cast. You can call this to traverse each card. If you want to add a card to the library, you cannot use append, you need to call
+          <a class="link_in_content" href="#append_card" onclick="scrollToTarget(event)">Player.append_card(card,"graveyard")</a>
         </p>
 
-        <h3>牌库</h3> 
+        <h3>Library</h3> 
         <pre><code class="lang-python">
 self.library:list[Card]=[]
         </code></pre>
-        <p>这个属性是list的类，类里存储的是card。是牌库，储存所有没有被抽上来的卡牌，可以调用这个来遍历每一张卡牌。如果想要往牌库里加牌，不可以使用append，需要调用
-          <a class="link_in_content" href="#append_card" onclick="scrollToTarget(event)">Player.append_card(卡牌,"library")</a>
-          。如果需要抽牌，需要调用
-          <a class="link_in_content" href="#draw_card" onclick="scrollToTarget(event)">Player.draw_card(卡牌的数量)</a>
-          。
+        <p>This attribute is a list class, and the class stores cards. It is the library, storing all the cards that have not been drawn. You can call this to traverse each card. If you want to add a card to the library, you cannot use append, you need to call
+          <a class="link_in_content" href="#append_card" onclick="scrollToTarget(event)">Player.append_card(card,"library")</a>
+          . If you need to draw a card, you need to call
+          <a class="link_in_content" href="#draw_card" onclick="scrollToTarget(event)">Player.draw_card(number of cards)</a>
+          .
         </p>
 
-        <h3>战斗场地</h3> 
+        <h3>Battlefield</h3> 
         <pre><code class="lang-python">
 self.battlefield:list[Creature]=[]
         </code></pre>
-        <p>这个属性是list的类，类里存储的是Creature。这里存的就是玩家打出的创造物的牌，可以调用这个来遍历每一张卡牌。可以如果想要往牌库里加牌，不可以使用append，需要调用
-          <a class="link_in_content" href="#append_card" onclick="scrollToTarget(event)">Player.append_card(卡牌,"battlefield")</a>
+        <p>This attribute is a list class, and the class stores Creatures. It stores the creature cards played by the player. You can call this to traverse each card. If you want to add a card to the library, you cannot use append, you need to call
+          <a class="link_in_content" href="#append_card" onclick="scrollToTarget(event)">Player.append_card(card,"battlefield")</a>
         </p>
 
-        <h3>地池</h3> 
+        <h3>Land Area</h3> 
         <pre><code class="lang-python">
 self.land_area:list[Land]=[]
         </code></pre>
-        <p>这个属性是list的类，类里存储的是Land。这里保存的是玩家打出的地牌。可以调用这个来遍历每一张卡牌。如果想要往牌库里加牌，不可以使用append，需要调用
-          <a class="link_in_content" href="#append_card" onclick="scrollToTarget(event)">Player.append_card(卡牌,"land_area")</a>
+        <p>This attribute is a list class, and the class stores Lands. It stores the land cards played by the player. You can call this to traverse each card. If you want to add a card to the library, you cannot use append, you need to call
+          <a class="link_in_content" href="#append_card" onclick="scrollToTarget(event)">Player.append_card(card,"land_area")</a>
         </p>
 
-        <h3>手牌</h3> 
+        <h3>Hand</h3> 
         <pre><code class="lang-python">
 self.hand:list[Card]=[]
         </code></pre>
-        <p>这个属性是list的类，类里存储的是card。这里保存的是玩家的手牌。可以调用这个来遍历每一张卡牌。如果想要往牌库里加牌，不可以使用append，需要调用
-          <a class="link_in_content" href="#append_card" onclick="scrollToTarget(event)">Player.append_card(卡牌,"hand")</a>
+        <p>This attribute is a list class, and the class stores cards. It stores the player's hand cards. You can call this to traverse each card. If you want to add a card to the library, you cannot use append, you need to call
+          <a class="link_in_content" href="#append_card" onclick="scrollToTarget(event)">Player.append_card(card,"hand")</a>
         </p>
 
-        <h3>流放区域</h3> 
+        <h3>Exile Area</h3> 
         <pre><code class="lang-python">
 self.exile_area:list[Card]=[]
         </code></pre>
-        <p>这个属性是list的类，类里存储的是card。这里保存的是流放的牌。可以调用这个来遍历每一张卡牌。如果想要往牌库里加牌，不可以使用append，需要调用
-          <a class="link_in_content" href="#append_card" onclick="scrollToTarget(event)">Player.append_card(卡牌,"exile_area")</a>
+        <p>This attribute is a list class, and the class stores cards. It stores the exiled cards. You can call this to traverse each card. If you want to add a card to the library, you cannot use append, you need to call
+          <a class="link_in_content" href="#append_card" onclick="scrollToTarget(event)">Player.append_card(card,"exile_area")</a>
         </p>
 
 
-        <h3>法力值</h3> 
+        <h3>Mana</h3> 
         <pre><code class="lang-python">
 self.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
         </code></pre>
@@ -222,39 +224,39 @@ self.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
           <thead>
               <tr>
                   <th>Key</th>
-                  <th>描述</th>
+                  <th>Description</th>
                   
               </tr>
           </thead>
           <tbody>
               <tr>
                   <td>colorless</td>
-                  <td>这个是法力值代表所有的颜色都可以用</td>
+                  <td>This mana can be used for any color</td>
                   
               </tr>
               <tr>
                   <td>U</td>
-                  <td>蓝色法力值</td>
+                  <td>Blue mana</td>
                   
               </tr>
               <tr>
                   <td>W</td>
-                  <td>白色法力值</td>
+                  <td>White mana</td>
                   
               </tr>
               <tr>
                 <td>B</td>
-                <td>黑色法力值</td>
+                <td>Black mana</td>
                 
               </tr>
               <tr>
                   <td>R</td>
-                  <td>红色法力值</td>
+                  <td>Red mana</td>
                   
               </tr>
               <tr>
                 <td>G</td>
-                <td>绿色法力值</td>
+                <td>Green mana</td>
                 
             </tr>
           </tbody>
@@ -263,19 +265,19 @@ self.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
           
         </p>
 
-        <h3>光环</h3> 
+        <h3>Aura</h3> 
         <pre><code class="lang-python">
 self.aura_pool:list[Card]=[]
         </code></pre>
-        <p>目前还没有开发完成
+        <p>Currently not developed
           
         </p>
 
-        <h3>flag</h3> 
+        <h3>Flag</h3> 
         <pre><code class="lang-python">
 self.flag_dict:dict={}
         </code></pre>
-        <p>这个可以用来储存所有关于player的flag
+        <p>This can be used to store all flags related to the player
           
         </p>
 
@@ -285,31 +287,31 @@ self.flag_dict:dict={}
 
 
         <div id = "variables"></div>
-        <h2>Player 的函数</h2>
-        <h3>flag 函数</h3> 
+        <h2>Player Functions</h2>
+        <h3>Flag Functions</h3> 
         <pre><code class="lang-python">
 get_flag(self,flag_name:str)->bool
         </code></pre>
         <p>
-          这个函数的作用是可以用来标记。
-          举一个例子：有一张卡牌叫双子1，还有一张叫双子2，他们的功能是当死亡时，如果双子1和双子2都死亡了，就会召唤10/10的怪物。
-          那么代码就可以这么写。
-          在写亡语效果的时候，检查这个flag是不是true，如果两个都是true的情况下，就可以召唤怪物。
+          This function is used for marking.
+          For example: there is a card called Twin 1, and another called Twin 2. Their function is that when they die, if both Twin 1 and Twin 2 are dead, a 10/10 monster will be summoned.
+          The code can be written like this.
+          When writing the death effect, check if this flag is true. If both are true, the monster can be summoned.
           <pre><code class="lang-python">
-#双子1的亡语
+#Death effect of Twin 1
 async def when_die(self,player: "Player" = None, opponent: "Player" = None):
-    player.flag_dict["双子1"]=True
-    if self.get_flag("双子1") and self.get_flag("双子2"):
-        new_creature=怪物(player)
+    player.flag_dict["Twin 1"]=True
+    if self.get_flag("Twin 1") and self.get_flag("Twin 2"):
+        new_creature=Monster(player)
         player.append_card(new_creature,"battlefield")
         
            </code></pre>
            <pre><code class="lang-python">
-#双子2的亡语
+#Death effect of Twin 2
 async def when_die(self,player: "Player" = None, opponent: "Player" = None):
-    player.flag_dict["双子2"]=True
-    if self.get_flag("双子1") and self.get_flag("双子2"):
-        new_creature=怪物(player)
+    player.flag_dict["Twin 2"]=True
+    if self.get_flag("Twin 1") and self.get_flag("Twin 2"):
+        new_creature=Monster(player)
         player.append_card(new_creature,"battlefield")
         
              </code></pre>
@@ -319,40 +321,40 @@ async def when_die(self,player: "Player" = None, opponent: "Player" = None):
 
         
         <div id="counter-dict-player"></div>  
-        <h3>counter dict 函数</h3> 
+        <h3>Counter Dict Functions</h3> 
         <pre><code class="lang-python">
 add_counter_dict(self,key:str,number:int)->None
 set_counter_dict(self,key:str,number:int)->None
 get_counter_from_dict(self,key:str)->int
         </code></pre>
         <p>
-          这个函数的作用是可以用来计数。
-          举一个例子：有一张蹦蹦兔，当他进入场上的时候，你每打出一张蹦蹦兔，就会+2/+2。
-          那么代码就可以这么写。
-          在写亡语效果的时候，检查这个”蹦蹦兔计数“这个key。根据这个来给它加buff
+          This function is used for counting.
+          For example: there is a card called Bouncing Bunny. When it enters the battlefield, every time you play a Bouncing Bunny, it gets +2/+2.
+          The code can be written like this.
+          When writing the death effect, check the "Bouncing Bunny Count" key. Use this to give it a buff.
           <pre><code class="lang-python">          
 @select_object("",1)
 async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
-    for time in range(player.get_counter_from_dict("蹦蹦兔计数")):#代表获取"蹦蹦兔计数"里的值
+    for time in range(player.get_counter_from_dict("Bouncing Bunny Count")):#Get the value in "Bouncing Bunny Count"
         buff=StateBuff(self,2,2)
         self.gain_buff(buff,self)
-    player.add_counter_dict("蹦蹦兔计数",1)
+    player.add_counter_dict("Bouncing Bunny Count",1)
            </code></pre>
-          player.set_counter_dict("test1",3)这个意思就是在把"test1"这个里面的值设置成3(这时候test1的值是3)<br>
-          player.add_counter_dict("test1",1)这个意思就是在把"test1"这个里面的值+1(这时候test1的值是4)<br>
-          player.get_counter_from_dict("test1")会获取4
+          player.set_counter_dict("test1",3) means setting the value in "test1" to 3 (at this time the value of test1 is 3)<br>
+          player.add_counter_dict("test1",1) means adding 1 to the value in "test1" (at this time the value of test1 is 4)<br>
+          player.get_counter_from_dict("test1") will get 4
         </p>
 
         
         <div id="draw_card"></div>
-        <h3>抽牌</h3> 
+        <h3>Draw Card</h3> 
         <pre><code class="lang-python">
 draw_card(self,number:int)
         </code></pre>
         <p>
-          这个函数的作用是抽牌，number参数抽取的数量。比如一张牌的亡语是抽两张牌
+          This function is used to draw cards. The number parameter is the number of cards to draw. For example, the death effect of a card is to draw two cards.
           <pre><code class="lang-python">
-#亡语
+#Death effect
 async def when_die(self,player: "Player" = None, opponent: "Player" = None):
     player.draw_card(2)
         
@@ -360,29 +362,29 @@ async def when_die(self,player: "Player" = None, opponent: "Player" = None):
            
         </p>
 
-        <h3>检查死亡</h3> 
+        <h3>Check if Dead</h3> 
         <pre><code class="lang-python">
 async def check_dead(self)->bool:
         </code></pre>
         <p>
-          这个函数的作用是检查玩家是否死亡，如果玩家死亡了会返回True
+          This function checks if the player is dead. If the player is dead, it returns True.
           
            
         </p>
         <div id="append_card"></div>
-        <h3>放入/移除卡牌</h3> 
+        <h3>Append/Remove Card</h3> 
         <pre><code class="lang-python">
 def append_card(self,card:Card,type:str):
 def remove_card(self,card:Card,type:str):
         </code></pre>
         <p>
-          这个函数的作用将卡牌置入区域中，或者是从区域中移除
+          This function is used to place a card into an area or remove it from an area.
           <br><br>
           <table>
             <thead>
                 <tr>
                     <th>type</th>
-                    <th>描述</th>
+                    <th>Description</th>
                     
                 </tr>
             </thead>
@@ -390,38 +392,38 @@ def remove_card(self,card:Card,type:str):
                 <tr>
                     <td>battlefield</td>
                     <td>
-                      场地，creature打出后就会进入这个区域。可以使用此函数来召唤随从
+                      Battlefield, creatures enter this area after being played. You can use this function to summon creatures.
                       
                     </td>
                     
                 </tr>
                 <tr>
                     <td>hand</td>
-                    <td>手牌，你可以使用这个来让一张牌置入到你的手牌，比如发现一张牌。
-                      但是移除手牌这个应该不会用到
+                    <td>Hand, you can use this to place a card into your hand, such as discovering a card.
+                      However, removing a card from the hand should not be used.
                     </td>
                     
                 </tr>
                 <tr>
                     <td>land_area</td>
-                    <td>地池，有些卡牌也会从牌库中召唤地之类的，就会用到这个函数</td>
+                    <td>Land area, some cards can also summon lands from the library, so this function will be used.</td>
                     
                 </tr>
                 <tr>
                   <td>graveyard</td>
-                  <td>墓地，这个会很少用到，如果想要弃牌，可以使用
-                    <a class="link_in_content" href="#discard" onclick="scrollToTarget(event)">Player.discard(卡牌)</a>
+                  <td>Graveyard, this will be rarely used. If you want to discard a card, you can use
+                    <a class="link_in_content" href="#discard" onclick="scrollToTarget(event)">Player.discard(card)</a>
                   </td>
                   
                 </tr>
                 <tr>
                     <td>library</td>
-                    <td>牌库，可以从牌库发现一张牌，置入手牌</td>
+                    <td>Library, you can discover a card from the library and place it into your hand.</td>
                     
                 </tr>
                 <tr>
                   <td>exile_area</td>
-                  <td>流放区域，可以把卡牌流放，或者从流放区域里取回卡牌</td>
+                  <td>Exile area, you can exile a card or retrieve a card from the exile area.</td>
                   
               </tr>
             </tbody>
@@ -430,27 +432,27 @@ def remove_card(self,card:Card,type:str):
            
         </p>
 
-        <h3>检查法力值消耗是否足够</h3> 
+        <h3>Check if Mana Cost is Sufficient</h3> 
         <pre><code class="lang-python">
 def check_can_use(self,cost:dict)->tuple[bool]:
         </code></pre>
         <p>
-          它会检查玩家是否支付得起这些法力。输入的参数是法力值，比如检查是否可以支付3绿2红
+          It checks if the player can afford the mana cost. The input parameter is the mana cost, for example, checking if 3 green and 2 red can be paid.
           <pre><code class="lang-python">
 cost={"colorless":0,"U":0,"W":0,"B":0,"R":1,"G":3}
 result=player.check_can_use(cost)
           </code></pre>
-          它会返回(boolean,land_store),如果boolean是true，land_store就是存了那些可以支付的地牌
+          It returns (boolean,land_store). If boolean is true, land_store stores the lands that can be used to pay.
         </p>
 
-        <h3>产生并消耗法力值</h3> 
+        <h3>Generate and Consume Mana</h3> 
         <pre><code class="lang-python">
 async def generate_and_consume_mana(self,lands,cost,card:"Card"):
         </code></pre>
         <p>
-          lands是用这些land来产生法力值，cost是要消耗的法力值，card是要消耗这些法力值的卡牌<br>
-          把generate mana 和consume mana 合并到一起，这个函数会先阐述法力值，然后再消耗这些法力值。<br>
-          如果想要做到消耗2点蓝色，3点绿色法力值，可以这这样做
+          lands are the lands used to generate mana, cost is the mana to be consumed, card is the card that consumes the mana.<br>
+          Combine generate mana and consume mana into one. This function first generates mana and then consumes it.<br>
+          If you want to consume 2 blue and 3 green mana, you can do this:
           <pre><code class="lang-python">
 cost={"colorless":0,"U":2,"W":0,"B":0,"R":0,"G":3}
 result=player.check_can_use(cost)
@@ -462,38 +464,38 @@ if result[0]:
            
         </p>
         <div id="discard"></div>
-        <h3>弃牌</h3> 
+        <h3>Discard</h3> 
         <pre><code class="lang-python">
 def discard(self,card:"Card"):
         </code></pre>
         <p>
-          如果有写卡牌的效果是弃牌，或者是随机弃牌，可以使用这个函数。
-          输入的参数是需要弃置地牌
+          If a card's effect is to discard a card, or to randomly discard a card, you can use this function.
+          The input parameter is the card to be discarded.
         </p>
 
 
 
 
-        <h3>获取特定类型的牌</h3> 
+        <h3>Get Specific Type of Cards</h3> 
         <pre><code class="lang-python">
 def get_cards_by_pos_type(self,position:str,card_type:tuple["Creature|Land|Sorcery|Instant"]):
         </code></pre>
         <p>
-          这个函数可以获取特定类型的牌，如果你想要获取墓地里所有的创造物的牌
+          This function can get specific types of cards. If you want to get all the creature cards in the graveyard:
           <pre><code class="lang-python">
 cards=Player.get_cards_by_pos_type("get_cards_by_pos_type",Creature)
           </code></pre>
           <br>
-          position：与
-          <a class="link_in_content" href="#append_card" onclick="scrollToTarget(event)">append_card的type</a>
-          一样<br>
+          position: same as
+          <a class="link_in_content" href="#append_card" onclick="scrollToTarget(event)">append_card's type</a>
+          <br>
           
           <br>
           <table>
             <thead>
                 <tr>
                     <th>card_type</th>
-                    <th>描述</th>
+                    <th>Description</th>
                     
                 </tr>
             </thead>
@@ -501,25 +503,25 @@ cards=Player.get_cards_by_pos_type("get_cards_by_pos_type",Creature)
                 <tr>
                     <td>Creature</td>
                     <td>
-                      创造物类型，注意，这个是类型而不是字符串
+                      Creature type, note that this is a type, not a string.
                       
                     </td>
                     
                 </tr>
                 <tr>
                     <td>Land</td>
-                    <td>地类型，注意，这个是类型而不是字符串
+                    <td>Land type, note that this is a type, not a string.
                     </td>
                     
                 </tr>
                 <tr>
                     <td>Sorcery</td>
-                    <td>法术类型，注意，这个是类型而不是字符串</td>
+                    <td>Sorcery type, note that this is a type, not a string.</td>
                     
                 </tr>
                 <tr>
                   <td>Instant</td>
-                  <td>瞬间类型，注意，这个是类型而不是字符串
+                  <td>Instant type, note that this is a type, not a string.
                     
                   </td>
                   
@@ -530,8 +532,8 @@ cards=Player.get_cards_by_pos_type("get_cards_by_pos_type",Creature)
         </p>
 
         <div id = "start"></div>
-        <h1>Card 类</h1> 
-        <h2>Card 属性</h2>
+        <h1>Card Class</h1> 
+        <h2>Card Attributes</h2>
         <pre><code class="lang-python">
 class Card:
 
@@ -549,38 +551,38 @@ class Card:
         self.type:str
         
         #card detail for js
-        self.mana_cost:str #卡牌的费用
-        self.color:str #卡牌的颜色
-        self.type_card:str #卡牌的颜色
-        self.rarity:str #卡牌的稀有度
-        self.content:str #卡牌描述的内容
+        self.mana_cost:str #Card's cost
+        self.color:str #Card's color
+        self.type_card:str #Card's type
+        self.rarity:str #Card's rarity
+        self.content:str #Card's description
         </code></pre>
 
-        <h3>Card玩家归属</h3>
+        <h3>Card Player Ownership</h3>
         <pre><code class="lang-python">
 self.player:"Player"=player
         </code></pre>
         <p>
-          这个表明这个卡牌所属的玩家
+          This indicates the player to whom the card belongs.
         </p>
 
-        <h3>卡牌名字</h3>
+        <h3>Card Name</h3>
         <pre><code class="lang-python">
 self.name:str=""
         </code></pre>
 
-        <h3>卡牌的特殊效果</h3>
+        <h3>Card Special Effects</h3>
         <pre><code class="lang-python">
 self.flag_dict:dict={}
         </code></pre>
         <p>
-          这个是卡牌的一些效果，像吸血飞行之类的
+          This represents some effects of the card, such as lifelink or flying.
         </p>
         <table>
           <thead>
               <tr>
-                  <th>特殊效果</th>
-                  <th>描述</th>
+                  <th>Special Effect</th>
+                  <th>Description</th>
                   
               </tr>
           </thead>
@@ -588,60 +590,60 @@ self.flag_dict:dict={}
               <tr>
                   <td>reach</td>
                   <td>
-                    这个效果是可以阻挡飞行单位
+                    This effect allows the creature to block flying units.
                     
                   </td>
                   
               </tr>
               <tr>
                   <td>Trample</td>
-                  <td>当攻击并消灭了一个创造物时，多余的血量会对英雄造成伤害
+                  <td>When attacking and destroying a creature, the excess damage will be dealt to the hero.
                   </td>
                   
               </tr>
               <tr>
                   <td>flying</td>
-                  <td>当具有此效果的创造物攻击的时候，只有具有flying或者reach的创造物才可以阻挡，不然无法阻挡</td>
+                  <td>When a creature with this effect attacks, it can only be blocked by creatures with flying or reach, otherwise it cannot be blocked.</td>
                   
               </tr>
               <tr>
                 <td>haste</td>
-                <td>在你召唤的那一回合内，可以立即攻击或者阻挡
+                <td>Can attack or block immediately in the turn it is summoned.
                   
                 </td>
                 
               </tr>
               <tr>
                 <td>summoning_sickness</td>
-                <td>在召唤的那一回合内，创造物不可以攻击
+                <td>Cannot attack in the turn it is summoned.
                   
                 </td>
                 
               </tr>
               <tr>
                 <td>Flash</td>
-                <td>这张卡可以在任何时候打出
+                <td>This card can be played at any time.
                   
                 </td>
                 
               </tr>
               <tr>
                 <td>lifelink</td>
-                <td>吸血，当对一个角色造成伤害是，会对我方英雄回血
+                <td>Lifelink, when dealing damage to a character, it will heal the hero.
                   
                 </td>
                 
               </tr>
               <tr>
                 <td>Vigilance</td>
-                <td>警戒，具有警戒能力的生物可以在其攻击时不会横置（即表示疲劳状态）
+                <td>Vigilance, creatures with vigilance do not tap when they attack.
                   
                 </td>
                 
               </tr>
               <tr>
                 <td>Double strike</td>
-                <td>允许创造物攻击两次
+                <td>Allows the creature to attack twice.
                   
                 </td>
                 
@@ -664,7 +666,7 @@ self.flag_dict:dict={}
           </tbody>
       </table>
       <p>
-        如果想要创造一张创造物卡牌Creature，并且拥有吸血效果
+        If you want to create a creature card with the lifelink effect.
       </p>
 
       <pre><code class="lang-python">
@@ -698,36 +700,35 @@ class Aetherweaver(Creature):
 
 
 
-        <h3>buff 储存</h3>
+        <h3>Buff Storage</h3>
         <pre><code class="lang-python">
 self.buffs:list[Buff]=[]
         </code></pre>
         <p>
-          这个是用来储存buff的，如果想要储存buff，可以调用
-          <a class="link_in_content" href="#gain_buff" onclick="scrollToTarget(event)">Card.gain_buff(buff,给予buff的牌)</a>
+          This is used to store buffs. If you want to store a buff, you can call
+          <a class="link_in_content" href="#gain_buff" onclick="scrollToTarget(event)">Card.gain_buff(buff, card that gives the buff)</a>
 
         </p>
 
-        <h3>卡牌中的计数器</h3>
+        <h3>Card Counters</h3>
         <pre><code class="lang-python">
 self.counter_dict:dict={}
         </code></pre>
         <p>
-          这个是用来计数的，原理与
+          This is used for counting, similar to
           <a class="link_in_content" href="#counter-dict-player" onclick="scrollToTarget(event)">player.counter_dict</a>
-          相似
 
         </p>
 
-        <h3>卡牌类型</h3>
+        <h3>Card Type</h3>
         <pre><code class="lang-python">
 self.type:str
         </code></pre>
         <table>
           <thead>
               <tr>
-                  <th>type</th>
-                  <th>描述</th>
+                  <th>Type</th>
+                  <th>Description</th>
                   
               </tr>
           </thead>
@@ -735,25 +736,25 @@ self.type:str
               <tr>
                   <td>Creature</td>
                   <td>
-                    创造物类型
+                    Creature type
                     
                   </td>
                   
               </tr>
               <tr>
                   <td>Instant</td>
-                  <td>瞬间牌
+                  <td>Instant card
                   </td>
                   
               </tr>
               <tr>
                   <td>Land</td>
-                  <td>地牌</td>
+                  <td>Land card</td>
                   
               </tr>
               <tr>
                 <td>Sorcery</td>
-                <td>法术牌
+                <td>Sorcery card
                   
                 </td>
                 
@@ -765,15 +766,15 @@ self.type:str
       </table>
         
 
-        <h3>卡牌颜色</h3>
+        <h3>Card Color</h3>
         <pre><code class="lang-python">
 self.color:str
         </code></pre>
         <table>
           <thead>
               <tr>
-                  <th>color</th>
-                  <th>描述</th>
+                  <th>Color</th>
+                  <th>Description</th>
                   
               </tr>
           </thead>
@@ -781,7 +782,7 @@ self.color:str
                 <tr>
                   <td>colorless</td>
                   <td>
-                    没有颜色类型，卡牌的背景会是灰色
+                    No color type, the card's background will be gray.
                     
                   </td>
                   
@@ -789,32 +790,32 @@ self.color:str
               <tr>
                   <td>blue</td>
                   <td>
-                    海洋，卡牌的背景是蓝色
+                    Ocean, the card's background is blue.
                     
                   </td>
                   
               </tr>
               <tr>
                   <td>gold</td>
-                  <td>天空，卡牌的背景是白色
+                  <td>Sky, the card's background is white.
                   </td>
                   
               </tr>
               <tr>
                   <td>red</td>
-                  <td>火山，卡牌的背景是红色</td>
+                  <td>Volcano, the card's background is red.</td>
                   
               </tr>
               <tr>
                 <td>green</td>
-                <td>森林，卡牌的背景是绿色
+                <td>Forest, the card's background is green.
                   
                 </td>
                 
               </tr>
               <tr>
                 <td>black</td>
-                <td>沼泽，卡牌的背景是黑色
+                <td>Swamp, the card's background is black.
                   
                 </td>
                 
@@ -825,21 +826,21 @@ self.color:str
           </tbody>
 
       </table>
-      <h3>卡牌类型细分</h3>
+      <h3>Card Subtype</h3>
         <pre><code class="lang-python">
 self.type_card:str
         </code></pre>
-        <p>这个与type很相似，不同的点就是在creature里，这个会被细分，比如有人类，元素恶魔，但是目前没有很好的戏份这些</p>
+        <p>This is similar to type, but more specific for creatures, such as human, elemental demon, etc. Currently, there is no good way to subdivide these.</p>
 
-      <h3>卡牌稀有度</h3>
+      <h3>Card Rarity</h3>
       <pre><code class="lang-python">
 self.rarity:str
       </code></pre>
       <table>
         <thead>
             <tr>
-                <th>color</th>
-                <th>描述</th>
+                <th>Rarity</th>
+                <th>Description</th>
                 
             </tr>
         </thead>
@@ -847,7 +848,7 @@ self.rarity:str
               <tr>
                 <td>Mythic Rare</td>
                 <td>
-                  传说
+                  Legendary
                   
                 </td>
                 
@@ -855,20 +856,20 @@ self.rarity:str
             <tr>
                 <td>Rare</td>
                 <td>
-                  史诗
+                  Epic
                   
                 </td>
                 
             </tr>
             <tr>
                 <td>Uncommon</td>
-                <td>稀有
+                <td>Rare
                 </td>
                 
             </tr>
             <tr>
                 <td>Common</td>
-                <td>普通</td>
+                <td>Common</td>
                 
             </tr>
             
@@ -880,22 +881,22 @@ self.rarity:str
     </table>
 
 
-    <h2>Card 函数</h2> 
-    <h3>获取费用</h3>
+    <h2>Card Functions</h2> 
+    <h3>Get Cost</h3>
       <pre><code class="lang-python">
 @property
 def cost(self)->dict[int]:# colorless,red, green, blue,black,white
     return self.calculate_cost()
 
       </code></pre>
-      <p>如果只需要读取，那就直接调用Card.cost获取。</p>
+      <p>If you only need to read, just call Card.cost to get it.</p>
 
-      <h3>当造成伤害时</h3>
+      <h3>When Damage is Done</h3>
       <pre><code class="lang-python">
-async def when_harm_is_done(self,card:Union["Creature","Player"],value:int,player: "Player" = None, opponent: "Player" = None):#当造成伤害时 OK
+async def when_harm_is_done(self,card:Union["Creature","Player"],value:int,player: "Player" = None, opponent: "Player" = None):#when damage is done OK
       </code></pre>
-      <p>当一张卡牌造成伤害时，就会调用这个函数。card是对某一个对象造成伤害可以是卡牌也可以是英雄，value是造成伤害的大小，player是这个持有此卡牌的玩家.</p>
-      <p>如果想要增加新的功能，比如有一张法术牌,对一个角色造成两点伤害，当造成伤害后，如果是英雄受到伤害那对所有敌方的随从造成一点伤害</p>
+      <p>When a card deals damage, this function is called. The card is the object that takes damage, which can be a card or a hero, value is the amount of damage dealt, player is the player who owns this card.</p>
+      <p>If you want to add new features, for example, a sorcery card deals 2 damage to a character, and when the damage is done, if the hero takes damage, it deals 1 damage to all enemy minions.</p>
 
       <pre><code class="lang-python">
 class Example(Sorcery):
@@ -929,18 +930,18 @@ class Example(Sorcery):
       </code></pre>
 
       <div id="missile_type"></div>
-      <h3>造成伤害，给角色回血</h3>
+      <h3>Deal Damage, Heal Character</h3>
       <pre><code class="lang-python">
-async def attact_to_object(self,object:Union["Creature","Player"],power:int,color:str,type_missile:str):# it won't get hurt object can be card ot player
+async def attact_to_object(self,object:Union["Creature","Player"],power:int,color:str,type_missile:str):# it won't get hurt object can be card or player
 async def cure_to_object(self,object:Union["Creature","Player"],power:int,color:str,type_missile:str):# it won't get hurt
       </code></pre>
-      <p>如果想要对一个角色造成伤害或者是回血，就可以调用这个函数。</p><br>
-      <p>第一个参数object是造成伤害的对象，第二个是造成伤害的值，第三个是弹幕的颜色,使用“rgba(0, 0, 0, 0.9)”,第四个是导弹的类型</p>
+      <p>If you want to deal damage or heal a character, you can call this function.</p><br>
+      <p>The first parameter object is the target of the damage, the second is the amount of damage, the third is the color of the missile, using "rgba(0, 0, 0, 0.9)", and the fourth is the type of missile.</p>
       <table>
         <thead>
             <tr>
                 <th>type_missile</th>
-                <th>描述(这个也可以自己制作，需要用到js)</th>
+                <th>Description (this can also be customized, requires js)</th>
                 
             </tr>
         </thead>
@@ -948,7 +949,7 @@ async def cure_to_object(self,object:Union["Creature","Player"],power:int,color:
               <tr>
                 <td>Missile_Hit</td>
                 <td>
-                  这个是最普通的飞弹效果
+                  This is the most common missile effect.
                   
                 </td>
                 
@@ -956,14 +957,14 @@ async def cure_to_object(self,object:Union["Creature","Player"],power:int,color:
             <tr>
                 <td>Cure</td>
                 <td>
-                  这个飞弹会扭两下再击中
+                  This missile will twist twice before hitting.
                   
                 </td>
                 
             </tr>
             <tr>
                 <td>High_Missile</td>
-                <td>这个飞弹会飞的比较高
+                <td>This missile will fly higher.
                 </td>
                 
             </tr>
@@ -976,11 +977,11 @@ async def cure_to_object(self,object:Union["Creature","Player"],power:int,color:
     </table>
 
       <div id="select_step"></div>
-      <h3>选择卡牌</h3>
+      <h3>Select Card</h3>
       <pre><code class="lang-python">
-async def selection_step(self, player: "Player" = None, opponent: "Player" = None,selection_random:bool=False)->list:# 当打出牌是，会调用此函数，给用户发送卡牌选项,返回项必须是数组
+async def selection_step(self, player: "Player" = None, opponent: "Player" = None,selection_random:bool=False)->list:# when playing a card, this function is called to send card options to the user, the return item must be an array
       </code></pre>
-      <p>当打出牌时，会调用此函数，给用户发送卡牌选项,返回项必须是数组。比如我想给用户发送个选项，是选择支付一点红色法力值还是不支付。</p>
+      <p>When playing a card, this function is called to send card options to the user, the return item must be an array. For example, I want to send the user an option to choose whether to pay one red mana or not.</p>
 
       <pre><code class="lang-python">
 class Example(Sorcery):
@@ -1026,89 +1027,89 @@ class Example(Sorcery):
         
       </code></pre>
 
-      <h3>当该牌被弃置的时候</h3>
+      <h3>When the Card is Discarded</h3>
       <pre><code class="lang-python">
-async def when_discard(self,player: "Player" = None, opponent: "Player" = None):#当卡牌被弃置
+async def when_discard(self,player: "Player" = None, opponent: "Player" = None):#when the card is discarded
       </code></pre>
-      <p>当卡牌被弃置时，会调用此函数。比如当卡牌弃置的时候会召唤两只小怪</p>
+      <p>When the card is discarded, this function is called. For example, when the card is discarded, it summons two minions.</p>
 
 
-      <h3>当一个创造物死亡的时候会调用</h3>
+      <h3>When a Creature Dies</h3>
       <pre><code class="lang-python">
-def when_a_creature_die(self,creature:"Creature",player: "Player" = None, opponent: "Player" = None):#当随从死亡时（放入一个死亡随从的参数）
+def when_a_creature_die(self,creature:"Creature",player: "Player" = None, opponent: "Player" = None):#when a creature dies (put a dead creature parameter)
       </code></pre>
-      <p>当一个创造物死亡时，会调用此函数。比如每有一个创造物死亡，伤害就+1</p>
+      <p>When a creature dies, this function is called. For example, each time a creature dies, the damage increases by 1.</p>
       <pre><code class="lang-python">
-def when_a_creature_die(self,creature:"Creature",player: "Player" = None, opponent: "Player" = None):#当随从死亡时（放入一个死亡随从的参数）
+def when_a_creature_die(self,creature:"Creature",player: "Player" = None, opponent: "Player" = None):#when a creature dies (put a dead creature parameter)
     self.add_counter_dict("power",1)
       </code></pre>
 
-      <h3>当一个角色受到伤害的时候调用</h3>
+      <h3>When an Object is Hurt</h3>
       <pre><code class="lang-python">
-def when_an_object_hert(self,object,player: "Player" = None, opponent: "Player" = None):#当一个card or 人物收到伤害，object是card 或者 player
+def when_an_object_hert(self,object,player: "Player" = None, opponent: "Player" = None):#when an object (card or character) is hurt
       </code></pre>
-      <p>当一个角色受到伤害时，会调用此函数。比如每有一个创造物收到伤害，伤害就+1，可以先判断object是不是创造物，然后加攻击</p>
+      <p>When an object is hurt, this function is called. For example, each time a creature is hurt, the damage increases by 1. You can first determine if the object is a creature, then increase the attack.</p>
 
 
-      <h3>当击杀一个创造物调用</h3>
+      <h3>When a Creature is Killed</h3>
       <pre><code class="lang-python">
 def when_kill_creature(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
       </code></pre>
-      <p>当杀死一个创造物时，会调用此函数。card是杀死的创造物</p>
+      <p>When a creature is killed, this function is called. The card is the killed creature.</p>
 
-      <h3>当回合开始时调用</h3>
+      <h3>When the Turn Starts</h3>
       <pre><code class="lang-python">
 def when_start_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
       </code></pre>
-      <p>当回合开始时，会调用此函数。比如回合开始时抽一张牌</p>
+      <p>When the turn starts, this function is called. For example, draw a card at the start of the turn.</p>
 
 
-      <h3>光环函数</h3>
+      <h3>Aura Function</h3>
       <pre><code class="lang-python">
 def aura(self,player: "Player" = None, opponent: "Player" = None):
       </code></pre>
-      <p>此函数还在开发</p>
+      <p>This function is still under development.</p>
 
-      <h3>创建选项</h3>
+      <h3>Create Selection</h3>
       <pre><code class="lang-python">
-def create_selection(self,content:str,index:int):#生成一个selection，图片和名字是一样的，但是type_card和content是选项内容
+def create_selection(self,content:str,index:int):#create a selection, the image and name are the same, but type_card and content are the selection content
       </code></pre>
-      <p>这个函数会返回一个选项，可以配合
-        <a class="link_in_content" href="#select_step" onclick="scrollToTarget(event)">Card.selection_step()</a>。
-        输入的第一个参数选项的描述，第二个参数选项的索引
-        返回的选项里selection.content内容就是第一个参数。selection.type_card是“Selection {index}”
+      <p>This function returns a selection, which can be used with
+        <a class="link_in_content" href="#select_step" onclick="scrollToTarget(event)">Card.selection_step()</a>.
+        The first parameter is the description of the selection, the second parameter is the index of the selection.
+        The content of the returned selection is the first parameter. The type_card of the selection is "Selection {index}".
       </p>
 
-      <h3>祈祷</h3>
+      <h3>Scry</h3>
       <pre><code class="lang-python">
 async def Scry(self,player:'Player',opponent:'Player',times:int):
       </code></pre>
-      <p>这个函数会让玩家从牌库里看前times的的牌，把选中的牌放入牌顶，其余的放在牌底
+      <p>This function allows the player to look at the top times cards of the library, put the selected cards on top of the library, and the rest on the bottom of the library.
         
       </p>
 
-      <h3>当获得buff时</h3>
+      <h3>When Gaining a Buff</h3>
       <pre><code class="lang-python">
-def when_gain_buff(self,player: "Player" = None, opponent: "Player" = None,buff:Buff=None,card:'Card'=None):#当获得+1+1的buff时 OK
+def when_gain_buff(self,player: "Player" = None, opponent: "Player" = None,buff:Buff=None,card:'Card'=None):#when gaining a +1+1 buff OK
       </code></pre>
-      <p>当获得buff时调用此函数
+      <p>This function is called when gaining a buff.
         
       </p>
 
-      <h3>当失去buff时</h3>
+      <h3>When Losing a Buff</h3>
       <pre><code class="lang-python">
-def when_loss_buff(self,player: "Player" = None, opponent: "Player" = None,buff:Buff=None,card:'Card'=None):#当获得+1+1的buff时 OK
+def when_loss_buff(self,player: "Player" = None, opponent: "Player" = None,buff:Buff=None,card:'Card'=None):#when losing a +1+1 buff OK
       </code></pre>
-      <p>当失去buff时调用此函数
+      <p>This function is called when losing a buff.
         
       </p>
 
       <div id="gain_buff"></div>
-      <h3>获得buff</h3>
+      <h3>Gain Buff</h3>
       <pre><code class="lang-python">
 def gain_buff(self,buff,card):
       </code></pre>
-      <p>获得buff调用此函数。比如给自己+1+1的buff，card是给这个牌buff的牌
+      <p>This function is called to gain a buff. For example, to give yourself a +1+1 buff, the card is the card that gives this card the buff.
       <pre><code class="lang-python">
 buff=StateBuff(self,self,1,1)
 self.gain_buff(buff,self)
@@ -1117,17 +1118,17 @@ self.gain_buff(buff,self)
       </p>
 
 
-      <h3>失去buff</h3>
+      <h3>Lose Buff</h3>
       <pre><code class="lang-python">
-def loss_buff(self,buff,card):#card 是给这个牌buff的牌
+def loss_buff(self,buff,card):#card is the card that gives this card the buff
       </code></pre>
-      <p>失去buff调用此函数。比如失去+1+1的buff，card是让这个牌失去buff的牌
+      <p>This function is called to lose a buff. For example, to lose a +1+1 buff, the card is the card that makes this card lose the buff.
         <pre><code class="lang-python">
 self.loss_buff(buff,self)
         </code></pre>
       </p>
 
-      <h1>Creature 类</h1>
+      <h1>Creature Class</h1>
       <pre><code class="lang-python">
 class Creature(Card):
 
@@ -1141,38 +1142,38 @@ class Creature(Card):
         
         self.type_creature:str
        </code></pre>
-      <h2>Creature 属性</h2>
-      <h3>原始攻击/生命</h3>
+      <h2>Creature Attributes</h2>
+      <h3>Original Attack/Health</h3>
       <pre><code class="lang-python">
 self.live:int
 self.power:int
       </code></pre>
       <p>
-      这个两个属性是这个创造物的属性上限，如果这个创造物回血了，那它不能超过给血量上限。有些牌也可以试着提升上限
+      These two attributes are the upper limit of the creature's attributes. If the creature heals, it cannot exceed the upper limit. Some cards can also try to increase the upper limit.
       </p>
-      <h3>攻击/生命</h3>
+      <h3>Attack/Health</h3>
       <pre><code class="lang-python">
 self.live:int
 self.power:int
       </code></pre>
-      <p>当创造物收到伤害时，就会扣这里面的血</p>
+      <p>When the creature takes damage, it will reduce the health in this attribute.</p>
 
-      <h2>Creature 函数</h2>
-      <h3>查看创造物属性</h3>
+      <h2>Creature Functions</h2>
+      <h3>View Creature Attributes</h3>
       <pre><code class="lang-python">
 @property
 def state(self):
     state=self.calculate_state()
     return state
       </code></pre>
-      <p>这个可以用来查看创造物属性，一般都会用这个，而不是直接用self.live之类的查看</p>
+      <p>This can be used to view the creature's attributes. Generally, this is used instead of directly viewing self.live, etc.</p>
 
-      <h3>计算创造物属性</h3>
+      <h3>Calculate Creature Attributes</h3>
       <pre><code class="lang-python">
 def calculate_state(self):
     return (self.actual_power,self.actual_live)
       </code></pre>
-      <p>这个函数比较重要，它是用来计算属性的，因为获取的属性不是只有里面的self.actual_power,self.actual_live。还有可能会有buff，或者会有比较特殊的创造物，比如说有一个创造物，它的攻击力等于血量的值
+      <p>This function is important. It is used to calculate attributes because the obtained attributes are not only the internal self.actual_power, self.actual_live. There may also be buffs, or there may be special creatures, such as a creature whose attack power is equal to its health value.
       </p>
       <pre><code class="lang-python">
 def calculate_state(self):
@@ -1181,18 +1182,18 @@ def calculate_state(self):
       </code></pre>
 
       <div id="when_enter_battlefield"></div>
-      <h3>当创造物进入场地时</h3>
+      <h3>When the Creature Enters the Battlefield</h3>
       <pre><code class="lang-python">
 @select_object("",1)
-async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield . selection_random=true when user not select it will select random
+async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enters the battlefield. selection_random=true when user does not select, it will select randomly
       </code></pre>
-      <p>这个函数使用的会比较平凡，@select_object("",1)是用来选择角色的""表示不选择，1表示选择一次，selected_object会返回一个tuple包含了选择的卡牌，以下表格会解释选择的范围。
+      <p>This function is used frequently. @select_object("",1) is used to select a character. "" means no selection, 1 means select once, and selected_object will return a tuple containing the selected card. The following table explains the selection range.
 
         <table>
           <thead>
               <tr>
                   <th>select_object</th>
-                  <th>描述</th>
+                  <th>Description</th>
                   
               </tr>
           </thead>
@@ -1200,7 +1201,7 @@ async def when_enter_battlefield(self, player: "Player" = None, opponent: "Playe
                 <tr>
                   <td>'all_roles'</td>
                   <td>
-                    选择的范围为，敌方英雄，我方英雄，敌方创造物，我方创造物
+                    The selection range includes enemy hero, my hero, enemy creatures, my creatures.
                     
                   </td>
                   
@@ -1208,56 +1209,56 @@ async def when_enter_battlefield(self, player: "Player" = None, opponent: "Playe
               <tr>
                   <td>'opponent_roles'</td>
                   <td>
-                    选择的范围为，敌方英雄，敌方创造物
+                    The selection range includes enemy hero, enemy creatures.
                     
                   </td>
                   
               </tr>
               <tr>
                   <td>'your_roles'</td>
-                  <td>选择的范围为，我方英雄，我方创造物
+                  <td>The selection range includes my hero, my creatures.
                   </td>
                   
               </tr>
               <tr>
                 <td>'all_creatures'</td>
-                <td>选择的范围为，敌方创造物，我方创造物
+                <td>The selection range includes enemy creatures, my creatures.
                 </td>
                 
               </tr>
               <tr>
                 <td>'opponent_creatures'</td>
-                <td>选择的范围为，敌方创造物
+                <td>The selection range includes enemy creatures.
                 </td>
                 
               </tr>
               <tr>
                 <td>'your_creatures'</td>
-                <td>选择的范围为，我方创造物
+                <td>The selection range includes my creatures.
                 </td>
                 
               </tr>
               <tr>
                 <td>'all_lands'</td>
-                <td>选择的范围为，敌方地池，我方地池
+                <td>The selection range includes enemy lands, my lands.
                 </td>
                 
               </tr>
               <tr>
                 <td>'opponent_lands'</td>
-                <td>选择的范围为，敌方地池
+                <td>The selection range includes enemy lands.
                 </td>
                 
               </tr>
               <tr>
                 <td>'your_lands'</td>
-                <td>选择的范围为，我方地池
+                <td>The selection range includes my lands.
                 </td>
                 
               </tr>
               <tr>
                 <td>''</td>
-                <td>不选择
+                <td>No selection.
                 </td>
                 
               </tr>
@@ -1268,119 +1269,119 @@ async def when_enter_battlefield(self, player: "Player" = None, opponent: "Playe
           </tbody>
   
       </table>
-      当随从进入场地的时候，就会调用这个函数
+      When the creature enters the battlefield, this function is called.
       </p>
 
-      <h3>当创造物死亡时</h3>
+      <h3>When the Creature Dies</h3>
       <pre><code class="lang-python">
 async def when_die(self,player: "Player" = None, opponent: "Player" = None):#OK
       </code></pre>
       <p>
-      当创造物死亡时，就会调用这个函数
+      When the creature dies, this function is called.
       </p>
 
 
-      <h3>当回合开始时</h3>
+      <h3>When the Turn Starts</h3>
       <pre><code class="lang-python">
 def when_start_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
       </code></pre>
       <p>
-        当回合开始时，就会调用这个函数
+        When the turn starts, this function is called.
       </p>
 
 
-      <h3>当回合结束时</h3>
+      <h3>When the Turn Ends</h3>
       <pre><code class="lang-python">
 def when_end_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
       </code></pre>
       <p>
         
-        当回合结束时，就会调用这个函数
+        When the turn ends, this function is called.
       </p>
 
-      <h3>当回合结束时</h3>
+      <h3>When the Turn Ends</h3>
       <pre><code class="lang-python">
 def when_end_turn(self,player: "Player" = None, opponent: "Player" = None):#OK
       </code></pre>
       <p>
         
-        当回合结束时，就会调用这个函数
+        When the turn ends, this function is called.
       </p>
 
 
-      <h3>当受到伤害时</h3>
+      <h3>When Hurt</h3>
       <pre><code class="lang-python">
-def when_hurt(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当受到伤害时 OK
+def when_hurt(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#when hurt OK
       </code></pre>
       <p>
-        当两个创造物撞击收到伤害时，就会调用这个函数。card时造成伤害的creature
+        When two creatures collide and take damage, this function is called. The card is the creature that deals the damage.
       </p>
 
-      <h3>当受到治疗时</h3>
+      <h3>When Healed</h3>
       <pre><code class="lang-python">
-def when_being_treated(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当受到伤害时 OK
+def when_being_treated(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#when healed OK
       </code></pre>
       <p>
-        当受到治疗时，就会调用这个函数
+        When healed, this function is called.
       </p>
 
-      <h3>当成为攻击者时</h3>
+      <h3>When Becoming an Attacker</h3>
       <pre><code class="lang-python">
 def when_become_attacker(self,player: "Player" = None, opponent: "Player" = None):# OK
       </code></pre>
       <p>
-        当成为攻击者时，就会调用这个函数
+        When becoming an attacker, this function is called.
       </p>
 
-      <h3>当成为防御者时</h3>
+      <h3>When Becoming a Defender</h3>
       <pre><code class="lang-python">
 def when_become_defender(self,player: "Player" = None, opponent: "Player" = None):# OK
       </code></pre>
       <p>
-        当成为防御者时，就会调用这个函数
+        When becoming a defender, this function is called.
       </p>
 
-      <h3>当杀死一个创造物时</h3>
+      <h3>When Killing a Creature</h3>
       <pre><code class="lang-python">
 def when_kill_creature(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
       </code></pre>
       <p>
-        当杀死一个创造物时，就会调用这个函数
+        When killing a creature, this function is called.
       </p>
 
 
-      <h3>当开始攻击时</h3>
+      <h3>When Starting an Attack</h3>
       <pre><code class="lang-python">
 def when_start_attcak(self,card:Union["Creature","Player"],player: "Player" = None, opponent: "Player" = None):#OK
       </code></pre>
       <p>
-        当开始攻击时，就会调用这个函数，这个是要攻击了才会调用这个函数，和成为攻击者不一样，card是防御者或者是被攻击的英雄。
+        When starting an attack, this function is called. This is called when the attack is about to start, and it is different from becoming an attacker. The card is the defender or the hero being attacked.
       </p>
 
-      <h3>当开始防御时</h3>
+      <h3>When Starting to Defend</h3>
       <pre><code class="lang-python">
 def when_start_defend(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
       </code></pre>
       <p>
-        当开始防御时，就会调用这个函数，这个是要防御了才会调用这个函数，和成为防御者不一样，card是攻击者
+        When starting to defend, this function is called. This is called when the defense is about to start, and it is different from becoming a defender. The card is the attacker.
       </p>
 
-      <h3>横置与解横置，creature</h3>
+      <h3>Tap and Untap, Creature</h3>
       <pre><code class="lang-python">
 def tap(self):
 def untap(self):
       </code></pre>
       <p>
-        如果需要横置，或者是解横置，就可以调用Card.tap()或者Card.untap()
+        If you need to tap or untap, you can call Card.tap() or Card.untap().
       </p>
       <pre><code class="lang-python">
 self.get_flag("tap")
       </code></pre>
-      <p>如果想查看是否横置，只要调用get_flag就可以</p>
+      <p>If you want to check if it is tapped, just call get_flag.</p>
 
 
 
-      <h1>Land 类</h1>
+      <h1>Land Class</h1>
       <pre><code class="lang-python">
 class Land(Card):
     
@@ -1390,46 +1391,46 @@ class Land(Card):
         self.flag_dict:dict={}
       </code></pre>
 
-      <h2>Land 函数</h2>
-      <h3>检查是否可用</h3>
+      <h2>Land Functions</h2>
+      <h3>Check if Usable</h3>
       <pre><code class="lang-python">
-def check_can_use(self,player:'Player')->tuple[bool, str]:# check whether user can use this card , bool and reason
+def check_can_use(self,player:'Player')->tuple[bool, str]:# check whether the user can use this card, bool and reason
       </code></pre>
-      <p>别的种类的check是用来检查费用是否够，这个会检查玩家是否已经使用过land了</p>
+      <p>Other types of checks are used to check if the cost is enough. This will check if the player has already used a land.</p>
 
 
-      <h3>产生法力值</h3>
+      <h3>Generate Mana</h3>
       <pre><code class="lang-python">
 def generate_mana(self)->dict:
       </code></pre>
-      <p>这个会返回一个diction，里面会包含法力值，比如你这个地牌想要产生2点绿，2点红</p>
+      <p>This will return a dictionary containing mana. For example, if you want this land card to generate 2 green and 2 red mana.</p>
       <pre><code class="lang-python">
 def generate_mana(self)->dict:
     return {"R":2,"G":2}
       </code></pre>
 
 
-      <h3>当进入场地——land</h3>
+      <h3>When Entering the Battlefield - Land</h3>
       <pre><code class="lang-python">
 @select_object("",1)
 async def when_enter_battlefield(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
       </code></pre>
       <p>
-        效果可以参考
+        The effect can refer to
         <a class="link_in_content" href="#when_enter_battlefield" onclick="scrollToTarget(event)">Creature.when_enter_battlefield()</a>
       </p>
 
-      <h3>当点击卡牌时</h3>
+      <h3>When the Card is Clicked</h3>
       <pre><code class="lang-python">
-async def when_clicked(self,player:'Player'=None,opponent:'Player'=None):#当地牌被点击时横置，有一些是获得mana，有一些是别的能力   #启动式能力（Activated Abilities）：玩家可以在任何时候支付成本来使用的能力，通常格式为“[成本]：[效果]”。
+async def when_clicked(self,player:'Player'=None,opponent:'Player'=None):#when the land card is clicked, it taps, some generate mana, some have other abilities. Activated abilities: abilities that can be used at any time by paying the cost, usually in the format "[cost]: [effect]".
       </code></pre>
       <p>
-        当点击land的时候会出发某些效果，如果像修改的话可以这样
+        When the land is clicked, some effects will be triggered. If you want to modify it, you can do it like this.
       </p>
       <pre><code class="lang-python">
-async def when_clicked(self,player:'Player'=None,opponent:'Player'=None):#当地牌被点击时横置，有一些是获得mana，有一些是别的能力   #启动式能力（Activated Abilities）：玩家可以在任何时候支付成本来使用的能力，通常格式为“[成本]：[效果]”。
+async def when_clicked(self,player:'Player'=None,opponent:'Player'=None):#when the land card is clicked, it taps, some generate mana, some have other abilities. Activated abilities: abilities that can be used at any time by paying the cost, usually in the format "[cost]: [effect]".
     if not self.get_flag("tap"):
-        #这里写入某些效果
+        #write some effects here
         self.tap()
         return True
     else:
@@ -1438,7 +1439,7 @@ async def when_clicked(self,player:'Player'=None,opponent:'Player'=None):#当地
 
 
 
-      <h1>Sorcery 类</h1>
+      <h1>Sorcery Class</h1>
       <pre><code class="lang-python">
 class Sorcery(Card):
     
@@ -1446,20 +1447,20 @@ class Sorcery(Card):
         super().__init__(player)
       </code></pre>
       
-      <h2>Sorcery 函数</h2>
-      <h3>当打出Sorcery时</h3>
+      <h2>Sorcery Functions</h2>
+      <h3>When Sorcery is Played</h3>
       <pre><code class="lang-python">
 @select_object("",1)
 async def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):# when player use the card
     
       </code></pre>
       <p>
-        效果可以参考
+        The effect can refer to
         <a class="link_in_content" href="#when_enter_battlefield" onclick="scrollToTarget(event)">Creature.when_enter_battlefield()</a>
-        非常类似
+        Very similar
       </p>
 
-      <h1>Instant 类</h1>
+      <h1>Instant Class</h1>
       <pre><code class="lang-python">
 class Instant(Card):
     
@@ -1467,101 +1468,101 @@ class Instant(Card):
         super().__init__(player)
       </code></pre>
       
-      <h2>Instant 函数</h2>
-      <h3>当打出Instant时</h3>
+      <h2>Instant Functions</h2>
+      <h3>When Instant is Played</h3>
       <pre><code class="lang-python">
 @select_object("",1)
 async def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):# when player use the card
     
       </code></pre>
       <p>
-        效果可以参考
+        The effect can refer to
         <a class="link_in_content" href="#when_enter_battlefield" onclick="scrollToTarget(event)">Creature.when_enter_battlefield()</a>
-        非常类似
+        Very similar
       </p>
 
 
 
-      <h1>Buff 类</h1>
+      <h1>Buff Class</h1>
       <pre><code class="lang-python">
 class Buff:
     
     def __init__(self,card:"Card",selected_card:"Card") -> None:
-        self.card=card#这个buff是属于哪一张卡的
-        self.card_type:str=""#这个buff是用在那个类型的
-        self.content:str=""#描述buff
+        self.card=card#which card this buff belongs to
+        self.card_type:str=""#which type this buff is used on
+        self.content:str=""#description of the buff
         self.buff_missile="Missile_Hit"
         self.color_missile="rgba(203, 203, 203, 0.9)"
         self.buff_name="Buff"
         self.selected_card=selected_card
       </code></pre>
       
-      <h2>Buff 属性</h2>
+      <h2>Buff Attributes</h2>
       <h3>Buff.Card</h3>
       <pre><code class="lang-python">
-self.card=card#这个buff是属于哪一张卡的
+self.card=card#which card this buff belongs to
       </code></pre>
-      <p>储存是给予buff的卡牌</p>
+      <p>Stores the card that is given the buff</p>
 
-      <h3>Buff 类型</h3>
+      <h3>Buff Type</h3>
       <pre><code class="lang-python">
-self.card_type:str=""#这个buff是用在那个类型的
+self.card_type:str=""#which type this buff is used on
       </code></pre>
-      <p>储存的是buff的种类，比如加属性值（+1+1）的就是就是叫State,也可以自己定义</p>
+      <p>Stores the type of the buff, for example, a buff that adds attribute values (+1+1) is called State, you can also define it yourself</p>
 
-      <h3>Buff 内容</h3>
+      <h3>Buff Content</h3>
       <pre><code class="lang-python">
-self.content:str=""#描述buff
+self.content:str=""#description of the buff
       </code></pre>
-      <p>用于描述buff的效果的</p>
+      <p>Used to describe the effect of the buff</p>
 
-      <h3>Buff 弹幕</h3>
+      <h3>Buff Missile</h3>
       <pre><code class="lang-python">
 self.buff_missile="Missile_Hit"
 self.color_missile="rgba(203, 203, 203, 0.9)"
       </code></pre>
-      <p>self.buff_missile储存的是弹幕的种类,可以查看此
-        <a class="link_in_content" href="#missile_type" onclick="scrollToTarget(event)">表格</a>。
-        self.color_missile存的是弹幕的颜色，是"rgba(0, 0,0 , 0)"形式的
+      <p>self.buff_missile stores the type of missile, you can check this
+        <a class="link_in_content" href="#missile_type" onclick="scrollToTarget(event)">table</a>.
+        self.color_missile stores the color of the missile, in the form of "rgba(0, 0,0 , 0)"
       </p>
 
-      <h3>Buff 名字</h3>
+      <h3>Buff Name</h3>
       <pre><code class="lang-python">
 self.buff_name=""
       </code></pre>
-      <p>储存是buff的名字，可以自己取名</p>
+      <p>Stores the name of the buff, you can name it yourself</p>
 
-      <h3>Buff 选择的对象</h3>
+      <h3>Buff Selected Object</h3>
       <pre><code class="lang-python">
 self.selected_card=selected_card
       </code></pre>
-      <p>储存是受到buff的卡牌</p>
+      <p>Stores the card that is affected by the buff</p>
 
 
-      <h2>Buff 函数</h2>
+      <h2>Buff Functions</h2>
 
-      <h3>Buff 修改card函数</h3>
+      <h3>Buff Change Card Function</h3>
       <pre><code class="lang-python">
 def change_function(self,card:"Creature"):
       </code></pre>
-      <p>这个就是用来体现buff效果的，你可以动态修改Card类的某一个函数来体现这个buff。比如让一个随从获得一个buff，这个buff会再死亡的时候生效</p>
+      <p>This is used to reflect the effect of the buff, you can dynamically modify a function of the Card class to reflect this buff. For example, let a minion get a buff, this buff will take effect when it dies</p>
       <pre><code class="lang-python">
 def change_function(self,card:"Creature"):
     previews_func=card.when_die
     async def when_die(self_card,player,opponent):
         await previews_func(player,opponent)
-        #这里写死亡后的功能
+        #write the function after death here
     card.when_die = types.MethodType(when_die, card)
       </code></pre>
 
-      <h1>卡牌文件布局</h1>
-      <h2>py文件布局</h2>
-      所有的自定义卡牌文件都会放在src/pycards里
+      <h1>Card File Layout</h1>
+      <h2>py File Layout</h2>
+      All custom card files will be placed in src/pycards
       <table>
         <thead>
             <tr>
-                <th>类型</th>
-                <th>路径</th>
+                <th>Type</th>
+                <th>Path</th>
                 
             </tr>
         </thead>
@@ -1599,13 +1600,13 @@ def change_function(self,card:"Creature"):
 
     </table>
 
-      <h2>js文件布局</h2>
-      所有的自定义卡牌文件都会放在src/cards里
+      <h2>js File Layout</h2>
+      All custom card files will be placed in src/cards
       <table>
         <thead>
             <tr>
-                <th>类型</th>
-                <th>路径</th>
+                <th>Type</th>
+                <th>Path</th>
                 
             </tr>
         </thead>
@@ -1643,9 +1644,9 @@ def change_function(self,card:"Creature"):
 
     </table>
 
-      <h1>创建卡牌例子-Creature</h1>
-      <h2>Creature-例子1</h2>
-      如果想创建一个creature的卡牌，加入名字是Xuanpei,属性是7/2，法力值是3UU，传说稀有度，效果是选择一个创造物，获得+1+1，死亡后给一个随机友方创造物+1+1
+      <h1>Example of Creating a Card - Creature</h1>
+      <h2>Creature - Example 1</h2>
+      If you want to create a creature card, named Xuanpei, with attributes 7/2, mana cost 3UU, legendary rarity, the effect is to select a creature, get +1+1, and give a random friendly creature +1+1 when it dies
       <pre><code class="lang-python">
 
 
@@ -1687,9 +1688,9 @@ class Xuanpei(Creature):
 
 
       </code></pre>
-      <h1>创建卡牌例子-Land</h1>
-      <h2>Land-例子1</h2>
-      如果想创建一张地牌，名字叫Ji，功能是当点击时，会抽一张牌，是蓝色
+      <h1>Example of Creating a Card - Land</h1>
+      <h2>Land - Example 1</h2>
+      If you want to create a land card, named Ji, the function is to draw a card when clicked, it is blue
       <pre><code class="lang-python">
 class Ji(Land):
 
@@ -1708,7 +1709,7 @@ class Ji(Land):
         self.content:str="it will draw a card instead of generate mana"
         self.image_path:str="cards/land/Elysian Grove/image.jpg"
 
-    async def when_clicked(self,player:'Player'=None,opponent:'Player'=None):#当地牌被点击时横置，有一些是获得mana，有一些是别的能力   #启动式能力（Activated Abilities）：玩家可以在任何时候支付成本来使用的能力，通常格式为“[成本]：[效果]”。
+    async def when_clicked(self,player:'Player'=None,opponent:'Player'=None):#when the land card is clicked, it taps, some generate mana, some have other abilities. Activated abilities: abilities that can be used at any time by paying the cost, usually in the format "[cost]: [effect]".
         if not self.get_flag("tap"):
             player.draw_card(1)
             self.tap()
@@ -1716,8 +1717,8 @@ class Ji(Land):
         else:
             return False
         </code></pre>
-        <h2>Land-例子2</h2>
-      如果想创建一张地牌，名字叫Ni，功能是当点击时，会产生3点黑色法力值,当进入场地时，对我方英雄造成3点伤害
+        <h2>Land - Example 2</h2>
+      If you want to create a land card, named Ni, the function is to generate 3 black mana when clicked, and deal 3 damage to your hero when it enters the battlefield
       <pre><code class="lang-python">
 class Ni(Land):
 
@@ -1744,9 +1745,9 @@ class Ni(Land):
         await self.attact_to_object(player,3,"rgba(0, 0, 0, 0.9)","Missile_Hit")
     
       </code></pre>
-      <h1>创建卡牌例子-Sorcery</h1>
-      <h2>Sorcery-例子1</h2>
-      如果想做一个法术牌名字是Tai,法力是3G，是召唤两个树人，然后给每一个友方随从获得亡语，召唤一个树人可以这样做
+      <h1>Example of Creating a Card - Sorcery</h1>
+      <h2>Sorcery - Example 1</h2>
+      If you want to create a sorcery card named Tai, with mana cost 3G, it summons two treants, and then gives each friendly minion a deathrattle to summon a treant, you can do it like this
       <pre><code class="lang-python">
 
 from game.buffs import Buff
@@ -1757,8 +1758,8 @@ from game.type_cards.creature import Creature
 class Tai_Summon_Die_Tree(Buff):
     def __init__(self,card:"Card",selected_card:"Card") -> None:
         super().__init__(card,selected_card)
-        self.card=card#这个buff是属于哪一张卡的
-        self.content:str="Summon one 1/1 tree"#描述buff
+        self.card=card#which card this buff belongs to
+        self.content:str="Summon one 1/1 tree"#description of the buff
         self.buff_name=f"{card.name}"
 
     def change_function(self,card:"Creature"):
@@ -1819,11 +1820,11 @@ class Tai_Tree(Creature):
 
       </code></pre>
 
-      <!-- <h2>Sorcery-例子2</h2> -->
+      <!-- <h2>Sorcery - Example 2</h2> -->
       
-      <h1>创建卡牌例子-Instant</h1>
-      <h2>Instant-例子1</h2>
-      如果想做一个法术牌名字是Mei,法力是3W，选择，是为我方英雄回复10点血，还是祈祷10
+      <h1>Example of Creating a Card - Instant</h1>
+      <h2>Instant - Example 1</h2>
+      If you want to create an instant card named Mei, with mana cost 3W, choose to either heal your hero for 10 points or scry 10
       <pre><code class="lang-python">
 class Mei(Instant):
     
@@ -1860,66 +1861,8 @@ class Mei(Instant):
         return [card]
 
       </code></pre>
-      <!-- <h2>Instant-例子2</h2> -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-
-
-
-      
-
-
-
-
-
-
-
-    
-
-
-
-
-
-        
-
-
-
-
-
-        
-          
-              
-</div>
+      <!-- <h2>Instant - Example 2</h2> -->
+    </div>
         
 
 
@@ -1929,12 +1872,12 @@ class Mei(Instant):
       
      
 
-    </div>
-    <script src="/webpages/tech_doc/create_dir.js"></script>
-    <script src="/webpages/tech_doc/top_footer.js"></script>
-    <script src="/webpages/tech_doc/subtitle.js"></script>
-    <script src="/webpages/tech_doc/prism.js"></script>
-    
+  </div>
+  <script src="/webpages/tech_doc/create_dir.js"></script>
+  <script src="/webpages/tech_doc/top_footer.js"></script>
+  <script src="/webpages/tech_doc/subtitle.js"></script>
+  <script src="/webpages/tech_doc/prism.js"></script>
+  
 </body>
 
 </html>

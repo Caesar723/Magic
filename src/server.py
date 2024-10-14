@@ -325,11 +325,25 @@ async def select_object(websocket: WebSocket,username: str = Depends(get_current
         
     
 
+# @app.get("/tech_doc/zh")
+# async def login_form(request: Request):
+        
+#         return templates.TemplateResponse(f"webpages/tech_doc/content.html", {"request": request})
 @app.get("/tech_doc")
 async def login_form(request: Request):
         
-        return templates.TemplateResponse(f"webpages/tech_doc/content.html", {"request": request})
+        return templates.TemplateResponse(f"webpages/tech_doc/content_En.html", {"request": request})
 
+@app.get("/tech_doc/{lang}")
+async def get_documentation(request: Request,lang: str):
+    dict_lang={
+        "zh":"webpages/tech_doc/content.html",
+        "en":"webpages/tech_doc/content_En.html",
+    }
+    if lang in dict_lang:
+        return templates.TemplateResponse(dict_lang[lang], {"request": request})
+    else:
+        return templates.TemplateResponse(f"webpages/tech_doc/content.html", {"request": request})
 
 def main():
     import uvicorn
