@@ -37,7 +37,7 @@ class RoomServer:
         room=PVE_Room([client_1],self)
 
         self.client_room[client_1[1]]=room
-        print(self.client_room)
+        print(self.client_room.keys())
 
         await room.game_start()
 
