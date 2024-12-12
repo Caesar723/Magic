@@ -1,0 +1,322 @@
+:root {
+  --htmlFontSize: 100%;
+
+  --bodyBackgroundColor: #2c3338;
+  --bodyColor: var(--baseColor);
+  --bodyFontFamily: "Open Sans";
+  --bodyFontFamilyFallback: sans-serif;
+  --bodyFontSize: 0.875rem;
+  --bodyFontWeight: 400;
+  --bodyLineHeight: 1.5;
+  --bodyFontFamily: "Times New Roman", Times, serif;
+  --bodyFontFamilyFallback: "Times New Roman", Times, serif;
+}
+.triangle-button {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: var(--size) solid transparent; /* 三角形的左边，大小可调整 */
+  border-right: var(--size) solid transparent; /* 三角形的右边，大小可调整 */
+  border-bottom: calc(var(--size) * 1.73) solid var(--color); /* 三角形的底边，高度根据勾股定理计算，颜色可调整 */
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease; /* 过渡效果 */
+  transform: rotate(var(--rotate)); /* 旋转角度可调整 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%); /* 剪切可点击区域为三角形 */
+  transform-origin: center; /* 旋转的基点在三角形的底部中心*/
+  
+
+}
+.triangle-button:hover {
+  transform: scale(1.2) rotate(var(--rotate)); /* 变大和保持旋转 */
+  filter: brightness(1.5); /* 变亮 */
+}
+/* #exit{
+  font-size: 5vw;
+} */
+.button-text {
+    
+  z-index: 30;
+  color: white; /* 文本颜色 */
+  transition: filter 0.3s ease; /* 过渡效果 */
+  position: absolute;
+  font-size: calc(0.5 * var(--size)); /* 使用相对单位来定义文字大小 */
+  width: calc(1 * var(--size));
+  transform:translate(0,var(--size)) rotate(calc(-1 * var(--rotate)))  ;
+  transform-origin: 50% 50%;
+  /* 加粗字体 */
+  font-weight: bold;
+  text-align: center; /* 文字水平居中 */
+}
+.rectangle-button {
+  position: absolute;
+  width: var(--width); /* 设置长方形的宽度 */
+  height: var(--height); /* 设置长方形的高度 */
+  background-color: var(--color); /* 设置背景颜色 */
+  cursor: pointer;
+  transition: transform 0.3s ease, background-color 0.3s ease ,animation 0.3s ease ,filter 0.3s ease; /* 过渡效果 */
+  transform: rotate(var(--rotate)); /* 旋转角度可调整 */
+  display: flex;
+  justify-content: center;
+  /* align-items: center; */
+  transform-origin: center; /* 旋转的基点 */
+  clip-path: none; /* 移除剪切路径 */
+  border-radius: 1vw; /* 设置圆角 */
+  top: calc(var(--top) - 5vw) !important;
+}
+.rectangle-button .image-container {
+  width: calc(var(--width) * 0.8); /* 图片宽度为按钮宽度的 80% */
+  height: calc(var(--width) * 0.8); /* 使图片保持正方形，高度同宽度 */
+  display: flex;
+  margin-top: 1vw;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10%; /* 为图片容器添加圆角 */
+  overflow: hidden; /* 隐藏超出容器部分 */
+  position: relative;
+  /* mask-image:radial-gradient(ellipse calc(var(--width) * 0.8) calc(var(--width) * 0.8) at center, white 70%, transparent 80%); */
+}
+.rectangle-button:hover {
+  transform: scale(1.1) rotate(var(--rotate)); /* 变大和保持旋转 */
+  filter: brightness(1.5); /* 变亮 */
+  /* text-shadow: 0 0 5px var(--color); */
+  animation: neon 1.5s ease-in-out infinite alternate;
+}
+.rectangle-button .image-container:hover {
+  transform: scale(1) rotate(0); /* 变大和保持旋转 */
+  filter: brightness(1);
+  filter: none;
+}
+
+.rectangle-button img {
+  flex-grow: 0;
+  flex-shrink: 0; /* 防止图片被压缩 */
+  width: 100%; /* 图片宽度占满按钮 */
+  position: absolute;
+  
+}
+.rectangle-button video {
+  flex-grow: 0;
+  flex-shrink: 0; 
+  width: 100%; 
+  position: absolute;
+  
+}
+.rectangle-button span {
+  font-size: calc(0.07*(var(--width) + var(--height))); /* 使用相对单位来定义文字大小 */
+  margin-top: calc(0.2 * var(--height));
+  font-size: 2.5vw;
+}
+#img_coin{
+  position: relative;
+  width: 2.5vw;
+  height: 2.5vw;
+  
+  
+}
+body {
+  background-color: var(--bodyBackgroundColor);
+  color: #606468;
+  font-family: var(--bodyFontFamily), var(--bodyFontFamilyFallback);
+  font-size: var(--bodyFontSize);
+  font-weight: var(--bodyFontWeight);
+  line-height: var(--bodyLineHeight);
+  margin: 0;
+  min-height: 100vh;
+  padding-top: 50px;
+  overflow: hidden;
+  height: 100%;
+}
+#shop_title_back{
+  width: 100%;
+  height: 100%;
+}
+#shop_title{
+  
+  color: white;
+  width: 80%;
+  margin-left: 10%;
+  margin-right: 10%;
+  flex-direction: column;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* margin: 0;
+  padding: 0;
+  line-height: 0; */
+}
+#shop_title_top{
+  width: 60%;
+  height: 80px;
+  background-color: rgb(156, 102, 80);
+  border-top-left-radius: 50px;
+  border-top-right-radius: 50px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 70px;
+  
+}
+#shop_title_bottom{
+  width: 100%;
+  height: 20px;
+  background-color: rgb(156, 102, 80);
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+#shop_list{
+  width: 80%;
+  height:calc(100vh - 200px);
+  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(156, 102, 80);
+  box-shadow: 0 6px 12px rgba(250, 250, 250, 0.886), 0 8px 24px rgba(250, 250, 250, 0.886);
+  margin-left: 10%;
+  margin-right: 10%;
+  
+}
+.shop_line{
+  width: 100%;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(156, 102, 80);
+
+
+}
+.shop_item{
+  width: 400px;
+  height: 200px;
+  display: flex;
+  flex-direction: row;
+  
+}
+.shop_item_container{
+  width: 100%;
+  height: calc(100% - 20px);
+  display: flex;
+  background-color: rgb(156, 102, 80);
+  box-shadow: inset 0 8px 28px rgba(0, 0, 0, 0.437);
+  justify-content: space-around;
+  
+}
+.shop_bottom1{
+  width: 100%;
+  height: 10px;
+  display: flex;
+  background-color: rgb(156, 102, 80);
+  box-shadow: inset 0 4px 8px rgba(255, 255, 255, 0.367), inset 0 -4px 8px rgba(0, 0, 0, 0.437);
+}
+.shop_bottom2{
+  width: 100%;
+  height: 10px;
+  display: flex;
+  background-color: rgb(156, 102, 80);
+  box-shadow:  inset 0 4px 8px rgba(0, 0, 0, 0.437);
+}
+.shop_item_name{
+  display: flex;
+  
+  font-size: 20px;
+  color: white;
+}
+.shop_item_price{
+  display: flex;
+  font-size: 30px;
+  color: white;
+}
+.shop_item_info{
+  width: 100%;
+  height: 80%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+.shop_item_buy{
+  text-align: center;
+  justify-content: center;
+  display: flex;
+  font-size: 30px;
+  color: white;
+  bottom: 0;
+  width: 100%;
+  background-color: rgb(231, 118, 73);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.437);
+  transition: transform 0.3s ease, background-color 0.3s ease ,animation 0.3s ease ,filter 0.3s ease;
+}
+.shop_item_buy:hover{
+  transform: scale(1.1);
+  background-color: rgb(231, 118, 73);
+  filter: brightness(1.5);
+  cursor: pointer;
+}
+
+.dark-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* 半透明黑色 */
+  z-index: 9999; /* 保证在最上层 */
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  pointer-events: auto;
+}
+
+.buy_small_page{
+  width: 60%;
+  height: 30%;
+  background-color: rgb(178, 107, 55);
+  z-index: 10000;
+  pointer-events: auto; 
+  position: relative; 
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 10px;
+  color: white;
+  padding: 50px;
+  
+}
+.buy_small_page_content_button_container{
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.buy_small_page_content_button{
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  background-color: white;
+  margin-top: 30px;
+  border-radius: 10px;
+  transition: transform 0.3s ease, background-color 0.3s ease ,animation 0.3s ease ,filter 0.3s ease;
+}
+.yes_button{
+  background-color: rgb(113, 231, 73);
+}
+.no_button{
+  background-color: rgb(231, 118, 73);
+}
+.buy_small_page_content_button:hover{
+  transform: scale(1.1);
+  filter: brightness(1.5);
+}
+.buy_small_page_content_text{
+  font-size: 20px;
+}

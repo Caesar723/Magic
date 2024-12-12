@@ -341,7 +341,7 @@ class Card_Creater:
                             if max_val[1] or max_val[0]>len(text.split("\n")):
                                 contents=self.reorganise_content(text)
                                 self.process_respond_mess(type,contents,path)
-                                print(contents)
+                                #print(contents)
                         else:pass
         for color in colors:
             for Rarity in Raritys:
@@ -362,8 +362,12 @@ class Card_Creater:
             messages=message
 
         )
-
-        print(response.choices[0].message.content)
+        print("*"*100)
+        print("这是输入的内容",message)
+        print("*"*100)
+        print("这是输出的内容",response.choices)
+        print("*"*100)
+        return
         
         successful_flag=self.process_data_gpt(type,response.choices[0].message.content)
         if successful_flag:
@@ -472,7 +476,7 @@ class Card_Creater:
 card_creator=Card_Creater()
 #print(ORGPATH)
 #card_creator.initinal_card_info()
-#card_creator.start_create_prompt()
+card_creator.start_create_prompt()
 # for i in range(4):
 #     card_creator.create_Instant()
 
@@ -525,5 +529,5 @@ content={
 
 
 #card_creator.process_data_hand_make(content)
-card_creator.change_format_all()
+#card_creator.change_format_all()
   

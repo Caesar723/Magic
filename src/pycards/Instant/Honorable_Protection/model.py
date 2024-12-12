@@ -27,7 +27,7 @@ class Honorable_Protection(Instant):
         self.image_path:str="cards/Instant/Honorable Protection/image.jpg"
 
 
-    @select_object("all_creatures",1)
+    @select_object("your_creatures",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         if selected_object:
             buff_i=Indestructible(self,selected_object[0])

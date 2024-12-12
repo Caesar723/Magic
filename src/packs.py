@@ -10,6 +10,7 @@ class Pack_Database:#
     Percentage_Rare=0.1#10%
     Percentage_Mythic_Rare=0.05#5%
     Num_cards=6
+    Price=100
     image_url="webpages/image_source/packs/pack_org.jpg"
     ORGPATH=os.path.dirname(os.path.abspath(__file__))
     
@@ -70,6 +71,7 @@ class Legend(Pack_Database):
     Percentage_Rare=0.1#10%
     Percentage_Mythic_Rare=0.15#5%
     Num_cards=5
+    Price=200
     image_url="webpages/image_source/packs/pack_legend.png"
     
     
@@ -79,11 +81,13 @@ class Antiquities(Pack_Database):
     Percentage_Uncommon=0.5#30%
     Percentage_Rare=0.1#10%
     Percentage_Mythic_Rare=0.05#5%
+    Price=150
     image_url="webpages/image_source/packs/pack_antiquities.png"
     
 class Red(Pack_Database):
     Num_cards=5
     image_url="webpages/image_source/packs/red.png"
+    Price=110
     def filter_card(self,card,type,further_path):#return True or false
         method={"Cost":"R","Type":"Fire"}
         with open(f"{further_path}/{card}/data.json", 'r') as file:
@@ -98,6 +102,7 @@ class Red(Pack_Database):
 class Green(Pack_Database):
     Num_cards=5
     image_url="webpages/image_source/packs/green.png"
+    Price=110
     def filter_card(self,card,type,further_path):#return True or false
         method={"Cost":"G","Type":"Forest"}
         with open(f"{further_path}/{card}/data.json", 'r') as file:
@@ -111,6 +116,7 @@ class Green(Pack_Database):
 class Blue(Pack_Database):
     Num_cards=5
     image_url="webpages/image_source/packs/blue.png"
+    Price=110
     def filter_card(self,card,type,further_path):#return True or false
         method={"Cost":"U","Type":"Water"}
         with open(f"{further_path}/{card}/data.json", 'r') as file:
@@ -124,6 +130,7 @@ class Blue(Pack_Database):
 class Black(Pack_Database):
     Num_cards=5
     image_url="webpages/image_source/packs/black.png"
+    Price=110
     def filter_card(self,card,type,further_path):#return True or false
         method={"Cost":"B","Type":"Dark"}
         with open(f"{further_path}/{card}/data.json", 'r') as file:
@@ -137,6 +144,7 @@ class Black(Pack_Database):
 class White(Pack_Database):
     Num_cards=5
     image_url="webpages/image_source/packs/white.png"
+    Price=110
     def filter_card(self,card,type,further_path):#return True or false
         method={"Cost":"W","Type":"Light"}
         with open(f"{further_path}/{card}/data.json", 'r') as file:

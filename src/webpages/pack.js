@@ -65,14 +65,29 @@ class Pack_surface extends Plane{
         
 
     }
-    draw_half_img_1(points_pos,new_points_pos){
+    extendVert(x0, y0, x1, y1, x2, y2) {
+        const DRAW_IMAGE_EXTEND_EX = 10000;
+        var x = 2*x0 - x1 - x2, y = 2 * y0 - y1 - y2;
+        var d = Math.sqrt(DRAW_IMAGE_EXTEND_EX / (x * x + y * y));
+        return [x0 + x * d, y0 + y * d];
+    }
+    draw_half_img_1(points_pos,new_points_pos,ctx,canvas){
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.save();
         ctx.beginPath();
-        ctx.moveTo(points_pos[0][0], points_pos[0][1]); // 右下角
-        ctx.lineTo(points_pos[3][0], points_pos[3][1]); // 右上角
-        ctx.lineTo(points_pos[2][0], points_pos[2][1]); // 左上角
-        ctx.lineTo(points_pos[1][0], points_pos[1][1]);
+        const p1=this.extendVert(points_pos[0][0], points_pos[0][1],points_pos[2][0], points_pos[2][1],points_pos[3][0], points_pos[3][1])
+        //console.log(p1,[points_pos[0][0], points_pos[0][1]])
+        const p2=this.extendVert(points_pos[2][0], points_pos[2][1],points_pos[0][0], points_pos[0][1],points_pos[3][0], points_pos[3][1])
+        const p3=this.extendVert(points_pos[3][0], points_pos[3][1],points_pos[2][0], points_pos[2][1],points_pos[0][0], points_pos[0][1])
+
+        
+        ctx.moveTo(...p1); // 右下角
+        ctx.lineTo(...p2); // 左下角
+        ctx.lineTo(...p3); // 左上角
+        // ctx.moveTo(points_pos[0][0], points_pos[0][1]); // 右下角
+        // ctx.lineTo(points_pos[3][0], points_pos[3][1]); // 右上角
+        // ctx.lineTo(points_pos[2][0], points_pos[2][1]); // 左上角
+        // ctx.lineTo(points_pos[1][0], points_pos[1][1]);
         ctx.closePath();
         ctx.clip();
         ctx.setTransform(
@@ -87,13 +102,19 @@ class Pack_surface extends Plane{
         //ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height/4);
         ctx.restore();
     }
-    draw_half_img_2(points_pos,new_points_pos){
+    draw_half_img_2(points_pos,new_points_pos,ctx,canvas){
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.save();
         ctx.beginPath();
-        ctx.moveTo(points_pos[2][0], points_pos[2][1]); // 左上角
-        ctx.lineTo(points_pos[1][0], points_pos[1][1]); // 右上角
-        ctx.lineTo(points_pos[0][0], points_pos[0][1]); // 右下角
+        const p1=this.extendVert(points_pos[0][0], points_pos[0][1],points_pos[1][0], points_pos[1][1],points_pos[2][0], points_pos[2][1])
+        const p2=this.extendVert(points_pos[1][0], points_pos[1][1],points_pos[0][0], points_pos[0][1],points_pos[2][0], points_pos[2][1])
+        const p3=this.extendVert(points_pos[2][0], points_pos[2][1],points_pos[1][0], points_pos[1][1],points_pos[0][0], points_pos[0][1])
+        ctx.moveTo(...p1); // 右下角
+        ctx.lineTo(...p2); // 左下角
+        ctx.lineTo(...p3); // 左上角
+        // ctx.moveTo(points_pos[2][0], points_pos[2][1]); // 左上角
+        // ctx.lineTo(points_pos[1][0], points_pos[1][1]); // 右上角
+        // ctx.lineTo(points_pos[0][0], points_pos[0][1]); // 右下角
         
         ctx.closePath();
         ctx.clip();
@@ -109,7 +130,7 @@ class Pack_surface extends Plane{
         //ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height);
         ctx.restore();
     }
-    draw(camera){
+    draw(camera,ctx,canvas){
         
         const new_points_pos=[];
         
@@ -146,8 +167,8 @@ class Pack_surface extends Plane{
                     this.average_p(col_left_up,col_right_up,ROW-row,ROW), 
                     this.average_p(col_left_down,col_right_down,ROW-row,ROW), 
                 ]
-                this.draw_half_img_1(new_points_pos_1,[row*this.image.width/ROW,col*this.image.height/COL]);
-                this.draw_half_img_2(new_points_pos_1,[row*this.image.width/ROW,col*this.image.height/COL]);
+                this.draw_half_img_1(new_points_pos_1,[row*this.image.width/ROW,col*this.image.height/COL],ctx,canvas);
+                this.draw_half_img_2(new_points_pos_1,[row*this.image.width/ROW,col*this.image.height/COL],ctx,canvas);
             }
             col_left_up=col_left_down;
             col_right_up=col_right_down;

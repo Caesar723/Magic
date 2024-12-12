@@ -471,6 +471,30 @@ class DataBase:
             user=await self.find_user(session,username)
             return user.virtual_currency
 
+    async def get_shop_items(self,Packs_Dict):
+        async with self.AsyncSessionLocal() as session:
+            stmt = (
+                    select(Pack)
+                )
+            result = await session.execute(stmt)
+            packs = [{'id': pack.id, 'pack_url': pack.pack_url,'name':pack.name,'price':Packs_Dict[pack.name].Price} for pack in result.scalars()]
+            return packs
+        
+    async def buy_shop_items(self,packid,pack_name,username,pack_list):
+        async with self.AsyncSessionLocal() as session:
+            user=await self.find_user(session,username)
+            if pack_name not in pack_list:
+                return {"status":400,"message":"Pack not found"}
+            pack_price=pack_list[pack_name].Price
+            if user.virtual_currency<pack_price:
+                return {"status":400,"message":"Not enough currency"}
+            print(pack_price,user.virtual_currency)
+            user.virtual_currency -= pack_price
+            await session.commit()
+            await self.add_packs(pack_name,username,1)
+            return {"status":200,"message":"Pack bought successfully"}
+            
+
 
 
 if __name__=="__main__":

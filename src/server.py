@@ -40,7 +40,7 @@ async def login(username: str = Body(...), password: str = Body(...), response: 
         if result=="matched":
             cookie_mess=json.dumps({"username":username,"password":password})
             encrypted_data=encrypt_data_by_StaticFiles_server(cookie_mess)
-            response.set_cookie(key="mycookie",httponly=True, value=encrypted_data, max_age=1800, path='/')
+            response.set_cookie(key="mycookie",httponly=True, value=encrypted_data, max_age=2592000, path='/')
             return {"message": "Login successful"}
         elif result=="passward error":
             return {"message": "passward error"}
@@ -333,6 +333,26 @@ async def select_object(websocket: WebSocket,username: str = Depends(get_current
 async def login_form(request: Request):
         
         return templates.TemplateResponse(f"webpages/tech_doc/content_En.html", {"request": request})
+
+@app.get("/shop")
+async def shop_page(request: Request, username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        return username
+    return templates.TemplateResponse(f"webpages/shop_page/shop.html", {"request": request})
+
+@app.post("/shop/items")
+async def shop_items(username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        return username
+    return await database.get_shop_items(Packs_Dict)
+
+@app.post("/shop/buy")
+async def shop_buy(packdata: PackData ,username: str = Depends(get_current_user(database))):
+    print(packdata.name,packdata.id)
+    if type(username)==RedirectResponse:
+        return username
+    return await database.buy_shop_items(packdata.id,packdata.name,username,Packs_Dict)
+
 
 @app.get("/tech_doc/{lang}")
 async def get_documentation(request: Request,lang: str):

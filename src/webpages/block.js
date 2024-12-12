@@ -106,7 +106,7 @@ class Block{
         }
     }
 
-    draw(camera){
+    draw(camera,ctx,canvas){
 
         this.planes.sort(function(a,b){
             const b_mid=b.mid_point();
@@ -116,7 +116,7 @@ class Block{
             return b_dis-a_dis;
         })
         for (const plane_index in this.planes){
-            this.planes[plane_index].draw(camera,this.arr_poses);
+            this.planes[plane_index].draw(camera,ctx,canvas);
         }
         // const cx = canvas.width / 2;
         // const cy = canvas.height / 2;           
@@ -214,7 +214,7 @@ class Plane{
         
         return light_middle-(max_light-light_middle)
     }
-    draw(camera){
+    draw(camera,ctx,canvas){
         
         const angle=this.angle_from_cam(camera);
         const light=(100-255*angle/360).toString();

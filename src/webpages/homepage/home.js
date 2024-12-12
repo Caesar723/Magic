@@ -33,15 +33,16 @@ class Home{
     }
 
     set_listener(){
-        const draw = document.getElementById('draw');
-        draw.addEventListener('click',  function () {
-            window.location.href = '/draw_card';
-        });
-
-        const deck_building = document.getElementById('deck');
-        deck_building.addEventListener('click',  function () {
-            window.location.href = '/deck_building';
-        });
+        const pages={
+            "draw":"/draw_card",
+            "deck":"/deck_building",
+            "shop":"/shop",
+        }
+        for (let page in pages){
+            document.getElementById(page).addEventListener('click', (event)=> {
+                window.location.href = pages[page];
+            });
+        }
 
 
         document.getElementById('choose').addEventListener('click', choose_a_deck);
