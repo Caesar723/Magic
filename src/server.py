@@ -10,7 +10,7 @@ from server_function_tool import *
 from database import DataBase
 from security import Security
 from game.room_server import RoomServer,Room
-
+from initinal_file import CARD_DICTION
 from packs import *
 
 
@@ -280,7 +280,12 @@ async def game_page(request: Request, username: str = Depends(get_current_user(d
         return username
     return templates.TemplateResponse(f"webpages/gaming_page/gaming.html", {"request": request, "data": room_server.get_players_name(username)})
 
-
+@app.get("/studio")
+async def studio_page(request: Request, username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        print(username)
+        return username
+    return templates.TemplateResponse(f"webpages/studio/creating_page.html", {"request": request, "data": room_server.get_players_name(username)})
 # @app.post("/players") 
 # async def matching_delete(username: str = Depends(get_current_user(database))):
 #     if type(username)==RedirectResponse:
@@ -295,6 +300,8 @@ async def entering_game(websocket: WebSocket,username: str = Depends(get_current
     
     await websocket.accept()
     room:Room=room_server.find_player_room(username)
+    if room=="no room found":
+        return {"state":"no room found"}
     await room.set_socket(websocket,username)
     try:
         while room.gamming:
@@ -317,6 +324,8 @@ async def select_object(websocket: WebSocket,username: str = Depends(get_current
     await websocket.accept()
     print(websocket,username)
     room:Room=room_server.find_player_room(username)
+    if room=="no room found":
+        return {"state":"no room found"}
     player=room.set_select_socket(websocket,username)
     # while player.socket_connected_flag:
     #     #await websocket.send_text("select(all_roles)")
@@ -370,6 +379,21 @@ async def get_currency(username: str = Depends(get_current_user(database))):
         return username
     currency=await database.get_currency(username)
     return {"currency":currency}
+
+@app.post("/get_all_cards_name")
+async def get_all_cards_name(username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        return username
+    
+    result={}
+    for key in CARD_DICTION.keys():
+        name,types=key.split("_")
+        if types not in result:
+            result[types]=[]
+        result[types].append(name)
+    return {"card_names": result}
+
+
 def main():
     import uvicorn
     uvicorn.run(app, host="172.16.6.78", port=8000, ssl_keyfile="private.key", ssl_certfile="certificate.crt",reload=True)

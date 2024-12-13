@@ -37,6 +37,7 @@ class Home{
             "draw":"/draw_card",
             "deck":"/deck_building",
             "shop":"/shop",
+            "studio":"/studio",
         }
         for (let page in pages){
             document.getElementById(page).addEventListener('click', (event)=> {

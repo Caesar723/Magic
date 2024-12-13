@@ -1,47 +1,94 @@
-
-
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-    <style>
-        /* 自定义悬浮入口的位置 */
-        #position_demo {
-            position: absolute;
-            right: 10px;
-            bottom: 20px;
-        }
-    </style>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <title>Magic Fan Made</title>
+    <link rel="shortcut icon" href="webpages/homepage/coin.png" type="image/x-icon" /> 
+    <link href="https://fonts.googleapis.com/css?family=Merriweather:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="webpages/studio/studio.css">
+    <script src="webpages/gaming_page/fundation_func.js"></script>
+    <script src="webpages/gaming_page/timmer.js"></script>
+    <script src="webpages/block.js"></script>
+    <script src="webpages/gaming_page/hand.js"></script>
+
+    <script src="webpages/card.js"></script>
+    <script src="webpages/cards_main.js"></script>
+
+
+    <script src="webpages/gaming_page/card_battle.js"></script>
+    <script src="webpages/gaming_page/card_battle_main.js"></script>
+    <script src="webpages/gaming_page/card_hand.js"></script>
+    <script src="webpages/gaming_page/card_hand_main.js"></script>
+    <script src="webpages/gaming_page/player.js"></script>
+    <script src="webpages/gaming_page/table_block.js"></script>
+    <script src="webpages/gaming_page/table.js"></script>
+    <script src="webpages/button.js"></script>
+    <script src="packet/math.min.js"></script>
+    
+    <script src="webpages/rotation.js"></script>
+    <script src="webpages/gaming_page/action_bar.js"></script>
+    <script src="webpages/gaming_page/animation.js"></script>
+    <script src="webpages/gaming_page/mana_bar.js"></script>
+    <script src="webpages/gaming_page/special_effects.js"></script>
+    <script src="webpages/gaming_page/2D_show.js"></script>
+    <script src="webpages/gaming_page/message_processor.js"></script>
+    <script src="webpages/gaming_page/selection_page.js"></script>
+    <script src="webpages/gaming_page/music_effect.js"></script>
+    <script src="webpages/gaming_page/buff.js"></script>
+    <script src="webpages/gaming_page/button.js"></script>
+    <script src="webpages/gaming_page/gaming.js"></script>
+    
+    
+   
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    
+    
+    
+    
+   
+    
+
+    
+    
+    
 </head>
 <body>
-<h1>Hello Bot</h1>
-<div id="position_demo"></div>
-<script src="https://sf-cdn.coze.com/obj/unpkg-va/flow-platform/chat-app-sdk/0.1.0-beta.4/libs/oversea/index.js"></script>
-<script>
-    const bot_id = '7330182852614******';
-    // 自定义Bot名称和icon
-    const title = 'AI翻译助手';
-    const icon = 'https://lf-bot-studio-plugin-resource.coze.cn/obj/bot-studio-platform-plugin-tos/artist/image/7e813aa2c7e14ebb9e2d1a989acfb128.png';
-    const lang = 'zh-CN';
-    const layout = 'pc';
-    // new CozeWebSDK.WebChatClient({
-    //     config: {
-    //         bot_id,
-    //     },
-    //     componentProps: {
-    //         title,
-    //         icon,
-    //     },
-    //     el: document.getElementById('position_demo')
-    // });
-    new CozeWebSDK.WebChatClient({
-    config: {
-        bot_id: '7384436294745194501',
-    },
-    componentProps: {
-        title: 'Coze',
-    },
-    });
-</script>
+    
+    <div class="overlay">
+        <div id="editor">
+
+        
+        </div>
+        <div class="bar">
+
+        
+        </div>
+        <div id="canvasContainer">
+            <canvas id="myCanvas" tabindex="0"></canvas>
+            <div id="adding_card">
+                <div id="type_list">
+
+                </div>
+            </div>
+        </div>
+        
+       
+        
+        <script>
+            // eslint-disable-next-line
+            window.dataFromBackend = {{ data | tojson }};
+            
+        </script>
+        <script src="webpages/studio/cards_add.js"></script>
+        <script src="webpages/studio/start_studio.js"></script>
+        
+    </div>
+    
+
 </body>
 </html>
 
