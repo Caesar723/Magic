@@ -34,6 +34,19 @@
     <div id="exit" class="triangle-button" style="--rotate: 270deg; --size: 3vw; --color: #FF8C00; bottom: 3vw; left: 4vw;">
       <span class="button-text">Exit</span>
     </div>
+
+    <script>
+        async function get_currency() {
+            const currency=await fetch('/get_currency',{
+                method:'POST',
+            })
+            const data=await currency.json()
+            const element=document.getElementById('currency')
+            const span=element.querySelector('.button-text')
+            span.innerHTML=`<img src="webpages/homepage/coin.png" alt="Description" id="img_coin">${data.currency}`
+        }
+        get_currency()
+    </script>
     
 </body>
 </html>

@@ -9,6 +9,27 @@ if ('serviceWorker' in navigator) {
         console.log('Service Worker registered with scope:', registration.scope);
     });
 }
+    // Start Generation Here
+ async function get_currency() {
+    const currency=await fetch('/get_currency',{
+        method:'POST',
+    })
+    const data=await currency.json()
+    const element=document.getElementById('currency')
+    const span=element.querySelector('.button-text')
+    console.log(element)
+    span.innerHTML=`<img src="webpages/homepage/coin.png" alt="Description" id="img_coin">${data.currency}`
+    
+}
+
+
+
+
+
+
+
+
+get_currency()
 const decks=new Decks_Container()
 const home= new Home(decks)
 

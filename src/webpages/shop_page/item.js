@@ -144,6 +144,10 @@ class Item{
         const data=await response.json();
         console.log(data);
         if(data.status==200){
+            const currency=data.currency;
+            const element=document.getElementById('currency')
+            const span=element.querySelector('.button-text')
+            span.innerHTML=`<img src="webpages/homepage/coin.png" alt="Description" id="img_coin">${currency}`
             document.body.removeChild(document.querySelector('.dark-overlay'));
             this.element_img_container.appendChild(this.canvas);
         }else{

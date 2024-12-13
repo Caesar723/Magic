@@ -101,8 +101,7 @@ async def protected_page(request: Request, username: str = Depends(get_current_u
         print(username)
         return username
     
-    currency=await database.get_currency(username)
-    print(currency)
+    
     
     return templates.TemplateResponse(f"/webpages/homepage/protectpage.html", {"request": request, "username": username})
 
@@ -365,6 +364,12 @@ async def get_documentation(request: Request,lang: str):
     else:
         return templates.TemplateResponse(f"webpages/tech_doc/content.html", {"request": request})
 
+@app.post("/get_currency")
+async def get_currency(username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        return username
+    currency=await database.get_currency(username)
+    return {"currency":currency}
 def main():
     import uvicorn
     uvicorn.run(app, host="172.16.6.78", port=8000, ssl_keyfile="private.key", ssl_certfile="certificate.crt",reload=True)

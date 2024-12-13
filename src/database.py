@@ -488,11 +488,10 @@ class DataBase:
             pack_price=pack_list[pack_name].Price
             if user.virtual_currency<pack_price:
                 return {"status":400,"message":"Not enough currency"}
-            print(pack_price,user.virtual_currency)
             user.virtual_currency -= pack_price
             await session.commit()
             await self.add_packs(pack_name,username,1)
-            return {"status":200,"message":"Pack bought successfully"}
+            return {"status":200,"message":"Pack bought successfully","currency":user.virtual_currency}
             
 
 
