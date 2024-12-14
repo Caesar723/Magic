@@ -121,6 +121,8 @@ class Player:
         pass
 
     def initinal_decks(self,decks_detail:str):#generate cards
+        # print(decks_detail)
+        # print(decks_detail.split("|"))
         for element in decks_detail.split("|"):
             name,type,number=element.split("+")
             number=int(number)

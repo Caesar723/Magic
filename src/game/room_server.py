@@ -1,6 +1,7 @@
 
 from game.room import Room
 from game.player_agent_room import PVE_Room
+from game.studio_room import Studio_Room
 from server_function_tool import Deck_selected
 
 import game.custom_print
@@ -41,6 +42,20 @@ class RoomServer:
 
         await room.game_start()
 
+    async def create_new_studio_room(self,client_1:tuple):
+        room=Studio_Room([client_1],self)
+
+        self.client_room[client_1[1]]=room
+        print(self.client_room.keys())
+
+        await room.game_start()
+
+    def delete_studio_room(self,client_name:str):
+        if client_name in self.client_room:
+            del self.client_room[client_name]
+            return {"state":"success delete"}
+        else:
+            return {"state":"not find"}
         
 
     def put_client_to_queue(self,client:tuple):

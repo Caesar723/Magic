@@ -31,7 +31,6 @@ body {
   line-height: 1.5;
   line-height: var(--bodyLineHeight);
   margin: 0;
-  min-height: 100vh;
 }
 .overlay{
   display: flex;
@@ -48,6 +47,27 @@ body {
   display: flex;
   justify-content: center;
   background-color  : rgb(156, 102, 80);
+  flex-direction: column;
+  overflow-y: scroll;
+
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+
+}
+
+form{
+  overflow-y: scroll;
+  padding: 30px;
+}
+
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
 }
 #canvasContainer{
   position: relative;
@@ -82,5 +102,132 @@ body {
   height: 10%;
   background-color: rgb(187, 122, 97);
   border-bottom-left-radius: 10px;
+  display: flex;
+  flex-direction: row;
   border-bottom-right-radius: 10px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.type_element{
+  position: relative;
+  width: 20%;
+  height: 50%;
+  background-color: rgb(151, 101, 82);
+  color: white;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease-in-out;
+}
+.type_element:hover{
+  cursor: pointer;
+  background-color: rgb(207, 142, 117);
+  scale: 1.1;
+}
+
+#card_list{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px; /* 控制元素间距 */
+  overflow-y: scroll;
+  height: 90%;
+  width: 100%;
+}
+.cards_element_holder{
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid #000;
+}
+.card_element{
+  width: 20%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  text-align: center;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.711);
+  border: 10px solid #000;
+  width: calc(25% - 10px); /* 每行4个，减去间距 */
+  border-radius: 10px;
+  transition: all 0.3s ease-in-out;
+}
+.card_element:hover{
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.9);
+  scale: 1.1;
+}
+
+
+
+
+
+
+
+h1 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 30px;
+}
+label {
+  display: block;
+  margin-top: 15px;
+  font-weight: bold;
+  color: #34495e;
+}
+input[type="text"], input[type="number"], select, textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+textarea {
+  height: 100px;
+  resize: vertical;
+}
+.buff-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 10px;
+}
+.buff-option {
+  background-color: #ecf0f1;
+  padding: 8px 15px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+}
+.buff-option input[type="checkbox"] {
+  margin-right: 5px;
+}
+.code-editor {
+  margin-top: 20px;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.CodeMirror {
+  height: 300px;
+}
+
+.drop-zone{
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }

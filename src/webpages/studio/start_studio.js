@@ -7,10 +7,10 @@ const size_rat=7/10;
 var SIZE=1000*size_rat;
 var POSITION=[2000,-700,3000];
 var TIME_INTERVAL=2
-const client = new Game_Client();
+
 
 let lastTime = 0;
-function main(time){
+function main(time,client){
 
   const deltaTime = (time - lastTime) / 1000;
   
@@ -20,6 +20,7 @@ function main(time){
   
   //await client.init();
   //while (true){
+  //console.log(client)
   client.ctx_table.clearRect(0, 0, client.canvas_table.width, client.canvas_table.height);
   //client.main_ctx.clearRect(0, 0, client.main_canvas.width, client.main_canvas.height);
   //console.time('update');
@@ -31,7 +32,7 @@ function main(time){
   
   
   
-  requestAnimationFrame(main);
+  requestAnimationFrame((time) => main(time,client));
 }
 
 const canvas = document.getElementById('myCanvas');
@@ -71,6 +72,36 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 
 // 初始化canvas大小
-resizeCanvas();
 
-main()
+
+
+async function create_studio_room(){
+  const response=await fetch("/matching_studio",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+  })
+  const data=await response.json()
+  window.dataFromBackend=data
+  
+}
+
+// 监听页面关闭事件
+window.addEventListener('beforeunload', async function(e) {
+    // 发送请求删除studio房间
+    await fetch("/delete_studio_room", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        // body: JSON.stringify({username: username})
+    });
+});
+
+async function initinal_state(){
+  await create_studio_room()
+  
+  // await new Promise(resolve => setTimeout(resolve, 1000))
+  const client = new Game_Client();
+  const card_add=new Card_Add(client.socket_main)
+  resizeCanvas();
+  main(0,client)
+}
+initinal_state()

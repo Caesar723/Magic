@@ -106,7 +106,7 @@ class Card{
         this.name=name
         this.type=type
         this.quantity=quantity
-        this.img_path= `cards/${type}/${name}/image.jpg`
+        this.img_path= `cards/${type}/${name}/compress_img.jpg`
         
         this.canvas = document.createElement('canvas');
         this.ctx = this.canvas.getContext("2d");

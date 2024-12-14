@@ -1,4 +1,4 @@
-
+import time
 
 from game.agent import Agent_Player_Red as Agent
 from game.player_agent_room import PVE_Room
@@ -21,6 +21,18 @@ class Studio_Player(Player):
             self.remove_card(card,'library')
             self.append_card(card,'hand')
         self.action_store.end_record()
+
+    def initinal_decks(self,decks_detail:str):#generate cards
+        # print(decks_detail)
+        # print(decks_detail.split("|"))
+        # for element in decks_detail.split("|"):
+        #     name,type,number=element.split("+")
+        #     number=int(number)
+        #     self.deck+=[CARD_DICTION[f"{name}_{type}"](self) for i in range(number)]
+        # random.shuffle(self.deck)
+        # self.hand=self.deck[:7]# get 7 card to hand
+        # self.library=self.deck[7:]# the rest is in the library
+        pass
 
 class Studio_Room(PVE_Room):
     def __init__(self,players:list[tuple],room_server) -> None:
@@ -53,11 +65,26 @@ class Studio_Room(PVE_Room):
         """
         name,type,number=content.split("+")
         number=int(number)
+        self.action_processor.start_record()
         for i in range(number):
             if f"{name}_{type}" in CARD_DICTION:
                 card=CARD_DICTION[f"{name}_{type}"](self.players[username])
                 self.players[username].append_card(card,'hand')
             else:
                 print(f"{name}_{type} not found")
+        self.action_processor.end_record()
 
-    
+    async def update_timer(self):# update turn_timer and bullet_time_timer
+        if self.get_flag("bullet_time"):
+            self.bullet_timer:int=self.max_bullet_time-round(time.perf_counter()-self.initinal_bullet_timer)
+            await self.check_timer_change("timer_bullet",self.bullet_timer)
+            #print(self.bullet_timer)
+            if self.bullet_timer<=0:
+                await self.end_bullet_time()
+        else:
+            #self.initinal_turn_timer-=round(time.perf_counter()-self.initinal_turn_timer)
+            #self.turn_timer:int=self.max_turn_time-round(time.perf_counter()-self.initinal_turn_timer)
+            self.turn_timer=self.max_turn_time
+            await self.check_timer_change("timer_turn",self.turn_timer)
+            if self.turn_timer<=0:
+                await self.end_turn_time()

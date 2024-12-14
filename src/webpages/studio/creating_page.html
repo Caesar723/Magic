@@ -9,6 +9,8 @@
     <link rel="shortcut icon" href="webpages/homepage/coin.png" type="image/x-icon" /> 
     <link href="https://fonts.googleapis.com/css?family=Merriweather:400,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="webpages/studio/studio.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/theme/dracula.min.css">
     <script src="webpages/gaming_page/fundation_func.js"></script>
     <script src="webpages/gaming_page/timmer.js"></script>
     <script src="webpages/block.js"></script>
@@ -60,7 +62,86 @@
     
     <div class="overlay">
         <div id="editor">
+            <h1>Creating Studio</h1>
+            <form>
+                <label for="name">卡牌名称：</label>
+                <input type="text" id="name" name="name" required>
+    
+                <label for="mana">法力值：</label>
+                <input type="number" id="mana" name="mana" min="0" required>
+    
+                <label for="attack">攻击力：</label>
+                <input type="number" id="attack" name="attack" min="0" required>
+    
+                <label for="health">生命值：</label>
+                <input type="number" id="health" name="health" min="1" required>
+    
+                <label for="description">卡牌描述：</label>
+                <textarea id="description" name="description" required></textarea>
+    
+                <label>Buff 选项：</label>
+                <div class="buff-options">
+                    <span class="buff-option">
+                        <input type="checkbox" id="buff_taunt" name="buff_taunt">
+                        <label for="buff_taunt">嘲讽</label>
+                    </span>
+                    <span class="buff-option">
+                        <input type="checkbox" id="buff_charge" name="buff_charge">
+                        <label for="buff_charge">冲锋</label>
+                    </span>
+                    <span class="buff-option">
+                        <input type="checkbox" id="buff_divine_shield" name="buff_divine_shield">
+                        <label for="buff_divine_shield">圣盾</label>
+                    </span>
+                    <span class="buff-option">
+                        <input type="checkbox" id="buff_windfury" name="buff_windfury">
+                        <label for="buff_windfury">风怒</label>
+                    </span>
+                </div>
+    
+                <label for="buff_target">Buff 适用对象：</label>
+                <select id="buff_target" name="buff_target">
+                    <option value="self">自身</option>
+                    <option value="friendly">友方随从</option>
+                    <option value="enemy">敌方随从</option>
+                    <option value="all">所有随从</option>
+                </select>
+    
+                <label for="trigger">触发时机：</label>
+                <select id="trigger" name="trigger">
+                    <option value="on_play">使用时</option>
+                    <option value="on_death">死亡时</option>
+                    <option value="on_turn_start">回合开始时</option>
+                    <option value="on_turn_end">回合结束时</option>
+                </select>
+    
+                <label for="code">Python 代码区域：</label>
+                <div class="code-editor">
+                    <textarea id="code" name="code"></textarea>
+                </div>
 
+                <label for="image">图片：</label>
+                <div class="image-upload">
+                    <div class="drop-zone" 
+                         ondrop="handleDrop(event)" 
+                         ondragover="handleDragOver(event)"
+                         ondragleave="handleDragLeave(event)">
+                        <div class="drop-zone-content">
+                            <!-- <img src="webpages/studio/upload-icon.png" alt="上传图标" class="upload-icon"> -->
+                            <p>将图片拖拽到此处</p>
+              
+                            <label for="card-image" class="upload-button">点击选择文件</label>
+                            <input type="file" id="card-image" name="card-image" accept="image/*" hidden 
+                                   onchange="handleFileSelect(event)">
+                        </div>
+                        <img id="preview-image" class="preview-image" src="#" alt="预览图片" style="display:none;max-width:100%;max-height:200px;">
+                    </div>
+                </div>
+
+                
+
+                <button type="submit" style="margin-top: 20px; padding: 10px 20px; background-color: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer;">保存卡牌</button>
+            </form>
         
         </div>
         <div class="bar">
@@ -73,19 +154,21 @@
                 <div id="type_list">
 
                 </div>
+                <div id="card_list">    
+
+                </div>
             </div>
         </div>
         
        
         
-        <script>
-            // eslint-disable-next-line
-            window.dataFromBackend = {{ data | tojson }};
-            
-        </script>
+        
         <script src="webpages/studio/cards_add.js"></script>
         <script src="webpages/studio/start_studio.js"></script>
-        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/mode/python/python.min.js"></script>
+        <script src="webpages/studio/editor.js"></script>
+    
     </div>
     
 

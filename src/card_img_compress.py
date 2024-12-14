@@ -17,10 +17,10 @@ def compress_all_img():
             if folder ==".DS_Store":
                 continue
             files=os.listdir(f"{ORGPATH}/{path_type}/{folder}")
-            
-            if "compress_img" in files:
+            print(files)
+            if "compress_img.jpg" in files:
                 continue
-            preprocess_image()
+            preprocess_image(f"{ORGPATH}/{path_type}/{folder}/image.jpg", f"{ORGPATH}/{path_type}/{folder}/compress_img.jpg", (50, 50))
             # for file in os.listdir(f"{ORGPATH}/{path_type}/{folder}"):
             #     if file.endswith(".png"):
             #         preprocess_image(f"{ORGPATH}/{path_type}/{folder}/{file}", f"{ORGPATH}/{path_type}/{folder}/{file}", (50, 50))
