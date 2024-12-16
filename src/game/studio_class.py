@@ -5,153 +5,234 @@ if __name__=="__main__":
     
 
 from RestrictedPython import compile_restricted
-from RestrictedPython.Guards import safe_globals,guarded_getattr
+from RestrictedPython.Guards import safe_globals
 import ast
 import random
 
 from game.type_cards.creature import Creature
-from game.type_cards.instant import Instant
+from game.type_cards.instant import Instant,Instant_Undo
 from game.type_cards.land import Land
 from game.type_cards.sorcery import Sorcery
+from game.buffs import StateBuff,KeyBuff,Frozen,Tap,Indestructible,Infect
 from game.game_function_tool import select_object
 
-class SandboxWrapper:
-      def __init__(self, obj):
-          self._obj = obj
 
-      @property
-      def cost(self):
-          return self._obj.cost
-      
-      @property
-      def type(self):
-          return self._obj.type
-      
-      async def attact_to_object(self,object,power,color,type_missile):
-          return await self._obj.attact_to_object(object,power,color,type_missile)
-      
-      async def cure_to_object(self,object,power,color,type_missile):
-          return await self._obj.cure_to_object(object,power,color,type_missile)
-      
-      async def destroy_object(self,object,color,type_missile):
-          return await self._obj.destroy_object(object,color,type_missile)
-      
-      async def exile_object(self,object,color,type_missile):
-          return await self._obj.exile_object(object,color,type_missile)
-      def get_flag(self,flag_name:str)->bool:
-          return self._obj.get_flag(flag_name)
-      
-      def add_counter_dict(self,key:str,number:int)->None:# change the numebr of counter_dict
-          self._obj.add_counter_dict(key,number)
-      
-      def set_counter_dict(self,key:str,number:int)->None:# change the numebr of counter_dict
-          self._obj.set_counter_dict(key,number)
-      
-      def get_counter_from_dict(self,key:str):
-          return self._obj.get_counter_from_dict(key)
-      
-      async def Scry(self,player,opponent,times):
-          return await self._obj.Scry(player,opponent,times)
 
-class PlayerSandboxWrapper:
-    def __init__(self, obj):
-        self._obj = obj
 
-    @property
-    def life(self):
-        return self._obj.life
+
+def guarded_getattr(obj, name):
+    """
+    限制用户代码访问对象属性。
+    禁止访问以下划线开头的属性。
+    """
+    if name.startswith("_"):
+        raise AttributeError(f"Access to private attribute '{name}' is not allowed.")
+    return getattr(obj, name)
+
+def guarded_setattr(obj, name, value):
+    """
+    限制用户代码修改对象属性。
+    禁止修改以下划线开头的属性。
+    """
+    if name.startswith("_"):
+        raise AttributeError(f"Modification of private attribute '{name}' is not allowed.")
+    return setattr(obj, name, value)  
+
+def generate_sandbox_class():
+    class SandboxWrapper:
+          def __init__(self, obj):
+              self._obj = obj
+
+          @property
+          def cost(self):
+              return self._obj.cost
+          
+          @property
+          def type(self):
+              return self._obj.type
+          
+          async def attact_to_object(self,object,power,color,type_missile):
+              return await self._obj.attact_to_object(object._obj,power,color,type_missile)
+          
+          async def cure_to_object(self,object,power,color,type_missile):
+              return await self._obj.cure_to_object(object._obj,power,color,type_missile)
+          
+          async def destroy_object(self,object,color,type_missile):
+              return await self._obj.destroy_object(object._obj,color,type_missile)
+          
+          async def exile_object(self,object,color,type_missile):
+              return await self._obj.exile_object(object._obj,color,type_missile)
+          
+          def get_flag(self,flag_name:str)->bool:
+              return self._obj.get_flag(flag_name)
+          
+          def add_counter_dict(self,key:str,number:int)->None:# change the numebr of counter_dict
+              self._obj.add_counter_dict(key,number)
+          
+          def set_counter_dict(self,key:str,number:int)->None:# change the numebr of counter_dict
+              self._obj.set_counter_dict(key,number)
+          
+          def get_counter_from_dict(self,key:str):
+              return self._obj.get_counter_from_dict(key)
+          
+          async def Scry(self,player,opponent,times):
+              return await self._obj.Scry(player,opponent,times)
+
     
-    @property
-    def battlefield(self):
-        return self._obj.battlefield
-    
-    @property
-    def hand(self):
-        return self._obj.hand
-    
-    @property
-    def graveyard(self):
-        return self._obj.graveyard
-    
-    @property
-    def library(self):
-        return self._obj.library
-    
-    @property
-    def exile_area(self):
-        return self._obj.exile_area
-    
-    @property
-    def land_area(self):
-        return self._obj.land_area
-    
-    def draw_card(self,number):
-        return self._obj.draw_card(number)
-    
-    def remove_card(self,card,type):
-        return self._obj.remove_card(card,type)
-    
-    def append_card(self,card,type):
-        return self._obj.append_card(card,type)
-    
-    
-    def get_manas(self):
-        return self._obj.get_manas()
-    
-    def discard(self,card):
-        return self._obj.discard(card)
-    
-    def send_selection_cards(self,selected_cards,selection_random):
-        return self._obj.send_selection_cards(selected_cards,selection_random)
-    
-    def get_object(self,selected_cards,data):
-        return self._obj.get_object(selected_cards,data)
-    
-    def check_can_use(self,cost):
-        return self._obj.check_can_use(cost)
-    
-    async def generate_and_consume_mana(self,lands,cost,card):
-        return await self._obj.generate_and_consume_mana(lands,cost,card)
-    
-    def get_flag(self,flag_name:str)->bool:
-        return self._obj.get_flag(flag_name)
-    
-    def get_cards_by_pos_type(self,position:str,card_type:tuple["Creature|Land|Sorcery|Instant"],except_type:tuple["Creature|Land|Sorcery|Instant"]=()):
-        return self._obj.get_cards_by_pos_type(position,card_type,except_type)
-    
-    
-    
-class SandboxCreatureWrapper(SandboxWrapper):
-      def __init__(self, obj):
-          super().__init__(obj)
-      @property
-      def state(self):
-          return self._obj.state
-      
-      def tap(self):
-          return self._obj.tap()
-      
-      def untap(self):
-          return self._obj.untap()
-      
-class SandboxInstant_UndoWrapper(SandboxWrapper):
-        def __init__(self, obj):
-            super().__init__(obj)
         
-        async def undo_stack(self,player,opponent):
-            return await self._obj.undo_stack(player,opponent)
+    class SandboxCreatureWrapper(SandboxWrapper):
+          def __init__(self, obj):
+              super().__init__(obj)
+          @property
+          def state(self):
+              return self._obj.state
+          
+          def tap(self):
+              return self._obj.tap()
+          
+          def untap(self):
+              return self._obj.untap()
+          
+    class SandboxInstant_UndoWrapper(SandboxWrapper):
+            def __init__(self, obj):
+                super().__init__(obj)
+            
+            async def undo_stack(self,player,opponent):
+                return await self._obj.undo_stack(player._obj,opponent._obj)
+            
+
+    class SandboxLandWrapper(SandboxWrapper):
+            def __init__(self, obj):
+                super().__init__(obj)
+            
+            def tap(self):
+                return self._obj.tap()
+            
+            def untap(self):
+                return self._obj.untap()
+            
+    def process_cards_in_list(arr):
+        result=[]
+        for card in arr:
+            result.append(genrate_sandbox_class(card))
+        return tuple(result)
+    
+    def genrate_sandbox_class(card):
+        if isinstance(card,Creature):
+            return SandboxCreatureWrapper(card)
+        elif isinstance(card,Instant):
+            if isinstance(card,Instant_Undo):
+                return SandboxInstant_UndoWrapper(card)
+            else:
+                return SandboxWrapper(card)
+        elif isinstance(card,Land):
+            return SandboxLandWrapper(card)
+        elif isinstance(card,Sorcery):
+            return SandboxWrapper(card)
         
 
-class SandboxLandWrapper(SandboxWrapper):
-        def __init__(self, obj):
-            super().__init__(obj)
+    class PlayerSandboxWrapper:
+        def __init__(self,obj):
+            self._obj=obj
+
+        @property
+        def life(self):
+            return self._obj.life
         
-        def tap(self):
-            return self._obj.tap()
+        @property
+        def battlefield(self):
+            return process_cards_in_list(self._obj.battlefield)
         
-        def untap(self):
-            return self._obj.untap()
+        @property
+        def hand(self):
+            return process_cards_in_list(self._obj.hand)
         
+        @property
+        def graveyard(self):
+            return process_cards_in_list(self._obj.graveyard)
+        
+        @property
+        def library(self):
+            return process_cards_in_list(self._obj.library)
+        
+        @property
+        def exile_area(self):
+            return process_cards_in_list(self._obj.exile_area)
+        
+        @property
+        def land_area(self):
+            return process_cards_in_list(self._obj.land_area)
+        
+        def draw_card(self,number):
+            return self._obj.draw_card(number)
+        
+        def remove_card(self,card,type):
+            return self._obj.remove_card(card._obj,type)
+        
+        def append_card(self,card,type):
+            return self._obj.append_card(card._obj,type)
+        
+        
+        def get_manas(self):
+            return self._obj.get_manas()
+        
+        def discard(self,card):
+            return self._obj.discard(card._obj)
+        
+        async def send_selection_cards(self,selected_cards,selection_random):
+            return await self._obj.send_selection_cards(selected_cards,selection_random)
+        
+      
+        def check_can_use(self,cost):
+            return self._obj.check_can_use(cost)
+        
+        async def generate_and_consume_mana(self,lands,cost,card):
+            return await self._obj.generate_and_consume_mana(lands,cost,card._obj)
+        
+        def get_flag(self,flag_name:str)->bool:
+            return self._obj.get_flag(flag_name)
+        
+        def get_cards_by_pos_type(self,position:str,card_type:tuple["Creature|Land|Sorcery|Instant"],except_type:tuple["Creature|Land|Sorcery|Instant"]=()):
+            return process_cards_in_list(self._obj.get_cards_by_pos_type(position,card_type,except_type))
+        
+    return SandboxWrapper,SandboxCreatureWrapper,SandboxInstant_UndoWrapper,SandboxLandWrapper,PlayerSandboxWrapper
+        
+
+def generate_sandbox_buff_class():
+    class SandboxBuffWrapper:
+        # def __init__(self,obj):
+        #     self._obj=obj
+        def set_end_of_turn(self):
+            return self._obj.set_end_of_turn()
+        
+
+    class SandboxStateBuffWrapper(SandboxBuffWrapper):
+        def __init__(self,card,selected_card,power:int,live:int):
+            self._obj = StateBuff(card._obj,selected_card._obj,power,live)
+
+    class SandboxKeyBuffWrapper(SandboxBuffWrapper):
+        def __init__(self,card,selected_card,key_name):
+            self._obj = KeyBuff(card._obj,selected_card._obj,key_name)
+
+    class SandboxFrozenWrapper(SandboxBuffWrapper):
+        def __init__(self,card,selected_card):
+            self._obj = Frozen(card._obj,selected_card._obj)
+
+    class SandboxTapWrapper(SandboxBuffWrapper):
+        def __init__(self,card,selected_card):
+            self._obj = Tap(card._obj,selected_card._obj)
+
+    class SandboxIndestructibleWrapper(SandboxBuffWrapper):
+        def __init__(self,card,selected_card):
+            self._obj = Indestructible(card._obj,selected_card._obj)
+
+    class SandboxInfectWrapper(SandboxBuffWrapper):
+        def __init__(self,card,selected_card):
+            self._obj = Infect(card._obj,selected_card._obj)
+
+    return SandboxStateBuffWrapper,SandboxKeyBuffWrapper,SandboxFrozenWrapper,SandboxTapWrapper,SandboxIndestructibleWrapper,SandboxInfectWrapper
+
+
 def generate_creature_class(
         init_name:str,
         init_actual_live:int,
@@ -164,6 +245,7 @@ def generate_creature_class(
         init_rarity:str,
         init_content:str,
         init_image_path:str,
+        init_keyword_list:list[str],
         select_object_range:str,
         when_enter_battlefield_function:str="",
         when_leave_battlefield_function:str="",
@@ -182,7 +264,9 @@ def generate_creature_class(
         aura_function:str="",
 ):
    
-        
+    SandboxWrapper,SandboxCreatureWrapper,SandboxInstant_UndoWrapper,SandboxLandWrapper,PlayerSandboxWrapper=generate_sandbox_class()
+    SandboxStateBuffWrapper,SandboxKeyBuffWrapper,SandboxFrozenWrapper,SandboxTapWrapper,SandboxIndestructibleWrapper,SandboxInfectWrapper=generate_sandbox_buff_class()
+    
     class CreatureCard(Creature):
         def __init__(self,player):
             super().__init__(player)
@@ -199,18 +283,26 @@ def generate_creature_class(
             self.rarity=init_rarity
             self.content=init_content
             self.image_path=init_image_path
+            for keyword in init_keyword_list:
+                self.flag_dict[keyword]=True
 
         async def get_user_code(self,function_code:str,player,opponent,creature=None,value=None,card=None):
             if not function_code:
                 return True,None
             sandbox_globals = safe_globals.copy()
             sandbox_globals["getattr"] = guarded_getattr  # 替换 getattr
-            sandbox_globals["setattr"] = None
-            sandbox_globals["__builtins__"] = guarded_getattr(sandbox_globals["__builtins__"], "__dict__", {})
+            sandbox_globals["setattr"] = guarded_setattr
+            #sandbox_globals["__builtins__"] = guarded_getattr(sandbox_globals["__builtins__"], "__dict__", {})
             sandbox_globals["self"] = SandboxCreatureWrapper(self)
             sandbox_globals["player"] = PlayerSandboxWrapper(player)
             sandbox_globals["opponent"] = PlayerSandboxWrapper(opponent)
             sandbox_globals["random"] = random
+            sandbox_globals["StateBuff"] = SandboxStateBuffWrapper
+            sandbox_globals["KeyBuff"] = SandboxKeyBuffWrapper
+            sandbox_globals["Frozen"] = SandboxFrozenWrapper
+            sandbox_globals["Tap"] = SandboxTapWrapper
+            sandbox_globals["Indestructible"] = SandboxIndestructibleWrapper
+            sandbox_globals["Infect"] = SandboxInfectWrapper
             if creature:
                 sandbox_globals["creature"] = SandboxCreatureWrapper(creature)
             if value:
@@ -340,6 +432,7 @@ def generate_instant_class(
         init_rarity:str,
         init_content:str,
         init_image_path:str,
+        init_keyword_list:list[str],
         select_object_range:str,
         is_undo:bool=False,
         card_ability_function:str="",
@@ -351,7 +444,8 @@ def generate_instant_class(
         aura_function:str="",
 ):
     
-        
+    SandboxWrapper,SandboxCreatureWrapper,SandboxInstant_UndoWrapper,SandboxLandWrapper,PlayerSandboxWrapper=generate_sandbox_class()
+    SandboxStateBuffWrapper,SandboxKeyBuffWrapper,SandboxFrozenWrapper,SandboxTapWrapper,SandboxIndestructibleWrapper,SandboxInfectWrapper=generate_sandbox_buff_class()
     class InstantCard(Instant):
         def __init__(self,player):
             super().__init__(player)
@@ -363,14 +457,16 @@ def generate_instant_class(
             self.rarity=init_rarity
             self.content=init_content
             self.image_path=init_image_path
+            for keyword in init_keyword_list:
+                self.flag_dict[keyword]=True
 
         async def get_user_code(self,function_code:str,player,opponent,creature=None,value=None,card=None):
             if not function_code:
                 return True,None
             sandbox_globals = safe_globals.copy()
             sandbox_globals["getattr"] = guarded_getattr  # 替换 getattr
-            sandbox_globals["setattr"] = None
-            sandbox_globals["__builtins__"] = guarded_getattr(sandbox_globals["__builtins__"], "__dict__", {})
+            sandbox_globals["setattr"] = guarded_setattr
+            #sandbox_globals["__builtins__"] = guarded_getattr(sandbox_globals["__builtins__"], "__dict__", {})
             if is_undo:
                 sandbox_globals["self"] = SandboxInstant_UndoWrapper(self)
             else:
@@ -378,6 +474,12 @@ def generate_instant_class(
             sandbox_globals["player"] = PlayerSandboxWrapper(player)
             sandbox_globals["opponent"] = PlayerSandboxWrapper(opponent)
             sandbox_globals["random"] = random
+            sandbox_globals["StateBuff"] = SandboxStateBuffWrapper
+            sandbox_globals["KeyBuff"] = SandboxKeyBuffWrapper
+            sandbox_globals["Frozen"] = SandboxFrozenWrapper
+            sandbox_globals["Tap"] = SandboxTapWrapper
+            sandbox_globals["Indestructible"] = SandboxIndestructibleWrapper
+            sandbox_globals["Infect"] = SandboxInfectWrapper
             if creature:
                 sandbox_globals["creature"] = SandboxCreatureWrapper(creature)
             if value:
@@ -456,6 +558,7 @@ def generate_land_class(
         init_rarity:str,
         init_content:str,
         init_image_path:str,
+        init_keyword_list:list[str],
         select_object_range:str,
         when_enter_battlefield_function:str="",
         when_clicked_function:str="",
@@ -467,7 +570,8 @@ def generate_land_class(
         aura_function:str="",
 ):
     
-        
+    SandboxWrapper,SandboxCreatureWrapper,SandboxInstant_UndoWrapper,SandboxLandWrapper,PlayerSandboxWrapper=generate_sandbox_class()
+    SandboxStateBuffWrapper,SandboxKeyBuffWrapper,SandboxFrozenWrapper,SandboxTapWrapper,SandboxIndestructibleWrapper,SandboxInfectWrapper=generate_sandbox_buff_class()
     class LandCard(Land):
         
         def __init__(self,player):
@@ -480,19 +584,27 @@ def generate_land_class(
             self.rarity=init_rarity
             self.content=init_content
             self.image_path=init_image_path
+            for keyword in init_keyword_list:
+                self.flag_dict[keyword]=True
         
         async def get_user_code(self,function_code:str,player,opponent,creature=None,value=None,card=None):
             if not function_code:
                 return True,None
             sandbox_globals = safe_globals.copy()
             sandbox_globals["getattr"] = guarded_getattr  # 替换 getattr
-            sandbox_globals["setattr"] = None
-            sandbox_globals["__builtins__"] = guarded_getattr(sandbox_globals["__builtins__"], "__dict__", {})
+            sandbox_globals["setattr"] = guarded_setattr
+            #sandbox_globals["__builtins__"] = guarded_getattr(sandbox_globals["__builtins__"], "__dict__", {})
             
             sandbox_globals["self"] = SandboxLandWrapper(self)
             sandbox_globals["player"] = PlayerSandboxWrapper(player)
             sandbox_globals["opponent"] = PlayerSandboxWrapper(opponent)
             sandbox_globals["random"] = random
+            sandbox_globals["StateBuff"] = SandboxStateBuffWrapper
+            sandbox_globals["KeyBuff"] = SandboxKeyBuffWrapper
+            sandbox_globals["Frozen"] = SandboxFrozenWrapper
+            sandbox_globals["Tap"] = SandboxTapWrapper
+            sandbox_globals["Indestructible"] = SandboxIndestructibleWrapper
+            sandbox_globals["Infect"] = SandboxInfectWrapper
             if creature:
                 sandbox_globals["creature"] = SandboxCreatureWrapper(creature)
             if value:
@@ -572,6 +684,7 @@ def generate_sorcery_class(
         init_rarity:str,
         init_content:str,
         init_image_path:str,
+        init_keyword_list:list[str],
         select_object_range:str,
         card_ability_function:str="",
         when_a_creature_die_function:str="",
@@ -581,6 +694,9 @@ def generate_sorcery_class(
         when_end_turn_function:str="",
         aura_function:str="",
 ):
+    
+    SandboxWrapper,SandboxCreatureWrapper,SandboxInstant_UndoWrapper,SandboxLandWrapper,PlayerSandboxWrapper=generate_sandbox_class()
+    SandboxStateBuffWrapper,SandboxKeyBuffWrapper,SandboxFrozenWrapper,SandboxTapWrapper,SandboxIndestructibleWrapper,SandboxInfectWrapper=generate_sandbox_buff_class()
     class SorceryCard(Sorcery):
         
         def __init__(self,player):
@@ -593,19 +709,27 @@ def generate_sorcery_class(
             self.rarity=init_rarity
             self.content=init_content
             self.image_path=init_image_path
+            for keyword in init_keyword_list:
+                self.flag_dict[keyword]=True
 
         async def get_user_code(self,function_code:str,player,opponent,creature=None,value=None,card=None):
             if not function_code:
                 return True,None
             sandbox_globals = safe_globals.copy()
             sandbox_globals["getattr"] = guarded_getattr  # 替换 getattr
-            sandbox_globals["setattr"] = None
-            sandbox_globals["__builtins__"] = guarded_getattr(sandbox_globals["__builtins__"], "__dict__", {})
+            sandbox_globals["setattr"] = guarded_setattr
+            #sandbox_globals["__builtins__"] = guarded_getattr(sandbox_globals["__builtins__"], "__dict__", {})
             
             sandbox_globals["self"] = SandboxWrapper(self)
             sandbox_globals["player"] = PlayerSandboxWrapper(player)
             sandbox_globals["opponent"] = PlayerSandboxWrapper(opponent)
             sandbox_globals["random"] = random
+            sandbox_globals["StateBuff"] = SandboxStateBuffWrapper
+            sandbox_globals["KeyBuff"] = SandboxKeyBuffWrapper
+            sandbox_globals["Frozen"] = SandboxFrozenWrapper
+            sandbox_globals["Tap"] = SandboxTapWrapper
+            sandbox_globals["Indestructible"] = SandboxIndestructibleWrapper
+            sandbox_globals["Infect"] = SandboxInfectWrapper
             if creature:
                 sandbox_globals["creature"] = SandboxCreatureWrapper(creature)
             if value:

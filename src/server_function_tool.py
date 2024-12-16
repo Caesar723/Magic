@@ -66,6 +66,49 @@ class Deck_selected(BaseModel):
     id:int
     name:str
 
+class Studio_Card_Data(BaseModel):
+    init_name:str
+    init_type:str
+    init_mana_cost:str
+    init_color:str
+    init_type_card:str
+    init_rarity:str
+    init_content:str
+    init_image_path:str
+    init_keyword_list:list[str]
+    select_object_range:str
+    when_start_turn_function:str
+    when_end_turn_function:str
+    when_kill_creature_function:str
+    when_a_creature_die_function:str
+    when_an_object_hert_function:str
+    aura_function:str
+
+class Studio_Creature_Data(Studio_Card_Data):
+    init_actual_live:int
+    init_actual_power:int
+    init_type_creature:str
+    when_enter_battlefield_function:str
+    when_leave_battlefield_function:str
+    when_die_function:str
+    when_harm_is_done_function:str
+    when_being_treated_function:str
+    when_become_attacker_function:str
+    when_become_defender_function:str
+    when_start_attack_function:str
+    when_start_defend_function:str
+
+class Studio_Land_Data(Studio_Card_Data):
+    when_enter_battlefield_function:str
+    when_clicked_function:str
+
+class Studio_Instant_Data(Studio_Card_Data):
+    is_undo:bool
+    card_ability_function:str
+    
+class Studio_Sorcery_Data(Studio_Card_Data):
+    card_ability_function:str
+
 key = Fernet.generate_key()
 cipher_suite = Fernet(key)
 ORGPATH=os.path.dirname(os.path.abspath(__file__))

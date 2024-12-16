@@ -88,3 +88,7 @@ class Studio_Room(PVE_Room):
             await self.check_timer_change("timer_turn",self.turn_timer)
             if self.turn_timer<=0:
                 await self.end_turn_time()
+
+    def add_studio_card(self,datas):
+       print(datas)
+       pass
