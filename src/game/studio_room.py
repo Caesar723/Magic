@@ -2,8 +2,10 @@ import time
 
 from game.agent import Agent_Player_Red as Agent
 from game.player_agent_room import PVE_Room
+from game.studio_class import generate_creature_class,generate_instant_class,generate_land_class,generate_sorcery_class
 from game.player import Player
 from game.card import Card
+from server_function_tool import Studio_Card_Data
 from initinal_file import CARD_DICTION
 
 class Studio_Player(Player):
@@ -89,6 +91,23 @@ class Studio_Room(PVE_Room):
             if self.turn_timer<=0:
                 await self.end_turn_time()
 
-    def add_studio_card(self,datas):
+    def add_studio_card(self,datas:Studio_Card_Data,name:str):
        print(datas)
+       print(dict(datas))
+       player=self.players[name]
+       dict_function={
+           "Creature":generate_creature_class,
+           "Instant":generate_instant_class,
+           "Land":generate_land_class,
+           "Sorcery":generate_sorcery_class
+       }
+       #for data in datas:
+       card_class=dict_function[datas.init_type](**(datas.dict()))
+       print(card_class)
+       card=card_class(player)
+
+       self.action_processor.start_record()
+       player.append_card(card,'hand')
+       self.action_processor.end_record()
+
        pass

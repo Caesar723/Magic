@@ -8,6 +8,7 @@ from cryptography.fernet import Fernet
 
 
 from pydantic import BaseModel
+from typing import Optional
 
 import os
 import json
@@ -76,38 +77,37 @@ class Studio_Card_Data(BaseModel):
     init_content:str
     init_image_path:str
     init_keyword_list:list[str]
-    select_object_range:str
-    when_start_turn_function:str
-    when_end_turn_function:str
-    when_kill_creature_function:str
-    when_a_creature_die_function:str
-    when_an_object_hert_function:str
-    aura_function:str
+    select_object_range:Optional[str] = None
+    when_start_turn_function:Optional[str] = None
+    when_end_turn_function:Optional[str] = None
+    when_kill_creature_function:Optional[str] = None
+    when_a_creature_die_function:Optional[str] = None
+    when_an_object_hert_function:Optional[str] = None
+    aura_function:Optional[str] = None
 
 class Studio_Creature_Data(Studio_Card_Data):
     init_actual_live:int
     init_actual_power:int
     init_type_creature:str
-    when_enter_battlefield_function:str
-    when_leave_battlefield_function:str
-    when_die_function:str
-    when_harm_is_done_function:str
-    when_being_treated_function:str
-    when_become_attacker_function:str
-    when_become_defender_function:str
-    when_start_attack_function:str
-    when_start_defend_function:str
-
+    when_enter_battlefield_function:Optional[str] = None
+    when_leave_battlefield_function:Optional[str] = None
+    when_die_function:Optional[str] = None
+    when_harm_is_done_function:Optional[str] = None
+    when_being_treated_function:Optional[str] = None
+    when_become_attacker_function:Optional[str] = None
+    when_become_defender_function:Optional[str] = None
+    when_start_attcak_function:Optional[str] = None
+    when_start_defend_function:Optional[str] = None
 class Studio_Land_Data(Studio_Card_Data):
-    when_enter_battlefield_function:str
-    when_clicked_function:str
+    when_enter_battlefield_function:Optional[str] = None
+    when_clicked_function:Optional[str] = None
 
 class Studio_Instant_Data(Studio_Card_Data):
     is_undo:bool
-    card_ability_function:str
+    card_ability_function:Optional[str] = None
     
 class Studio_Sorcery_Data(Studio_Card_Data):
-    card_ability_function:str
+    card_ability_function:Optional[str] = None
 
 key = Fernet.generate_key()
 cipher_suite = Fernet(key)

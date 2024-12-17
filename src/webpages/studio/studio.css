@@ -211,7 +211,7 @@ textarea {
   margin-right: 5px;
 }
 .code-editor {
-  margin-top: 20px;
+  /* margin-top: 20px; */
   border: 1px solid #bdc3c7;
   border-radius: 4px;
   overflow: hidden;
@@ -230,4 +230,36 @@ textarea {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.drop-zone {
+  width: 100%;
+  max-width: 500px;
+  height: 300px;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: #666;
+  font-size: 18px;
+  margin: 20px auto;
+}
+.drop-zone.hover {
+  border-color: #666;
+  background-color: #f9f9f9;
+}
+.preview-image{
+  width: 100%;
+  height: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.preview-image-img{
+  max-width: 60%;
+  max-height: 60%;
+  width: auto;
+  height: auto;
 }

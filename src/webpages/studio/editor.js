@@ -178,7 +178,7 @@ class Editor{
     <label for="name">Name:</label>
     <input type="text" name="name" required>
     <label for="mana">Mana:</label>
-    <input type="number" name="mana" min="0" required>
+    <input type="text" name="mana" required>
     <label for="color">Color:</label>
     <select id="color" name="color">
       <option value="red">red</option>
@@ -186,6 +186,14 @@ class Editor{
       <option value="green">green</option>
       <option value="white">white</option>
       <option value="black">black</option>
+    </select>
+
+    <label for="rarity">Rarity:</label>
+    <select id="rarity" name="rarity">
+      <option value="Common">Common</option>
+      <option value="Uncommon">Uncommon</option>
+      <option value="Rare">Rare</option>
+      <option value="Mythic Rare">Mythic Rare</option>
     </select>
     
     <label for="type_creature">Type Creature:</label>
@@ -199,47 +207,47 @@ class Editor{
     <label>Buff Selector</label>
     <div class="buff-options">
       <span class="buff-option">
-        <input type="checkbox" name="reach">
+        <input type="checkbox" name="buff" value="reach">
         <label for="reach">Reach</label>
       </span>
       <span class="buff-option">
-        <input type="checkbox" name="trample">
+        <input type="checkbox" name="buff" value="trample">
         <label for="trample">Trample</label>
       </span>
       <span class="buff-option">
-        <input type="checkbox" name="flying">
+        <input type="checkbox" name="buff" value="flying">
         <label for="flying">Flying</label>
       </span>
       <span class="buff-option">
-        <input type="checkbox" name="haste">
+        <input type="checkbox" name="buff" value="haste">
         <label for="haste">Haste</label>
       </span>
       <span class="buff-option">
-        <input type="checkbox" name="summoning_sickness">
+        <input type="checkbox" name="buff" value="summoning_sickness">
         <label for="summoning_sickness">Summoning Sickness</label>
       </span>
       <span class="buff-option">
-        <input type="checkbox" name="flash">
+        <input type="checkbox" name="buff" value="flash">
         <label for="flash">Flash</label>
       </span>
       <span class="buff-option">
-        <input type="checkbox" name="lifelink">
+        <input type="checkbox" name="buff" value="lifelink">
         <label for="lifelink">Lifelink</label>
       </span>
       <span class="buff-option">
-        <input type="checkbox" name="vigilance">
+        <input type="checkbox" name="buff" value="vigilance">
         <label for="vigilance">Vigilance</label>
       </span>
       <span class="buff-option">
-        <input type="checkbox" name="double_strike">
+        <input type="checkbox" name="buff" value="double_strike">
         <label for="double_strike">Double Strike</label>
       </span>
       <span class="buff-option">
-        <input type="checkbox" name="menace">
+        <input type="checkbox" name="buff" value="menace">
         <label for="menace">Menace</label>
       </span>
       <span class="buff-option">
-        <input type="checkbox" name="hexproof">
+        <input type="checkbox" name="buff" value="hexproof">
         <label for="hexproof">Hexproof</label>
       </span>
     </div>
@@ -286,11 +294,118 @@ class Editor{
       console.log(code_editor.element_dict[selector_function.value])
       code_area.appendChild(element);
     })
+
+    const button_submit=document.createElement("button")
+    button_submit.textContent="Submit"
+    const [dropZone,preview]=this.create_image_input()
+    button_submit.addEventListener("click",async (event)=>{
+      event.preventDefault(); 
+      const formData = new FormData(form);
+
+      this.creature_json.init_name=formData.get("name")
+      this.creature_json.init_mana_cost=formData.get("mana")
+      this.creature_json.init_color=formData.get("color")
+      this.creature_json.init_type_creature=formData.get("type_creature")
+      this.creature_json.init_type_card=formData.get("type_creature")
+      this.creature_json.init_actual_live=Number(formData.get("health"))
+      this.creature_json.init_actual_power=Number(formData.get("attack"))
+      this.creature_json.init_type="Creature"
+      this.creature_json.init_rarity=formData.get("rarity")
+      this.creature_json.init_content=formData.get("description")
+      this.creature_json.init_image_path=preview.querySelector('img').src
+      // for (let [key, value] of formData.entries()) {
+      //   console.log(key, value);
+      // }
+      const selectedBuffs = formData.getAll("buff");
+      this.creature_json.init_keyword_list=selectedBuffs
+      // console.log(selectedBuffs)
+      this.creature_json.select_object_range=formData.get("selector_target")
+
+      for (const name in code_editor.element_dict) {
+        const element=code_editor.element_dict[name][0]
+        const editor=code_editor.element_dict[name][1]
+        this.creature_json[name]=code_editor.get_code_element(editor)
+        // console.log(code_editor.get_code_element(editor))
+      }
+      console.log(this.creature_json)
+
+      const response=await fetch("/add_studio_card",{
+        method:"POST",
+        headers: { "Content-Type": "application/json" },
+        body:JSON.stringify(this.creature_json)
+      })
+      const data=await response.json()
+      console.log(data)
+    })
+
+    
+    form.appendChild(dropZone)
+    form.appendChild(preview)
+    form.appendChild(button_submit)
     
     
     
 
     return form
+  }
+
+
+  create_image_input(){
+    const dropZone = document.createElement('div');
+    dropZone.classList.add("drop-zone")
+    const preview = document.createElement('div');
+    preview.classList.add("preview-image")
+    // 阻止默认行为
+    for (const eventName of ['dragenter', 'dragover', 'dragleave']){
+        dropZone.addEventListener(eventName, e => e.preventDefault());
+    }
+
+    // 鼠标拖入时添加视觉提示
+    dropZone.addEventListener('dragover', () => dropZone.classList.add('hover'));
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('hover'));
+
+    // 处理图片拖放
+    dropZone.addEventListener('drop', event => {
+        event.preventDefault()
+        dropZone.classList.remove('hover');
+
+        const files = event.dataTransfer.files; // 获取拖放的文件
+        console.log(files)
+        
+        if (files.length > 0) {
+            const file = files[0];
+
+            // 检查是否是图片文件
+            if (!file.type.startsWith('image/')) {
+                alert('Please drag and drop image file');
+                return;
+            }
+
+            // 使用 FileReader 读取文件
+            processImage(file, (processedImage) => {
+                console.log("处理后的图片：", processedImage);
+    
+                // 示例：将处理后的图片显示到页面
+                const img = document.createElement('img');
+                //console.log(e.target.result)
+                img.classList.add("preview-image-img")
+                img.src = processedImage;
+                preview.innerHTML = ''; // 清空之前的内容
+                preview.appendChild(img);
+            });
+            // const reader = new FileReader();
+            // reader.onload = e => {
+            //     // 创建 img 元素显示图片
+            //     const img = document.createElement('img');
+            //     console.log(e.target.result)
+            //     img.src = e.target.result;
+            //     preview.innerHTML = ''; // 清空之前的内容
+            //     preview.appendChild(img);
+            // };
+            // reader.readAsDataURL(file);
+        }
+    });
+    return [dropZone,preview]
   }
 }
 
@@ -366,7 +481,7 @@ class Code_Editor{
         { line: 1, ch: 0 }, // 第二行开始
         { line: totalLines - 1, ch: editor.getLine(totalLines - 1).length } // 最后一行末尾
     );
-    return afterFirstLineCode
+    return afterFirstLineCode.substring(1)
   }
 }
 
@@ -378,3 +493,43 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(element)
     document.getElementById("editor").appendChild(element)
 });
+
+
+function processImage(file, callback) {
+  const reader = new FileReader();
+  const img = new Image();
+
+  reader.onload = function(event) {
+      img.src = event.target.result; // 加载图片
+  };
+
+  img.onload = function() {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      // 设置目标大小为 1024x1024
+      const targetSize = 1024;
+      canvas.width = targetSize;
+      canvas.height = targetSize;
+
+      // 获取图片的原始宽高
+      const { width: imgWidth, height: imgHeight } = img;
+
+      // 计算缩放比例和偏移量（居中裁剪）
+      const scale = Math.max(targetSize / imgWidth, targetSize / imgHeight);
+      const scaledWidth = imgWidth * scale;
+      const scaledHeight = imgHeight * scale;
+      const offsetX = (targetSize - scaledWidth) / 2;
+      const offsetY = (targetSize - scaledHeight) / 2;
+
+      // 绘制缩放和裁剪后的图片到 canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, offsetX, offsetY, scaledWidth, scaledHeight);
+
+      // 导出处理后的图片为 Base64 或 Blob
+      callback(canvas.toDataURL("image/jpeg")); // Base64 格式
+      // 如果需要 Blob，可以用 canvas.toBlob
+  };
+
+  reader.readAsDataURL(file); // 读取文件内容为 Base64
+}

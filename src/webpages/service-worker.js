@@ -1,8 +1,9 @@
 const CACHE_NAME = 'image-cache-v1';
 
 self.addEventListener('fetch', event => {
-    console.log(1)
+    console.log(1,event.request.destination,event.request.url)
     if (event.request.destination === 'image' && /\.(png|jpg|jpeg)$/.test(event.request.url)) {
+        console.log(2)
         event.respondWith(
             caches.match(event.request)
                 .then(response => {
