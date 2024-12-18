@@ -78,7 +78,7 @@ function handleFiles(file) {
 
 class Editor{
   constructor(){
-    this.current_type="creature"
+    
 
     this.creature_json={
       "init_name":"",
@@ -170,6 +170,42 @@ class Editor{
       "when_end_turn_function":"",
       "aura_function":"",
     }
+    this.initinal_type_button()
+    this.current_type="Creature"
+    this.current_element=this.button_dict_function["Creature"];
+    console.log(this.current_element)
+    document.getElementById("editor").appendChild(this.current_element)
+  }
+  initinal_type_button(){
+    
+    this.button_dict_function={
+      "Creature":this.create_page_creature(),
+      "Land":this.create_page_land(),
+      "Instant":this.create_page_instant(),
+      "Sorcery":this.create_page_sorcery(),
+    }
+    const element_button=document.createElement("div")
+    element_button.classList.add("button-group")
+    for (const button_name of Object.keys(this.button_dict_function)){
+      const button=document.createElement("button")
+      button.textContent=button_name
+      button.addEventListener("click",()=>{
+        this.current_element.remove()
+        this.current_type=button_name
+        this.current_element=this.button_dict_function[button_name];
+        document.getElementById("editor").appendChild(this.current_element)
+      })
+
+      element_button.appendChild(button)
+    }
+    document.getElementById("editor").appendChild(element_button)
+    // const button_creature=document.createElement("button")
+    // button_creature.textContent="Creature"
+    // button_creature.addEventListener("click",()=>{
+    //   this.current_type="creature"
+    //   this.current_element=this.create_page_creature();
+    //   document.getElementById("editor").appendChild(this.current_element)
+    // })
   }
   
   create_page_creature(){
@@ -348,6 +384,148 @@ class Editor{
 
     return form
   }
+  create_page_land(){
+    const form=document.createElement("form")
+    form.innerHTML=`
+    <label for="name">Name:</label>
+    <input type="text" name="name" required>
+    <label for="color">Color:</label>
+    <select id="color" name="color">
+      <option value="red">red</option>
+      <option value="blue">blue</option>
+      <option value="green">green</option>
+      <option value="white">white</option>
+      <option value="black">black</option>
+    </select>
+
+    <label for="rarity">Rarity:</label>
+    <select id="rarity" name="rarity">
+      <option value="Common">Common</option>
+      <option value="Uncommon">Uncommon</option>
+      <option value="Rare">Rare</option>
+      <option value="Mythic Rare">Mythic Rare</option>
+    </select>
+    
+    <label for="description">Description:</label>
+    <textarea name="description" required></textarea>
+    <label>Buff Selector</label>
+    <div class="buff-options">
+      <span class="buff-option">
+        <input type="checkbox" name="buff" value="flash">
+        <label for="flash">Flash</label>
+      </span>
+      <span class="buff-option">
+        <input type="checkbox" name="buff" value="lifelink">
+        <label for="lifelink">Lifelink</label>
+      </span>
+      
+    </div>
+    <label for="selector_target">Selector Target:</label>
+    <select id="selector_target" name="selector_target">
+      <option value="">none</option>
+      <option value="all_roles">all_roles</option>
+      <option value="opponent_roles">opponent_roles</option>
+      <option value="your_roles">your_roles</option>
+      <option value="all_creatures">all_creatures</option>
+      <option value="opponent_creatures">opponent_creatures</option>
+      <option value="your_creatures">your_creatures</option>
+      <option value="all_lands">all_lands</option>
+      <option value="opponent_lands">opponent_lands</option>
+      <option value="your_lands">your_lands</option>
+    </select>
+    `
+    const label_function=document.createElement("label")
+    label_function.textContent="Event Function:"
+    form.appendChild(label_function)
+    const code_area=document.createElement("div")
+    code_area.classList.add("code-editor")
+    
+    const selector_function=document.createElement("select")
+    selector_function.id="selector_function"
+    selector_function.name="selector_function"
+    form.appendChild(selector_function)
+    form.appendChild(code_area)
+    const functions=["when_enter_battlefield_function","when_clicked_function","when_a_creature_die_function","when_an_object_hert_function","when_kill_creature_function","when_start_turn_function","when_end_turn_function","aura_function"]
+    const code_editor=new Code_Editor(functions)
+    code_editor.element_create()
+    for (const function_name of functions){
+      const option=document.createElement("option")
+      option.value=function_name
+      option.textContent=function_name
+      selector_function.appendChild(option)
+    }
+    selector_function.addEventListener("change",()=>{
+
+      const element = code_editor.element_dict[selector_function.value][0];
+      const editor=code_editor.element_dict[selector_function.value][1]
+      editor.refresh();
+      code_area.innerHTML = "";
+      console.log(code_editor.element_dict[selector_function.value])
+      code_area.appendChild(element);
+    })
+
+    const button_submit=document.createElement("button")
+    button_submit.textContent="Submit"
+    const [dropZone,preview]=this.create_image_input()
+    button_submit.addEventListener("click",async (event)=>{
+      event.preventDefault(); 
+      const formData = new FormData(form);
+
+      this.land_json.init_name=formData.get("name")
+      this.land_json.init_mana_cost=""
+      this.land_json.init_color=formData.get("color")
+      this.land_json.init_type_card="Land"
+      this.land_json.init_type="Land"
+      this.land_json.init_rarity=formData.get("rarity")
+      this.land_json.init_content=formData.get("description")
+      this.land_json.init_image_path=preview.querySelector('img').src
+      // for (let [key, value] of formData.entries()) {
+      //   console.log(key, value);
+      // }
+      const selectedBuffs = formData.getAll("buff");
+      this.land_json.init_keyword_list=selectedBuffs
+      // console.log(selectedBuffs)
+      this.land_json.select_object_range=formData.get("selector_target")
+
+      for (const name in code_editor.element_dict) {
+        const element=code_editor.element_dict[name][0]
+        const editor=code_editor.element_dict[name][1]
+        this.land_json[name]=code_editor.get_code_element(editor)
+        // console.log(code_editor.get_code_element(editor))
+      }
+      console.log(this.land_json)
+
+      const response=await fetch("/add_studio_card",{
+        method:"POST",
+        headers: { "Content-Type": "application/json" },
+        body:JSON.stringify(this.land_json)
+      })
+      const data=await response.json()
+      console.log(data)
+    })
+
+    
+    form.appendChild(dropZone)
+    form.appendChild(preview)
+    form.appendChild(button_submit)
+    
+    
+    
+
+    return form
+  }
+  create_page_instant(){
+    const form=document.createElement("form")
+    form.innerHTML=`
+    `
+    return form
+  }
+  create_page_sorcery(){
+    const form=document.createElement("form")
+    form.innerHTML=`
+    `
+    return form
+  }
 
 
   create_image_input(){
@@ -428,6 +606,7 @@ class Code_Editor{
     "aura_function":`async def aura(self,player= None, opponent = None):\n\n`,
     "card_ability_function":`async def card_ability(self,player,opponent,selected_object):\n\n`,
     "when_clicked_function":`async def when_clicked(self,player= None, opponent = None):\n\n`,
+    "generate_mana_function":`def generate_mana(self) -> dict:\n\n`,
   }
   constructor(code_names){
     this.code_names=code_names
@@ -489,9 +668,7 @@ class Code_Editor{
 document.addEventListener('DOMContentLoaded', () => {
     // 页面加载完成后执行的初始化代码
     const editor = new Editor();
-    const element=editor.create_page_creature();
-    console.log(element)
-    document.getElementById("editor").appendChild(element)
+    
 });
 
 

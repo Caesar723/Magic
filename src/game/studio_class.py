@@ -140,6 +140,10 @@ def generate_sandbox_class():
             return self._obj.life
         
         @property
+        def mana(self):
+            return self._obj.mana
+        
+        @property
         def battlefield(self):
             return process_cards_in_list(self._obj.battlefield)
         
@@ -488,7 +492,7 @@ def generate_instant_class(
                 sandbox_globals["card"] = card
             #print(sandbox_globals)
             try:
-                async_code = f"async def user_code():\n    " + "\n    ".join(function_code.splitlines())
+                async_code = f"async def user_code():\n" + function_code
                 parsed_code = ast.parse(async_code)
                 compiled_code = compile(parsed_code, "<string>", "exec")  # 异步标志
                 # 定义异步执行器
@@ -560,6 +564,7 @@ def generate_land_class(
         init_image_path:str,
         init_keyword_list:list[str],
         select_object_range:str,
+        # generate_mana_function:str="",
         when_enter_battlefield_function:str="",
         when_clicked_function:str="",
         when_a_creature_die_function:str="",
@@ -613,7 +618,8 @@ def generate_land_class(
                 sandbox_globals["card"] = card
             #print(sandbox_globals)
             try:
-                async_code = f"async def user_code():\n    " + "\n    ".join(function_code.splitlines())
+                async_code = f"async def user_code():\n" + function_code
+                print(async_code)
                 parsed_code = ast.parse(async_code)
                 compiled_code = compile(parsed_code, "<string>", "exec")  # 异步标志
                 # 定义异步执行器
@@ -632,15 +638,18 @@ def generate_land_class(
                 result=e
             return success,result
         @select_object(select_object_range,1)
-        async def when_enter_battlefield(self,player= None, opponent = None):# when land enter battlefield
-            await super().when_enter_battlefield(player,opponent)
-            success,result=await self.get_user_code(when_enter_battlefield_function,player,opponent)
+        async def when_enter_battlefield(self,player= None, opponent = None,selected_object=None):# when land enter battlefield
+            await super().when_enter_battlefield(player,opponent,selected_object)
+            success,result=await self.get_user_code(when_enter_battlefield_function,player,opponent,creature=selected_object)
             return result
         
         async def when_clicked(self,player= None, opponent = None):# when land clicked
+            if when_clicked_function:
             #await super().when_clicked(player,opponent)
-            success,result=await self.get_user_code(when_clicked_function,player,opponent)
-            return result
+                success,result=await self.get_user_code(when_clicked_function,player,opponent)
+                return result
+            else:
+                await super().when_clicked(player,opponent)
         
         async def when_a_creature_die(self,card,player= None, opponent = None):# when a creature die
             await super().when_a_creature_die(card,player,opponent)

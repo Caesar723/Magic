@@ -411,7 +411,7 @@ async def get_all_cards_name(username: str = Depends(get_current_user(database))
 
 
 @app.post("/add_studio_card")
-async def add_studio_card(datas: Studio_Creature_Data, username: str = Depends(get_current_user(database))):
+async def add_studio_card(datas: Union[Studio_Creature_Data,Studio_Land_Data,Studio_Instant_Data,Studio_Sorcery_Data], username: str = Depends(get_current_user(database))):
     if type(username)==RedirectResponse:
         return username
     print(datas)

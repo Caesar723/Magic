@@ -99,6 +99,7 @@ class Studio_Creature_Data(Studio_Card_Data):
     when_start_attcak_function:Optional[str] = None
     when_start_defend_function:Optional[str] = None
 class Studio_Land_Data(Studio_Card_Data):
+    # generate_mana_function:Optional[str] = None
     when_enter_battlefield_function:Optional[str] = None
     when_clicked_function:Optional[str] = None
 

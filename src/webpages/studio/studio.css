@@ -263,3 +263,27 @@ textarea {
   width: auto;
   height: auto;
 }
+
+.button-group{
+  position: relative;
+  width: 100%;
+  height: 10%;
+  background-color: rgb(156, 102, 80);
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+button{
+  width: 100px;
+  height: 50px;
+  background-color: rgb(224, 143, 111);
+  border-radius: 10px;
+  transition: all 0.3s ease-in-out;
+}
+button:hover{
+  cursor: pointer;
+  background-color: rgb(255, 174, 145);
+  scale: 1.1;
+}
