@@ -7,8 +7,8 @@ from cryptography.fernet import Fernet
 
 
 
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel,constr
+from typing import Optional,Literal
 
 import os
 import json
@@ -69,11 +69,11 @@ class Deck_selected(BaseModel):
 
 class Studio_Card_Data(BaseModel):
     init_name:str
-    init_type:str
-    init_mana_cost:str
-    init_color:str
+    init_type:Literal["Creature","Land","Instant","Sorcery"]
+    init_mana_cost:constr(pattern=r"^$|^\d+$|^\d+[URWBG]+$|^[URWBG]+$")
+    init_color:Literal["colorless","blue","gold","black","red","green"]
     init_type_card:str
-    init_rarity:str
+    init_rarity:Literal["Common","Uncommon","Rare","Mythic Rare"]
     init_content:str
     init_image_path:str
     init_keyword_list:list[str]

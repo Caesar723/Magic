@@ -247,7 +247,7 @@ class Editor{
         <label for="reach">Reach</label>
       </span>
       <span class="buff-option">
-        <input type="checkbox" name="buff" value="trample">
+        <input type="checkbox" name="buff" value="Trample">
         <label for="trample">Trample</label>
       </span>
       <span class="buff-option">
@@ -263,7 +263,7 @@ class Editor{
         <label for="summoning_sickness">Summoning Sickness</label>
       </span>
       <span class="buff-option">
-        <input type="checkbox" name="buff" value="flash">
+        <input type="checkbox" name="buff" value="Flash">
         <label for="flash">Flash</label>
       </span>
       <span class="buff-option">
@@ -271,19 +271,19 @@ class Editor{
         <label for="lifelink">Lifelink</label>
       </span>
       <span class="buff-option">
-        <input type="checkbox" name="buff" value="vigilance">
+        <input type="checkbox" name="buff" value="Vigilance">
         <label for="vigilance">Vigilance</label>
       </span>
       <span class="buff-option">
-        <input type="checkbox" name="buff" value="double_strike">
+        <input type="checkbox" name="buff" value="Double strike">
         <label for="double_strike">Double Strike</label>
       </span>
       <span class="buff-option">
-        <input type="checkbox" name="buff" value="menace">
+        <input type="checkbox" name="buff" value="Menace">
         <label for="menace">Menace</label>
       </span>
       <span class="buff-option">
-        <input type="checkbox" name="buff" value="hexproof">
+        <input type="checkbox" name="buff" value="Hexproof">
         <label for="hexproof">Hexproof</label>
       </span>
     </div>
@@ -336,11 +336,7 @@ class Editor{
       editor.refresh();
     })
 
-    const button_submit=document.createElement("button")
-    button_submit.textContent="Submit"
-    const [dropZone,preview]=this.create_image_input()
-    button_submit.addEventListener("click",async (event)=>{
-      event.preventDefault(); 
+    const get_data = () => {
       const formData = new FormData(form);
 
       this.creature_json.init_name=formData.get("name")
@@ -368,6 +364,13 @@ class Editor{
         this.creature_json[name]=code_editor.get_code_element(editor)
         // console.log(code_editor.get_code_element(editor))
       }
+    }
+    const button_submit=document.createElement("button")
+    button_submit.textContent="Submit"
+    const [dropZone,preview]=this.create_image_input()
+    button_submit.addEventListener("click",async (event)=>{
+      event.preventDefault(); 
+      get_data()
       console.log(this.creature_json)
 
       const response=await fetch("/add_studio_card",{
@@ -416,7 +419,7 @@ class Editor{
     <label>Buff Selector</label>
     <div class="buff-options">
       <span class="buff-option">
-        <input type="checkbox" name="buff" value="flash">
+        <input type="checkbox" name="buff" value="Flash">
         <label for="flash">Flash</label>
       </span>
       <span class="buff-option">
@@ -477,12 +480,7 @@ class Editor{
       code_area.appendChild(element);
       editor.refresh();
     })
-
-    const button_submit=document.createElement("button")
-    button_submit.textContent="Submit"
-    const [dropZone,preview]=this.create_image_input()
-    button_submit.addEventListener("click",async (event)=>{
-      event.preventDefault(); 
+    const get_data = () => {
       const formData = new FormData(form);
 
       this.land_json.init_name=formData.get("name")
@@ -507,6 +505,13 @@ class Editor{
         this.land_json[name]=code_editor.get_code_element(editor)
         // console.log(code_editor.get_code_element(editor))
       }
+    }
+    const button_submit=document.createElement("button")
+    button_submit.textContent="Submit"
+    const [dropZone,preview]=this.create_image_input()
+    button_submit.addEventListener("click",async (event)=>{
+      event.preventDefault(); 
+      get_data()
       console.log(this.land_json)
 
       const response=await fetch("/add_studio_card",{
@@ -618,11 +623,22 @@ class Editor{
       editor.refresh();
     })
 
-    const button_submit=document.createElement("button")
-    button_submit.textContent="Submit"
+    const button_group=document.createElement("div")
+    button_group.classList.add("button-group")
+    const button_group_left=document.createElement("div")
+    button_group_left.classList.add("button-group-left")
+    const button_group_right=document.createElement("div")
+    button_group_right.classList.add("button-group-right")
+    button_group.appendChild(button_group_left)
+    button_group.appendChild(button_group_right)
+
+    
     const [dropZone,preview]=this.create_image_input()
-    button_submit.addEventListener("click",async (event)=>{
-      event.preventDefault(); 
+
+    const button_test=document.createElement("button")
+    button_test.textContent="Test"
+
+    const get_data = () => {
       const formData = new FormData(form);
 
       this.instant_json.init_name=formData.get("name")
@@ -648,6 +664,11 @@ class Editor{
         this.instant_json[name]=code_editor.get_code_element(editor)
         // console.log(code_editor.get_code_element(editor))
       }
+    }
+
+    button_test.addEventListener("click",async (event)=>{
+      event.preventDefault(); 
+      get_data()
       console.log(this.instant_json)
 
       const response=await fetch("/add_studio_card",{
@@ -659,10 +680,29 @@ class Editor{
       console.log(data)
     })
 
+
+    const button_submit=document.createElement("button")
+    button_submit.textContent="Submit"
+    button_submit.addEventListener("click",async (event)=>{
+      event.preventDefault(); 
+
+      get_data()
+
+      const response=await fetch("/submit_studio_card",{
+        method:"POST",
+        headers: { "Content-Type": "application/json" },
+        body:JSON.stringify(this.instant_json)
+      })
+      const data=await response.json()
+      console.log(data)
+    })
+
     
     form.appendChild(dropZone)
     form.appendChild(preview)
-    form.appendChild(button_submit)
+    button_group_left.appendChild(button_test)
+    button_group_right.appendChild(button_submit)
+    form.appendChild(button_group)
     
     
     
@@ -754,11 +794,7 @@ class Editor{
       editor.refresh();
     })
 
-    const button_submit=document.createElement("button")
-    button_submit.textContent="Submit"
-    const [dropZone,preview]=this.create_image_input()
-    button_submit.addEventListener("click",async (event)=>{
-      event.preventDefault(); 
+    const get_data = () => {
       const formData = new FormData(form);
 
       this.sorcery_json.init_name=formData.get("name")
@@ -783,6 +819,13 @@ class Editor{
         this.sorcery_json[name]=code_editor.get_code_element(editor)
         // console.log(code_editor.get_code_element(editor))
       }
+    }
+    const button_submit=document.createElement("button")
+    button_submit.textContent="Submit"
+    const [dropZone,preview]=this.create_image_input()
+    button_submit.addEventListener("click",async (event)=>{
+      event.preventDefault(); 
+      get_data()
       console.log(this.sorcery_json)
 
       const response=await fetch("/add_studio_card",{
