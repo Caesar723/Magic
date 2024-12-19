@@ -109,7 +109,7 @@ class Selection_Page{
 
     check_card_in_list(card){// 返回true false
         
-        if (get_dict(card.flag_dict,'Hexproof') && card.player==this.oppo_player.type_name){
+        if (!(card instanceof Player) && get_dict(card.flag_dict,'Hexproof') && card.player===this.oppo_player.type_name){
             return false
         }
         if (this.selection_mode=="cards"){

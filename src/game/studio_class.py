@@ -12,6 +12,7 @@ import random
 from game.type_cards.creature import Creature
 from game.type_cards.instant import Instant,Instant_Undo
 from game.type_cards.land import Land
+from game.player import Player
 from game.type_cards.sorcery import Sorcery
 from game.buffs import StateBuff,KeyBuff,Frozen,Tap,Indestructible,Infect
 from game.game_function_tool import select_object
@@ -37,6 +38,18 @@ def guarded_setattr(obj, name, value):
     if name.startswith("_"):
         raise AttributeError(f"Modification of private attribute '{name}' is not allowed.")
     return setattr(obj, name, value)  
+def preprocess_code(code: str, tab_size: int = 4) -> str:
+    """
+    将代码中的 Tab 替换为指定数量的空格。
+    
+    Args:
+        code (str): 用户输入的代码。
+        tab_size (int): Tab 替换为多少个空格，默认为4。
+    
+    Returns:
+        str: 处理后的代码字符串。
+    """
+    return code.replace("\t", " " * tab_size)
 
 def generate_sandbox_class():
     class SandboxWrapper:
@@ -144,6 +157,10 @@ def generate_sandbox_class():
             return self._obj.mana
         
         @property
+        def action_store(self):
+            return self._obj.action_store
+        
+        @property
         def battlefield(self):
             return process_cards_in_list(self._obj.battlefield)
         
@@ -199,7 +216,25 @@ def generate_sandbox_class():
         def get_cards_by_pos_type(self,position:str,card_type:tuple["Creature|Land|Sorcery|Instant"],except_type:tuple["Creature|Land|Sorcery|Instant"]=()):
             return process_cards_in_list(self._obj.get_cards_by_pos_type(position,card_type,except_type))
         
-    return SandboxWrapper,SandboxCreatureWrapper,SandboxInstant_UndoWrapper,SandboxLandWrapper,PlayerSandboxWrapper
+    class SandboxSelectObjectWrapper:
+        def __init__(self,obj):
+            self._obj=obj
+        
+        def __getitem__(self, key):
+            obj=self._obj[key]
+            if isinstance(obj,Creature):
+                return SandboxCreatureWrapper(obj)
+            elif isinstance(obj,Instant):
+                return SandboxInstant_UndoWrapper(obj)
+            elif isinstance(obj,Land):
+                return SandboxLandWrapper(obj)
+            elif isinstance(obj,Sorcery):
+                return SandboxWrapper(obj)
+            elif isinstance(obj,Player):
+                return PlayerSandboxWrapper(obj)
+            
+        
+    return SandboxWrapper,SandboxCreatureWrapper,SandboxInstant_UndoWrapper,SandboxLandWrapper,PlayerSandboxWrapper,SandboxSelectObjectWrapper
         
 
 def generate_sandbox_buff_class():
@@ -268,7 +303,7 @@ def generate_creature_class(
         aura_function:str="",
 ):
    
-    SandboxWrapper,SandboxCreatureWrapper,SandboxInstant_UndoWrapper,SandboxLandWrapper,PlayerSandboxWrapper=generate_sandbox_class()
+    SandboxWrapper,SandboxCreatureWrapper,SandboxInstant_UndoWrapper,SandboxLandWrapper,PlayerSandboxWrapper,SandboxSelectObjectWrapper=generate_sandbox_class()
     SandboxStateBuffWrapper,SandboxKeyBuffWrapper,SandboxFrozenWrapper,SandboxTapWrapper,SandboxIndestructibleWrapper,SandboxInfectWrapper=generate_sandbox_buff_class()
     
     class CreatureCard(Creature):
@@ -290,7 +325,7 @@ def generate_creature_class(
             for keyword in init_keyword_list:
                 self.flag_dict[keyword]=True
 
-        async def get_user_code(self,function_code:str,player,opponent,creature=None,value=None,card=None):
+        async def get_user_code(self,function_code:str,player,opponent,creature=None,value=None,card=None,selected_object=None):
             if not function_code:
                 return True,None
             sandbox_globals = safe_globals.copy()
@@ -313,9 +348,11 @@ def generate_creature_class(
                 sandbox_globals["value"] = value
             if card:
                 sandbox_globals["card"] = card
+            if selected_object:
+                sandbox_globals["selected_object"] = SandboxSelectObjectWrapper(selected_object)
             #print(sandbox_globals)
             try:
-                async_code = f"async def user_code():\n    " + "\n    ".join(function_code.splitlines())
+                async_code = f"async def user_code():\n" + preprocess_code(function_code)
                 parsed_code = ast.parse(async_code)
                 compiled_code = compile(parsed_code, "<string>", "exec")  # 异步标志
                 # 定义异步执行器
@@ -338,7 +375,7 @@ def generate_creature_class(
         
         @select_object(select_object_range,1)
         async def when_enter_battlefield(self,player,opponent,selected_object):
-            success,result=await self.get_user_code(when_enter_battlefield_function,player,opponent,creature=selected_object)
+            success,result=await self.get_user_code(when_enter_battlefield_function,player,opponent,selected_object=selected_object)
             return result
         
         async def when_leave_battlefield(self,player= None, opponent = None,name:str='battlefield'):# when creature leave battlefield
@@ -448,7 +485,7 @@ def generate_instant_class(
         aura_function:str="",
 ):
     
-    SandboxWrapper,SandboxCreatureWrapper,SandboxInstant_UndoWrapper,SandboxLandWrapper,PlayerSandboxWrapper=generate_sandbox_class()
+    SandboxWrapper,SandboxCreatureWrapper,SandboxInstant_UndoWrapper,SandboxLandWrapper,PlayerSandboxWrapper,SandboxSelectObjectWrapper=generate_sandbox_class()
     SandboxStateBuffWrapper,SandboxKeyBuffWrapper,SandboxFrozenWrapper,SandboxTapWrapper,SandboxIndestructibleWrapper,SandboxInfectWrapper=generate_sandbox_buff_class()
     class InstantCard(Instant):
         def __init__(self,player):
@@ -464,7 +501,7 @@ def generate_instant_class(
             for keyword in init_keyword_list:
                 self.flag_dict[keyword]=True
 
-        async def get_user_code(self,function_code:str,player,opponent,creature=None,value=None,card=None):
+        async def get_user_code(self,function_code:str,player,opponent,creature=None,value=None,card=None,selected_object=None):
             if not function_code:
                 return True,None
             sandbox_globals = safe_globals.copy()
@@ -490,9 +527,12 @@ def generate_instant_class(
                 sandbox_globals["value"] = value
             if card:
                 sandbox_globals["card"] = card
+            if selected_object:
+                sandbox_globals["selected_object"] = SandboxSelectObjectWrapper(selected_object)
             #print(sandbox_globals)
             try:
-                async_code = f"async def user_code():\n" + function_code
+                async_code = f"async def user_code():\n" + preprocess_code(function_code)
+                print(async_code)
                 parsed_code = ast.parse(async_code)
                 compiled_code = compile(parsed_code, "<string>", "exec")  # 异步标志
                 # 定义异步执行器
@@ -506,6 +546,8 @@ def generate_instant_class(
 
                 result = sandbox_globals.get("result", None)
             except Exception as e:
+                import traceback
+                traceback.print_exc()
                 print(e)
                 success=False
                 result=e
@@ -575,7 +617,7 @@ def generate_land_class(
         aura_function:str="",
 ):
     
-    SandboxWrapper,SandboxCreatureWrapper,SandboxInstant_UndoWrapper,SandboxLandWrapper,PlayerSandboxWrapper=generate_sandbox_class()
+    SandboxWrapper,SandboxCreatureWrapper,SandboxInstant_UndoWrapper,SandboxLandWrapper,PlayerSandboxWrapper,SandboxSelectObjectWrapper=generate_sandbox_class()
     SandboxStateBuffWrapper,SandboxKeyBuffWrapper,SandboxFrozenWrapper,SandboxTapWrapper,SandboxIndestructibleWrapper,SandboxInfectWrapper=generate_sandbox_buff_class()
     class LandCard(Land):
         
@@ -592,7 +634,7 @@ def generate_land_class(
             for keyword in init_keyword_list:
                 self.flag_dict[keyword]=True
         
-        async def get_user_code(self,function_code:str,player,opponent,creature=None,value=None,card=None):
+        async def get_user_code(self,function_code:str,player,opponent,creature=None,value=None,card=None,selected_object=None):
             if not function_code:
                 return True,None
             sandbox_globals = safe_globals.copy()
@@ -616,9 +658,11 @@ def generate_land_class(
                 sandbox_globals["value"] = value
             if card:
                 sandbox_globals["card"] = card
+            if selected_object:
+                sandbox_globals["selected_object"] = SandboxSelectObjectWrapper(selected_object)
             #print(sandbox_globals)
             try:
-                async_code = f"async def user_code():\n" + function_code
+                async_code = f"async def user_code():\n" + preprocess_code(function_code)
                 print(async_code)
                 parsed_code = ast.parse(async_code)
                 compiled_code = compile(parsed_code, "<string>", "exec")  # 异步标志
@@ -640,7 +684,7 @@ def generate_land_class(
         @select_object(select_object_range,1)
         async def when_enter_battlefield(self,player= None, opponent = None,selected_object=None):# when land enter battlefield
             await super().when_enter_battlefield(player,opponent,selected_object)
-            success,result=await self.get_user_code(when_enter_battlefield_function,player,opponent,creature=selected_object)
+            success,result=await self.get_user_code(when_enter_battlefield_function,player,opponent,selected_object=selected_object)
             return result
         
         async def when_clicked(self,player= None, opponent = None):# when land clicked
@@ -704,7 +748,7 @@ def generate_sorcery_class(
         aura_function:str="",
 ):
     
-    SandboxWrapper,SandboxCreatureWrapper,SandboxInstant_UndoWrapper,SandboxLandWrapper,PlayerSandboxWrapper=generate_sandbox_class()
+    SandboxWrapper,SandboxCreatureWrapper,SandboxInstant_UndoWrapper,SandboxLandWrapper,PlayerSandboxWrapper,SandboxSelectObjectWrapper=generate_sandbox_class()
     SandboxStateBuffWrapper,SandboxKeyBuffWrapper,SandboxFrozenWrapper,SandboxTapWrapper,SandboxIndestructibleWrapper,SandboxInfectWrapper=generate_sandbox_buff_class()
     class SorceryCard(Sorcery):
         
@@ -721,7 +765,7 @@ def generate_sorcery_class(
             for keyword in init_keyword_list:
                 self.flag_dict[keyword]=True
 
-        async def get_user_code(self,function_code:str,player,opponent,creature=None,value=None,card=None):
+        async def get_user_code(self,function_code:str,player,opponent,creature=None,value=None,card=None,selected_object=None):
             if not function_code:
                 return True,None
             sandbox_globals = safe_globals.copy()
@@ -745,9 +789,11 @@ def generate_sorcery_class(
                 sandbox_globals["value"] = value
             if card:
                 sandbox_globals["card"] = card
+            if selected_object:
+                sandbox_globals["selected_object"] = SandboxSelectObjectWrapper(selected_object)
             #print(sandbox_globals)
             try:
-                async_code = f"async def user_code():\n    " + "\n    ".join(function_code.splitlines())
+                async_code = f"async def user_code():\n" + preprocess_code(function_code)
                 parsed_code = ast.parse(async_code)
                 compiled_code = compile(parsed_code, "<string>", "exec")  # 异步标志
                 # 定义异步执行器

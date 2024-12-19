@@ -321,14 +321,19 @@ class Editor{
       option.textContent=function_name
       selector_function.appendChild(option)
     }
+    const element = code_editor.element_dict[functions[0]][0];
+    const editor=code_editor.element_dict[functions[0]][1]
+    code_area.innerHTML = "";
+    code_area.appendChild(element);
+    editor.refresh();
     selector_function.addEventListener("change",()=>{
 
       const element = code_editor.element_dict[selector_function.value][0];
       const editor=code_editor.element_dict[selector_function.value][1]
-      editor.refresh();
       code_area.innerHTML = "";
       console.log(code_editor.element_dict[selector_function.value])
       code_area.appendChild(element);
+      editor.refresh();
     })
 
     const button_submit=document.createElement("button")
@@ -454,14 +459,23 @@ class Editor{
       option.textContent=function_name
       selector_function.appendChild(option)
     }
+    const element = code_editor.element_dict[functions[0]][0];
+    const editor=code_editor.element_dict[functions[0]][1]
+    
+    code_area.innerHTML = "";
+    
+    code_area.appendChild(element);
+    editor.refresh();
+    
     selector_function.addEventListener("change",()=>{
 
       const element = code_editor.element_dict[selector_function.value][0];
       const editor=code_editor.element_dict[selector_function.value][1]
-      editor.refresh();
+      
       code_area.innerHTML = "";
       console.log(code_editor.element_dict[selector_function.value])
       code_area.appendChild(element);
+      editor.refresh();
     })
 
     const button_submit=document.createElement("button")
@@ -517,13 +531,277 @@ class Editor{
   create_page_instant(){
     const form=document.createElement("form")
     form.innerHTML=`
+    <label for="name">Name:</label>
+    <input type="text" name="name" required>
+    <label for="mana">Mana:</label>
+    <input type="text" name="mana" required>
+    <label for="color">Color:</label>
+    <select id="color" name="color">
+      <option value="red">red</option>
+      <option value="blue">blue</option>
+      <option value="green">green</option>
+      <option value="white">white</option>
+      <option value="black">black</option>
+    </select>
+
+    <label for="rarity">Rarity:</label>
+    <select id="rarity" name="rarity">
+      <option value="Common">Common</option>
+      <option value="Uncommon">Uncommon</option>
+      <option value="Rare">Rare</option>
+      <option value="Mythic Rare">Mythic Rare</option>
+    </select>
+    
+    <label for="is_undo">Is Undo</label>
+    <span class="buff-option">
+      <input type="checkbox" name="is_undo" value="is_undo">
+    </span>
+    
+
+    <label for="description">Description:</label>
+    <textarea name="description" required></textarea>
+    <label>Buff Selector</label>
+    <div class="buff-options">
+      
+      <span class="buff-option">
+        <input type="checkbox" name="buff" value="lifelink">
+        <label for="lifelink">Lifelink</label>
+      </span>
+      
+    </div>
+    <label for="selector_target">Selector Target:</label>
+    <select id="selector_target" name="selector_target">
+      <option value="">none</option>
+      <option value="all_roles">all_roles</option>
+      <option value="opponent_roles">opponent_roles</option>
+      <option value="your_roles">your_roles</option>
+      <option value="all_creatures">all_creatures</option>
+      <option value="opponent_creatures">opponent_creatures</option>
+      <option value="your_creatures">your_creatures</option>
+      <option value="all_lands">all_lands</option>
+      <option value="opponent_lands">opponent_lands</option>
+      <option value="your_lands">your_lands</option>
+    </select>
     `
+    const label_function=document.createElement("label")
+    label_function.textContent="Event Function:"
+    form.appendChild(label_function)
+    const code_area=document.createElement("div")
+    code_area.classList.add("code-editor")
+    
+    const selector_function=document.createElement("select")
+    selector_function.id="selector_function"
+    selector_function.name="selector_function"
+    form.appendChild(selector_function)
+    form.appendChild(code_area)
+    const functions=["card_ability_function","when_a_creature_die_function","when_an_object_hert_function","when_kill_creature_function","when_start_turn_function","when_end_turn_function","aura_function"]
+    const code_editor=new Code_Editor(functions)
+    code_editor.element_create()
+    for (const function_name of functions){
+      const option=document.createElement("option")
+      option.value=function_name
+      option.textContent=function_name
+      selector_function.appendChild(option)
+    }
+    const element = code_editor.element_dict[functions[0]][0];
+    const editor=code_editor.element_dict[functions[0]][1]
+    code_area.innerHTML = "";
+    code_area.appendChild(element);
+    editor.refresh();
+    selector_function.addEventListener("change",()=>{
+
+      const element = code_editor.element_dict[selector_function.value][0];
+      const editor=code_editor.element_dict[selector_function.value][1]
+      code_area.innerHTML = "";
+      console.log(code_editor.element_dict[selector_function.value])
+      code_area.appendChild(element);
+      editor.refresh();
+    })
+
+    const button_submit=document.createElement("button")
+    button_submit.textContent="Submit"
+    const [dropZone,preview]=this.create_image_input()
+    button_submit.addEventListener("click",async (event)=>{
+      event.preventDefault(); 
+      const formData = new FormData(form);
+
+      this.instant_json.init_name=formData.get("name")
+      this.instant_json.init_mana_cost=formData.get("mana")
+      this.instant_json.init_color=formData.get("color")
+      this.instant_json.init_type_card="Instant"
+      this.instant_json.init_type="Instant"
+      this.instant_json.is_undo=formData.get("is_undo")=="is_undo"
+      this.instant_json.init_rarity=formData.get("rarity")
+      this.instant_json.init_content=formData.get("description")
+      this.instant_json.init_image_path=preview.querySelector('img').src
+      // for (let [key, value] of formData.entries()) {
+      //   console.log(key, value);
+      // }
+      const selectedBuffs = formData.getAll("buff");
+      this.instant_json.init_keyword_list=selectedBuffs
+      // console.log(selectedBuffs)
+      this.instant_json.select_object_range=formData.get("selector_target")
+
+      for (const name in code_editor.element_dict) {
+        const element=code_editor.element_dict[name][0]
+        const editor=code_editor.element_dict[name][1]
+        this.instant_json[name]=code_editor.get_code_element(editor)
+        // console.log(code_editor.get_code_element(editor))
+      }
+      console.log(this.instant_json)
+
+      const response=await fetch("/add_studio_card",{
+        method:"POST",
+        headers: { "Content-Type": "application/json" },
+        body:JSON.stringify(this.instant_json)
+      })
+      const data=await response.json()
+      console.log(data)
+    })
+
+    
+    form.appendChild(dropZone)
+    form.appendChild(preview)
+    form.appendChild(button_submit)
+    
+    
+    
+
     return form
   }
   create_page_sorcery(){
     const form=document.createElement("form")
     form.innerHTML=`
+    <label for="name">Name:</label>
+    <input type="text" name="name" required>
+    <label for="mana">Mana:</label>
+    <input type="text" name="mana" required>
+    <label for="color">Color:</label>
+    <select id="color" name="color">
+      <option value="red">red</option>
+      <option value="blue">blue</option>
+      <option value="green">green</option>
+      <option value="white">white</option>
+      <option value="black">black</option>
+    </select>
+
+    <label for="rarity">Rarity:</label>
+    <select id="rarity" name="rarity">
+      <option value="Common">Common</option>
+      <option value="Uncommon">Uncommon</option>
+      <option value="Rare">Rare</option>
+      <option value="Mythic Rare">Mythic Rare</option>
+    </select>
+    
+
+    <label for="description">Description:</label>
+    <textarea name="description" required></textarea>
+    <label>Buff Selector</label>
+    <div class="buff-options">
+      
+      <span class="buff-option">
+        <input type="checkbox" name="buff" value="lifelink">
+        <label for="lifelink">Lifelink</label>
+      </span>
+      
+    </div>
+    <label for="selector_target">Selector Target:</label>
+    <select id="selector_target" name="selector_target">
+      <option value="">none</option>
+      <option value="all_roles">all_roles</option>
+      <option value="opponent_roles">opponent_roles</option>
+      <option value="your_roles">your_roles</option>
+      <option value="all_creatures">all_creatures</option>
+      <option value="opponent_creatures">opponent_creatures</option>
+      <option value="your_creatures">your_creatures</option>
+      <option value="all_lands">all_lands</option>
+      <option value="opponent_lands">opponent_lands</option>
+      <option value="your_lands">your_lands</option>
+    </select>
     `
+    const label_function=document.createElement("label")
+    label_function.textContent="Event Function:"
+    form.appendChild(label_function)
+    const code_area=document.createElement("div")
+    code_area.classList.add("code-editor")
+    
+    const selector_function=document.createElement("select")
+    selector_function.id="selector_function"
+    selector_function.name="selector_function"
+    form.appendChild(selector_function)
+    form.appendChild(code_area)
+    const functions=["card_ability_function","when_a_creature_die_function","when_an_object_hert_function","when_kill_creature_function","when_start_turn_function","when_end_turn_function","aura_function"]
+    const code_editor=new Code_Editor(functions)
+    code_editor.element_create()
+    for (const function_name of functions){
+      const option=document.createElement("option")
+      option.value=function_name
+      option.textContent=function_name
+      selector_function.appendChild(option)
+    }
+    const element = code_editor.element_dict[functions[0]][0];
+    const editor=code_editor.element_dict[functions[0]][1]
+    code_area.innerHTML = "";
+    code_area.appendChild(element);
+    editor.refresh();
+    selector_function.addEventListener("change",()=>{
+
+      const element = code_editor.element_dict[selector_function.value][0];
+      const editor=code_editor.element_dict[selector_function.value][1]
+      code_area.innerHTML = "";
+      console.log(code_editor.element_dict[selector_function.value])
+      code_area.appendChild(element);
+      editor.refresh();
+    })
+
+    const button_submit=document.createElement("button")
+    button_submit.textContent="Submit"
+    const [dropZone,preview]=this.create_image_input()
+    button_submit.addEventListener("click",async (event)=>{
+      event.preventDefault(); 
+      const formData = new FormData(form);
+
+      this.sorcery_json.init_name=formData.get("name")
+      this.sorcery_json.init_mana_cost=formData.get("mana")
+      this.sorcery_json.init_color=formData.get("color")
+      this.sorcery_json.init_type_card="Sorcery"
+      this.sorcery_json.init_type="Sorcery"
+      this.sorcery_json.init_rarity=formData.get("rarity")
+      this.sorcery_json.init_content=formData.get("description")
+      this.sorcery_json.init_image_path=preview.querySelector('img').src
+      // for (let [key, value] of formData.entries()) {
+      //   console.log(key, value);
+      // }
+      const selectedBuffs = formData.getAll("buff");
+      this.sorcery_json.init_keyword_list=selectedBuffs
+      // console.log(selectedBuffs)
+      this.sorcery_json.select_object_range=formData.get("selector_target")
+
+      for (const name in code_editor.element_dict) {
+        const element=code_editor.element_dict[name][0]
+        const editor=code_editor.element_dict[name][1]
+        this.sorcery_json[name]=code_editor.get_code_element(editor)
+        // console.log(code_editor.get_code_element(editor))
+      }
+      console.log(this.sorcery_json)
+
+      const response=await fetch("/add_studio_card",{
+        method:"POST",
+        headers: { "Content-Type": "application/json" },
+        body:JSON.stringify(this.sorcery_json)
+      })
+      const data=await response.json()
+      console.log(data)
+    })
+
+    
+    form.appendChild(dropZone)
+    form.appendChild(preview)
+    form.appendChild(button_submit)
+    
+    
+    
+
     return form
   }
 

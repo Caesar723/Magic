@@ -411,10 +411,23 @@ async def get_all_cards_name(username: str = Depends(get_current_user(database))
 
 
 @app.post("/add_studio_card")
-async def add_studio_card(datas: Union[Studio_Creature_Data,Studio_Land_Data,Studio_Instant_Data,Studio_Sorcery_Data], username: str = Depends(get_current_user(database))):
+async def add_studio_card(datas: dict, username: str = Depends(get_current_user(database))):
     if type(username)==RedirectResponse:
         return username
     print(datas)
+    try:
+        type_dict={
+            "Creature":Studio_Creature_Data,
+            "Land":Studio_Land_Data,
+            "Instant":Studio_Instant_Data,
+            "Sorcery":Studio_Sorcery_Data
+        }
+        #datas=json.loads(datas)
+        datas=type_dict[datas["init_type"]](**datas)
+    except:
+        return {"state":"unsuccessful"}
+    
+    
     room=room_server.find_player_room(username)
     if isinstance(room,Studio_Room):
         room.add_studio_card(datas,username)
