@@ -208,6 +208,29 @@ class Editor{
     // })
   }
   
+  async send_add_card_request(json_data){
+    const response=await fetch("/add_studio_card",{
+      method:"POST",
+      headers: { "Content-Type": "application/json" },
+      body:JSON.stringify(json_data)
+    })
+    const data=await response.json()
+    if (data.state=="unsuccessful"){
+      alert(data.error)
+    }
+    console.log(data)
+  }
+  async submit_card_request(json_data,image_file){
+    const formData = new FormData();
+    formData.append("json_data", JSON.stringify(json_data)); 
+    formData.append("file", image_file);
+    const response=await fetch("/submit_studio_card",{
+      method:"POST",
+      body:formData
+    })
+    const data=await response.json()
+    console.log(data)
+  }
   create_page_creature(){
     const form=document.createElement("form")
     form.innerHTML=`
@@ -365,27 +388,44 @@ class Editor{
         // console.log(code_editor.get_code_element(editor))
       }
     }
-    const button_submit=document.createElement("button")
-    button_submit.textContent="Submit"
     const [dropZone,preview]=this.create_image_input()
-    button_submit.addEventListener("click",async (event)=>{
+    const button_group=document.createElement("div")
+    button_group.classList.add("button-group")
+    const button_group_left=document.createElement("div")
+    button_group_left.classList.add("button-group-left")
+    const button_group_right=document.createElement("div")
+    button_group_right.classList.add("button-group-right")
+    button_group.appendChild(button_group_left)
+    button_group.appendChild(button_group_right)
+
+    const button_test=document.createElement("button")
+    button_test.textContent="Test"
+
+    button_test.addEventListener("click",async (event)=>{
       event.preventDefault(); 
       get_data()
       console.log(this.creature_json)
 
-      const response=await fetch("/add_studio_card",{
-        method:"POST",
-        headers: { "Content-Type": "application/json" },
-        body:JSON.stringify(this.creature_json)
-      })
-      const data=await response.json()
-      console.log(data)
+      await this.send_add_card_request(this.creature_json)
+      
+    })
+
+    const button_submit=document.createElement("button")
+    button_submit.textContent="Submit"
+    button_submit.addEventListener("click",async (event)=>{
+      event.preventDefault(); 
+
+      get_data()
+
+      await this.submit_card_request(this.creature_json,dropZone.files[0])
     })
 
     
     form.appendChild(dropZone)
     form.appendChild(preview)
-    form.appendChild(button_submit)
+    button_group_left.appendChild(button_test)
+    button_group_right.appendChild(button_submit)
+    form.appendChild(button_group)
     
     
     
@@ -506,27 +546,44 @@ class Editor{
         // console.log(code_editor.get_code_element(editor))
       }
     }
-    const button_submit=document.createElement("button")
-    button_submit.textContent="Submit"
     const [dropZone,preview]=this.create_image_input()
-    button_submit.addEventListener("click",async (event)=>{
+    const button_group=document.createElement("div")
+    button_group.classList.add("button-group")
+    const button_group_left=document.createElement("div")
+    button_group_left.classList.add("button-group-left")
+    const button_group_right=document.createElement("div")
+    button_group_right.classList.add("button-group-right")
+    button_group.appendChild(button_group_left)
+    button_group.appendChild(button_group_right)
+
+    const button_test=document.createElement("button")
+    button_test.textContent="Test"
+
+    button_test.addEventListener("click",async (event)=>{
       event.preventDefault(); 
       get_data()
       console.log(this.land_json)
 
-      const response=await fetch("/add_studio_card",{
-        method:"POST",
-        headers: { "Content-Type": "application/json" },
-        body:JSON.stringify(this.land_json)
-      })
-      const data=await response.json()
-      console.log(data)
+      await this.send_add_card_request(this.land_json)
+      
+    })
+
+    const button_submit=document.createElement("button")
+    button_submit.textContent="Submit"
+    button_submit.addEventListener("click",async (event)=>{
+      event.preventDefault(); 
+
+      get_data()
+
+      await this.submit_card_request(this.land_json,dropZone.files[0])
     })
 
     
     form.appendChild(dropZone)
     form.appendChild(preview)
-    form.appendChild(button_submit)
+    button_group_left.appendChild(button_test)
+    button_group_right.appendChild(button_submit)
+    form.appendChild(button_group)
     
     
     
@@ -623,21 +680,8 @@ class Editor{
       editor.refresh();
     })
 
-    const button_group=document.createElement("div")
-    button_group.classList.add("button-group")
-    const button_group_left=document.createElement("div")
-    button_group_left.classList.add("button-group-left")
-    const button_group_right=document.createElement("div")
-    button_group_right.classList.add("button-group-right")
-    button_group.appendChild(button_group_left)
-    button_group.appendChild(button_group_right)
 
-    
     const [dropZone,preview]=this.create_image_input()
-
-    const button_test=document.createElement("button")
-    button_test.textContent="Test"
-
     const get_data = () => {
       const formData = new FormData(form);
 
@@ -666,20 +710,26 @@ class Editor{
       }
     }
 
+    const button_group=document.createElement("div")
+    button_group.classList.add("button-group")
+    const button_group_left=document.createElement("div")
+    button_group_left.classList.add("button-group-left")
+    const button_group_right=document.createElement("div")
+    button_group_right.classList.add("button-group-right")
+    button_group.appendChild(button_group_left)
+    button_group.appendChild(button_group_right)
+
+    const button_test=document.createElement("button")
+    button_test.textContent="Test"
+
     button_test.addEventListener("click",async (event)=>{
       event.preventDefault(); 
       get_data()
       console.log(this.instant_json)
 
-      const response=await fetch("/add_studio_card",{
-        method:"POST",
-        headers: { "Content-Type": "application/json" },
-        body:JSON.stringify(this.instant_json)
-      })
-      const data=await response.json()
-      console.log(data)
+      await this.send_add_card_request(this.instant_json)
+      
     })
-
 
     const button_submit=document.createElement("button")
     button_submit.textContent="Submit"
@@ -688,13 +738,7 @@ class Editor{
 
       get_data()
 
-      const response=await fetch("/submit_studio_card",{
-        method:"POST",
-        headers: { "Content-Type": "application/json" },
-        body:JSON.stringify(this.instant_json)
-      })
-      const data=await response.json()
-      console.log(data)
+      await this.submit_card_request(this.instant_json,dropZone.files[0])
     })
 
     
@@ -820,31 +864,45 @@ class Editor{
         // console.log(code_editor.get_code_element(editor))
       }
     }
-    const button_submit=document.createElement("button")
-    button_submit.textContent="Submit"
     const [dropZone,preview]=this.create_image_input()
-    button_submit.addEventListener("click",async (event)=>{
+    const button_group=document.createElement("div")
+    button_group.classList.add("button-group")
+    const button_group_left=document.createElement("div")
+    button_group_left.classList.add("button-group-left")
+    const button_group_right=document.createElement("div")
+    button_group_right.classList.add("button-group-right")
+    button_group.appendChild(button_group_left)
+    button_group.appendChild(button_group_right)
+
+    const button_test=document.createElement("button")
+    button_test.textContent="Test"
+
+    button_test.addEventListener("click",async (event)=>{
       event.preventDefault(); 
       get_data()
       console.log(this.sorcery_json)
 
-      const response=await fetch("/add_studio_card",{
-        method:"POST",
-        headers: { "Content-Type": "application/json" },
-        body:JSON.stringify(this.sorcery_json)
-      })
-      const data=await response.json()
-      console.log(data)
+      await this.send_add_card_request(this.sorcery_json)
+      
+    })
+
+    const button_submit=document.createElement("button")
+    button_submit.textContent="Submit"
+    button_submit.addEventListener("click",async (event)=>{
+      event.preventDefault(); 
+
+      get_data()
+
+      await this.submit_card_request(this.sorcery_json,dropZone.files[0])
     })
 
     
     form.appendChild(dropZone)
     form.appendChild(preview)
-    form.appendChild(button_submit)
+    button_group_left.appendChild(button_test)
+    button_group_right.appendChild(button_submit)
+    form.appendChild(button_group)
     
-    
-    
-
     return form
   }
 
@@ -865,10 +923,11 @@ class Editor{
 
     // 处理图片拖放
     dropZone.addEventListener('drop', event => {
-        event.preventDefault()
+        event.preventDefault();
         dropZone.classList.remove('hover');
 
         const files = event.dataTransfer.files; // 获取拖放的文件
+        dropZone.files=files;
         console.log(files)
         
         if (files.length > 0) {
@@ -919,11 +978,11 @@ class Code_Editor{
     "when_being_treated_function":`async def when_being_treated(self,card,value,player= None, opponent = None):\n\n`,
     "when_become_attacker_function":`async def when_become_attacker(self,player= None, opponent = None):\n\n`,
     "when_become_defender_function":`async def when_become_defender(self,player= None, opponent = None):\n\n`,
-    "when_kill_creature_function":`async def when_kill_creature(self,player= None, opponent = None):\n\n`,
-    "when_start_attcak_function":`async def when_start_attack(self,player= None, opponent = None):\n\n`,
-    "when_start_defend_function":`async def when_start_defend(self,player= None, opponent = None):\n\n`,
-    "when_a_creature_die_function":`async def when_a_creature_die(self,player= None, opponent = None):\n\n`,
-    "when_an_object_hert_function":`async def when_an_object_hert(self,player= None, opponent = None):\n\n`,
+    "when_kill_creature_function":`async def when_kill_creature(self,card,player= None, opponent = None):\n\n`,
+    "when_start_attcak_function":`async def when_start_attack(self,card,player= None, opponent = None):\n\n`,
+    "when_start_defend_function":`async def when_start_defend(self,card,player= None, opponent = None):\n\n`,
+    "when_a_creature_die_function":`async def when_a_creature_die(self,card,player= None, opponent = None):\n\n`,
+    "when_an_object_hert_function":`async def when_an_object_hert(self,card,value,player= None, opponent = None):\n\n`,
     "aura_function":`async def aura(self,player= None, opponent = None):\n\n`,
     "card_ability_function":`async def card_ability(self,player,opponent,selected_object):\n\n`,
     "when_clicked_function":`async def when_clicked(self,player= None, opponent = None):\n\n`,

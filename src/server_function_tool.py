@@ -267,3 +267,174 @@ def split_message_deck(message:str):
         card_type=type_dic[card_type]
         result.append(Deck_splited(name=card_name,type_card=card_type,quantity=quantity))
     return (deck_name,result)
+
+async def store_card_in_cache(card_data,file,username):
+    content = await file.read()
+    code_function={
+        "Creature":get_creature_code,
+        "Land":get_land_code,
+        "Instant":get_instant_code,
+        "Sorcery":get_sorcery_code
+    }
+    type_card=card_data.init_type
+    if type_card in code_function:
+        path=f"{ORGPATH}/user_card/{type_card}/{card_data.init_name}__{username}/"
+        image_path=f"{path}/image.jpg"
+        code_path=f"{path}/model.py"
+        code=code_function[type_card](card_data,image_path)
+        async with aiofiles.open(code_path, 'w') as file:
+            await file.write(code)
+    else:
+        print("type not found")
+
+Functions_Dict={
+    "when_enter_battlefield_function":
+"""
+        @select_object("{select_object_range}",1)
+        async def when_enter_battlefield(self,player,opponent,selected_object):
+            {function_code}
+""",
+    "when_leave_battlefield_function":
+"""
+        async def when_leave_battlefield(self,player= None, opponent = None,name:str='battlefield'):
+            {function_code}
+""",
+    "when_die_function":
+"""
+        async def when_die(self,player= None, opponent = None):
+            {function_code}
+""",
+    "when_start_turn_function":
+"""
+        async def when_start_turn(self,player= None, opponent = None):
+            {function_code}
+""",
+    "when_end_turn_function":
+"""
+        async def when_end_turn(self,player= None, opponent = None):
+            {function_code}
+""",
+    "when_harm_is_done_function":
+"""
+        async def when_harm_is_done(self,card,value,player= None, opponent = None):
+            {function_code}
+""",
+    "when_being_treated_function":
+"""
+        async def when_being_treated(self,card,value,player= None, opponent = None):
+            {function_code}
+""",
+    "when_become_attacker_function":
+"""
+        async def when_become_attacker(self,player= None, opponent = None):
+            {function_code}
+""",
+    "when_become_defender_function":
+"""
+        async def when_become_defender(self,player= None, opponent = None):
+            {function_code}
+""",
+    "when_kill_creature_function":
+"""
+        async def when_kill_creature(self,card,player= None, opponent = None):
+            {function_code}
+""",
+    "when_start_attack_function":
+"""
+        async def when_start_attack(self,card,player= None, opponent = None):
+            {function_code}
+""",
+    "when_start_defend_function":
+"""
+        async def when_start_defend(self,card,player= None, opponent = None):
+            {function_code}
+""",
+    "when_a_creature_die_function":
+"""
+        async def when_a_creature_die(self,card,player= None, opponent = None):
+            {function_code}
+""",
+    "when_an_object_hert_function":
+"""
+        async def when_an_object_hert(self,card,value,player= None, opponent = None):
+            {function_code}
+""",
+    "aura_function":
+"""
+        async def aura(self,player= None, opponent = None):
+            {function_code}
+""",
+    "card_ability_function":
+"""
+        @select_object({select_object_range},1)
+        async def card_ability(self,player,opponent,selected_object):
+            {function_code}
+""",
+    "when_clicked_function":
+"""
+        async def when_clicked(self,player= None, opponent = None):
+            {function_code}
+""",
+    "generate_mana_function":
+"""
+        def generate_mana(self) -> dict:
+            {function_code}
+""",    
+}
+def get_creature_code(card_data:Studio_Creature_Data,image_path:str):
+    flag_str="\n"
+    for keyword in card_data.init_keyword_list:
+        flag_str+=f"        self.flag_dict['{keyword}']=True\n"
+    codes=f"""
+from __future__ import annotations
+from typing import TYPE_CHECKING
+import random
+if TYPE_CHECKING:
+    from game.player import Player
+    from game.card import Card
+ 
+from game.type_cards.creature import Creature
+from game.game_function_tool import select_object
+from game.type_cards.instant import Instant
+from game.type_cards.sorcery import Sorcery
+
+
+class {card_data.init_name}(Creature):
+    def __init__(self,player) -> None:
+        super().__init__(player)
+        self.name="{card_data.init_name}"
+        self.live={card_data.init_actual_live}
+        self.power={card_data.init_actual_power}
+        self.actual_live={card_data.init_actual_live}
+        self.actual_power={card_data.init_actual_power} 
+
+        self.type_creature="{card_data.init_type_creature}"
+        self.type="{card_data.init_type}"
+
+        self.mana_cost="{card_data.init_mana_cost}"
+        self.color="{card_data.init_color}"
+        self.type_card="{card_data.init_type_card}"
+        self.rarity="{card_data.init_rarity}"
+        self.content="{card_data.init_content}"
+        self.image_path="{image_path}"
+        {flag_str}
+    """
+
+    card_data_dict=card_data.dict()
+    for function_name,function_code in Functions_Dict.items():
+        
+        if function_name in card_data_dict and card_data_dict[function_name]:
+            if function_name=="when_enter_battlefield_function" or function_name=="card_ability_function":
+                codes+="\n"+function_code.format(function_code=card_data_dict[function_name],select_object_range=card_data.select_object_range)
+            else:
+                codes+="\n"+function_code.format(function_code=card_data_dict[function_name])
+    return codes
+
+def get_land_code(card_data,image_path):
+    pass
+
+def get_instant_code(card_data,image_path):
+    pass
+
+def get_sorcery_code(card_data,image_path):
+    pass

@@ -8,4 +8,9 @@ __pycache__/
 # 忽略敏感信息
 src/private.key
 src/certificate.crt
-src/xuanpei-chen.top_ssh/
+src/xuanpei-chen.top_ssh
+
+src/user_card/Creature/
+src/user_card/Land/
+src/user_card/Instant/
+src/user_card/Sorcery/

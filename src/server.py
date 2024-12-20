@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Body,Depends, Form, HTTPException, Response, Request, status,APIRouter,WebSocket
+from fastapi import FastAPI, Body,Depends, Form, HTTPException, Response, Request, status,APIRouter,WebSocket,UploadFile,File
 from fastapi.responses import HTMLResponse, RedirectResponse,FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
 from typing import Union
+from pydantic import ValidationError
 import os
 
 from server_function_tool import *
@@ -414,7 +415,6 @@ async def get_all_cards_name(username: str = Depends(get_current_user(database))
 async def add_studio_card(datas: dict, username: str = Depends(get_current_user(database))):
     if type(username)==RedirectResponse:
         return username
-    print(datas)
     try:
         type_dict={
             "Creature":Studio_Creature_Data,
@@ -424,8 +424,8 @@ async def add_studio_card(datas: dict, username: str = Depends(get_current_user(
         }
         #datas=json.loads(datas)
         datas=type_dict[datas["init_type"]](**datas)
-    except:
-        return {"state":"unsuccessful"}
+    except ValidationError as e:
+        return {"state":"unsuccessful","error":str(e)}
     
     
     room=room_server.find_player_room(username)
@@ -435,7 +435,35 @@ async def add_studio_card(datas: dict, username: str = Depends(get_current_user(
     else:
         return {"state":"no studio room found"}
 
+@app.post("/submit_studio_card")
+async def submit_studio_card(
+    json_data: str = Form(...),  
+    file: UploadFile = File(...), 
+    username: str = Depends(get_current_user(database))):
 
+    if type(username)==RedirectResponse:
+        return username
+    
+
+    print(json_data)
+    print(file)
+    try:
+        type_dict={
+            "Creature":Studio_Creature_Data,
+            "Land":Studio_Land_Data,
+            "Instant":Studio_Instant_Data,
+            "Sorcery":Studio_Sorcery_Data
+        }
+        datas=json.loads(json_data)
+        datas=type_dict[datas["init_type"]](**datas)
+    
+        await store_card_in_cache(datas,file,username)
+    except (ValidationError,Exception) as e:
+        import traceback
+        traceback.print_exc()
+        return {"state":"unsuccessful","error":str(e)}
+    
+    return {"state":"successful"}
 
 def main():
     import uvicorn
