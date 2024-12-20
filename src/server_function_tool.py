@@ -278,12 +278,16 @@ async def store_card_in_cache(card_data,file,username):
     }
     type_card=card_data.init_type
     if type_card in code_function:
-        path=f"{ORGPATH}/user_card/{type_card}/{card_data.init_name}__{username}/"
+        path=f"{ORGPATH}/user_cache/{type_card}/{card_data.init_name}__{username}"
         image_path=f"{path}/image.jpg"
         code_path=f"{path}/model.py"
         code=code_function[type_card](card_data,image_path)
+        os.makedirs(path, exist_ok=True)
         async with aiofiles.open(code_path, 'w') as file:
             await file.write(code)
+
+        async with aiofiles.open(image_path, 'wb') as file:
+            await file.write(content)
     else:
         print("type not found")
 
@@ -292,93 +296,93 @@ Functions_Dict={
 """
         @select_object("{select_object_range}",1)
         async def when_enter_battlefield(self,player,opponent,selected_object):
-            {function_code}
+        {function_code}
 """,
     "when_leave_battlefield_function":
 """
         async def when_leave_battlefield(self,player= None, opponent = None,name:str='battlefield'):
-            {function_code}
+        {function_code}
 """,
     "when_die_function":
 """
         async def when_die(self,player= None, opponent = None):
-            {function_code}
+        {function_code}
 """,
     "when_start_turn_function":
 """
         async def when_start_turn(self,player= None, opponent = None):
-            {function_code}
+        {function_code}
 """,
     "when_end_turn_function":
 """
         async def when_end_turn(self,player= None, opponent = None):
-            {function_code}
+        {function_code}
 """,
     "when_harm_is_done_function":
 """
         async def when_harm_is_done(self,card,value,player= None, opponent = None):
-            {function_code}
+        {function_code}
 """,
     "when_being_treated_function":
 """
         async def when_being_treated(self,card,value,player= None, opponent = None):
-            {function_code}
+        {function_code}
 """,
     "when_become_attacker_function":
 """
         async def when_become_attacker(self,player= None, opponent = None):
-            {function_code}
+        {function_code}
 """,
     "when_become_defender_function":
 """
         async def when_become_defender(self,player= None, opponent = None):
-            {function_code}
+        {function_code}
 """,
     "when_kill_creature_function":
 """
         async def when_kill_creature(self,card,player= None, opponent = None):
-            {function_code}
+        {function_code}
 """,
     "when_start_attack_function":
 """
         async def when_start_attack(self,card,player= None, opponent = None):
-            {function_code}
+        {function_code}
 """,
     "when_start_defend_function":
 """
         async def when_start_defend(self,card,player= None, opponent = None):
-            {function_code}
+        {function_code}
 """,
     "when_a_creature_die_function":
 """
         async def when_a_creature_die(self,card,player= None, opponent = None):
-            {function_code}
+        {function_code}
 """,
     "when_an_object_hert_function":
 """
         async def when_an_object_hert(self,card,value,player= None, opponent = None):
-            {function_code}
+        {function_code}
 """,
     "aura_function":
 """
         async def aura(self,player= None, opponent = None):
-            {function_code}
+        {function_code}
 """,
     "card_ability_function":
 """
         @select_object({select_object_range},1)
         async def card_ability(self,player,opponent,selected_object):
-            {function_code}
+        {function_code}
 """,
     "when_clicked_function":
 """
         async def when_clicked(self,player= None, opponent = None):
-            {function_code}
+        {function_code}
 """,
     "generate_mana_function":
 """
         def generate_mana(self) -> dict:
-            {function_code}
+        {function_code}
 """,    
 }
 def get_creature_code(card_data:Studio_Creature_Data,image_path:str):
@@ -424,10 +428,12 @@ class {card_data.init_name}(Creature):
     for function_name,function_code in Functions_Dict.items():
         
         if function_name in card_data_dict and card_data_dict[function_name]:
+            func_code=card_data_dict[function_name].replace("\n","\n        ").replace("\t","    ")
             if function_name=="when_enter_battlefield_function" or function_name=="card_ability_function":
-                codes+="\n"+function_code.format(function_code=card_data_dict[function_name],select_object_range=card_data.select_object_range)
+
+                codes+="\n"+function_code.format(function_code=func_code,select_object_range=card_data.select_object_range)
             else:
-                codes+="\n"+function_code.format(function_code=card_data_dict[function_name])
+                codes+="\n"+function_code.format(function_code=func_code)
     return codes
 
 def get_land_code(card_data,image_path):

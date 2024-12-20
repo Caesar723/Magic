@@ -10,7 +10,13 @@ src/private.key
 src/certificate.crt
 src/xuanpei-chen.top_ssh
 
-src/user_card/Creature/
-src/user_card/Land/
-src/user_card/Instant/
-src/user_card/Sorcery/
+# src/user_card/Creature/
+# src/user_card/Land/
+# src/user_card/Instant/
+# src/user_card/Sorcery/
+
+src/user_cache/Creature/
+src/user_cache/Land/
+src/user_cache/Instant/
+src/user_cache/Sorcery/
+
