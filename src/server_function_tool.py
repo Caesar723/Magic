@@ -385,6 +385,19 @@ Functions_Dict={
         {function_code}
 """,    
 }
+
+def add_function_code(card_data_dict,codes):
+    for function_name,function_code in Functions_Dict.items():
+        
+        if function_name in card_data_dict and card_data_dict[function_name]:
+            func_code=card_data_dict[function_name].replace("\n","\n        ").replace("\t","    ")
+            if function_name=="when_enter_battlefield_function" or function_name=="card_ability_function":
+
+                codes+="\n"+function_code.format(function_code=func_code,select_object_range=card_data.select_object_range)
+            else:
+                codes+="\n"+function_code.format(function_code=func_code)
+    return codes
+
 def get_creature_code(card_data:Studio_Creature_Data,image_path:str):
     flag_str="\n"
     for keyword in card_data.init_keyword_list:
@@ -399,8 +412,9 @@ if TYPE_CHECKING:
  
 from game.type_cards.creature import Creature
 from game.game_function_tool import select_object
-from game.type_cards.instant import Instant
+from game.type_cards.instant import Instant,Instant_Undo
 from game.type_cards.sorcery import Sorcery
+from game.type_cards.land import Land
 
 
 class {card_data.init_name}(Creature):
@@ -425,22 +439,112 @@ class {card_data.init_name}(Creature):
     """
 
     card_data_dict=card_data.dict()
-    for function_name,function_code in Functions_Dict.items():
-        
-        if function_name in card_data_dict and card_data_dict[function_name]:
-            func_code=card_data_dict[function_name].replace("\n","\n        ").replace("\t","    ")
-            if function_name=="when_enter_battlefield_function" or function_name=="card_ability_function":
-
-                codes+="\n"+function_code.format(function_code=func_code,select_object_range=card_data.select_object_range)
-            else:
-                codes+="\n"+function_code.format(function_code=func_code)
+    codes=add_function_code(card_data_dict,codes)
     return codes
 
-def get_land_code(card_data,image_path):
-    pass
+def get_land_code(card_data:Studio_Land_Data,image_path:str):
+    flag_str="\n"
+    for keyword in card_data.init_keyword_list:
+        flag_str+=f"        self.flag_dict['{keyword}']=True\n"
+    codes=f"""
+from __future__ import annotations
+from typing import TYPE_CHECKING
+import random
+if TYPE_CHECKING:
+    from game.player import Player
+    from game.card import Card
+ 
+from game.type_cards.land import Land
+from game.type_cards.creature import Creature
+from game.type_cards.instant import Instant,Instant_Undo
+from game.type_cards.sorcery import Sorcery
+from game.game_function_tool import select_object
 
-def get_instant_code(card_data,image_path):
-    pass
 
-def get_sorcery_code(card_data,image_path):
-    pass
+class {card_data.init_name}(Land):
+    def __init__(self,player) -> None:
+        super().__init__(player)
+        self.name="{card_data.init_name}"
+        self.type="{card_data.init_type}"
+        self.mana_cost="{card_data.init_mana_cost}"
+        self.color="{card_data.init_color}"
+        self.type_card="{card_data.init_type_card}"
+        self.rarity="{card_data.init_rarity}"
+        self.content="{card_data.init_content}"
+        self.image_path="{image_path}"
+        {flag_str}
+    """
+    card_data_dict=card_data.dict()
+    codes=add_function_code(card_data_dict,codes)
+    return codes
+
+def get_instant_code(card_data:Studio_Instant_Data,image_path:str):
+    flag_str="\n"
+    for keyword in card_data.init_keyword_list:
+        flag_str+=f"        self.flag_dict['{keyword}']=True\n"
+    codes=f"""
+from __future__ import annotations
+from typing import TYPE_CHECKING
+import random
+if TYPE_CHECKING:
+    from game.player import Player
+    from game.card import Card
+ 
+from game.type_cards.creature import Creature
+from game.type_cards.land import Land
+from game.type_cards.instant import Instant,Instant_Undo
+from game.type_cards.sorcery import Sorcery
+from game.game_function_tool import select_object
+
+
+class {card_data.init_name}({"Instant" if card_data.is_undo else "Instant_Undo"}):
+    def __init__(self,player) -> None:
+        super().__init__(player)
+        self.name="{card_data.init_name}"
+        self.type="{card_data.init_type}"
+        self.mana_cost="{card_data.init_mana_cost}"
+        self.color="{card_data.init_color}"
+        self.type_card="{card_data.init_type_card}"
+        self.rarity="{card_data.init_rarity}"
+        self.content="{card_data.init_content}"
+        self.image_path="{image_path}"
+        {flag_str}
+    """
+    card_data_dict=card_data.dict()
+    codes=add_function_code(card_data_dict,codes)
+    return codes
+
+def get_sorcery_code(card_data:Studio_Sorcery_Data,image_path:str):
+    flag_str="\n"
+    for keyword in card_data.init_keyword_list:
+        flag_str+=f"        self.flag_dict['{keyword}']=True\n"
+    codes=f"""
+from __future__ import annotations
+from typing import TYPE_CHECKING
+import random
+if TYPE_CHECKING:
+    from game.player import Player
+    from game.card import Card
+ 
+from game.type_cards.creature import Creature
+from game.type_cards.land import Land
+from game.type_cards.instant import Instant,Instant_Undo
+from game.type_cards.sorcery import Sorcery
+from game.game_function_tool import select_object
+
+class {card_data.init_name}(Sorcery):
+    def __init__(self,player) -> None:
+        super().__init__(player)
+        self.name="{card_data.init_name}"
+        self.type="{card_data.init_type}"
+        self.mana_cost="{card_data.init_mana_cost}"
+        self.color="{card_data.init_color}"
+        self.type_card="{card_data.init_type_card}"
+        self.rarity="{card_data.init_rarity}"
+        self.content="{card_data.init_content}"
+        self.image_path="{image_path}"
+        {flag_str}
+    """
+    card_data_dict=card_data.dict()
+    codes=add_function_code(card_data_dict,codes)
+    return codes
