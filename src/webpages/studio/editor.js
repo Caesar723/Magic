@@ -243,7 +243,7 @@ class Editor{
       <option value="red">red</option>
       <option value="blue">blue</option>
       <option value="green">green</option>
-      <option value="white">white</option>
+      <option value="gold">white</option>
       <option value="black">black</option>
     </select>
 
@@ -442,7 +442,7 @@ class Editor{
       <option value="red">red</option>
       <option value="blue">blue</option>
       <option value="green">green</option>
-      <option value="white">white</option>
+      <option value="gold">white</option>
       <option value="black">black</option>
     </select>
 
@@ -602,7 +602,7 @@ class Editor{
       <option value="red">red</option>
       <option value="blue">blue</option>
       <option value="green">green</option>
-      <option value="white">white</option>
+      <option value="gold">white</option>
       <option value="black">black</option>
     </select>
 
@@ -765,7 +765,7 @@ class Editor{
       <option value="red">red</option>
       <option value="blue">blue</option>
       <option value="green">green</option>
-      <option value="white">white</option>
+      <option value="gold">white</option>
       <option value="black">black</option>
     </select>
 

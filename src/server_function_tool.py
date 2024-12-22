@@ -294,95 +294,95 @@ async def store_card_in_cache(card_data,file,username):
 Functions_Dict={
     "when_enter_battlefield_function":
 """
-        @select_object("{select_object_range}",1)
-        async def when_enter_battlefield(self,player,opponent,selected_object):
-        {function_code}
+    @select_object("{select_object_range}",1)
+    async def when_enter_battlefield(self,player,opponent,selected_object):
+    {function_code}
 """,
     "when_leave_battlefield_function":
 """
-        async def when_leave_battlefield(self,player= None, opponent = None,name:str='battlefield'):
-        {function_code}
+    async def when_leave_battlefield(self,player= None, opponent = None,name:str='battlefield'):
+    {function_code}
 """,
     "when_die_function":
 """
-        async def when_die(self,player= None, opponent = None):
-        {function_code}
+    async def when_die(self,player= None, opponent = None):
+    {function_code}
 """,
     "when_start_turn_function":
 """
-        async def when_start_turn(self,player= None, opponent = None):
-        {function_code}
+    async def when_start_turn(self,player= None, opponent = None):
+    {function_code}
 """,
     "when_end_turn_function":
 """
-        async def when_end_turn(self,player= None, opponent = None):
-        {function_code}
+    async def when_end_turn(self,player= None, opponent = None):
+    {function_code}
 """,
     "when_harm_is_done_function":
 """
-        async def when_harm_is_done(self,card,value,player= None, opponent = None):
-        {function_code}
+    async def when_harm_is_done(self,card,value,player= None, opponent = None):
+    {function_code}
 """,
     "when_being_treated_function":
 """
-        async def when_being_treated(self,card,value,player= None, opponent = None):
-        {function_code}
+    async def when_being_treated(self,card,value,player= None, opponent = None):
+    {function_code}
 """,
     "when_become_attacker_function":
 """
-        async def when_become_attacker(self,player= None, opponent = None):
-        {function_code}
+    async def when_become_attacker(self,player= None, opponent = None):
+    {function_code}
 """,
     "when_become_defender_function":
 """
-        async def when_become_defender(self,player= None, opponent = None):
-        {function_code}
+    async def when_become_defender(self,player= None, opponent = None):
+    {function_code}
 """,
     "when_kill_creature_function":
 """
-        async def when_kill_creature(self,card,player= None, opponent = None):
-        {function_code}
+    async def when_kill_creature(self,card,player= None, opponent = None):
+    {function_code}
 """,
     "when_start_attack_function":
 """
-        async def when_start_attack(self,card,player= None, opponent = None):
-        {function_code}
+    async def when_start_attack(self,card,player= None, opponent = None):
+    {function_code}
 """,
     "when_start_defend_function":
 """
-        async def when_start_defend(self,card,player= None, opponent = None):
-        {function_code}
+    async def when_start_defend(self,card,player= None, opponent = None):
+    {function_code}
 """,
     "when_a_creature_die_function":
 """
-        async def when_a_creature_die(self,card,player= None, opponent = None):
-        {function_code}
+    async def when_a_creature_die(self,card,player= None, opponent = None):
+    {function_code}
 """,
     "when_an_object_hert_function":
 """
-        async def when_an_object_hert(self,card,value,player= None, opponent = None):
-        {function_code}
+    async def when_an_object_hert(self,card,value,player= None, opponent = None):
+    {function_code}
 """,
     "aura_function":
 """
-        async def aura(self,player= None, opponent = None):
-        {function_code}
+    async def aura(self,player= None, opponent = None):
+    {function_code}
 """,
     "card_ability_function":
 """
-        @select_object({select_object_range},1)
-        async def card_ability(self,player,opponent,selected_object):
-        {function_code}
+    @select_object("{select_object_range}",1)
+    async def card_ability(self,player,opponent,selected_object):
+    {function_code}
 """,
     "when_clicked_function":
 """
-        async def when_clicked(self,player= None, opponent = None):
-        {function_code}
+    async def when_clicked(self,player= None, opponent = None):
+    {function_code}
 """,
     "generate_mana_function":
 """
-        def generate_mana(self) -> dict:
-        {function_code}
+    def generate_mana(self) -> dict:
+    {function_code}
 """,    
 }
 
@@ -393,7 +393,7 @@ def add_function_code(card_data_dict,codes):
             func_code=card_data_dict[function_name].replace("\n","\n        ").replace("\t","    ")
             if function_name=="when_enter_battlefield_function" or function_name=="card_ability_function":
 
-                codes+="\n"+function_code.format(function_code=func_code,select_object_range=card_data.select_object_range)
+                codes+="\n"+function_code.format(function_code=func_code,select_object_range=card_data_dict["select_object_range"])
             else:
                 codes+="\n"+function_code.format(function_code=func_code)
     return codes
@@ -415,6 +415,7 @@ from game.game_function_tool import select_object
 from game.type_cards.instant import Instant,Instant_Undo
 from game.type_cards.sorcery import Sorcery
 from game.type_cards.land import Land
+from game.buffs import StateBuff,CounterBuff,KeyBuff,Tap,Frozen,Indestructible,Infect
 
 
 class {card_data.init_name}(Creature):
@@ -459,7 +460,7 @@ from game.type_cards.creature import Creature
 from game.type_cards.instant import Instant,Instant_Undo
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
-
+from game.buffs import StateBuff,CounterBuff,KeyBuff,Tap,Frozen,Indestructible,Infect
 
 class {card_data.init_name}(Land):
     def __init__(self,player) -> None:
@@ -495,9 +496,9 @@ from game.type_cards.land import Land
 from game.type_cards.instant import Instant,Instant_Undo
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
+from game.buffs import StateBuff,CounterBuff,KeyBuff,Tap,Frozen,Indestructible,Infect
 
-
-class {card_data.init_name}({"Instant" if card_data.is_undo else "Instant_Undo"}):
+class {card_data.init_name}({"Instant_Undo" if card_data.is_undo else "Instant"}):
     def __init__(self,player) -> None:
         super().__init__(player)
         self.name="{card_data.init_name}"
@@ -531,6 +532,8 @@ from game.type_cards.land import Land
 from game.type_cards.instant import Instant,Instant_Undo
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
+from game.buffs import StateBuff,CounterBuff,KeyBuff,Tap,Frozen,Indestructible,Infect
+
 
 class {card_data.init_name}(Sorcery):
     def __init__(self,player) -> None:
