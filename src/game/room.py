@@ -149,9 +149,24 @@ class Room:
     #把两个player交给room server，用来收集任务进度，
     #最后room server把房间移除，玩家移除
     #
+    async def update_task(self,died_player:list[Player]):
+        if self.get_flag("update_task"):
+            return
+        self.flag_dict["update_task"]=True
+        if len(died_player)==2:
+            for player in died_player:
+                player.flag_dict["win"]=False
+        else:
+            lose_player=died_player[0]
+            win_player=lose_player.opponent
+            win_player.flag_dict["win"]=True
+            lose_player.flag_dict["win"]=False
+        for player in self.players:
+            await self.room_server.update_task(player,self.players[player].flag_dict,self.players[player].counter_dict)
+            
     async def game_end(self,died_player:list[Player]):
         #self.gamming=False
-
+        await self.update_task(died_player)
         self.action_processor.start_record()
         if len(died_player)==2:
             for player in died_player:

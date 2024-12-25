@@ -67,6 +67,17 @@ class Deck_selected(BaseModel):
     id:int
     name:str
 
+class Task_Data(BaseModel):
+    id:int
+    name:str
+    description:str
+    progress:int
+    total_steps:int
+    gold_reward:int
+
+class Task_Data_List(BaseModel):
+    task_data_list:list[Task_Data]
+
 class Studio_Card_Data(BaseModel):
     init_name:str
     init_type:Literal["Creature","Land","Instant","Sorcery"]
@@ -278,7 +289,7 @@ async def store_card_in_cache(card_data,file,username):
     }
     type_card=card_data.init_type
     if type_card in code_function:
-        path=f"{ORGPATH}/user_cache/{type_card}/{card_data.init_name}__{username}"
+        path=f"user_cache/{type_card}/{card_data.init_name}__{username}"
         image_path=f"{path}/image.jpg"
         code_path=f"{path}/model.py"
         code=code_function[type_card](card_data,image_path)

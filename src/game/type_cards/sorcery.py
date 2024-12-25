@@ -33,7 +33,7 @@ class Sorcery(Card):
                             opponent:'Player'=None,
                             ):# when player use the card
         await super().when_play_this_card(player, opponent)
-
+        self.player.add_counter_dict("use_sorcery_count",1)
         
         prepared_function=await self.card_ability(player,opponent)
         if prepared_function=="cancel":

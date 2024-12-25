@@ -38,6 +38,7 @@ class Home{
             "deck":"/deck_building",
             "shop":"/shop",
             "studio":"/studio",
+            "tasks":"/task",
         }
         for (let page in pages){
             document.getElementById(page).addEventListener('click', (event)=> {

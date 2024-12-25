@@ -163,8 +163,8 @@ class Card:
         #     return checked_result
         # else:
         self.player.action_store.start_record()
-        
-    
+        self.player.add_counter_dict("play_card_count",1)
+
         prepared_function=await self.when_play_this_card(player,opponent)
         if prepared_function!="cancel":
             self.player.action_store.add_action(actions.Play_Cards(self,self.player))

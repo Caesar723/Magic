@@ -3,6 +3,7 @@ from game.room import Room
 from game.player_agent_room import PVE_Room
 from game.studio_room import Studio_Room
 from server_function_tool import Deck_selected
+from tasks import TASK_DICT
 
 import game.custom_print
 class RoomServer:
@@ -125,6 +126,9 @@ class RoomServer:
 
         if name in self.client_room:
             del self.client_room[name]
+
+    async def update_task(self,username,flag_dict,counter_dict):
+        await self.database.update_task(username,TASK_DICT,flag_dict,counter_dict)
 
     def __repr__(self):
         import datetime

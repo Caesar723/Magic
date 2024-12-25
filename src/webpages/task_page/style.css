@@ -1,0 +1,112 @@
+body {
+  background-color: #2c3338;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+.task-bar-container {
+  max-width: 1200px;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+.task-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+.task {
+  background-color: rgba(178, 107, 55, 0.2);
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.task-title {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+.refresh-btn {
+  background-color: rgb(178, 107, 55);
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.refresh-btn:hover {
+  background-color: rgb(198, 127, 75);
+}
+.task-description {
+  margin-bottom: 15px;
+}
+.progress-bar {
+  width: 100%;
+  background-color: #444;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.progress {
+  width: 0;
+  height: 20px;
+  background-color: rgb(178, 107, 55);
+  transition: width 0.5s ease-in-out;
+}
+@media (max-width: 1024px) {
+  .task-bar {
+      grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .task-bar {
+      grid-template-columns: 1fr;
+  }
+}
+.triangle-button {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: var(--size) solid transparent; /* 三角形的左边，大小可调整 */
+  border-right: var(--size) solid transparent; /* 三角形的右边，大小可调整 */
+  border-bottom: calc(var(--size) * 1.73) solid var(--color); /* 三角形的底边，高度根据勾股定理计算，颜色可调整 */
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease; /* 过渡效果 */
+  transform: rotate(var(--rotate)); /* 旋转角度可调整 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%); /* 剪切可点击区域为三角形 */
+  transform-origin: center; /* 旋转的基点在三角形的底部中心*/
+  
+
+}
+.triangle-button:hover {
+  transform: scale(1.2) rotate(var(--rotate)); /* 变大和保持旋转 */
+  filter: brightness(1.5); /* 变亮 */
+}
+.button-text {
+    
+  z-index: 30;
+  color: white; /* 文本颜色 */
+  transition: filter 0.3s ease; /* 过渡效果 */
+  position: absolute;
+  font-size: calc(0.5 * var(--size)); /* 使用相对单位来定义文字大小 */
+  width: calc(1 * var(--size));
+  transform:translate(0,var(--size)) rotate(calc(-1 * var(--rotate)))  ;
+  transform-origin: 50% 50%;
+  /* 加粗字体 */
+  font-weight: bold;
+  text-align: center; /* 文字水平居中 */
+}

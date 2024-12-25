@@ -177,6 +177,7 @@ class Creature(Card):
     # def when_play_this_card(self,player:'Player'=None,opponent:'Player'=None):# when player use the card
     #     pass
     def die(self):
+        self.player.opponent.add_counter_dict("kill_creature_count",1)
         self.flag_dict["die"]=True
 
     async def check_dead(self):#check whether creature die,or whether appear at battle field

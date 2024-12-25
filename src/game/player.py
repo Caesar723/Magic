@@ -175,8 +175,10 @@ class Player:
         else:
             return 0
     def draw_card(self,number:int):# draw x cards from library
+        self.add_counter_dict("draw_card_count",number)
         self.action_store.start_record()
         for i in range(number):
+            
             if not (self.library):
                 self.flag_dict["die"]=True
                 self.action_store.end_record()

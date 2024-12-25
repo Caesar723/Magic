@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, ForeignKey, Column, Integer, String,Table,MetaData,func,and_
+from sqlalchemy import create_engine, ForeignKey, Column, Integer, String,Table,MetaData,func,and_,Boolean,DateTime
 from sqlalchemy.orm import relationship,declarative_base
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -9,9 +9,10 @@ from sqlalchemy import text
 import bcrypt
 import os
 import json
+import random
+from datetime import datetime,timezone
 
-
-from server_function_tool import split_message_deck,Deck_Response
+from server_function_tool import split_message_deck,Deck_Response,Task_Data,Task_Data_List
 
 
 sql_name=os.getenv("DATABASE_PYURL", "mysql+pymysql://root@localhost/Magic_fan_made")
@@ -73,7 +74,23 @@ class PlayerPack(Base):
     pack_id = Column(Integer, ForeignKey('packs.id'))
     quantity = Column(Integer)  # 玩家拥有的该卡包数量
     
+class Task(Base):
+    __tablename__ = 'tasks'
+    id=Column(Integer, primary_key=True)
+    title = Column(String(255))
+    description = Column(String(255))
+    total_progress = Column(Integer)
+    gold_reward = Column(Integer)
 
+class PlayerTask(Base):
+    __tablename__ = 'player_tasks'
+    id=Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    task_id = Column(Integer, ForeignKey('tasks.id'))
+    progress = Column(Integer,default=0)
+    is_completed = Column(Boolean, default=False)
+    date_completed = Column(DateTime,default=None)
+    date_created = Column(DateTime)
 
 def reset_table():
     # # 删除所有表
@@ -142,7 +159,18 @@ def reset_packs():
             session.add(pack_new)
     session.commit()
     session.close()     
-    
+
+def reset_tasks():
+    from tasks import TASK_DICT
+    Session = sessionmaker(bind=engine)
+    # 创建会话实例
+    session = Session()
+    for name,cla in TASK_DICT.items():
+        task=Task(title=name,description=cla.description,total_progress=cla.total_steps,gold_reward=cla.gold_reward)
+        session.add(task)
+    session.commit()
+    session.close()
+
 def reset_all_packs():
     # Pack.__table__.drop(engine)
     # Pack.__table__.create(engine)
@@ -492,8 +520,120 @@ class DataBase:
             await session.commit()
             await self.add_packs(pack_name,username,1)
             return {"status":200,"message":"Pack bought successfully","currency":user.virtual_currency}
-            
+        
+    async def get_tasks(self,username,task_dict):
+        async with self.AsyncSessionLocal() as session:
+            #user=await self.find_user(session,username)
+            stmt = select(PlayerTask,Task)\
+                .join(Task, PlayerTask.task_id == Task.id)\
+                .join(User, PlayerTask.user_id == User.id)\
+                .where(PlayerTask.is_completed==False,User.username==username)
+            result = await session.execute(stmt)
+            tasks = result.all()
+            #print(tasks)
+            task_data_list=[]
+            for player_task, task in tasks:  # 解包元组
+                task_data_list.append(Task_Data(
+                    id=player_task.id,
+                    name=task_dict[task.title].name,
+                    description=task.description,
+                    total_steps=task.total_progress,
+                    gold_reward=task.gold_reward,
+                    progress=player_task.progress
+                ))
+            return Task_Data_List(task_data_list=task_data_list)
 
+    async def add_task(self,username,task_dict,session)->tuple[PlayerTask,Task]:
+        user=await self.find_user(session,username)
+        random_task=random.choice(list(task_dict.keys()))
+
+        stmt = select(Task).where(Task.title == random_task)
+        result = await session.execute(stmt)
+        task:Task = result.scalars().first()
+    
+        task_player = PlayerTask(user_id=user.id, task_id=task.id, date_created=datetime.now(timezone.utc))
+        session.add(task_player)
+        #await session.commit()
+        return task_player,task
+
+    async def complete_task(self,task_id,username,task_dict)->Task_Data:
+        async with self.AsyncSessionLocal() as session:
+            user=await self.find_user(session,username)
+            
+            stmt = select(PlayerTask,Task).join(Task, PlayerTask.task_id == Task.id).where(PlayerTask.user_id == user.id,PlayerTask.id==task_id)
+            result = await session.execute(stmt)
+            player_task,task = result.first()
+            user.virtual_currency+=task.gold_reward
+            session.add(user)
+            player_task.is_completed=True
+            player_task.date_completed=datetime.now(timezone.utc)
+            session.add(player_task)
+            new_task_player,new_task=await self.add_task(username,task_dict,session)
+            await session.commit()
+        task_data=Task_Data(id=new_task_player.id,name=new_task.title,description=new_task.description,total_steps=new_task.total_progress,gold_reward=new_task.gold_reward,progress=new_task_player.progress)
+        return task_data
+
+    async def refresh_task(self,task_id,username,task_dict):
+        """
+        refresh the task of the user
+        first check if the task was created more than a day ago, then refresh the task
+        """
+        async with self.AsyncSessionLocal() as session:
+            user=await self.find_user(session,username)
+            stmt = select(PlayerTask,Task).join(Task, PlayerTask.task_id == Task.id).where(PlayerTask.user_id == user.id,PlayerTask.id==task_id)
+            result = await session.execute(stmt)
+            player_task,task = result.first()
+            if (datetime.now(timezone.utc) - player_task.date_created.replace(tzinfo=timezone.utc)).days >= 0:
+                player_task.is_completed=True
+                player_task.date_completed=datetime.now(timezone.utc)
+                session.add(player_task)
+                new_task_player,new_task=await self.add_task(username,task_dict,session)
+                await session.commit()
+                task_data=Task_Data(id=new_task_player.id,name=new_task.title,description=new_task.description,total_steps=new_task.total_progress,gold_reward=new_task.gold_reward,progress=new_task_player.progress)
+                return task_data
+            else:
+                return Task_Data(id=player_task.id,name=task.title,description=task.description,total_steps=task.total_progress,gold_reward=task.gold_reward,progress=player_task.progress)
+
+    async def check_tasks(self,username,task_dict):
+        max_task_num=8
+        async with self.AsyncSessionLocal() as session:
+            user=await self.find_user(session,username)
+            stmt = (
+                    select(PlayerTask)
+                    .filter(PlayerTask.user_id ==user.id,PlayerTask.is_completed==False) 
+                ) 
+            result = await session.execute(stmt)
+            tasks = result.scalars().all()
+            if len(tasks)<max_task_num:
+                for i in range(max_task_num-len(tasks)):
+                    await self.add_task(username,task_dict,session)
+            await session.commit()
+            return tasks
+        
+    async def update_task(self,username,task_dict,flag_dict,counter_dict):
+        async with self.AsyncSessionLocal() as session:
+            user=await self.find_user(session,username)
+            if not user:
+                return
+            
+            stmt = select(PlayerTask,Task)\
+                .join(Task, PlayerTask.task_id == Task.id)\
+                .join(User, PlayerTask.user_id == User.id)\
+                .where(PlayerTask.is_completed==False,User.username==username)
+            
+            result = await session.execute(stmt)
+            tasks = result.all()
+            for player_task, task in tasks:  # 解包元组
+                task_cls=task_dict[task.title]
+                player_task.progress+=task_cls.get_progress(counter_dict,flag_dict)
+                session.add(player_task)
+                if player_task.progress>=task.total_progress:
+                    player_task.is_completed=True
+                    player_task.date_completed=datetime.now(timezone.utc)
+                    session.add(player_task)
+                    user.virtual_currency+=task.gold_reward
+                    session.add(user)
+            await session.commit()
 
 
 if __name__=="__main__":
@@ -522,6 +662,12 @@ if __name__=="__main__":
         help='Whether reset packs in database'
     )
 
+    parser.add_argument(
+        '--reset-tasks', 
+        action='store_true',
+        help='Whether reset tasks in database'
+    )
+
 
     args = parser.parse_args()
     if args.reset_table:
@@ -535,6 +681,10 @@ if __name__=="__main__":
 
     if args.reset_all_packs:
         reset_all_packs()
+
+    if args.reset_tasks:
+        #Base.metadata.create_all(engine)
+        reset_tasks()
         
     #reset_table()
     #reset_all_card()

@@ -53,7 +53,7 @@ class Land(Card):
 
     async def when_clicked(self,player:'Player'=None,opponent:'Player'=None):#当地牌被点击时横置，有一些是获得mana，有一些是别的能力   #启动式能力（Activated Abilities）：玩家可以在任何时候支付成本来使用的能力，通常格式为“[成本]：[效果]”。
         if not self.get_flag("tap"):
-            
+            self.player.add_counter_dict("spend_land_count",1)
             mana=self.generate_mana()
             for key in mana:
                 player.mana[key]+=mana[key]

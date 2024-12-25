@@ -14,6 +14,7 @@ from game.room_server import RoomServer,Room
 from game.studio_room import Studio_Room
 from initinal_file import CARD_DICTION
 from packs import *
+from tasks import TASK_DICT
 
 
 
@@ -464,6 +465,29 @@ async def submit_studio_card(
         return {"state":"unsuccessful","error":str(e)}
     
     return {"state":"successful"}
+
+@app.get("/task")
+async def task_page(request: Request, username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        return username
+    return templates.TemplateResponse(f"webpages/task_page/task.html", {"request": request})
+
+
+
+@app.post("/get_task", response_model=Task_Data_List)
+async def get_task(username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        return username
+    await database.check_tasks(username,TASK_DICT)
+    return await database.get_tasks(username,TASK_DICT)
+
+class RefreshTaskRequest(BaseModel):
+    task_id: int
+@app.post("/refresh_task", response_model=Task_Data)
+async def refresh_task(request: RefreshTaskRequest,username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        return username
+    return await database.refresh_task(request.task_id,username,TASK_DICT)
 
 def main():
     import uvicorn
