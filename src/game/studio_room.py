@@ -111,3 +111,6 @@ class Studio_Room(PVE_Room):
        self.action_processor.end_record()
 
        pass
+
+    async def update_task(self,died_player:list[Player]):
+        pass
