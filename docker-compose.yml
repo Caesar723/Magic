@@ -6,7 +6,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 20040723Caesar  # 设置 root 用户的密码为 20040723Caesar
       MYSQL_DATABASE: Magic_fan_made  # 创建的数据库名称
-      
+
     ports:
       - "3306:3306"
     volumes:
@@ -15,6 +15,7 @@ services:
 
   web:
     image: registry.cn-shanghai.aliyuncs.com/magic_fan_made/server_magic
+    platform: linux/amd64
     ports:
       - "8000:8000"
     depends_on:
@@ -24,6 +25,10 @@ services:
       DATABASE_PYURL: mysql+pymysql://root:20040723Caesar@db/Magic_fan_made  # 使用  作为密码
     cap_add:
       - NET_BIND_SERVICE
+    volumes:
+      - data_volume:/app/src/user_cache
+      - data_volume:/app/src/user_data
 
 volumes:
   db_data:
+  data_volume:
