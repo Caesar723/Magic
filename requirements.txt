@@ -100,3 +100,4 @@ websockets==12.0
 wsproto==1.2.0
 yarl==1.9.2
 matplotlib==3.9.1
+RestrictedPython==7.4
