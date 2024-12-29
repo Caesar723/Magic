@@ -298,6 +298,10 @@ class Multi_Agent_Room(Room):
     #还有法力值上限也需要考虑
     #reward 是上面奖励的变化量
     def get_reward_red(self,agent:Agent_Train):#返回一个评分
+        if agent.life<=0:
+            return -1
+        elif agent.opponent.life<=0:
+            return 1
         self_live_reward=lambda x :x/20#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
         oppo_live_reward=lambda x :x/20
 
@@ -370,7 +374,13 @@ class Multi_Agent_Room(Room):
                 asyncio.create_task(agent.store_data(state,action,reward_func))
                 await self.check_death()
                 #print(self)
-                
+                oppo_agent:Agent_Train=agent.opponent
+                #print(len(agent.agent.reward),len(oppo_agent.agent.reward))
+                if len(agent.agent.reward)>=1024 and len(oppo_agent.agent.reward)>=1024:
+                    print("____________________update agent____________________")
+                    agent.update()
+                    oppo_agent.update()
+                    break
             #print("finish")
             self.gamming=True
             await self.initinal_environmrnt()

@@ -147,7 +147,7 @@ class Agent_PPO:
 
     fig, ax = plt.subplots()
 
-    def __init__(self,state_size, action_size,name="Agent",device="cpu",train=True) -> None:
+    def __init__(self,state_size, action_size,name="Agent",train=True) -> None:
         self.normalization=Normalization(state_size)
         self.reward_scale=RewardScaling(0.99)
         self.gamma=0.99
@@ -156,7 +156,7 @@ class Agent_PPO:
         self.epochs=15
         self.max_step=3000000
         self.total_step=0
-        self.lr=3e-4
+        self.lr=3e-6
         self.name=name
         
 
@@ -170,9 +170,14 @@ class Agent_PPO:
 
 
         
-        if torch.cuda.is_available():
-            self.device=torch.device(device)
+        if torch.backends.mps.is_available():
+            print("mps")
+            self.device=torch.device("mps")
+        elif torch.cuda.is_available():
+            print("cuda")
+            self.device=torch.device("cuda")
         else:
+            print("cpu")
             self.device=torch.device("cpu")
         self.action_size=action_size
         self.model_act=Act_Net(state_size, action_size).to(self.device)
@@ -352,19 +357,22 @@ class Agent_PPO:
             self.best_mean_reward=self.rewards/self.step
         torch.save(self.model_act, f'model_complete_act_{self.name}.pth')
         torch.save(self.model_val, f'model_complete_val_{self.name}.pth')
+        #print(self.rewards_store,self.rewards)
         self.rewards_store.append(self.rewards)
+        print(self.rewards_store,self.rewards)
         self.rewards = 0
         self.step=0
         x,y=range(len(self.rewards_store)), self.rewards_store
         self.line.set_data(x,y)
 
         width=10
-        y_mean=np.convolve(y,np.ones(width)/width,mode="valid")
-        x_mean=x[:len(y_mean)]
-        self.line_mean.set_data(x_mean, y_mean)
+        if len(y)>=width:
+            y_mean=np.convolve(y,np.ones(width)/width,mode="valid")
+            x_mean=x[:len(y_mean)]
+            self.line_mean.set_data(x_mean, y_mean)
 
        
-    
+            print(x,y,y_mean,x_mean)
         self.ax.set_xlim(0, len(self.rewards_store))
         self.ax.set_ylim(min(self.rewards_store) - 5, max(self.rewards_store) + 5)
         plt.savefig('ppo_training_reward.png')

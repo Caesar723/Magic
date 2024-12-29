@@ -34,21 +34,21 @@ class Agent_Train_Red(Agent_Player_Red):
         return result
     
     async def store_data(self,state,action,reward_func):
-        print("wait")
+        #print("wait")
         async with self.condition_reward:
             while not self.notify_reward:
               await self.condition_reward.wait()
-        print("end")
+        #print("end")
 
         
         next_state,reward,done=await reward_func()
-        print(reward,action,done)
+        #print(reward,action,done)
         #print(reward,next_state,done)
 
         self.agent.store(state,action,reward,next_state,done)
-        if len(self.agent.reward)>=1024:
-            print("____________________update agent____________________")
-            self.update()
+        # if len(self.agent.reward)>=1024:
+        #     print("____________________update agent____________________")
+        #     self.update()
             
 
 
