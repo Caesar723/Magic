@@ -6,6 +6,7 @@ from starlette.websockets import WebSocketDisconnect
 from typing import Union
 from pydantic import ValidationError
 import os
+import aiofiles.os
 
 from server_function_tool import *
 from database import DataBase
@@ -488,6 +489,24 @@ async def refresh_task(request: RefreshTaskRequest,username: str = Depends(get_c
     if type(username)==RedirectResponse:
         return username
     return await database.refresh_task(request.task_id,username,TASK_DICT)
+
+
+@app.post("/get_cards_path")
+async def get_cards_path(username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        return username
+    
+    root_paths={"creature":f"{ORGPATH}/cards/creature","land":f"{ORGPATH}/cards/land","instant":f"{ORGPATH}/cards/instant","sorcery":f"{ORGPATH}/cards/sorcery"}
+
+    result=[]
+    for key in root_paths.keys():
+        cards_path=await aiofiles.os.listdir(root_paths[key])
+        print(cards_path)
+        for card in cards_path:
+            result.append(f"{key}/{card}")
+    return {"cards_path":result}
+
+
 
 def main():
     import uvicorn
