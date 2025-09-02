@@ -477,13 +477,15 @@ class Base_Agent_Room(Room):
         if self.get_flag('attacker_defenders'):
             mask[1]=True
             for i,creat in enumerate(agent.battlefield):
-                if not creat.get_flag("tap") and not creat.get_flag("summoning_sickness"):
+                if (not creat.get_flag("summoning_sickness") or creat.get_flag("haste")) and\
+        not creat.get_flag("tap") and (creat.get_counter_from_dict("attack_counter")>0):
                     mask[12+i]=True
             #if agent.battlefield: mask[12:len(agent.battlefield)+12]=True
         else:
             mask[0]=True
             for i,creat in enumerate(agent.battlefield):
-                if not creat.get_flag("tap") and not creat.get_flag("summoning_sickness"):
+                if (not creat.get_flag("summoning_sickness") or creat.get_flag("haste")) and\
+        not creat.get_flag("tap") and (creat.get_counter_from_dict("attack_counter")>0):
                     mask[2+i]=True
             #if agent.battlefield: mask[2:len(agent.battlefield)+2]=True
             if agent.hand:self.mask_hand(agent,oppo_agent,mask)

@@ -274,6 +274,8 @@ class Multi_Agent_Room(Base_Agent_Room):
                 #print(self)
                 oppo_agent:Agent_Train=agent.opponent
 
+                #print(agent.name,mask,action)
+
                 if action!=0:
                     await agent.store_data(state,action,reward_func)
                 else:

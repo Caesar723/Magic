@@ -30,6 +30,7 @@ class BaseDataset(Dataset):
             if len(self.datas) > self.config.get("max_store", 1000):
                 self.pbar.close()
                 self.pbar=None
+        
 
 
     @torch.no_grad()
