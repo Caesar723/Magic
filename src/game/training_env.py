@@ -194,6 +194,27 @@ class Multi_Agent_Room(Base_Agent_Room):
 
         return (score_life_self-score_oppo_self)+score_mana+score_battle_self-score_battle_oppo
 
+    def get_reward_life(self,agent:Agent_Train):#返回一个评分
+        # if agent.life<=0:
+        #     return -1
+        # elif agent.opponent.life<=0:
+        #     return 1
+        self_live_reward=lambda x :x/20#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
+        oppo_live_reward=lambda x :x/40
+
+        score_life_self=self_live_reward(agent.life)
+        score_oppo_self=oppo_live_reward(agent.opponent.life)
+
+        score_battle_self=sum([sum(card.state)/10 for card in agent.battlefield])#这个处以20表面随从不是很重要，重要的是敌方的血量
+        score_battle_oppo=sum([sum(card.state)/10 for card in agent.battlefield])
+
+        score_mana=0
+        for land in agent.land_area:
+            score_mana+=sum(land.generate_mana().values())
+        score_mana=score_mana/20
+
+        return (score_life_self-score_oppo_self)+score_mana+score_battle_self-score_battle_oppo
+
 
 
 
