@@ -7,6 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
+from game.buffs import StateBuff,KeyBuff
 
 
 class Righteous_Conviction(Sorcery):
@@ -27,5 +28,13 @@ class Righteous_Conviction(Sorcery):
         self.image_path:str="cards/sorcery/Righteous Conviction/image.jpg"
 
 
-
+    @select_object("your_creatures",1)
+    async def card_ability(self,player:Player,opponent:Player,selected_object:tuple[Card]):
+        if selected_object:
+            buff=StateBuff(self,selected_object[0],2,2)
+            buff.set_end_of_turn()
+            selected_object[0].gain_buff(buff,self)
+            buff=KeyBuff(self,selected_object[0],"lifelink")
+            buff.set_end_of_turn()
+            selected_object[0].gain_buff(buff,self)
         

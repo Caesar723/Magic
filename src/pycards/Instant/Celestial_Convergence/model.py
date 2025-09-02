@@ -27,5 +27,11 @@ class Celestial_Convergence(Instant):
         self.image_path:str="cards/Instant/Celestial Convergence/image.jpg"
 
 
-
+    @select_object("all_creatures",1)
+    async def card_ability(self,player:Player,opponent:Player,selected_object:tuple[Card]):
+        if selected_object:
+            await self.exile_object(selected_object[0],"rgba(255,255,0,0.7)","Missile_Hit")
+            mana=sum(selected_object[0].cost.values())
+            if mana<=3:
+                await self.cure_to_object(player,mana,"rgba(89,154,85,0.6)","Missile_Hit")
         

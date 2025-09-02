@@ -201,8 +201,10 @@ class Agent_PPO:
     #         p['lr'] = lr
 
     def load_pth(self,path_act,path_val):
-        self.model_act=torch.load(path_act, map_location=self.device)
-        self.model_val=torch.load(path_val, map_location=self.device)
+        with torch.serialization.safe_globals({'Act_Net': Act_Net}):
+            self.model_act=torch.load(path_act, map_location=self.device, weights_only=False)
+        with torch.serialization.safe_globals({'Val_Net': Val_Net}):
+            self.model_val=torch.load(path_val, map_location=self.device, weights_only=False)
 
 
     def init_graph(self):

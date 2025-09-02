@@ -5,14 +5,15 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from game.room import Room
 from game.type_action.actions import List_Action_Processor
-from game.ppo_train import Agent_PPO
+from game.rlearning.utils.baseAgent import BaseTrainer
 from game.agent import Agent_Player_Red
 from game.player import Player
 
 class Agent_Train_Red(Agent_Player_Red):
 
-    def __init__(self, name: str,room:"Room",agent:Agent_PPO) -> None:
-        decks_detail="Eternal Phoenix+Creature+4|Raging Firekin+Creature+4|Emberheart Salamander+Creature+4|Arcane Inferno+Instant+4|Pyroblast Surge+Instant+4|Fiery Blast+Instant+4|Inferno Titan+Creature+4|Flame Tinkerer+Creature+4|Mountain+Land+24"
+    def __init__(self, name: str,room:"Room",agent:BaseTrainer) -> None:
+        
+        decks_detail=agent.config["cards"]
         self.id_dict={}
         Player.__init__(self,name, decks_detail,room)
         self.agent=agent
@@ -20,32 +21,46 @@ class Agent_Train_Red(Agent_Player_Red):
         #self.data_counter=0
         self.notify_reward=True
         self.condition_reward=asyncio.Condition()
-        
 
+        self.pedding_store_task=[]
+        
+    def add_pedding_store_task(self,task):
+        self.pedding_store_task.append(task)
+    async def clear_pedding_store_task(self):
+        for task in self.pedding_store_task:
+            await task()
+        self.pedding_store_task=[]
 
     async def beginning_phase(self):
         #print("test")
         result=await super().beginning_phase()
         
-        async with self.condition_reward:
-            self.notify_reward=True
-            self.condition_reward.notify()
+        await self.clear_pedding_store_task()
         
         return result
     
     async def store_data(self,state,action,reward_func):
-        #print("wait")
-        async with self.condition_reward:
-            while not self.notify_reward:
-              await self.condition_reward.wait()
-        #print("end")
-
         
-        next_state,reward,done=await reward_func()
+        # async with self.condition_reward:
+        #     while not self.notify_reward:
+        #         print("wait",action,id(state))
+        #         await self.condition_reward.wait()
+                #print("end",action,id(state))
+        next_state,reward,done,global_reward=await reward_func()
+        
         #print(reward,action,done)
         #print(reward,next_state,done)
 
-        self.agent.store(state,action,reward,next_state,done)
+        batch={
+            "state":state,
+            "action":action,
+            "reward":reward,
+            "next_state":next_state,
+            "done":done,
+            "global_reward":global_reward
+        }
+
+        self.agent.store(batch)
         # if len(self.agent.reward)>=1024:
         #     print("____________________update agent____________________")
         #     self.update()
@@ -53,6 +68,6 @@ class Agent_Train_Red(Agent_Player_Red):
 
 
     def update(self):
-        self.agent.train()
+        self.agent.update()
 
     

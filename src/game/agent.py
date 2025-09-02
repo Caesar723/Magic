@@ -1,6 +1,6 @@
 import random
 import torch
-
+import os
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from game.room import Room
@@ -9,25 +9,32 @@ from game.ppo_train import Agent_PPO
 from game.player import Player
 from initinal_file import CARD_DICTION
 from game.game_function_tool import ORGPATH
+from game.rlearning.utils.file import read_yaml
+from game.rlearning.utils.model import get_class_by_name
+
+
 
 
 
 class Agent_Player_Red(Player):
 
-    def __init__(self, name: str,room:"Room") -> None:
-        decks_detail="Eternal Phoenix+Creature+4|Raging Firekin+Creature+4|Emberheart Salamander+Creature+4|Arcane Inferno+Instant+4|Pyroblast Surge+Instant+4|Fiery Blast+Instant+4|Inferno Titan+Creature+4|Flame Tinkerer+Creature+4|Mountain+Land+24"
+    def __init__(self, name: str,room:"Room",config_path:str=f"{ORGPATH}/game/rlearning/config/ppo.yaml") -> None:
+        self.config=read_yaml(config_path)
+        decks_detail=self.config["cards"]
         self.id_dict={}
         super().__init__(name, decks_detail, room)
 
-        self.agent=Agent_PPO(271,352,train=False)
-        self.agent.load_pth(
-            f"{ORGPATH}/game/agent_pth/agent_red/model_complete_act.pth",
-            f"{ORGPATH}/game/agent_pth/agent_red/model_complete_val.pth"
-        )
+        
+        model_class=get_class_by_name(self.config["trainer"])
+        self.agent=model_class(self.config,self.config["restore_step"],name="agent1")
+        # self.agent.load_pth(
+        #     f"{ORGPATH}/game/agent_pth/agent_red/model_complete_act.pth",
+        #     f"{ORGPATH}/game/agent_pth/agent_red/model_complete_val.pth"
+        # )
         self.select_content:str=f'{name}|cancel'
                 
-    def choose_action(self,num_state,cards_id,mask:torch.Tensor=None):
-        return self.agent.choose_act(num_state,cards_id,mask)
+    def choose_action(self,state):
+        return self.agent.choose_action([state])["action"]
     
     def get_flag(self,flag_name:str):
         if flag_name=="game_over":

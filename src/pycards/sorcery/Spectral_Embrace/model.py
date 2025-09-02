@@ -7,7 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
-
+from game.buffs import StateBuff,Indestructible
 
 class Spectral_Embrace(Sorcery):
     
@@ -27,5 +27,13 @@ class Spectral_Embrace(Sorcery):
         self.image_path:str="cards/sorcery/Spectral Embrace/image.jpg"
 
 
-
+    @select_object("",1)
+    async def card_ability(self,player:Player,opponent:Player,selected_object:tuple[Card]):
+        for creature in player.battlefield:
+            buff=StateBuff(self,creature,2,2)
+            buff.set_end_of_turn()
+            creature.gain_buff(buff,self)
+            buff=Indestructible(self,creature)
+            buff.set_end_of_turn()
+            creature.gain_buff(buff,self)
         

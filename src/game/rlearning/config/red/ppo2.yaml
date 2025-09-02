@@ -1,0 +1,150 @@
+
+###########################
+# Common
+###########################
+
+log_dir: "ppo/ppo_n01_v02"
+restore_step: -1
+#------------------------------------
+cards: "Eternal Phoenix+Creature+4|Raging Firekin+Creature+4|Emberheart Salamander+Creature+4|Arcane Inferno+Instant+4|Pyroblast Surge+Instant+4|Fiery Blast+Instant+4|Inferno Titan+Creature+4|Flame Tinkerer+Creature+4|Mountain+Land+24"
+
+
+
+#------------------------------------
+
+
+###########################
+#  Train 
+###########################
+seed: 1234
+max_store: 1024
+#------------------------------------
+dataset_class_name: "game.rlearning.datasets.ppo_agent.PPOAgentDataset"
+dataloader:
+  batch_size: 32
+  num_workers: 0
+
+dataset_multiple: 10
+
+
+#------------------------------------
+trainer: "game.rlearning.module.ppo_agent.PPOTrainer"
+
+w_val_loss: 0.5
+w_act_loss: 0.5
+
+
+reward_mode:
+ - "get_reward_attack"
+ - "get_reward_blue"
+
+ppo:
+  gamma: 0.99
+  lambd: 0.95
+  clip_para: 0.2
+  
+
+
+
+optimizer:
+  learning_rate: 2.0e-4  
+  betas: [0.8, 0.99]
+  eps: 1.0e-9 
+  grad_clip_thresh: 1.0
+  n_warmup_steps: 0
+
+scheduler:
+  step_size: 200
+  gamma: 0.998
+
+reset_epoch: False
+reset_learning_rate: True
+moving_average_beta: 0
+
+#------------------------------------
+total_step: 200000
+log_step: 20
+eval_step: 2000
+synthesis_step: 2000
+synthesis_items: 20
+save_step: 2000
+epochs: 5
+n_epoch: 15
+###########################
+#  Model 
+###########################
+shared_card_cfg: &shared_card_cfg
+  max_card_id: 100
+  max_card_type: 4
+
+  card_special_types_len: 20
+  card_cost_len: 6
+  num_cards: 10
+
+  max_mana: 20
+
+
+  id_dim: 32
+  type_dim: 16
+  cat_emb_dim: 16
+  mana_dim: 16
+  cont_hidden: 32
+  card_embed_dim: 128
+  
+
+
+
+model:
+
+  
+  HeroEmbedSelf:
+    class_name: 'game.rlearning.net.embed.HeroEmbed'
+    len_life: 21
+    embed_dim: 16
+    
+
+  HeroEmbedOppo:
+    class_name: 'game.rlearning.net.embed.HeroEmbed'
+    len_life: 21
+    embed_dim: 16
+
+  ManaEmbed:
+    class_name: 'game.rlearning.net.embed.ManaEmbed'
+    len_mana: 5
+    embed_dim: 16
+    max_mana: 20
+
+  CardsHandEmbed:
+    class_name: 'game.rlearning.net.embed.HandEmbed'
+    <<: *shared_card_cfg
+
+
+  CardsBoardEmbedSelf:
+    class_name: 'game.rlearning.net.embed.BoardEmbed'
+    <<: *shared_card_cfg
+
+
+  CardsBoardEmbedOppo:
+    class_name: 'game.rlearning.net.embed.BoardEmbed'
+    <<: *shared_card_cfg
+
+
+  AttackerEmbed:
+    class_name: 'game.rlearning.net.embed.CardBoardEmbed'
+    <<: *shared_card_cfg
+
+  Actor:
+    class_name: 'game.rlearning.net.ppo.Actor'
+    input_dim: 560
+    hidden_dim: 512
+    output_dim: 352
+
+  Critic:
+    class_name: 'game.rlearning.net.ppo.Critic'
+    input_dim: 560
+    hidden_dim: 512
+    output_dim: 1
+    
+  
+
+    

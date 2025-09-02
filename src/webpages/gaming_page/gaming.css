@@ -11,4 +11,5 @@ body, html {
   position: absolute; 
   height: auto !important;
   width: auto !important;
+  aspect-ratio: 1470 / 742 !important;
 }
