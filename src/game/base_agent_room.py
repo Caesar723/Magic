@@ -48,7 +48,13 @@ class Base_Agent_Room(Room):
         player a card 选择我方英雄
         player a card 选择一个卡牌 (10)
     """
-    async def num2action(self,agent:Agent,action:int)->str:
+    def num2action(self,agent:Agent,action:int)->str:
+        if agent.agent.config.get("new_version",False):
+            return self.num2action_new(agent,action)
+        else:
+            return self.num2action_old(agent,action)
+
+    async def num2action_old(self,agent:Agent,action:int)->str:
         name=agent.name
         content=''
         if action==0:
@@ -64,6 +70,56 @@ class Base_Agent_Room(Room):
         else:
             type_act="play_card"
             index_card=(action-22)//33
+            content=f"{index_card}"
+            sub_action=(action-22)%33
+            sub_content=self.num2subaction(agent,sub_action)
+            agent.set_select_content(sub_content)
+            #print(sub_content)
+        result=f"{name}|{type_act}|{content}"
+        return result
+
+    """
+    0:end turn
+    1:end bullet time
+    2-11:选择一个随从进行攻击(10) 
+    12-21:选择一个随从进行阻挡(10)
+
+    22-1341
+    有10张手牌 对于每一张牌(40 * 33)
+        player a card 不选择
+        
+        player a card 选择敌方随从0-9 总共10个随从
+        player a card 选择我方随从0-9 总共10个随从
+
+        player a card 选择敌方英雄
+        player a card 选择我方英雄
+        player a card 选择一个卡牌 (10)
+    """
+    async def num2action_new(self,agent:Agent,action:int)->str:
+        name=agent.name
+        content=''
+        if action==0:
+            type_act="end_step"
+        elif action==1:
+            type_act="end_bullet"
+        elif action>=2 and action<=11:
+            type_act="select_attacker"
+            content=f'{action-2}'
+        elif action>=12 and action<=21:
+            type_act="select_defender"
+            content=f'{action-12}'
+        else:
+            type_act="play_card"
+            print(action)
+            print(agent.id_dict)
+            index_card=((action-22)//33)+1
+            print(index_card)
+            key = next((k for k, v in agent.id_dict.items() if v == index_card), None)
+            print(key)
+            print(agent.hand)
+            
+            index_card=next((i for i, card in enumerate(agent.hand) if (f"{card.name}+{card.type}")==key), None)
+            print(index_card)
             content=f"{index_card}"
             sub_action=(action-22)%33
             sub_content=self.num2subaction(agent,sub_action)
@@ -470,15 +526,20 @@ class Base_Agent_Room(Room):
         self.initinal_player(None)
         await self.game_start()
 
-
     def create_action_mask(self,agent:Agent):
+        if agent.agent.config.get("new_version",False):
+            return self.create_action_mask_new(agent)
+        else:
+            return self.create_action_mask_old(agent)
+
+    def create_action_mask_old(self,agent:Agent):
         oppo_agent=agent.opponent
         mask=np.zeros((352))
         if self.get_flag('attacker_defenders'):
             mask[1]=True
             for i,creat in enumerate(agent.battlefield):
-                if (not creat.get_flag("summoning_sickness") or creat.get_flag("haste")) and\
-        not creat.get_flag("tap") and (creat.get_counter_from_dict("attack_counter")>0):
+                if not creat.get_flag("tap") and \
+        (not self.attacker.get_flag("flying") or (creat.get_flag("flying") or creat.get_flag("reach"))):
                     mask[12+i]=True
             #if agent.battlefield: mask[12:len(agent.battlefield)+12]=True
         else:
@@ -489,6 +550,27 @@ class Base_Agent_Room(Room):
                     mask[2+i]=True
             #if agent.battlefield: mask[2:len(agent.battlefield)+2]=True
             if agent.hand:self.mask_hand(agent,oppo_agent,mask)
+        
+        return mask[np.newaxis, :]
+
+    def create_action_mask_new(self,agent:Agent):
+        oppo_agent=agent.opponent
+        mask=np.zeros((1342))
+        if self.get_flag('attacker_defenders'):
+            mask[1]=True
+            for i,creat in enumerate(agent.battlefield):
+                if not creat.get_flag("tap") and \
+        (not self.attacker.get_flag("flying") or (creat.get_flag("flying") or creat.get_flag("reach"))):
+                    mask[12+i]=True
+            #if agent.battlefield: mask[12:len(agent.battlefield)+12]=True
+        else:
+            mask[0]=True
+            for i,creat in enumerate(agent.battlefield):
+                if (not creat.get_flag("summoning_sickness") or creat.get_flag("haste")) and\
+        not creat.get_flag("tap") and (creat.get_counter_from_dict("attack_counter")>0):
+                    mask[2+i]=True
+            #if agent.battlefield: mask[2:len(agent.battlefield)+2]=True
+            if agent.hand:self.mask_hand_new(agent,oppo_agent,mask)
         
         return mask[np.newaxis, :]
 
@@ -542,3 +624,85 @@ class Base_Agent_Room(Room):
             # for i in range(len(select_list)):
             #     mask[index+i]=True
             index+=ind_range
+
+    def mask_hand_new(self,agent:Agent,oppo_agent:Agent,mask:np.ndarray):
+        start_index=22
+        instance_dict={
+            Creature:"when_enter_battlefield",
+            Instant:"card_ability",
+            Land:"when_enter_battlefield",
+            Sorcery:"card_ability"
+        }
+
+        select_dict={
+            'all_roles':[oppo_agent.battlefield,agent.battlefield,[1],[1]],
+            'opponent_roles':[oppo_agent.battlefield,[],[],[1]], 
+            'your_roles':[[],agent.battlefield,[1],[]],
+            'all_creatures':[oppo_agent.battlefield,agent.battlefield,[],[]],
+            'opponent_creatures':[oppo_agent.battlefield,[],[],[]],
+            'your_creatures':[[],agent.battlefield,[],[]]
+        }
+
+        index_range=[10,10,1,1]
+        #getattr(obj, 'my_attribute')
+        card_counter=0
+        for hand_card in agent.hand:
+            if card_counter>=9:
+                break
+            current_index=start_index+(agent.id_dict[f"{hand_card.name}+{hand_card.type}"]-1)*33
+            if hand_card.check_can_use(agent)[0]:
+                select_range=''
+                for cls in instance_dict:
+                    if isinstance(hand_card,cls):
+                        select_range=getattr(hand_card,instance_dict[cls]).select_range
+                #print(select_range)
+                if select_range in select_dict:
+                    self.select_stage(select_dict[select_range],index_range,current_index+1,mask)#+1 是因为有player a card 不选择
+                elif hand_card.select_range in select_dict:
+                    self.select_stage(select_dict[hand_card.select_range],index_range,current_index+1,mask)
+                else:
+                    mask[current_index]=True
+            #start_index+=33
+            card_counter+=1
+
+    def get_reward_attack(self,agent:Agent):#返回一个评分
+        # if agent.life<=0:
+        #     return -1
+        # elif agent.opponent.life<=0:
+        #     return 1
+        self_live_reward=lambda x :x/20#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
+        oppo_live_reward=lambda x :x/20
+
+        score_life_self=self_live_reward(agent.life)
+        score_oppo_self=oppo_live_reward(agent.opponent.life)
+
+        score_battle_self=sum([sum(card.state)/10 for card in agent.battlefield])#这个处以20表面随从不是很重要，重要的是敌方的血量
+        score_battle_oppo=sum([sum(card.state)/10 for card in agent.battlefield])
+
+        score_mana=0
+        for land in agent.land_area:
+            score_mana+=sum(land.generate_mana().values())
+        score_mana=score_mana/20
+
+        return (score_life_self-score_oppo_self)+score_mana+score_battle_self-score_battle_oppo
+
+    def get_reward_life(self,agent:Agent):#返回一个评分
+        # if agent.life<=0:
+        #     return -1
+        # elif agent.opponent.life<=0:
+        #     return 1
+        self_live_reward=lambda x :x/20#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
+        oppo_live_reward=lambda x :x/40
+
+        score_life_self=self_live_reward(agent.life)
+        score_oppo_self=oppo_live_reward(agent.opponent.life)
+
+        score_battle_self=sum([sum(card.state)/10 for card in agent.battlefield])#这个处以20表面随从不是很重要，重要的是敌方的血量
+        score_battle_oppo=sum([sum(card.state)/10 for card in agent.battlefield])
+
+        score_mana=0
+        for land in agent.land_area:
+            score_mana+=sum(land.generate_mana().values())
+        score_mana=score_mana/20
+
+        return (score_life_self-score_oppo_self)+score_mana+score_battle_self-score_battle_oppo

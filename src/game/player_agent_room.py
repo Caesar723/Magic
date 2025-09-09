@@ -69,8 +69,11 @@ class PVE_Room(Base_Agent_Room):
         # 获取state，done，计算reward
         #返回new state 和 reward 和 done
         message:str=await self.num2action(agent,action)
-        # print(message)
+        print(message)
+
         await self.message_receiver(message)
+
+        print(self.get_reward_attack(agent))
         # username,type,content=message.split("|")
         # await self.message_process_dict[type](username,content)
         
@@ -137,6 +140,7 @@ class PVE_Room(Base_Agent_Room):
             
         return result
          
+
 
 
 

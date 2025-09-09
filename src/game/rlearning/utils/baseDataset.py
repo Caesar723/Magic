@@ -44,6 +44,13 @@ class BaseDataset(Dataset):
     def get_sample(self, data):
         pass
 
+    def get_sample_preprocess(self,data,extra_keys=[]):
+        pre_data=data
+        for k in extra_keys:
+            pre_data = pre_data[k]
+        self.get_sample(pre_data)
+        return data
+
     def collate_fn(self, batch):
         pass
 
@@ -58,4 +65,4 @@ class BaseDataset(Dataset):
     def __getitem__(self, idx):
         idx = idx % len(self.datas)
         data = self.datas[idx]
-        return self.get_sample(data) 
+        return self.get_sample_preprocess(data,extra_keys=["state"]) 

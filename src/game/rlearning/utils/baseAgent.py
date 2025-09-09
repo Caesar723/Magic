@@ -23,6 +23,14 @@ import game.rlearning.utils.log as log
 from game.rlearning.utils.data import batch_to_cuda,detach_cuda
 from game.rlearning.utils.common import CHECKPOINT_ROOT_PATH
 
+
+def nested_get(d, keys):
+    for k in keys:
+        if not isinstance(d,dict) or k not in d:
+            return None
+        d = d[k]
+    return d
+
 class BaseTrainer:
     def __init__(self, config,restore_step, rank=0, n_gpus=1,name="main"):
         self.config = config
@@ -467,6 +475,7 @@ class BaseTrainer:
             mask=batch[0]["mask"]
         else:
             mask=None
+        batch=[self.dataset.get_sample_preprocess(b,extra_keys) for b in batch]
         batch=self.dataset.collate_state(batch,extra_keys)
         batch=batch_to_cuda(batch, self.rank)
         batch=self.predict(batch,self.models,False,self.step,self.epoch)

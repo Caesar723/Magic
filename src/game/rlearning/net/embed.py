@@ -194,6 +194,21 @@ class HandEmbed(nn.Module):
         x=x.view(x.size(0),-1)
         return self.head(x)
 
+class HandEmbedNew(nn.Module):
+    def __init__(self,config):
+        super().__init__()
+        self.config=config
+        
+        self.head = nn.Sequential(
+            nn.Linear(config["card_hand_dim"],config["card_embed_dim"]),
+            nn.Tanh(),
+        )
+        
+    def forward(self,x):
+        x=x.view(x.size(0),-1)
+        x=self.head(x)
+        return x
+
 class BoardEmbed(nn.Module):
     def __init__(self,config):
         super().__init__()

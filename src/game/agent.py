@@ -18,7 +18,7 @@ from game.rlearning.utils.model import get_class_by_name
 
 class Agent_Player_Red(Player):
 
-    def __init__(self, name: str,room:"Room",config_path:str=f"{ORGPATH}/game/rlearning/config/ppo.yaml") -> None:
+    def __init__(self, name: str,room:"Room",config_path:str=f"{ORGPATH}/game/rlearning/config/white/ppo_new.yaml") -> None:
         self.config=read_yaml(config_path)
         decks_detail=self.config["cards"]
         self.id_dict={}
