@@ -138,13 +138,14 @@ model:
     input_dim: 560
     hidden_dim: 512
     output_dim: 352
+    deep: 2
 
   Critic:
     class_name: 'game.rlearning.net.ppo.Critic'
     input_dim: 560
     hidden_dim: 512
     output_dim: 1
-    
+    deep: 2
   
 
     

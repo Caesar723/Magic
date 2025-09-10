@@ -3,10 +3,11 @@
 # Common
 ###########################
 
-log_dir: "ppo/ppo_white_n01_v01"
-restore_step: -1
+log_dir: "ppo/ppo_white_lstm_n02_v02"
+restore_step: 0
+new_version: True
 #------------------------------------
-
+action_history_length: 10
 cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Creature+3|Ironclad Crusader+Creature+2|Sunlit Priestess+Creature+3|Apocalypse Riders+Sorcery+4|Call to Unity+Sorcery+4|Angelic Blessing+Sorcery+2|Righteous Conviction+Sorcery+2|Spectral Embrace+Sorcery+3|Celestial Convergence+Instant+1|Avenging Light+Instant+1|Plains+Land+15"
 
 #------------------------------------
@@ -15,10 +16,10 @@ cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Cre
 ###########################
 #  Train 
 ###########################
-seed: 1234
+seed: 1247
 max_store: 1024
 #------------------------------------
-dataset_class_name: "game.rlearning.datasets.ppo_agent.PPOAgentDataset"
+dataset_class_name: "game.rlearning.datasets.ppo_agent_lstm.PPOAgentDataset"
 dataloader:
   batch_size: 32
   num_workers: 0
@@ -27,7 +28,7 @@ dataset_multiple: 10
 
 
 #------------------------------------
-trainer: "game.rlearning.module.ppo_agent.PPOTrainer"
+trainer: "game.rlearning.module.ppo_agent_lstm.PPOTrainer"
 
 w_val_loss: 0.5
 w_act_loss: 0.5
@@ -86,6 +87,7 @@ shared_card_cfg: &shared_card_cfg
   cont_hidden: 32
   card_embed_dim: 128
   
+  
 
 
 
@@ -110,8 +112,9 @@ model:
     max_mana: 20
 
   CardsHandEmbed:
-    class_name: 'game.rlearning.net.embed.HandEmbed'
+    class_name: 'game.rlearning.net.embed.HandEmbedNew'
     <<: *shared_card_cfg
+    card_hand_dim: 160
 
 
   CardsBoardEmbedSelf:
@@ -128,19 +131,36 @@ model:
     class_name: 'game.rlearning.net.embed.CardBoardEmbed'
     <<: *shared_card_cfg
 
+  ActionEmbed:
+    class_name: 'game.rlearning.net.embed.ActionEmbed'
+    action_dim: 1342
+    action_embed_dim: 128
+    is_g: False
+
+  Dense:
+    class_name: 'game.rlearning.net.baseNets.Dense'
+    d_in: 16
+    d_out: 560
+    is_g: False
+
+  HistoryEmbed:
+    class_name: 'game.rlearning.net.embed.HistoryEmbed'
+    history_dim: 1342
+    history_embed_dim: 128
+    
+
   Actor:
     class_name: 'game.rlearning.net.ppo.Actor'
-    input_dim: 560
+    input_dim: 688
     hidden_dim: 512
-    output_dim: 352
-    deep: 2
-
+    output_dim: 1342
+    deep: 5
   Critic:
     class_name: 'game.rlearning.net.ppo.Critic'
-    input_dim: 560
+    input_dim: 688
     hidden_dim: 512
     output_dim: 1
-    deep: 2
+    deep: 5
   
 
     

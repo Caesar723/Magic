@@ -23,6 +23,9 @@ class Agent_Train_Red(Agent_Player_Red):
         self.condition_reward=asyncio.Condition()
 
         self.pedding_store_task=[]
+        self.action_history=[0]
+        self.action_history_length=agent.config["action_history_length"]
+
         
     def add_pedding_store_task(self,task):
         self.pedding_store_task.append(task)

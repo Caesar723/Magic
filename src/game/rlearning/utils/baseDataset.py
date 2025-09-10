@@ -45,6 +45,7 @@ class BaseDataset(Dataset):
         pass
 
     def get_sample_preprocess(self,data,extra_keys=[]):
+        data=dict(data)
         pre_data=data
         for k in extra_keys:
             pre_data = pre_data[k]

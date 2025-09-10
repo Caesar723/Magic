@@ -131,18 +131,30 @@ model:
     class_name: 'game.rlearning.net.embed.CardBoardEmbed'
     <<: *shared_card_cfg
 
+  ActionEmbed:
+    class_name: 'game.rlearning.net.embed.ActionEmbed'
+    action_dim: 1342
+    action_embed_dim: 16
+    is_g: False
+
+  Dense:
+    class_name: 'game.rlearning.net.baseNets.Dense'
+    d_in: 16
+    d_out: 560
+    is_g: False
+
   Actor:
     class_name: 'game.rlearning.net.ppo.Actor'
     input_dim: 560
     hidden_dim: 512
     output_dim: 1342
-
+    deep: 5
   Critic:
     class_name: 'game.rlearning.net.ppo.Critic'
     input_dim: 560
     hidden_dim: 512
     output_dim: 1
-    
+    deep: 5
   
 
     

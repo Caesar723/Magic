@@ -98,10 +98,11 @@ class Room:
         }
         self.message_process_condition=asyncio.Condition()#当list是空的时候就会调用这个，让程序有序运行
         self.message_process_queue=[]
+        self.tasks=[]
 
         #start executing message_process
-        asyncio.create_task(self.message_process())
-        asyncio.create_task(self.action_sender())
+        self.tasks.append(asyncio.create_task(self.message_process()))
+        self.tasks.append(asyncio.create_task(self.action_sender()))
 
 
         
@@ -132,7 +133,7 @@ class Room:
         
         self.active_player:Player=player1
         self.non_active_player:Player=player2
-        asyncio.create_task(self.timer_task())
+        self.tasks.append(asyncio.create_task(self.timer_task()))
 
         # self.flag_dict["bullet_time"]=False
         # self.flag_dict["attacker_defenders"]=False

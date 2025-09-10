@@ -38,10 +38,10 @@ class BaseTrainer:
         self.rank = rank 
         self.name=name
 
-        random.seed(config["seed"]) 
-        np.random.seed(config["seed"]) 
-        torch.manual_seed(config["seed"])
-        torch.cuda.manual_seed(config["seed"]) 
+        # random.seed(config["seed"]) 
+        # np.random.seed(config["seed"]) 
+        # torch.manual_seed(config["seed"])
+        # torch.cuda.manual_seed(config["seed"]) 
         if torch.cuda.is_available():
             torch.cuda.init()
             torch.cuda.set_device(rank) 
@@ -221,20 +221,16 @@ class BaseTrainer:
             for batch in self.dataloader:
 
                 batch = batch_to_cuda(batch, self.rank)
-                
-
-                [self.models[k].requires_grad_(True) for k in self.i_keys]#把d的参数设置为可训练
-                [self.models[k].requires_grad_(False) for k in self.g_keys]#把g的参数设置为不可训练
-                loss_dict=self._forward_independent(batch, models, isTrain=True, step=self.step, epoch=self.epoch)
-                self._update_independent(loss_dict)
-
-
-
-                batch = detach_cuda(batch)
                 [self.models[k].requires_grad_(True) for k in self.g_keys]#把g的参数设置为可训练
                 [self.models[k].requires_grad_(False) for k in self.i_keys]#把d的参数设置为不可训练
-                loss_dict |= self._forward(batch, models, isTrain=True, step=self.step, epoch=self.epoch)
+                loss_dict = self._forward(batch, models, isTrain=True, step=self.step, epoch=self.epoch)
                 self._update_g(loss_dict)
+
+                batch = detach_cuda(batch)
+                [self.models[k].requires_grad_(True) for k in self.i_keys]#把d的参数设置为可训练
+                [self.models[k].requires_grad_(False) for k in self.g_keys]#把g的参数设置为不可训练
+                loss_dict |=self._forward_independent(batch, models, isTrain=True, step=self.step, epoch=self.epoch)
+                self._update_independent(loss_dict)
 
 
                 self.check_log(loss_dict) 

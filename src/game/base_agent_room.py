@@ -134,14 +134,25 @@ class Base_Agent_Room(Room):
         father_class="field"
         type_act=""
 
+        
+
         if sub_action==0:
             pass
         elif sub_action>=1 and sub_action<=10:
+            opponent_battlefield=agent.opponent.battlefield
+            opponent_battlefield_sorted=sorted(enumerate(opponent_battlefield), key=lambda x: self.get_creature_reward(x[1]), reverse=True)
             type_act="opponent_battlefield"
-            content=f"{sub_action-1}"
+            selected_index=opponent_battlefield_sorted[sub_action-1][0]
+            content=f"{selected_index}"
         elif sub_action>=11 and sub_action<=20:
+            self_battlefield=agent.battlefield
+            
+            self_battlefield_sorted=sorted(enumerate(self_battlefield), key=lambda x: self.get_creature_reward(x[1]), reverse=True)
+            
+            selected_index=self_battlefield_sorted[sub_action-11][0]
+            
             type_act="self_battlefield"
-            content=f"{sub_action-11}"
+            content=f"{selected_index}"
         elif sub_action==21:
             type_act="oppo"
         elif sub_action==22:
@@ -316,7 +327,7 @@ class Base_Agent_Room(Room):
 
         state_batch["self_mana"]=self_mana
             
-        
+        state_batch["action_history"]=agent.get_action_history()
 
         card_ids=[]
         card_types=[]
@@ -463,9 +474,13 @@ class Base_Agent_Room(Room):
         batch_result["card_has_defend"]=[]
         batch_result["card_mask"]=[]
 
+
+       
+        cards_sorted = sorted(creatures, key=self.get_creature_reward, reverse=True)
+
         for i in range(10):
             if i < length:
-                creature=creatures[i]
+                creature=cards_sorted[i]
                 result=self.get_creature_state_new(creature)
                 batch_result["card_special_types"]+=result["card_special_types"]
                 batch_result["card_atks"]+=result["card_atks"]
@@ -523,6 +538,25 @@ class Base_Agent_Room(Room):
 
 
     async def initinal_environmrnt(self):# 返回一个state和评分
+        self.turn_timer:int=0
+        self.max_turn_time:int=120
+
+        #used to count the time when player use instant and in bullet_time
+        self.bullet_timer:int=0
+        self.max_bullet_time:int=10
+
+
+        #used to store the each flag like whether is bullet_time
+        self.flag_dict:dict={}
+
+        #used to store each counter like number of turns
+        self.counter_dict:dict={}
+
+        self.stack:list[tuple]=[]
+        self.attacker:Creature=None
+        for task in self.tasks:
+            task.cancel()
+        self.tasks=[]
         self.initinal_player(None)
         await self.game_start()
 
@@ -683,12 +717,15 @@ class Base_Agent_Room(Room):
         score_oppo_self=oppo_live_reward(agent.opponent.life)
 
         score_battle_self=sum([self.get_creature_reward(card) for card in agent.battlefield])#这个处以20表面随从不是很重要，重要的是敌方的血量
-        score_battle_oppo=sum([self.get_creature_reward(card) for card in agent.battlefield])
+        
+        score_battle_oppo=sum([self.get_creature_reward(card) for card in agent.opponent.battlefield])
 
         score_mana=0
         for land in agent.land_area:
             score_mana+=sum(land.generate_mana().values())
         score_mana=score_mana/20
+
+        #print(score_life_self,score_oppo_self,score_mana,score_battle_self,score_battle_oppo)
 
         return (score_life_self-score_oppo_self)+score_mana+score_battle_self-score_battle_oppo
 
@@ -708,9 +745,10 @@ class Base_Agent_Room(Room):
                 self.get_creature_reward(card) for card in agent.battlefield
             ]
         )#这个处以20表面随从不是很重要，重要的是敌方的血量
+        
         score_battle_oppo=sum(
             [
-                self.get_creature_reward(card) for card in agent.battlefield
+                self.get_creature_reward(card) for card in agent.opponent.battlefield
             ]
         )
 
@@ -723,12 +761,13 @@ class Base_Agent_Room(Room):
 
     def get_creature_reward(self,card:Creature):
         if card.get_flag("tap") or card.get_flag("summoning_sickness"):
-            p,d=card.power,card.live
+            p,d=card.power/10,card.live/10
+            
             state1=p+d
             state2=p*d
             r_state=(state1+state2)/2
             return r_state
-        p,d=card.state
+        p,d=card.state[0]/10,card.state[1]/10
         state1=p+d
         state2=p*d
         r_state=(state1+state2)/2

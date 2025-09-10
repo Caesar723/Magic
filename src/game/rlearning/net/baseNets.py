@@ -32,3 +32,11 @@ class AttnPool(nn.Module):
         hand_vec = (w * card_vecs).sum(dim=1)  # [B, D]
 
         return hand_vec
+
+class Dense(nn.Module):
+    def __init__(self,d_in,d_out):
+        super().__init__()
+        self.fc=nn.Linear(d_in,d_out)
+    def forward(self,x):
+        x=self.fc(x)
+        return x

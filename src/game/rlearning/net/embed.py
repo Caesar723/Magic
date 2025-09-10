@@ -233,9 +233,25 @@ class BoardEmbed(nn.Module):
 
     
 
-    
+class ActionEmbed(nn.Module):
+    def __init__(self,config):
+        super().__init__()
+        self.config=config
+        self.head = nn.Embedding(config["action_dim"],config["action_embed_dim"])#N*5>N*5*16
+    def forward(self,x):
+        x=self.head(x)
+        return x
 
 
 
-
+class HistoryEmbed(nn.Module):
+    def __init__(self,config):
+        super().__init__()
+        self.config=config
+        self.lstm = nn.LSTM(config["history_dim"], config["history_embed_dim"], batch_first=True)
+        
+    def forward(self,x):
+        x, (h, c) = self.lstm(x)
+        
+        return x
 
