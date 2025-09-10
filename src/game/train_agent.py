@@ -24,7 +24,7 @@ class Agent_Train_Red(Agent_Player_Red):
 
         self.pedding_store_task=[]
         self.action_history=[0]
-        self.action_history_length=agent.config["action_history_length"]
+        self.action_history_length=agent.config.get("action_history_length",1)
 
         
     def add_pedding_store_task(self,task):
@@ -54,6 +54,7 @@ class Agent_Train_Red(Agent_Player_Red):
         
         #print(reward,action,done)
         #print(reward,next_state,done)
+       
 
         batch={
             "state":state,

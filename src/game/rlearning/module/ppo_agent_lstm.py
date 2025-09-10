@@ -31,7 +31,7 @@ class PPOTrainer(BaseTrainer):
             adv = batch["advantage"].detach()
             surr1=rate*adv
             surr2=torch.clamp(rate,1-self.config["ppo"]["clip_para"],1+self.config["ppo"]["clip_para"])*adv
-            #print(surr1.squeeze(1).shape,surr2.squeeze(1).shape,batch["entropy"].shape)
+            
             act_loss=-torch.min(surr1,surr2).squeeze(1)-0.01*batch["entropy"]
             act_loss=act_loss.mean()
 
@@ -75,12 +75,16 @@ class PPOTrainer(BaseTrainer):
             
         ).squeeze(1)
 
-        
-        packed = pack_padded_sequence(batch["action_history_one_hot"], batch["action_history_length"].cpu(), batch_first=True, enforce_sorted=False)
+        #print(batch["action_history_one_hot"])
+        #print(batch["action_history_length"])
+
+        lengths = batch["action_history_length"].cpu()
+        packed = pack_padded_sequence(batch["action_history_one_hot"], lengths, batch_first=True, enforce_sorted=False)
         #batch["action_history_packed"]=packed
         history_embed=models["HistoryEmbed"](packed)
         history_embed_output, _ = pad_packed_sequence(history_embed, batch_first=True)
-        history_embed_output=history_embed_output[:,-1,:]
+        
+        history_embed_output = history_embed_output[torch.arange(len(lengths)), lengths - 1]
         
         
 

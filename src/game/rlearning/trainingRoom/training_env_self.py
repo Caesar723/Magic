@@ -102,7 +102,7 @@ class Multi_Agent_Room(Base_Agent_Room):
         #print(username,content,type)
         old_reward=self.get_reward_attack(agent)
         await self.message_process_dict[type](username,content)
-
+        await self.check_death()
 
         flag=False
         #print(action)

@@ -101,6 +101,7 @@ class Multi_Agent_Room(Base_Agent_Room):
         #print(username,content,type)
         old_reward=self.get_reward_attack(agent)
         await self.message_process_dict[type](username,content)
+        await self.check_death()
 
 
         flag=False
@@ -356,8 +357,8 @@ async def tasks(room):
 async def main():
     
     room=Multi_Agent_Room(
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm.yaml",
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm2.yaml"
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new2.yaml"
     )
     
     await room.game_start()

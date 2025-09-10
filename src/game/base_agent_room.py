@@ -761,16 +761,20 @@ class Base_Agent_Room(Room):
 
     def get_creature_reward(self,card:Creature):
         if card.get_flag("tap") or card.get_flag("summoning_sickness"):
-            p,d=card.power/10,card.live/10
-            
-            state1=p+d
-            state2=p*d
-            r_state=(state1+state2)/2
+            p,d=card.power,card.live
+
+            if p<=0 or d<=0:
+                return 0
+            state1=(p+d)/2
+            state2=(p*d)**0.5
+            r_state=(state1+state2)/15
             return r_state
-        p,d=card.state[0]/10,card.state[1]/10
-        state1=p+d
-        state2=p*d
-        r_state=(state1+state2)/2
+        p,d=card.state[0],card.state[1]
+        if p<=0 or d<=0:
+            return 0
+        state1=(p+d)/2
+        state2=(p*d)**0.5
+        r_state=(state1+state2)/10
         for flag in ["reach","Trample","flying","haste","Flash","lifelink"]:
             if card.get_flag(flag):
                 r_state*=1.1
