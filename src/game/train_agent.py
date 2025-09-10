@@ -41,6 +41,7 @@ class Agent_Train_Red(Agent_Player_Red):
     
     async def store_data(self,state,action,reward_func):
         
+        
         # async with self.condition_reward:
         #     while not self.notify_reward:
         #         print("wait",action,id(state))

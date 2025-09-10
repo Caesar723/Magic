@@ -16,7 +16,7 @@ cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Cre
 ###########################
 #  Train 
 ###########################
-seed: 1234
+seed: 1247
 max_store: 1024
 #------------------------------------
 dataset_class_name: "game.rlearning.datasets.ppo_agent_new.PPOAgentDataset"

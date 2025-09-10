@@ -281,7 +281,7 @@ class Multi_Agent_Room(Base_Agent_Room):
                 else:
                     #print("store_data_func",action)
                     
-                    async def store_data_func(state=state,action=action,reward_func=reward_func):
+                    async def store_data_func(agent=agent,state=state,action=action,reward_func=reward_func):
                         #print("store_data_func",action,id(store_data_func),id(reward_func),id(state))
                         await agent.store_data(state,action,reward_func)
                     #print("store_data_func",action,id(store_data_func),id(reward_func),id(state))

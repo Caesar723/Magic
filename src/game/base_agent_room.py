@@ -110,16 +110,16 @@ class Base_Agent_Room(Room):
             content=f'{action-12}'
         else:
             type_act="play_card"
-            print(action)
-            print(agent.id_dict)
+            # print(action)
+            # print(agent.id_dict)
             index_card=((action-22)//33)+1
-            print(index_card)
+            #print(index_card)
             key = next((k for k, v in agent.id_dict.items() if v == index_card), None)
-            print(key)
-            print(agent.hand)
+            # print(key)
+            # print(agent.hand)
             
             index_card=next((i for i, card in enumerate(agent.hand) if (f"{card.name}+{card.type}")==key), None)
-            print(index_card)
+            #print(index_card)
             content=f"{index_card}"
             sub_action=(action-22)%33
             sub_content=self.num2subaction(agent,sub_action)
@@ -538,6 +538,7 @@ class Base_Agent_Room(Room):
         if self.get_flag('attacker_defenders'):
             mask[1]=True
             for i,creat in enumerate(agent.battlefield):
+                if i>=10:break
                 if not creat.get_flag("tap") and \
         (not self.attacker.get_flag("flying") or (creat.get_flag("flying") or creat.get_flag("reach"))):
                     mask[12+i]=True
@@ -545,6 +546,7 @@ class Base_Agent_Room(Room):
         else:
             mask[0]=True
             for i,creat in enumerate(agent.battlefield):
+                if i>=10:break
                 if (not creat.get_flag("summoning_sickness") or creat.get_flag("haste")) and\
         not creat.get_flag("tap") and (creat.get_counter_from_dict("attack_counter")>0):
                     mask[2+i]=True
@@ -559,6 +561,8 @@ class Base_Agent_Room(Room):
         if self.get_flag('attacker_defenders'):
             mask[1]=True
             for i,creat in enumerate(agent.battlefield):
+                if i>=10:break
+                    
                 if not creat.get_flag("tap") and \
         (not self.attacker.get_flag("flying") or (creat.get_flag("flying") or creat.get_flag("reach"))):
                     mask[12+i]=True
@@ -566,10 +570,12 @@ class Base_Agent_Room(Room):
         else:
             mask[0]=True
             for i,creat in enumerate(agent.battlefield):
+                if i>=10:break
                 if (not creat.get_flag("summoning_sickness") or creat.get_flag("haste")) and\
         not creat.get_flag("tap") and (creat.get_counter_from_dict("attack_counter")>0):
                     mask[2+i]=True
             #if agent.battlefield: mask[2:len(agent.battlefield)+2]=True
+            #print(agent.hand)
             if agent.hand:self.mask_hand_new(agent,oppo_agent,mask)
         
         return mask[np.newaxis, :]
@@ -676,8 +682,8 @@ class Base_Agent_Room(Room):
         score_life_self=self_live_reward(agent.life)
         score_oppo_self=oppo_live_reward(agent.opponent.life)
 
-        score_battle_self=sum([sum(card.state)/10 for card in agent.battlefield])#这个处以20表面随从不是很重要，重要的是敌方的血量
-        score_battle_oppo=sum([sum(card.state)/10 for card in agent.battlefield])
+        score_battle_self=sum([self.get_creature_reward(card) for card in agent.battlefield])#这个处以20表面随从不是很重要，重要的是敌方的血量
+        score_battle_oppo=sum([self.get_creature_reward(card) for card in agent.battlefield])
 
         score_mana=0
         for land in agent.land_area:
@@ -697,8 +703,16 @@ class Base_Agent_Room(Room):
         score_life_self=self_live_reward(agent.life)
         score_oppo_self=oppo_live_reward(agent.opponent.life)
 
-        score_battle_self=sum([sum(card.state)/10 for card in agent.battlefield])#这个处以20表面随从不是很重要，重要的是敌方的血量
-        score_battle_oppo=sum([sum(card.state)/10 for card in agent.battlefield])
+        score_battle_self=sum(
+            [
+                self.get_creature_reward(card) for card in agent.battlefield
+            ]
+        )#这个处以20表面随从不是很重要，重要的是敌方的血量
+        score_battle_oppo=sum(
+            [
+                self.get_creature_reward(card) for card in agent.battlefield
+            ]
+        )
 
         score_mana=0
         for land in agent.land_area:
@@ -706,3 +720,19 @@ class Base_Agent_Room(Room):
         score_mana=score_mana/20
 
         return (score_life_self-score_oppo_self)+score_mana+score_battle_self-score_battle_oppo
+
+    def get_creature_reward(self,card:Creature):
+        if card.get_flag("tap") or card.get_flag("summoning_sickness"):
+            p,d=card.power,card.live
+            state1=p+d
+            state2=p*d
+            r_state=(state1+state2)/2
+            return r_state
+        p,d=card.state
+        state1=p+d
+        state2=p*d
+        r_state=(state1+state2)/2
+        for flag in ["reach","Trample","flying","haste","Flash","lifelink"]:
+            if card.get_flag(flag):
+                r_state*=1.1
+        return r_state
