@@ -64,6 +64,7 @@ class Agent_Train_Red(Agent_Player_Red):
             "done":done,
             "global_reward":global_reward
         }
+        #print(action,reward)
 
         self.agent.store(batch)
         # if len(self.agent.reward)>=1024:

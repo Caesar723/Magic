@@ -100,6 +100,10 @@ class Multi_Agent_Room(Base_Agent_Room):
         #old_reward=self.get_reward_red(agent)
         #print(username,content,type)
         old_reward=self.get_reward_attack(agent)
+        if action>=2 and action <=21:
+            selected_creature=agent.battlefield[int(content)]
+        else:
+            selected_creature=None
         await self.message_process_dict[type](username,content)
         await self.check_death()
 
@@ -135,7 +139,7 @@ class Multi_Agent_Room(Base_Agent_Room):
         #change_reward=new_reward-old_reward
 
         async def next_state_function():
-            current_reward=self.get_reward_attack(agent)
+            current_reward=self.get_reward_attack(agent,selected_creature)
             # if action==0:
             #     new_reward=0
             # else:
@@ -359,8 +363,8 @@ async def tasks(room):
 async def main():
     
     room=Multi_Agent_Room(
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/action_embed.yaml",
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/action_embed2.yaml"
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm2.yaml"
     )
     
     await room.game_start()

@@ -112,11 +112,16 @@ class Multi_Agent_Room(Base_Agent_Room):
         #old_reward=self.get_reward_red(agent)
         #print(username,content,type)
         old_reward=self.get_reward_attack(agent)
+        if action>=2 and action <=21:
+            selected_creature=agent.battlefield[int(content)]
+        else:
+            selected_creature=None
         await self.message_process_dict[type](username,content)
         await self.check_death()
 
         flag=False
         if action>=2 and action <=11:
+            
             agent_oppo:Agent_Train=agent.opponent
             state=self.get_new_state(agent_oppo)
             mask=self.create_action_mask(agent_oppo)
@@ -133,7 +138,9 @@ class Multi_Agent_Room(Base_Agent_Room):
                         
                         await agent_oppo.store_data(state,action_oppo,reward_func)
                     agent_oppo.add_pedding_store_task(store_data_func)
-                
+
+            
+        
         elif action!=0:
             await self.end_bullet_time()
         elif action==0:
@@ -147,14 +154,14 @@ class Multi_Agent_Room(Base_Agent_Room):
         #change_reward=new_reward-old_reward
 
         async def next_state_function():
-            current_reward=self.get_reward_attack(agent)
+            current_reward=self.get_reward_attack(agent,selected_creature)
             # if action==0:
             #     new_reward=0
             # else:
                 
             new_reward=current_reward-old_reward
             if action==0:
-                new_reward/=10
+                new_reward/=50
             new_reward=max(min(new_reward,0.8),-0.8)
             #await self.check_death()
             die_player=await self.check_player_die()
@@ -175,7 +182,7 @@ class Multi_Agent_Room(Base_Agent_Room):
                 # print("traceback.format_stack():")
                 # print("".join(traceback.format_stack()))
 
-            
+            #print(message)
             return self.get_new_state(agent),new_reward,self.gamming,current_reward
         return next_state_function
         

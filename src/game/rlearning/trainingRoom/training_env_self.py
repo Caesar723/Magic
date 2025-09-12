@@ -101,6 +101,10 @@ class Multi_Agent_Room(Base_Agent_Room):
         #old_reward=self.get_reward_red(agent)
         #print(username,content,type)
         old_reward=self.get_reward_attack(agent)
+        if action>=2 and action <=21:
+            selected_creature=agent.battlefield[int(content)]
+        else:
+            selected_creature=None
         await self.message_process_dict[type](username,content)
         await self.check_death()
 
@@ -139,14 +143,14 @@ class Multi_Agent_Room(Base_Agent_Room):
         #change_reward=new_reward-old_reward
 
         async def next_state_function():
-            current_reward=self.get_reward_attack(agent)
+            current_reward=self.get_reward_attack(agent,selected_creature)
             # if action==0:
             #     new_reward=0
             # else:
                 
             new_reward=current_reward-old_reward
             if action==0:
-                new_reward/=10
+                new_reward/=50
             new_reward=max(min(new_reward,0.8),-0.8)
             #await self.check_death()
             die_player=await self.check_player_die()

@@ -4,7 +4,7 @@
 ###########################
 
 log_dir: "ppo/ppo_white_lstm_n02_v02"
-restore_step: -1
+restore_step: 0
 new_version: True
 #------------------------------------
 action_history_length: 10
