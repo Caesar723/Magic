@@ -146,7 +146,7 @@ class Multi_Agent_Room(Base_Agent_Room):
                 
             new_reward=current_reward-old_reward
             if action==0:
-                new_reward/=10
+                new_reward/=50
             new_reward=max(min(new_reward,0.8),-0.8)
             #await self.check_death()
             die_player=await self.check_player_die()

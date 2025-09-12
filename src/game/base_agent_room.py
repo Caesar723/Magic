@@ -603,9 +603,11 @@ class Base_Agent_Room(Room):
     def create_action_mask_new(self,agent:Agent):
         oppo_agent=agent.opponent
         mask=np.zeros((1342))
+
+        self_battlefield_sorted=sorted(agent.battlefield, key=lambda x: self.get_creature_reward(x), reverse=True)
         if self.get_flag('attacker_defenders'):
             mask[1]=True
-            for i,creat in enumerate(agent.battlefield):
+            for i,creat in enumerate(self_battlefield_sorted):
                 if i>=10:break
                     
                 if not creat.get_flag("tap") and \
@@ -614,7 +616,7 @@ class Base_Agent_Room(Room):
             #if agent.battlefield: mask[12:len(agent.battlefield)+12]=True
         else:
             mask[0]=True
-            for i,creat in enumerate(agent.battlefield):
+            for i,creat in enumerate(self_battlefield_sorted):
                 if i>=10:break
                 if (not creat.get_flag("summoning_sickness") or creat.get_flag("haste")) and\
         not creat.get_flag("tap") and (creat.get_counter_from_dict("attack_counter")>0):
