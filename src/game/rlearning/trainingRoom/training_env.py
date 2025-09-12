@@ -44,7 +44,7 @@ class Multi_Agent_Room(Base_Agent_Room):
         trainer1=get_class_by_name(self.config1["trainer"])
         trainer2=get_class_by_name(self.config2["trainer"])
         
-        self.agent1=trainer1(self.config1,self.config1["restore_step"],name="agent1")
+        self.agent1=trainer1(self.config1,self.config1["restore_step"],name="main")
         self.agent2=trainer2(self.config2,self.config2["restore_step"],name="agent2")
         # self.agent1.load_pth(
         #     "/Users/xuanpeichen/Desktop/code/python/openai/model_complete_act.pth",
@@ -141,6 +141,8 @@ class Multi_Agent_Room(Base_Agent_Room):
             # else:
                 
             new_reward=current_reward-old_reward
+            if action==0:
+                new_reward/=10
             new_reward=max(min(new_reward,0.8),-0.8)
             #await self.check_death()
             die_player=await self.check_player_die()
@@ -148,7 +150,7 @@ class Multi_Agent_Room(Base_Agent_Room):
             
             if die_player and agent.life<=0:
                 
-                new_reward=(-1+current_reward)/2
+                new_reward=-1
 
                 #if flag:
                 # print("lose",action,message,agent.life,org_state,self,self.gamming,new_reward)
@@ -156,7 +158,7 @@ class Multi_Agent_Room(Base_Agent_Room):
                 # print("".join(traceback.format_stack()))
             elif die_player:
                 
-                new_reward=(1+current_reward)/2
+                new_reward=1
                 # print("win",action,message,agent.life,org_state,self,self.gamming,new_reward)
                 # print("traceback.format_stack():")
                 # print("".join(traceback.format_stack()))
@@ -357,8 +359,8 @@ async def tasks(room):
 async def main():
     
     room=Multi_Agent_Room(
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new.yaml",
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new2.yaml"
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/action_embed.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/action_embed2.yaml"
     )
     
     await room.game_start()

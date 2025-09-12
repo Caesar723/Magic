@@ -3,12 +3,12 @@
 # Common
 ###########################
 
-log_dir: "ppo/ppo_white_lstm_n02_v02"
-restore_step: -1
+log_dir: "ppo/ppo_white_lstm_n02_v01"
+restore_step: 0
 new_version: True
 #------------------------------------
 action_history_length: 10
-cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Creature+3|Ironclad Crusader+Creature+2|Sunlit Priestess+Creature+3|Apocalypse Riders+Sorcery+4|Call to Unity+Sorcery+4|Angelic Blessing+Sorcery+2|Righteous Conviction+Sorcery+2|Spectral Embrace+Sorcery+3|Celestial Convergence+Instant+1|Avenging Light+Instant+1|Plains+Land+15"
+cards: "Thundering Behemoth+Creature+2|Verdant Titan+Creature+2|Verdant Wyrm+Creature+2|Thornroot Druid+Creature+2|Chronostrider+Creature+1|Essence Channeler+Creature+3|Sylvan Harmonist+Creature+3|Titan's Strength+Instant+2|Natural Growth+Sorcery+3|Awaken the Elemental+Sorcery+2|Forest's Embrace+Sorcery+1|Titan Giant+Creature+2|Verdant Surge+Instant+2|Forest+Land+13"
 
 #------------------------------------
 

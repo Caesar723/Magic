@@ -37,7 +37,7 @@ class Celestial_Skyweaver(Creature):
 
     async def when_play_a_card(self,card:'Card',player:'Player'=None,opponent:'Player'=None):
         
-        if isinstance(card,Instant) or isinstance(card,Sorcery):
+        if (isinstance(card,Instant) or isinstance(card,Sorcery)) and self in player.battlefield:
             
             random_cards=[]
             for creature in opponent.battlefield:

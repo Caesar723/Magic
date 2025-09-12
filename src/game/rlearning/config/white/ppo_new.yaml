@@ -4,7 +4,7 @@
 ###########################
 
 log_dir: "ppo/ppo_white_n02_v02"
-restore_step: 0
+restore_step: -1
 new_version: True
 #------------------------------------
 

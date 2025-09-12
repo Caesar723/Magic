@@ -67,12 +67,27 @@ class StateBuff(Buff):
 
     def change_function(self,card:"Creature"):
         previews_func=card.calculate_state
+        previews_func_take_damage=card.take_damage
+
+        async def take_damage(self_card,card,value,player, opponent):# 可以受到来自各种卡牌的伤害
+            if self.live>0:
+                self.live-=value
+                if self.live<=0:
+                    value=-self.live
+                    self.live=0
+                else:
+                    value=0
+                    
+            result=await previews_func_take_damage(card,value,player,opponent)
+            return result
+
         def calculate_state(self_card):
             power,live=previews_func()
             power+=self.power
             live+=self.live
             return (power,live)
         card.calculate_state = types.MethodType(calculate_state, card)
+        card.take_damage = types.MethodType(take_damage, card)
 
 class KeyBuff(Buff):
     def __init__(self,card:"Card",selected_card:"Card",key_name:str) -> None:

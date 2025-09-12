@@ -32,5 +32,11 @@ class Titan_Giant(Creature):
         self.image_path:str="cards/creature/Titan Giant/image.jpg"
 
 
-
-        
+    @select_object("",1)
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        for creature in player.battlefield:
+            if creature.state[0]<5:
+                await self.destroy_object(creature,creature.color,"Missile_Hit")
+        for creature in player.opponent.battlefield:
+            if creature.state[0]<5:
+                await self.destroy_object(creature,creature.color,"Missile_Hit")

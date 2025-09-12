@@ -123,7 +123,8 @@ class BaseTrainer:
         
         self.logdir = f'{CHECKPOINT_ROOT_PATH}/{config["log_dir"]}'
         if rank == 0: 
-            log.init(self.logdir)
+            if name=="main":
+                log.init(self.logdir)
             for k in self.g_keys:
                 log.info( "Network of {}: \n{}".format(k, self.models[k]) ) 
             for k in self.i_keys:
@@ -153,6 +154,7 @@ class BaseTrainer:
 
         if restore_step != 0:
             self.restore_checkpoint(restore_step) 
+        self.max_step=self.step
 
         self._init_dataset()
         self._init_extra()
@@ -216,21 +218,24 @@ class BaseTrainer:
         #         for param_group in self.optims[k].param_groups:
         #             param_group["lr"] = self.config["optimizer"]["learning_rate"]  
 
-
+        train_mode=self.config.get("train_mode",0)
         for _ in range(self.config["n_epoch"]):
             for batch in self.dataloader:
 
                 batch = batch_to_cuda(batch, self.rank)
-                [self.models[k].requires_grad_(True) for k in self.g_keys]#把g的参数设置为可训练
+                
+                [self.models[k].requires_grad_(True if train_mode==0 or train_mode==2 else False) for k in self.g_keys]#把g的参数设置为可训练
                 [self.models[k].requires_grad_(False) for k in self.i_keys]#把d的参数设置为不可训练
                 loss_dict = self._forward(batch, models, isTrain=True, step=self.step, epoch=self.epoch)
-                self._update_g(loss_dict)
-
+                if train_mode==0 or train_mode==2:
+                    self._update_g(loss_dict)
+                
                 batch = detach_cuda(batch)
-                [self.models[k].requires_grad_(True) for k in self.i_keys]#把d的参数设置为可训练
+                [self.models[k].requires_grad_(True if train_mode==0 or train_mode==2 else False) for k in self.i_keys]#把d的参数设置为可训练
                 [self.models[k].requires_grad_(False) for k in self.g_keys]#把g的参数设置为不可训练
                 loss_dict |=self._forward_independent(batch, models, isTrain=True, step=self.step, epoch=self.epoch)
-                self._update_independent(loss_dict)
+                if train_mode==0 or train_mode==2:
+                    self._update_independent(loss_dict)
 
 
                 self.check_log(loss_dict) 
@@ -404,6 +409,8 @@ class BaseTrainer:
             [self.reset_model_parameters(self.models[k]) for k in self.i_keys]
             
         
+
+
     def _init_extra(self):
         self.extra = {}
 

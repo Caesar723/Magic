@@ -10,23 +10,21 @@ def to_cuda(value,rank):
     if torch.cuda.is_available():
         return value.to(rank)
     elif torch.backends.mps.is_available():
-        return value.to(torch.device("mps"))
+        if value.dtype == torch.float64:
+            return value.to(torch.device("mps"), dtype=torch.float32)
+        else:
+            return value.to(torch.device("mps"))
     else:
         return value.cpu()
 def batch_to_cuda(batch, rank):
     for k in batch:
         if type( batch[k] ) is torch.Tensor:
             
-            if torch.cuda.is_available():
-                batch[k] = batch[k].to(rank)
-            elif torch.backends.mps.is_available():
-                if batch[k].dtype == torch.float64:
-                    batch[k] = batch[k].to(torch.device("mps"), dtype=torch.float32)
-                else:
-                    batch[k] = batch[k].to(torch.device("mps"))
+            batch[k] = to_cuda(batch[k],rank)
+        elif type( batch[k] ) is dict:
+            for kk in batch[k]:
+                batch[k][kk] = to_cuda(batch[k][kk],rank)
 
-            else:
-                batch[k] = batch[k].cpu()
         
     return batch 
 

@@ -7,6 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.instant import Instant
 from game.game_function_tool import select_object
+from game.buffs import StateBuff,KeyBuff
 
 
 class Verdant_Surge(Instant):
@@ -28,4 +29,14 @@ class Verdant_Surge(Instant):
 
 
 
-        
+    @select_object("all_creatures",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        if selected_object:
+            creature=selected_object[0]
+            buff=StateBuff(self,creature,3,3)
+            buff.set_end_of_turn()
+            creature.gain_buff(buff,self)
+            if creature.type_creature=="Druid":
+                buff=KeyBuff(self,creature,"Trample")
+                buff.set_end_of_turn()
+                creature.gain_buff(buff,self)

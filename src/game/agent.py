@@ -18,14 +18,14 @@ from game.rlearning.utils.model import get_class_by_name
 
 class Agent_Player_Red(Player):
 
-    def __init__(self, name: str,room:"Room",config_path:str=f"{ORGPATH}/game/rlearning/config/white/ppo_new.yaml") -> None:
+    def __init__(self, name: str,room:"Room",config_path:str=f"{ORGPATH}/game/rlearning/config/white/ppo_lstm.yaml") -> None:
         self.config=read_yaml(config_path)
         decks_detail=self.config["cards"]
         self.id_dict={}
         super().__init__(name, decks_detail, room)
 
         self.action_history=[0]
-        self.action_history_length=self.config["action_history_length"]
+        self.action_history_length=self.config.get("action_history_length",1)
 
         
         model_class=get_class_by_name(self.config["trainer"])

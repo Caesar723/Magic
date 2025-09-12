@@ -554,8 +554,8 @@ class Base_Agent_Room(Room):
 
         self.stack:list[tuple]=[]
         self.attacker:Creature=None
-        for task in self.tasks:
-            task.cancel()
+        # for task in self.tasks:
+        #     task.cancel()
         self.tasks=[]
         self.initinal_player(None)
         await self.game_start()
@@ -724,10 +724,11 @@ class Base_Agent_Room(Room):
         for land in agent.land_area:
             score_mana+=sum(land.generate_mana().values())
         score_mana=score_mana/20
+        score_hand=len(agent.hand)/30
 
         #print(score_life_self,score_oppo_self,score_mana,score_battle_self,score_battle_oppo)
 
-        return (score_life_self-score_oppo_self)+score_mana+score_battle_self-score_battle_oppo
+        return score_hand+(score_life_self-score_oppo_self)+score_mana+score_battle_self-score_battle_oppo
 
     def get_reward_life(self,agent:Agent):#返回一个评分
         # if agent.life<=0:
@@ -755,9 +756,11 @@ class Base_Agent_Room(Room):
         score_mana=0
         for land in agent.land_area:
             score_mana+=sum(land.generate_mana().values())
+
+        score_hand=len(agent.hand)/30
         score_mana=score_mana/20
 
-        return (score_life_self-score_oppo_self)+score_mana+score_battle_self-score_battle_oppo
+        return score_hand+(score_life_self-score_oppo_self)+score_mana+score_battle_self-score_battle_oppo
 
     def get_creature_reward(self,card:Creature):
         if card.get_flag("tap") or card.get_flag("summoning_sickness"):

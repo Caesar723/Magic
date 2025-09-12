@@ -8,6 +8,7 @@ import traceback
 #from room_server import RoomServer
 import numpy as np
 import asyncio
+import random
 from game.train_agent import Agent_Train_Red as Agent_Train
 from game.room import Room
 from game.ppo_train import Agent_PPO
@@ -34,18 +35,21 @@ class Multi_Agent_Room(Base_Agent_Room):
     直到agent 做出了 0:end turn的这个动作
     """
 
-    def __init__(self,config_path1:str,config_path2:str) -> None:
+    def __init__(self,config_path:str,config_path_list:list) -> None:
         
-        self.config_path1=config_path1
-        self.config_path2=config_path2
-        self.config1=read_yaml(config_path1)
-        self.config2=read_yaml(config_path2)
+        self.config_path=config_path
+        self.config_path_list=config_path_list
+        self.config=read_yaml(config_path)
+        self.config_list=[read_yaml(config_path) for config_path in config_path_list]
 
-        trainer1=get_class_by_name(self.config1["trainer"])
-        trainer2=get_class_by_name(self.config2["trainer"])
+        trainer1=get_class_by_name(self.config["trainer"])
+        trainer_list=[get_class_by_name(config["trainer"]) for config in self.config_list]
         
-        self.agent1=trainer1(self.config1,self.config1["restore_step"],name="agent1")
-        self.agent2=trainer2(self.config2,self.config2["restore_step"],name="agent2")
+        self.agent1=trainer1(self.config,self.config["restore_step"],name="main")
+        self.agent_list=[
+            trainer(self.config_list[i],self.config_list[i]["restore_step"],name=f"agent{i+1}") 
+            for i,trainer in enumerate(trainer_list)
+        ]
         # self.agent1.load_pth(
         #     "/Users/xuanpeichen/Desktop/code/python/openai/model_complete_act.pth",
         #     "/Users/xuanpeichen/Desktop/code/python/openai/model_complete_val.pth"
@@ -71,8 +75,8 @@ class Multi_Agent_Room(Base_Agent_Room):
 
         players=[(agents_deck,"Agent1"),(agents_deck,"Agent2")]
         
-        self.player_1,self.player_2=Agent_Train(players[0][1],self,self.agent1),\
-                                    Agent_Train(players[1][1],self,self.agent2)
+        self.player_1=Agent_Train(players[0][1],self,self.agent1)
+        self.player_2=Agent_Train(players[1][1],self,self.agent_list[random.randint(0,len(self.agent_list)-1)])
         
         self.player_1.set_opponent_player(self.player_2,self)
         self.player_2.set_opponent_player(self.player_1,self)
@@ -85,6 +89,14 @@ class Multi_Agent_Room(Base_Agent_Room):
             players[0][1]:None,
             players[1][1]:None
         }
+        self.player_2.agent.restore_checkpoint(self.get_random_restore_step(self.player_2))
+
+    def get_random_restore_step(self,agent:Agent_Train):
+        save_step=agent.agent.config["save_step"]
+        max_restore=max(int(agent.agent.max_step//save_step)-1,0)
+        random_restore=random.randint(0,max_restore)
+        return random_restore*save_step
+       
 
     
     
@@ -113,14 +125,15 @@ class Multi_Agent_Room(Base_Agent_Room):
             #print(action)
             reward_func=await self.process_action(agent_oppo,action_oppo)
 
-            if action_oppo!=0:
-                await agent_oppo.store_data(state,action_oppo,reward_func)
-            else:
-                async def store_data_func():
-                    
+            if agent_oppo==self.player_1:
+                if action_oppo!=0:
                     await agent_oppo.store_data(state,action_oppo,reward_func)
-                agent_oppo.add_pedding_store_task(store_data_func)
-            
+                else:
+                    async def store_data_func():
+                        
+                        await agent_oppo.store_data(state,action_oppo,reward_func)
+                    agent_oppo.add_pedding_store_task(store_data_func)
+                
         elif action!=0:
             await self.end_bullet_time()
         elif action==0:
@@ -140,6 +153,8 @@ class Multi_Agent_Room(Base_Agent_Room):
             # else:
                 
             new_reward=current_reward-old_reward
+            if action==0:
+                new_reward/=10
             new_reward=max(min(new_reward,0.8),-0.8)
             #await self.check_death()
             die_player=await self.check_player_die()
@@ -147,7 +162,7 @@ class Multi_Agent_Room(Base_Agent_Room):
             
             if die_player and agent.life<=0:
                 
-                new_reward=(-1+current_reward)/2
+                new_reward=-1
 
                 #if flag:
                 # print("lose",action,message,agent.life,org_state,self,self.gamming,new_reward)
@@ -155,7 +170,7 @@ class Multi_Agent_Room(Base_Agent_Room):
                 # print("".join(traceback.format_stack()))
             elif die_player:
                 
-                new_reward=(1+current_reward)/2
+                new_reward=1
                 # print("win",action,message,agent.life,org_state,self,self.gamming,new_reward)
                 # print("traceback.format_stack():")
                 # print("".join(traceback.format_stack()))
@@ -275,18 +290,19 @@ class Multi_Agent_Room(Base_Agent_Room):
                 oppo_agent:Agent_Train=agent.opponent
 
                 #print(agent.name,mask,action)
-
-                if action!=0:
-                    await agent.store_data(state,action,reward_func)
-                else:
-                    #print("store_data_func",action)
+                if agent==self.player_1:
                     
-                    async def store_data_func(agent=agent,state=state,action=action,reward_func=reward_func):
-                        #print("store_data_func",action,id(store_data_func),id(reward_func),id(state))
+                    if action!=0:
                         await agent.store_data(state,action,reward_func)
-                    #print("store_data_func",action,id(store_data_func),id(reward_func),id(state))
-                    agent.add_pedding_store_task(store_data_func)
-                
+                    else:
+                        #print("store_data_func",action)
+                        
+                        async def store_data_func(agent=agent,state=state,action=action,reward_func=reward_func):
+                            #print("store_data_func",action,id(store_data_func),id(reward_func),id(state))
+                            await agent.store_data(state,action,reward_func)
+                        #print("store_data_func",action,id(store_data_func),id(reward_func),id(state))
+                        agent.add_pedding_store_task(store_data_func)
+                    
                 await self.check_death()
                 #print(len(agent.agent.reward),len(oppo_agent.agent.reward))
                 # if len(agent.agent.reward)>=1024 and len(oppo_agent.agent.reward)>=1024:
@@ -294,8 +310,11 @@ class Multi_Agent_Room(Base_Agent_Room):
                 #     agent.update()
                 #     oppo_agent.update()
                 #     break
-                agent.update()
-                oppo_agent.update()
+                if agent==self.player_1:
+                    agent.update()
+                else:
+                    oppo_agent.update()
+                
             #print("finish")
             self.gamming=True
             await self.initinal_environmrnt()
@@ -354,8 +373,12 @@ async def tasks(room):
 async def main():
     
     room=Multi_Agent_Room(
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm.yaml",
+        [
         "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new.yaml",
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo2.yaml"
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new2.yaml",
+        
+        ]
     )
     
     await room.game_start()
