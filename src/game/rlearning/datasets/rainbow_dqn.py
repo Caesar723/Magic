@@ -1,5 +1,8 @@
+from jinja2 import pass_context
 import torch
 import numpy as np
+from collections import deque
+import random
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from game.rlearning.utils.baseDataset import BaseDataset
@@ -46,13 +49,73 @@ def _collate_batch(batch, s_keys, g_keys,extra_keys=[]):
     return collate_batch
 
 
-class PPOAgentDataset(BaseDataset):
+class RainbowDQNDataset(BaseDataset):
     def __init__(self, config):
         super().__init__(config)
-        
+        self.capacity = config["rainbowdqn"]["tree_capacity"]
+        self.tree = np.zeros(2 * self.capacity - 1, dtype=np.float32)
+        self.datatree = [None] * self.capacity
+        self.nstep_buffer = deque(maxlen=config["rainbowdqn"]["nstep"])
+        self.write = 0
+        self.n_entries = 0
+        self.max_priority = config["rainbowdqn"]["max_priority"]
 
-    def normalize_adv(self,adv:torch.Tensor):
-        return ((adv - adv.mean()) / (adv.std() + 1e-5))
+    def get_tree_idx(self, s):
+        idx = 0
+        while True:
+            left = 2 * idx + 1
+            right = left + 1
+            if left >= len(self.tree):
+                return idx
+            if s <= self.tree[left]:
+                idx = left
+            else:
+                s -= self.tree[left]
+                idx = right
+    
+    def __len__(self):
+        return self.n_entries
+
+    def __getitem__(self, idx):
+        #print(idx)
+        total = self.tree[0]
+        seg = total / self.config["dataloader"]["batch_size"]
+        i = idx % self.config["dataloader"]["batch_size"]
+        #print(i)
+
+        s = random.uniform(seg*i, seg*(i+1))
+        idx = self.get_tree_idx(s)
+        data_idx = idx - self.capacity + 1
+        # print(self.tree)
+        # print(s)
+        # print(idx)
+        # print(data_idx)
+        data = self.datatree[data_idx]
+        #print(data)
+        data["idxs"] = idx
+        data["priorities"] = self.tree[idx]
+
+        return self.get_sample_preprocess(data,extra_keys=["state"]) 
+
+    def add_to_tree(self, data,p):
+        idx = self.write + self.capacity - 1
+        self.datatree[self.write] = data
+        self.update_tree(idx, p)
+        self.write = (self.write + 1) % self.capacity
+        self.n_entries = min(self.capacity, self.n_entries + 1)
+
+    def update_tree(self, idx, p):
+        change = p - self.tree[idx]
+        self.tree[idx] = p
+        while idx != 0:
+            idx = (idx - 1) // 2
+            self.tree[idx] += change
+
+    def update_priority(self, idxs, priorities):
+        for idx, p in zip(idxs, priorities):
+            self.update_tree(idx, p ** self.config["rainbowdqn"]["alpha"])
+            self.max_priority = max(self.max_priority, p)
+
 
     def get_sample(self, data):
         
@@ -81,23 +144,55 @@ class PPOAgentDataset(BaseDataset):
         return data
 
 
-    def advantage_cal(self,delta:torch.Tensor,done:torch.Tensor):
-        advantage_list=[]
-        advantage=0
-        #print(delta.cpu().numpy())
-        for reward,done in zip(delta.cpu().numpy()[::-1],done.cpu().numpy()[::-1]):
-            if done:
-                advantage=0
-            advantage=reward+self.config["ppo"]["lambd"]*self.config["ppo"]["gamma"]*advantage
-            # print(advantage)
-            # print()
-            advantage_list.insert(0,advantage)
-        #print(advantage_list)
-        return np.array(advantage_list)
-    
+   
+
+    def store_data(self, data):
+        data_batch={
+            "state": data["state"],
+            "action": data["action"],
+            "reward": data["reward"],
+            "next_state": data["next_state"],
+            "done": data["done"],
+            "global_reward": data["global_reward"]
+        }
+        self.nstep_buffer.append(data_batch)
+        self.datas.append(data_batch)
+
+        if len(self.nstep_buffer) < self.config["rainbowdqn"]["nstep"]:
+            return
+
+        nstep_data = self._get_n_step()
+        self.add_to_tree(nstep_data,self.max_priority ** self.config["rainbowdqn"]["alpha"])
+        if self.pbar is not None:
+            self.pbar.n = self.n_entries
+            self.pbar.refresh()
+            if self.n_entries > self.config.get("max_store", 1000):
+                self.pbar.close()
+                self.pbar=None
+
+    def clear_data(self):
+        super().clear_data()
+        self.n_entries=0
+
+
+    def _get_n_step(self):
+        R = 0.0
+        for i, trans in enumerate(self.nstep_buffer):
+            R += (self.config["rainbowdqn"]["gamma"] ** i) * trans["reward"]
+            if trans["done"]:
+                break
+        return {
+            "state":self.nstep_buffer[0]["state"],
+            "action":self.nstep_buffer[0]["action"],
+            "reward":R,
+            "next_state":self.nstep_buffer[i]["next_state"],
+            "done":self.nstep_buffer[i]["done"],
+            "global_reward": self.nstep_buffer[i]["global_reward"]
+        }
+                
     @torch.no_grad()
     def data_preprocess(self,trainer):
-        
+
         batch_extra=_collate_batch(
             self.datas,["global_reward"],["reward","done","action"]
         )
@@ -107,52 +202,13 @@ class PPOAgentDataset(BaseDataset):
 
         success_reward=batch_extra["reward"][batch_extra["done"]==1].cpu().numpy()
         success_rate=sum((success_reward+1)/2)/len(success_reward)
+        # print(batch_extra["action"])
+        # print(success_reward,batch_extra["done"])
+
         log.SW.add_scalars( f"global_reward", {trainer.name:batch_extra["global_reward"]}, trainer.step) 
         log.SW.add_scalars( f"reward_train", {trainer.name:reward_train}, trainer.step) 
         log.SW.add_scalars( f"success_rate", {trainer.name:success_rate}, trainer.step) 
         
-        
-        batch_extra["action"]=batch_extra["action"].unsqueeze(-1)
-        batch_extra["reward"]=batch_extra["reward"].unsqueeze(-1)
-        batch_extra["done"]=batch_extra["done"].unsqueeze(-1)
-        print(batch_extra["done"])
-        
-        
-
-
-        
-        state_result=trainer.choose_action(self.datas,["state"])
-        next_state_result=trainer.choose_action(self.datas,["next_state"])
-
-        batch_extra["done"]=batch_extra["done"].to(torch.int32)
-        
-        batch_extra=batch_to_cuda(batch_extra,0)
-        delta=batch_extra["reward"]+self.config["ppo"]["gamma"]*next_state_result["value"]*(1-batch_extra["done"])-state_result["value"]
-        
-        advantage=self.advantage_cal(delta,batch_extra["done"])
-
-        advantage=to_cuda(torch.FloatTensor(advantage).detach(),0)
-        rewards=advantage+state_result["value"]
-        advantage=self.normalize_adv(advantage)
-        clip_value=self.config["ppo"].get("clip_value_advantage",50.0)
-        advantage=torch.clamp(advantage,-clip_value,clip_value)
-        
-        old_prob_log=state_result["dist"].log_prob(batch_extra["action"].squeeze(-1))
-
-
-        advantage=advantage.cpu()
-        rewards=rewards.cpu()
-        old_prob_log=old_prob_log.cpu()
-        old_actions=state_result["actions"].cpu()
-
-        print(advantage.shape,rewards.shape,old_prob_log.shape)
-        
-        for i in range(len(self.datas)):
-            self.datas[i]["advantage"]=advantage[i]
-            self.datas[i]["rewards_adv"]=rewards[i]
-            self.datas[i]["old_prob_log"]=old_prob_log[i]
-            self.datas[i]["old_actions"]=old_actions[i]
-
         return self.datas
     
     
@@ -208,9 +264,20 @@ class PPOAgentDataset(BaseDataset):
         batch_state=self.collate_state(
             batch,["state"]
         )
-        batch_extra=_collate_batch(batch,[],["action","advantage","rewards_adv","old_prob_log","old_actions"])
+        batch_next_state=self.collate_state(
+            batch,["state"]
+        )
+        batch_extra=_collate_batch(batch,["idxs","priorities"],["action","done","reward"])
+        total = self.tree[0]
+        probs = np.array(batch_extra["priorities"]) / total
+        weights = (len(self.tree.data) * probs) ** (-self.config["dataloader"]["beta"])
+        weights /= weights.max()
 
-        batch_state.update(batch_extra)
+        batch_extra["weights"]=torch.from_numpy(weights)
+        batch_extra["state"]=batch_state
+        batch_extra["next_state"]=batch_next_state
         
 
-        return batch_state
+        return batch_extra
+
+   

@@ -14,29 +14,45 @@ class PPOTrainer(BaseTrainer):
     def _forward(self, batch, models, isTrain, step, epoch):
 
         batch=self.predict(batch,models,isTrain,step,epoch)
+        #print(batch["action"])
+        batch["new_prob_log"]=batch["dist"].log_prob(batch["action"].squeeze(-1))
+
         total_loss=0
 
         loss={}
         
 
-        if self.config["w_val_loss"]>0:
+        if self.config.get("w_val_loss",0)>0:
             val_loss=F.mse_loss(batch["rewards_adv"].detach(),batch["value"])
             total_loss+=self.config["w_val_loss"]*val_loss
             loss["val_loss"]=val_loss
 
-        if self.config["w_act_loss"]>0:
-            new_prob_log=batch["dist"].log_prob(batch["action"].squeeze(-1))
-            rate=torch.exp(new_prob_log-batch["old_prob_log"].detach()).unsqueeze(1)
+        if self.config.get("w_act_loss",0)>0:
+            
+            rate=torch.exp(batch["new_prob_log"]-batch["old_prob_log"].detach()).unsqueeze(1)
 
             adv = batch["advantage"].detach()
             surr1=rate*adv
             surr2=torch.clamp(rate,1-self.config["ppo"]["clip_para"],1+self.config["ppo"]["clip_para"])*adv
             
-            act_loss=-torch.min(surr1,surr2).squeeze(1)-0.01*batch["entropy"]
+            act_loss=-torch.min(surr1,surr2).squeeze(1)#-0.01*batch["entropy"]
             act_loss=act_loss.mean()
 
             total_loss+=self.config["w_act_loss"]*act_loss
             loss["act_loss"]=act_loss
+
+        if self.config.get("w_kl_loss",0)>0:
+            old_dist=torch.distributions.Categorical(batch["old_actions"])
+            kl_per_state = torch.distributions.kl.kl_divergence(old_dist, batch["dist"])
+            #print(kl_per_state,kl_per_state.shape)
+            kl_loss=kl_per_state.mean()
+            total_loss+=self.config["w_kl_loss"]*kl_loss
+            loss["kl_loss"]=kl_loss
+
+        if self.config.get("w_entropy_loss",0)>0:
+            entropy_loss=-batch["entropy"]
+            total_loss+=self.config["w_entropy_loss"]*entropy_loss
+            loss["entropy_loss"]=entropy_loss
 
 
         loss["total_loss"]=total_loss

@@ -3,8 +3,8 @@
 # Common
 ###########################
 
-log_dir: "ppo/ppo_white_lstm_n02_v02"
-restore_step: 474000
+log_dir: "dqn/rainbowdqn_white_lstm_n02_v01"
+restore_step: 0
 new_version: True
 #------------------------------------
 action_history_length: 10
@@ -19,37 +19,43 @@ cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Cre
 seed: 1247
 max_store: 1024
 #------------------------------------
-dataset_class_name: "game.rlearning.datasets.ppo_agent_lstm.PPOAgentDataset"
+dataset_class_name: "game.rlearning.datasets.rainbow_dqn.RainbowDQNDataset"
 dataloader:
   batch_size: 32
   num_workers: 0
+  beta: 0.4
+  shuffle: False
 
 dataset_multiple: 10
 
 
 #------------------------------------
-trainer: "game.rlearning.module.ppo_agent_lstm.PPOTrainer"
+trainer: "game.rlearning.module.rainbow_dqn.RainbowDQNTrainer"
 
-w_val_loss: 0.5
-w_act_loss: 0.5
-w_kl_loss: 0.25
-w_entropy_loss: 0.0
+w_q_loss: 1.0
 
-ppo:
+
+rainbowdqn:
+  tree_capacity: 100000
   gamma: 0.99
   lambd: 0.95
-  clip_para: 0.2
-  clip_value_adv: 5.0
+  alpha: 0.6
+  max_priority: 1.0
+  nstep: 3
+  v_min: -10
+  v_max: 10
+  atom_size: 51
   
 
 
 
 optimizer:
-  learning_rate: 1.0e-6
+  learning_rate: 1.0e-4  
   betas: [0.8, 0.99]
   eps: 1.0e-9 
   grad_clip_thresh: 1.0
   n_warmup_steps: 0
+  
 
 scheduler:
   step_size: 200
@@ -68,6 +74,7 @@ synthesis_items: 20
 save_step: 2000
 epochs: 5
 n_epoch: 15
+target_update_interval: 1000
 ###########################
 #  Model 
 ###########################
@@ -90,7 +97,7 @@ shared_card_cfg: &shared_card_cfg
   card_embed_dim: 128
   
   
-
+action_dim: &action_dim 1342
 
 
 model:
@@ -135,7 +142,7 @@ model:
 
   ActionEmbed:
     class_name: 'game.rlearning.net.embed.ActionEmbed'
-    action_dim: 1342
+    action_dim:  *action_dim
     action_embed_dim: 128
     is_g: False
 
@@ -151,18 +158,20 @@ model:
     history_embed_dim: 128
     
 
-  Actor:
-    class_name: 'game.rlearning.net.ppo.Actor'
+  Online:
+    class_name: 'game.rlearning.net.rainbow_dqn.RainbowMLP'
     input_dim: 688
     hidden_dim: 512
-    output_dim: 1342
-    deep: 5
-  Critic:
-    class_name: 'game.rlearning.net.ppo.Critic'
+    atom_size: 51
+    output_dim:  *action_dim
+    deep: 3
+  Target:
+    class_name: 'game.rlearning.net.rainbow_dqn.RainbowMLP'
     input_dim: 688
     hidden_dim: 512
-    output_dim: 1
-    deep: 5
+    atom_size: 51
+    output_dim:  *action_dim
+    deep: 3
   
 
     

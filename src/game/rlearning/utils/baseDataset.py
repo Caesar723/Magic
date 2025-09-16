@@ -11,9 +11,7 @@ class BaseDataset(Dataset):
         self.datas=[]
         self.pbar = tqdm(total=self.config.get("max_store", 1000), desc="Storing Samples", unit="sample")
 
-    def clear_data(self):
-        self.datas=[]
-
+    
     def store_data(self, data):
         data_batch={
             "state": data["state"],
@@ -50,13 +48,14 @@ class BaseDataset(Dataset):
         for k in extra_keys:
             pre_data = pre_data[k]
         self.get_sample(pre_data)
+        #print(data)
         return data
 
     def collate_fn(self, batch):
         pass
 
     def is_full(self):
-        if len(self.datas) > self.config.get("max_store", 1000):
+        if self.__len__() > self.config.get("max_store", 1000):
             return True
         return False
 

@@ -18,7 +18,7 @@ from game.rlearning.utils.model import get_class_by_name
 
 class Agent_Player_Red(Player):
 
-    def __init__(self, name: str,room:"Room",config_path:str=f"{ORGPATH}/game/rlearning/config/white/ppo_lstm.yaml") -> None:
+    def __init__(self, name: str,room:"Room",config_path:str=f"{ORGPATH}/game/rlearning/config/white/ppo_lstm2.yaml") -> None:
         self.config=read_yaml(config_path)
         decks_detail=self.config["cards"]
         self.id_dict={}
@@ -32,12 +32,25 @@ class Agent_Player_Red(Player):
         self.agent=model_class(self.config,self.config["restore_step"],name="agent1")
         self.select_content:str=f'{name}|cancel'
                 
-    def choose_action(self,state):
-        action=self.agent.choose_action([state])["action"]
+    def choose_action(self,state,isTrain=False):
+        action=self.agent.choose_action([state],isTrain=isTrain)["action"]
+        if action==0:
+            self.add_action_history(action)
+        elif action==1:
+            pass
+        elif action>=2 and action<=11:
+            self.add_action_history(action-1)
+        elif action>=12 and action<=21:
+            self.add_action_history(action-1)
+        else:
+            history_action=22+((action-22)//33)
+            self.add_action_history(history_action-1)
+
+        return action
+    def add_action_history(self,action:int):
         self.action_history.append(action)
         if len(self.action_history)>self.action_history_length:
             self.action_history.pop(0)
-        return action
 
     def get_action_history(self):
         return list(self.action_history)

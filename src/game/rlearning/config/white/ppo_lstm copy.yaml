@@ -3,8 +3,8 @@
 # Common
 ###########################
 
-log_dir: "ppo/ppo_white_lstm_n02_v02"
-restore_step: 474000
+log_dir: "ppo/ppo_white_lstm_n02_v01_test"
+restore_step: 0 #420000
 new_version: True
 #------------------------------------
 action_history_length: 10
@@ -17,7 +17,7 @@ cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Cre
 #  Train 
 ###########################
 seed: 1247
-max_store: 1024
+max_store: 124
 #------------------------------------
 dataset_class_name: "game.rlearning.datasets.ppo_agent_lstm.PPOAgentDataset"
 dataloader:
@@ -32,20 +32,18 @@ trainer: "game.rlearning.module.ppo_agent_lstm.PPOTrainer"
 
 w_val_loss: 0.5
 w_act_loss: 0.5
-w_kl_loss: 0.25
-w_entropy_loss: 0.0
+
 
 ppo:
   gamma: 0.99
   lambd: 0.95
   clip_para: 0.2
-  clip_value_adv: 5.0
   
 
 
 
 optimizer:
-  learning_rate: 1.0e-6
+  learning_rate: 2.0e-4  
   betas: [0.8, 0.99]
   eps: 1.0e-9 
   grad_clip_thresh: 1.0

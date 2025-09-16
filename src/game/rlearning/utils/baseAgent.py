@@ -187,7 +187,7 @@ class BaseTrainer:
                                 collate_fn=self.dataset.collate_fn, 
                                 num_workers=config["dataloader"]["num_workers"],
                                 drop_last=True,
-                                shuffle=True) 
+                                shuffle=config["dataloader"].get("shuffle",True)) 
 
     def store(self,data):
         self.dataset.store_data(data)
@@ -212,12 +212,7 @@ class BaseTrainer:
 
         print( f"Rank {self.rank}, start training" ) 
 
-        # # reset learning rate
-        # if self.config.get("reset_learning_rate", False):
-        #     for k in self.optims:
-        #         for param_group in self.optims[k].param_groups:
-        #             param_group["lr"] = self.config["optimizer"]["learning_rate"]  
-
+        
         train_mode=self.config.get("train_mode",0)
         for _ in range(self.config["n_epoch"]):
             for batch in self.dataloader:
@@ -311,6 +306,13 @@ class BaseTrainer:
 
         if self.rank == 0:
             log.info( f"Restore model from {cpg}, {cpd}" ) 
+
+        # # reset learning rate
+        if self.config.get("reset_learning_rate", False):
+            for k in self.optims:
+                for param_group in self.optims[k].param_groups:
+                    param_group["lr"] = self.config["optimizer"]["learning_rate"]  
+
 
 
     def save_checkpoint(self, suffix=None): 
@@ -473,7 +475,9 @@ class BaseTrainer:
 
 
     @torch.no_grad()
-    def choose_action(self,batch,extra_keys=[]):#如果是一个动作记得加[batch]
+    def choose_action(self,batch,extra_keys=[],isTrain=False):#如果是一个动作记得加[batch]
+        models = self.models
+        [ models[k].train() if isTrain else models[k].eval() for k in models ] 
         if "mask" in batch[0]:
             mask=batch[0]["mask"]
         else:
@@ -481,7 +485,7 @@ class BaseTrainer:
         batch=[self.dataset.get_sample_preprocess(b,extra_keys) for b in batch]
         batch=self.dataset.collate_state(batch,extra_keys)
         batch=batch_to_cuda(batch, self.rank)
-        batch=self.predict(batch,self.models,False,self.step,self.epoch)
+        batch=self.predict(batch,models,False,self.step,self.epoch)
         actions=batch['actions']
         
         if mask is not None:

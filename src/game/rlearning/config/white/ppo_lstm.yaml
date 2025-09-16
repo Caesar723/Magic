@@ -4,7 +4,7 @@
 ###########################
 
 log_dir: "ppo/ppo_white_lstm_n02_v01"
-restore_step: 0
+restore_step: 420000
 new_version: True
 #------------------------------------
 action_history_length: 10
@@ -145,7 +145,7 @@ model:
 
   HistoryEmbed:
     class_name: 'game.rlearning.net.embed.HistoryEmbed'
-    history_dim: 1342
+    history_dim: 61
     history_embed_dim: 128
     
 

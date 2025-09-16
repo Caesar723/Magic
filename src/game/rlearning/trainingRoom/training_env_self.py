@@ -117,7 +117,7 @@ class Multi_Agent_Room(Base_Agent_Room):
             mask=self.create_action_mask(agent_oppo)
             state["mask"]=mask
             #print(mask)
-            action_oppo= agent_oppo.choose_action(state)
+            action_oppo= agent_oppo.choose_action(state,isTrain=True)
             #print(action)
             reward_func=await self.process_action(agent_oppo,action_oppo)
 
@@ -149,17 +149,18 @@ class Multi_Agent_Room(Base_Agent_Room):
             # else:
                 
             new_reward=current_reward-old_reward
+            new_reward/=10
             if action==0:
                 new_reward/=50
-            new_reward=max(min(new_reward,0.8),-0.8)
+            new_reward=max(min(new_reward,0.3),-0.3)
             #await self.check_death()
             die_player=await self.check_player_die()
             
-            
+            done=False
             if die_player and agent.life<=0:
                 
                 new_reward=-1
-
+                done=True
                 #if flag:
                 # print("lose",action,message,agent.life,org_state,self,self.gamming,new_reward)
                 # print("traceback.format_stack():")
@@ -167,12 +168,14 @@ class Multi_Agent_Room(Base_Agent_Room):
             elif die_player:
                 
                 new_reward=1
+                done=True
                 # print("win",action,message,agent.life,org_state,self,self.gamming,new_reward)
                 # print("traceback.format_stack():")
                 # print("".join(traceback.format_stack()))
-
+            if action==1:
+                done=False
             
-            return self.get_new_state(agent),new_reward,self.gamming,current_reward
+            return self.get_new_state(agent),new_reward,done,current_reward
         return next_state_function
         
     
@@ -278,7 +281,7 @@ class Multi_Agent_Room(Base_Agent_Room):
                 mask=self.create_action_mask(agent)
                 state["mask"]=mask
                 
-                action=agent.choose_action(state)
+                action=agent.choose_action(state,isTrain=True)
                 #print(action)
                 
                 reward_func=await self.process_action(agent,action)
@@ -377,7 +380,7 @@ async def tasks(room):
 async def main():
     
     room=Multi_Agent_Room(
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm2.yaml",
     )
     
     await room.game_start()
