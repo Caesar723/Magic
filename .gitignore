@@ -20,5 +20,8 @@ src/user_cache/Land/
 src/user_cache/Instant/
 src/user_cache/Sorcery/
 
-checkpoints
+
+
+checkpoints/*
+!checkpoints/.gitkeep
 src/game/game_records
