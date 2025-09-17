@@ -60,7 +60,7 @@
 </head>
 <body>
     
-    <div class="overlay">
+    <div id="overlay" class="overlay">
         <div id="canvasContainer">
             <canvas id="myCanvas" tabindex="0"></canvas>
         </div>
@@ -89,6 +89,14 @@
               </button>
             <input type="range" id="progress_bar" value="0" min="0" max="100" step="1">
             <span id="progress_value">0</span>
+        </div>
+    </div>
+    <div id="replay_area">
+        <div id="expand_button" class="toggle-btn">
+            ≡
+        </div>
+        <div id="replay_list" class="panel">
+
         </div>
     </div>
     <script src="webpages/gaming_page/start_game.js"></script>

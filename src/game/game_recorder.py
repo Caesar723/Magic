@@ -20,10 +20,11 @@ class GameRecorder:
         self.game_room=room
         self.game_player=player
         if start_record:
-            self.reset_save_flag
+            self.reset_save_flag()
         else:
             self.save_flag=True
 
+        
         
 
     def reset_save_flag(self):

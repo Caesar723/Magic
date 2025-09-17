@@ -15,7 +15,82 @@ class Game_Player{
         this.message_processor=message_processor
         this.room=room
         this.current_timeout=null
+        this.set_replay_records()
         this.init_listen()
+    }
+    parseFilename(file) {
+        const base = file.replace(/\.mgf$/, "");
+        const parts = base.split("_");
+        const self_name = parts[0];
+        const opponent_name = parts[1];
+        const datetime = parts.slice(2).join("_");
+        return { self_name, opponent_name, datetime };
+    }
+
+    async set_replay_records(){
+        try{
+        const response=await fetch(
+            `/get_replay_records`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            }
+        );
+        const data=await response.json();
+        console.log(data)
+        const replayButton=document.getElementById("expand_button")
+        replayButton.addEventListener("click", () => {
+            const myCanvas=document.getElementById("myCanvas")
+            const replayZone=document.getElementById("replay_list")
+            const overlay=document.getElementById("overlay")
+            myCanvas.classList.toggle('active');
+            replayZone.classList.toggle('active');
+            overlay.classList.toggle('active');
+        })
+        for ( const file_name of data.files){
+            const { self_name, opponent_name, datetime } = this.parseFilename(file_name);
+            const record_card=document.createElement("div")
+            record_card.classList.add("record_card")
+            record_card.innerHTML=`
+<div class="record_info">
+      <h2 id="player">${self_name}</h2>
+      <h2 id="opponent">${opponent_name}</h2>
+      <div class="record_time" id="time">${datetime}</div>
+</div>
+<div class="record_buttons">
+      <button class="record_load" >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18l-7 7h4v6h6v-6h4l-7-7z"/></svg>
+      </button>
+      <a href="/download/game_records/${file_name}" download class="record_download">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18v12l5-5h-3V4h-4v5H7l5 5z"/></svg>
+      </a>
+</div>
+            `
+            record_card.querySelector(".record_load").addEventListener("click", async () => {
+                console.log(file_name)
+                const response = await fetch(`/download/game_records/${file_name}`);
+                const blob = await response.blob();
+
+                // 转成 File 对象，补齐 name / lastModified
+                const file = new File([blob], file_name, { type: blob.type });
+                this.handleFile(file)
+                const dropZone=document.getElementById("read_mode")
+                const playZone=document.getElementById("play_mode")
+                dropZone.style.display="none"
+                playZone.style.display="block"
+            })
+            
+            const replayZone=document.getElementById("replay_list")
+            replayZone.appendChild(record_card)
+        }
+        
+        }
+        catch(error){
+            console.error("获取回放记录失败:", error);
+            this.replay_records=[];
+        }
     }
 
     init_listen(){
@@ -111,6 +186,23 @@ class Game_Player{
         console.log(data)
     
         this.load_datas(data)
+    }
+
+    async fetchFile(filename) {
+        
+        try{
+            const response= await fetch(`/download/game_records/${filename}`);
+            const blob = await response.blob();
+      
+            // 转成 File 对象，补齐 name / lastModified
+            const file = new File([blob], filename, { type: blob.type });
+            return file;
+        }
+        catch(error){
+            console.error("下载失败:", error);
+            return;
+        }
+        
     }
 
     async load_datas(datas){

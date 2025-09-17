@@ -548,6 +548,25 @@ async def get_cards_path(username: str = Depends(get_current_user(database))):
             result.append(f"{key}/{card}")
     return {"cards_path":result}
 
+@app.post("/get_replay_records")
+async def get_game_records(username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        return username
+
+    folder_path=f"{ORGPATH}/game/game_records/{username}"
+    if not os.path.exists(folder_path):
+        return {"files": []}
+    files=await aiofiles.os.listdir(folder_path)
+    return {"files":files}
+     
+@app.get("/download/game_records/{filename}")
+async def download_file(filename: str,username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        return username
+    file_path=f"{ORGPATH}/game/game_records/{username}/{filename}"
+    if not os.path.exists(file_path):
+        return {"error": "File not found"}
+    return FileResponse(path=file_path, filename=filename, media_type="application/octet-stream")
 
 
 def main():

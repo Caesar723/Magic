@@ -126,13 +126,13 @@ cipher_suite = Fernet(key)
 ORGPATH=os.path.dirname(os.path.abspath(__file__))
 
 def decrypt_data_by_StaticFiles_server(encrypted_data:str)->str:
-        try:
-            encrypted_data=encrypted_data.encode("utf-8")
-            decrypted_data=cipher_suite.decrypt(encrypted_data)
-            return (decrypted_data).decode("utf-8")
-        except:
-            print("do not login",encrypted_data)
-        
+    try:
+        encrypted_data=encrypted_data.encode("utf-8")
+        decrypted_data=cipher_suite.decrypt(encrypted_data)
+        return (decrypted_data).decode("utf-8")
+    except:
+        print("do not login",encrypted_data)
+    
 
 def encrypt_data_by_StaticFiles_server(text:str)->str:
         encrypted_data=cipher_suite.encrypt(text.encode("utf-8"))
