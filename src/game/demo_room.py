@@ -21,7 +21,7 @@ from game.type_cards.sorcery import Sorcery
 from game.base_agent_room import Base_Agent_Room
 from game.game_recorder import GameRecorder
 
-class PVE_Room(Base_Agent_Room):
+class PVE_Demo_Room(Base_Agent_Room):
     """
     当回合开始的时候，向那个活跃的agent发送做动作的请求
     做好一个动作之后把状态奖励等放入agent里
@@ -47,8 +47,8 @@ class PVE_Room(Base_Agent_Room):
 
         # Agent_para=[(agents_deck,"Agent1")]
         print(self.stack)
-        self.player_1,self.player_2=Agent("Agent1",self),\
-                                    Player(players[0][1],players[0][0],self)
+        self.player_1=Agent("Agent1",self)
+        self.player_2=Player(players[0][1],self.player_1.config["cards"],self)
         self.player_1.set_opponent_player(self.player_2,self)
         self.player_2.set_opponent_player(self.player_1,self)
         self.players:dict={
@@ -61,8 +61,8 @@ class PVE_Room(Base_Agent_Room):
             players[0][1]:None
         }
         self.game_recorder:dict["GameRecorder"]={
-            "Agent1":GameRecorder(self.player_1,self),
-            players[0][1]:GameRecorder(self.player_2,self)
+            "Agent1":GameRecorder(self.player_1,self,start_record=False),
+            players[0][1]:GameRecorder(self.player_2,self,start_record=False)
         }
 
 
@@ -95,13 +95,6 @@ class PVE_Room(Base_Agent_Room):
         else:
             return False
     
-
-
-
-
-        
-
-
 
 
 
@@ -151,7 +144,19 @@ class PVE_Room(Base_Agent_Room):
 
 
 
-
+    async def update_task(self,died_player:list[Player]):
+        if self.get_flag("update_task"):
+            return
+        self.flag_dict["update_task"]=True
+        if len(died_player)==2:
+            for player in died_player:
+                player.flag_dict["win"]=False
+        else:
+            lose_player=died_player[0]
+            win_player=lose_player.opponent
+            win_player.flag_dict["win"]=True
+            lose_player.flag_dict["win"]=False
+        
 
         
 

@@ -62,6 +62,28 @@ async function set_image_slider(){
         lis[li].appendChild(div);
     }
 }
+async function send_match_request(name){
+        
+    const response = await fetch(name, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        
+    });
+    const responseData =await response.json()
+    return responseData
+}
+document.getElementById('demo').addEventListener('click', async function() {
+    var responseData =await send_match_request("/matching_demo")
+        
+
+    if (responseData["state"]=="find!"){
+        window.location.href = '/game_demo';
+    }else{
+        
+    }
+});
 
 function main(){
     

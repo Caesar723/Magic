@@ -9,7 +9,7 @@ if __name__=="__main__":
 import numpy as np
 import asyncio
 
-from game.agent import Agent_Player_Red as Agent
+from game.agent import Agent_Player as Agent
 from game.room import Room
 from game.ppo_train import Agent_PPO
 from game.rlearning.module.ppo_agent import PPOTrainer

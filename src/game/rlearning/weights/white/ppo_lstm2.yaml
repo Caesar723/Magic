@@ -3,7 +3,7 @@
 # Common
 ###########################
 
-log_dir: "ppo/ppo_white_lstm_n02_v02"
+log_dir: "../src/game/rlearning/weights/white"
 restore_step: 474000
 new_version: True
 #------------------------------------

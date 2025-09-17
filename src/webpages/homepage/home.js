@@ -71,6 +71,12 @@ class Home{
             }
             
         });
+
+        document.getElementById('history').addEventListener('click', (event)=> {
+            window.location.href = '/game_replay';
+        });
+
+        
     }
     async start_matching(){
         let cross_flag=true

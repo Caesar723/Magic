@@ -20,7 +20,9 @@ class GameRecorder:
         self.game_room=room
         self.game_player=player
         if start_record:
-            self.reset_save_flag()
+            self.reset_save_flag
+        else:
+            self.save_flag=True
 
         
 
@@ -54,6 +56,7 @@ class GameRecorder:
         self.check_point_datas.append(data)
 
     def message_to_binary(self):
+        
         result={
             "basic_info":{
                 "self_name":self.game_player.name,
@@ -77,8 +80,8 @@ class GameRecorder:
         opponent_name=self.game_player.opponent.name
 
         
-        os.makedirs(f"{ORGPATH}/game/game_records",exist_ok=True)
-        filename=f"{ORGPATH}/game/game_records/{self_name}_{opponent_name}_{time_str}.mgf"
+        os.makedirs(f"{ORGPATH}/game/game_records/{self_name}",exist_ok=True)
+        filename=f"{ORGPATH}/game/game_records/{self_name}/{self_name}_{opponent_name}_{time_str}.mgf"
 
         async with aiofiles.open(filename, "wb") as f:
             await f.write(self.message_to_binary())

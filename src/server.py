@@ -7,6 +7,7 @@ from typing import Union
 from pydantic import ValidationError
 import os
 import aiofiles.os
+import uuid
 
 from server_function_tool import *
 from database import DataBase
@@ -55,7 +56,7 @@ async def login(username: str = Body(...), password: str = Body(...), response: 
 @app.get("/login")
 async def login_form(request: Request):
         print(request)
-        await database.show_all_tables_info()
+        #await database.show_all_tables_info()
         return templates.TemplateResponse(f"/webpages/loginpage/login.html", {"request": request})
 
 
@@ -267,6 +268,40 @@ async def game_page(request: Request, username: str = Depends(get_current_user(d
     # await room_server.create_new_pveroom(client_detail)
     return templates.TemplateResponse(f"webpages/gaming_page/gaming.html", { "request": request,"data": room_server.get_players_name(username)})
 
+@app.post("/matching_demo")
+async def game_page(request: Request, response: Response):
+    data = request.cookies.get("mycookie")
+    name=decrypt_data_by_StaticFiles_server(data)
+    print(name)
+    if not name or name==None:
+        uid=str(uuid.uuid4())
+        name=f"demo_{uid}"
+        cookie_mess=json.dumps({"username":name,"password":"demo"})
+        encrypted_data=encrypt_data_by_StaticFiles_server(cookie_mess)
+        print(encrypted_data)
+        response.set_cookie(key="mycookie",httponly=True, value=encrypted_data, max_age=2592000, path='/')
+    else:
+        name=json.loads(name)["username"]
+    client_detail=("",name)
+    await room_server.create_new_pvedemo_room(client_detail)
+    return {"state":"find!"}
+
+@app.get("/game_demo")
+async def game_demo_page(request: Request):
+   
+    
+    encrypted_data = request.cookies.get("mycookie")
+    print(encrypted_data)
+    cookie_mess=decrypt_data_by_StaticFiles_server(encrypted_data)
+    
+    if not cookie_mess or cookie_mess==None:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+    
+    dic_mess=json.loads(cookie_mess)
+    username=dic_mess["username"]
+    #password=dic_mess["password"]
+    
+    return templates.TemplateResponse(f"webpages/gaming_page/gaming.html", {"request": request, "data": room_server.get_players_name(username)})
 
 @app.get("/game_replay")
 async def game_replay_page(request: Request, username: str = Depends(get_current_user(database))):

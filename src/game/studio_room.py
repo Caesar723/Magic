@@ -1,6 +1,6 @@
 import time
 
-from game.agent import Agent_Player_Red as Agent
+from game.agent import Agent_Player as Agent
 from game.player_agent_room import PVE_Room
 from game.studio_class import generate_creature_class,generate_instant_class,generate_land_class,generate_sorcery_class
 from game.player import Player

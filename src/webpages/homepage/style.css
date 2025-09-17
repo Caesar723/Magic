@@ -303,3 +303,23 @@ body {
     top:20vw !important;
     
 }
+
+
+#functionButtons{
+
+    position: absolute;
+    top: 4.5vw;
+    right: 8vw;
+    width: 10vw;
+    height: 2vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2vw;
+}
+
+.icon-button{
+    cursor: pointer;
+    
+    
+}
