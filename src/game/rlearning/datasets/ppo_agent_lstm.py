@@ -192,6 +192,7 @@ class PPOAgentDataset(BaseDataset):
         batch=_collate_batch(batch,s_keys,g_keys,extra_keys)
 
         batch["action_history_one_hot"]=batch["action_history_one_hot"].to(torch.float32)
+        batch["card_hand_card_matrix"]=batch["card_hand_card_matrix"].to(torch.float32)
         batch["self_life"]=batch["self_life"].to(torch.float32) 
         batch["oppo_life"]=batch["oppo_life"].to(torch.float32) 
 

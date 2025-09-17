@@ -15,7 +15,10 @@ def to_cuda(value,rank):
         else:
             return value.to(torch.device("mps"))
     else:
-        return value.cpu()
+        if value.dtype == torch.float64:
+            return value.cpu().to(torch.float32)
+        else:
+            return value.cpu()
 def batch_to_cuda(batch, rank):
     for k in batch:
         if type( batch[k] ) is torch.Tensor:
