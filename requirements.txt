@@ -101,3 +101,6 @@ wsproto==1.2.0
 yarl==1.9.2
 matplotlib==3.9.1
 RestrictedPython==7.4
+loguru==0.7.3
+tensorboard==2.19.0
+Jinja2==3.1.3

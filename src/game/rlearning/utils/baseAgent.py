@@ -22,7 +22,7 @@ from game.rlearning.utils.file import read_symbol_link, save_yaml, set_symbol_li
 import game.rlearning.utils.log as log 
 from game.rlearning.utils.data import batch_to_cuda,detach_cuda
 from game.rlearning.utils.common import CHECKPOINT_ROOT_PATH
-
+from game.game_function_tool import ORGPATH
 
 def nested_get(d, keys):
     for k in keys:
@@ -121,7 +121,7 @@ class BaseTrainer:
             self.models_test[k].load_state_dict(self._models[k].state_dict())  
             
         
-        self.logdir = f'{CHECKPOINT_ROOT_PATH}/{config["log_dir"]}'
+        self.logdir = f'{ORGPATH}/../{CHECKPOINT_ROOT_PATH}/{config["log_dir"]}'
         if rank == 0: 
             if name=="main":
                 log.init(self.logdir)
