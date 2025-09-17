@@ -1,0 +1,94 @@
+#game_player {
+    top: 10px;
+    position: absolute;
+    z-index: 1000;
+}
+#read_mode {
+    border: 2px dashed #4a90e2;
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    color: #4a90e2;
+    cursor: pointer;
+    transition: background 0.3s, border-color 0.3s;
+    width: 300px;
+    height: 50px;
+    background: white;
+    z-index: 1000;
+  }
+
+  #read_mode.dragover {
+    background: #e6f0ff;
+    border-color: #0066cc;
+  }
+
+  #read_mode p {
+    margin: 0;
+    font-size: 16px;
+  }
+
+
+  #play_mode {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 400px;
+    padding: 16px 24px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  /* 播放按钮 */
+  #play_button {
+    border: none;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+    font-size: 20px;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  #play_button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(79,172,254,0.6);
+  }
+
+  /* 进度条 */
+  #progress_bar {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 8px;
+    border-radius: 8px;
+    background: #ddd;
+    outline: none;
+    cursor: pointer;
+    width: 300px;
+
+    
+  }
+
+  #progress_bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #4facfe;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+  }
+
+  #progress_bar::-webkit-slider-thumb:hover {
+    background: #00f2fe;
+    transform: scale(1.2);
+  }
+
+  #progress_value {
+    min-width: 30px;
+    text-align: center;
+    font-weight: bold;
+    color: #cacaca;
+  }

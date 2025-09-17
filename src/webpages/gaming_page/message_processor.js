@@ -311,17 +311,17 @@ class Message_Processor{
     }
     initinal_all(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_oppo,len_deck_self,len_deck_oppo,your_turn,auto_pass){
         // console.log(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_oppo,len_deck_self,len_deck_oppo,your_turn)
-        
+        this.client.action_bar.actions_cache=[]
         const self_player=this.client.self_player
         const oppo_player=this.client.oppo_player
 
         self_player.cards=[]
         for (let card of self_hand){
-            self_player.cards.push(card)
+            self_player.cards.push(Animation.check_hand(card,false))
         }
         oppo_player.cards=[]
         for (let card of oppo_hand){
-            oppo_player.cards.push(card)
+            oppo_player.cards.push(Animation.check_hand(card,false))
         }
         this.client.table.self_battlefield=[]
         for (let card of self_battle){

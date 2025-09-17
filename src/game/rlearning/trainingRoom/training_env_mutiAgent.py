@@ -22,6 +22,7 @@ from game.type_cards.land import Land
 from game.type_cards.sorcery import Sorcery
 from game.rlearning.utils.file import read_yaml
 from game.base_agent_room import Base_Agent_Room
+from game.game_recorder import GameRecorder
 
 
 
@@ -88,6 +89,10 @@ class Multi_Agent_Room(Base_Agent_Room):
         self.players_socket:dict={
             players[0][1]:None,
             players[1][1]:None
+        }
+        self.game_recorder:dict["GameRecorder"]={
+            players[0][1]:GameRecorder(self.player_1,self),
+            players[1][1]:GameRecorder(self.player_2,self)
         }
         self.player_2.agent.restore_checkpoint(self.get_random_restore_step(self.player_2))
 
@@ -337,6 +342,9 @@ class Multi_Agent_Room(Base_Agent_Room):
 
     async def game_end(self,died_player:list[Agent_Train]):
         self.gamming=False
+        for recorder_key in self.game_recorder:
+            recorder:GameRecorder=self.game_recorder[recorder_key]
+            await recorder.save_binary()
         
         
         

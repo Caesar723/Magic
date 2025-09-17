@@ -25,6 +25,7 @@ from game.card import Card
 from game.type_cards.instant import Instant
 from game.type_cards.creature import Creature
 from game.type_cards.land import Land
+from game.game_recorder import GameRecorder
 
 from pycards.land.Mountain.model import Mountain
 from pycards.land.Swamp.model import Swamp
@@ -124,6 +125,10 @@ class Room:
             players[0][1]:None,
             players[1][1]:None
         }
+        self.game_recorder:dict["GameRecorder"]={
+            players[0][1]:GameRecorder(self.player_1,self),
+            players[1][1]:GameRecorder(self.player_2,self)
+        }
     
     async def game_start(self):# start the game
         players=[self.player_1,self.player_2]
@@ -138,6 +143,10 @@ class Room:
         # self.flag_dict["bullet_time"]=False
         # self.flag_dict["attacker_defenders"]=False
         self.reset_turn_timer()
+
+        for recorder_key in self.game_recorder:
+            recorder:GameRecorder=self.game_recorder[recorder_key]
+            await recorder.store_game_message(self.text(self.players[recorder_key]))
 
         #######test
         #print("发送消息")
@@ -167,6 +176,9 @@ class Room:
             
     async def game_end(self,died_player:list[Player]):
         #self.gamming=False
+        for recorder_key in self.game_recorder:
+            recorder:GameRecorder=self.game_recorder[recorder_key]
+            await recorder.save_binary()
         await self.update_task(died_player)
         self.action_processor.start_record()
         if len(died_player)==2:
@@ -286,11 +298,14 @@ class Room:
 
         for name_player in self.players_socket:
             socket:"WebSocket"=self.players_socket[name_player]
+            #game_recorder:GameRecorder=self.game_recorder[name_player]
             if socket!=None:
                 try:
                     await socket.send_text("end_bullet()")
                 except:
                     pass
+                
+            #await game_recorder.store_game_message("end_bullet()")
 
         key="{}_bullet_time_flag"
         for un in self.players:#username
@@ -376,11 +391,13 @@ class Room:
 
         for name_player in self.players_socket:
             socket:"WebSocket"=self.players_socket[name_player]
+            #game_recorder:GameRecorder=self.game_recorder[name_player]
             if socket!=None and not self.players[name_player].get_flag("auto_pass"):
                 try:
                     await socket.send_text("start_bullet()")
                 except:
-                    pass
+                    pass 
+            #await game_recorder.store_game_message("start_bullet()")
         #print("start_bullet()")
 
 
@@ -435,6 +452,7 @@ class Room:
             await self.check_death()
 
     async def select_attacker(self,username:str,content:str):
+        
         player:Player=self.players[username]
         index=int(content)
         card:Creature=player.get_card_index(index,"battlefield")
@@ -445,6 +463,9 @@ class Room:
         if player==self.active_player and not self.get_flag('attacker_defenders') and\
         (not card.get_flag("summoning_sickness") or card.get_flag("haste")) and\
         not card.get_flag("tap") and (card.get_counter_from_dict("attack_counter")>0):
+            for recorder_key in self.game_recorder:
+                recorder:GameRecorder=self.game_recorder[recorder_key]
+                await recorder.store_game_ini_message("select_attacker")
             self.action_processor.start_record()
             self.action_processor.add_action(actions.Creature_Prepare_Attack(card,player))
             player.select_attacker(card)
@@ -460,6 +481,7 @@ class Room:
             return (False,"You must do it in your turn")
 
     async def select_defender(self,username:str,content:str):
+        
         player:Player=self.players[username]
         index=int(content)
         card:Creature=player.get_card_index(index,"battlefield")
@@ -472,6 +494,9 @@ class Room:
         not card.get_flag("tap") and \
         (not self.attacker.get_flag("flying") or (card.get_flag("flying") or card.get_flag("reach")))and \
         self.check_landwalk(self.attacker,player):
+            for recorder_key in self.game_recorder:
+                recorder:GameRecorder=self.game_recorder[recorder_key]
+                await recorder.store_game_ini_message("select_defender")
             self.action_processor.start_record()
             self.action_processor.add_action(actions.Creature_Prepare_Defense(card,player,self.attacker,False))
             player.select_defender(card)
@@ -504,6 +529,7 @@ class Room:
 
 
     async def play_card(self,username:str,content:str):
+        
         player:Player=self.players[username]
         index=int(content)
         card:Card=player.get_card_index(index,"hand")
@@ -511,6 +537,9 @@ class Room:
         if not card:
             return (False,"no card")
         if (player==self.active_player and not self.get_flag("bullet_time")) or isinstance(card,Instant) or card.get_flag("Flash"):# 如果card 的类型是instant，可以直接释放,或者card有flash
+            for recorder_key in self.game_recorder:
+                recorder:GameRecorder=self.game_recorder[recorder_key]
+                await recorder.store_game_ini_message("play_card")
             return await self.start_play_card(card,player)
         else:
             return (False,"You must do it in your turn")
@@ -525,8 +554,12 @@ class Room:
     
     
     async def end_step(self,username:str,content:str):
+       
         player:Player=self.players[username]
         if player==self.active_player:
+            for recorder_key in self.game_recorder:
+                recorder:GameRecorder=self.game_recorder[recorder_key]
+                await recorder.store_game_ini_message("end_step")
             await self.end_turn_time()
             return (True,"success")
         else:
@@ -545,12 +578,14 @@ class Room:
 
         
         socket:"WebSocket"=self.players_socket[username]
+        #game_recorder:GameRecorder=self.game_recorder[username]
         if socket!=None:
             try:
                 await socket.send_text("end_bullet()")
             except:
                 pass
-
+        #await game_recorder.store_game_message("end_bullet()")
+        
         for un in self.players:#username
             if not self.get_flag(key.format(un)) and not self.players[un].get_flag("auto_pass"):
                 start=False
@@ -563,6 +598,7 @@ class Room:
 
 
     async def activate_ability(self,username:str,content:str):
+        
         area,index=content.split(";")
         player:Player=self.players[username]
         index=int(index)
@@ -572,6 +608,9 @@ class Room:
             return (False,"no card")
         
         if isinstance(card,Land) or card.check_can_use(player):# 如果card 的类型是instant，可以直接释放,或者card有flash
+            for recorder_key in self.game_recorder:
+                recorder:GameRecorder=self.game_recorder[recorder_key]
+                await recorder.store_game_ini_message("activate_ability")
             self.action_processor.start_record()
             #self.action_processor.add_action(actions.Activate_Ability(card,player))
             await card.when_clicked(player,player.opponent)
@@ -586,6 +625,7 @@ class Room:
         player:Player=self.players[username]
         socket:"WebSocket"=self.players_socket[username]
         player.flag_dict["game_over"]=True
+        
 
         try:
             await socket.close()
@@ -602,6 +642,7 @@ class Room:
     async def auto_passing(self,username:str,content:str):
         player:Player=self.players[username]
         socket:"WebSocket"=self.players_socket[username]
+        game_recorder:GameRecorder=self.game_recorder[username]
         
         if content=="true":
             player.flag_dict["auto_pass"]=True
@@ -609,7 +650,9 @@ class Room:
                 try:
                     await socket.send_text(f"auto_passing(true)")
                 except:
-                    pass
+                    pass    
+                
+            await game_recorder.store_game_message("auto_passing(true)")
         else:
             player.flag_dict["auto_pass"]=False
             if socket!=None:
@@ -617,7 +660,8 @@ class Room:
                     await socket.send_text(f"auto_passing(false)")
                 except:
                     pass
-
+                
+            await game_recorder.store_game_message("auto_passing(false)")
     
 
 
@@ -692,12 +736,17 @@ class Room:
             player:Player=self.players[name]
             #print(player.name)
             socket:"WebSocket"=self.players_socket[name]
+            game_recorder:GameRecorder=self.game_recorder[name]
+            text=action.text(player)
+            #print(text)
             if socket!=None:
                 # print("准备发送",action)
                 try:
-                    await socket.send_text(action.text(player))
+                    await socket.send_text(text)
                 except:
                     pass
+                
+            await game_recorder.store_game_message(text)
                 # print("发送成功")
 
     # async def selection_process_queue(self):

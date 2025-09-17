@@ -19,6 +19,7 @@ from game.type_cards.instant import Instant
 from game.type_cards.land import Land
 from game.type_cards.sorcery import Sorcery
 from game.base_agent_room import Base_Agent_Room
+from game.game_recorder import GameRecorder
 
 class PVE_Room(Base_Agent_Room):
     """
@@ -58,6 +59,10 @@ class PVE_Room(Base_Agent_Room):
         self.players_socket:dict={
             "Agent1":None,
             players[0][1]:None
+        }
+        self.game_recorder:dict["GameRecorder"]={
+            "Agent1":GameRecorder(self.player_1,self),
+            players[1][1]:GameRecorder(self.player_2,self)
         }
 
 

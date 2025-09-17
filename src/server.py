@@ -268,6 +268,13 @@ async def game_page(request: Request, username: str = Depends(get_current_user(d
     return templates.TemplateResponse(f"webpages/gaming_page/gaming.html", { "request": request,"data": room_server.get_players_name(username)})
 
 
+@app.get("/game_replay")
+async def game_replay_page(request: Request, username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        print(username)
+        return username
+    return templates.TemplateResponse(f"webpages/game_replay/gaming.html", {"request": request, "data": room_server.get_players_name(username)})
+
 
 
 @app.post("/matching_delete")

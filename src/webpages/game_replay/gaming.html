@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <title>Magic Fan Made</title>
+    <link rel="shortcut icon" href="webpages/homepage/coin.png" type="image/x-icon" /> 
+    <link href="https://fonts.googleapis.com/css?family=Merriweather:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="webpages/deckpage/style.css">
+    <link rel="stylesheet" type="text/css" href="webpages/gaming_page/gaming.css">
+    <link rel="stylesheet" type="text/css" href="webpages/game_replay/game_player.css">
+    <script src="webpages/gaming_page/fundation_func.js"></script>
+    <script src="webpages/gaming_page/timmer.js"></script>
+    <script src="webpages/block.js"></script>
+    <script src="webpages/gaming_page/hand.js"></script>
+
+    <script src="webpages/card.js"></script>
+    <script src="webpages/cards_main.js"></script>
+
+
+    <script src="webpages/gaming_page/card_battle.js"></script>
+    <script src="webpages/gaming_page/card_battle_main.js"></script>
+    <script src="webpages/gaming_page/card_hand.js"></script>
+    <script src="webpages/gaming_page/card_hand_main.js"></script>
+    <script src="webpages/gaming_page/player.js"></script>
+    <script src="webpages/gaming_page/table_block.js"></script>
+    <script src="webpages/gaming_page/table.js"></script>
+    <script src="webpages/button.js"></script>
+    <script src="packet/math.min.js"></script>
+    
+    <script src="webpages/rotation.js"></script>
+    <script src="webpages/gaming_page/action_bar.js"></script>
+    <script src="webpages/gaming_page/animation.js"></script>
+    <script src="webpages/gaming_page/mana_bar.js"></script>
+    <script src="webpages/gaming_page/special_effects.js"></script>
+    <script src="webpages/gaming_page/2D_show.js"></script>
+    <script src="webpages/gaming_page/message_processor.js"></script>
+    <script src="webpages/gaming_page/selection_page.js"></script>
+    <script src="webpages/gaming_page/music_effect.js"></script>
+    <script src="webpages/gaming_page/buff.js"></script>
+    <script src="webpages/gaming_page/button.js"></script>
+    <script src="webpages/game_replay/gaming.js"></script>
+    <script src="webpages/game_replay/game_player.js"></script>
+    
+   
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    
+    
+    
+   
+    
+
+    
+    
+    
+</head>
+<body>
+    
+    <div class="overlay">
+        <div id="canvasContainer">
+            <canvas id="myCanvas" tabindex="0"></canvas>
+        </div>
+        
+       
+        
+        <script>
+            // eslint-disable-next-line
+            window.dataFromBackend = {{ data | tojson }};
+            
+        </script>
+        
+        
+    </div>
+    <div id="game_player">
+        <div id="read_mode">
+            <p>drug .mgf file<br>or click to select</p>
+            <input type="file" id="fileInput" accept=".mgf" hidden />
+        </div>
+        <div id="play_mode">
+            <button id="play_button">
+                <!-- 默认播放图标 -->
+                <svg id="play_icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </button>
+            <input type="range" id="progress_bar" value="0" min="0" max="100" step="1">
+            <span id="progress_value">0</span>
+        </div>
+    </div>
+    <script src="webpages/gaming_page/start_game.js"></script>
+    
+
+</body>
+</html>

@@ -22,7 +22,7 @@ from game.type_cards.land import Land
 from game.type_cards.sorcery import Sorcery
 from game.rlearning.utils.file import read_yaml
 from game.base_agent_room import Base_Agent_Room
-
+from game.game_recorder import GameRecorder
 
 
 
@@ -87,7 +87,10 @@ class Multi_Agent_Room(Base_Agent_Room):
             players[1][1]:None
         }
 
-    
+        self.game_recorder:dict["GameRecorder"]={
+            players[0][1]:GameRecorder(self.player_1,self),
+            players[1][1]:GameRecorder(self.player_2,self)
+        }
     
 
     async def process_action(self,agent:Agent_Train,action:int)->tuple:
@@ -332,6 +335,9 @@ class Multi_Agent_Room(Base_Agent_Room):
 
     async def game_end(self,died_player:list[Agent_Train]):
         self.gamming=False
+        for recorder_key in self.game_recorder:
+            recorder:GameRecorder=self.game_recorder[recorder_key]
+            await recorder.save_binary()
         
         
         
