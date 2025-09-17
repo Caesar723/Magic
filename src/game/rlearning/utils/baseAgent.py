@@ -122,6 +122,7 @@ class BaseTrainer:
             
         
         self.logdir = f'{ORGPATH}/../{CHECKPOINT_ROOT_PATH}/{config["log_dir"]}'
+        print(self.logdir)
         if rank == 0: 
             if name=="main":
                 log.init(self.logdir)
