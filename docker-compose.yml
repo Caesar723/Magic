@@ -26,6 +26,7 @@ services:
     cap_add:
       - NET_BIND_SERVICE
     volumes:
+      - ./xuanpei-chen.top_ssh:/app/src/xuanpei-chen.top_ssh
       - data_volume:/app/src/user_cache
       - data_volume:/app/src/user_data
 
