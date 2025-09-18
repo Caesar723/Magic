@@ -9,7 +9,7 @@ __pycache__/
 src/private.key
 src/certificate.crt
 src/xuanpei-chen.top_ssh
-
+!src/xuanpei-chen.top_ssh/.gitkeep
 # src/user_card/Creature/
 # src/user_card/Land/
 # src/user_card/Instant/
