@@ -203,11 +203,15 @@ class BaseTrainer:
         if self.dataset.is_full():
             self.dataset.data_preprocess(self)
             self._init_dataloader()
+            self.save_checkpoint()
             self.run()
             self.dataset.clear_data()
+            return True
+        return False
 
 
     def run(self):
+        
         models = self.models
         [ models[k].train() for k in models ] 
 
@@ -389,8 +393,8 @@ class BaseTrainer:
             log.info(msg) 
             log.sw_loss("train", loss_dict, self.step,name=self.name) 
 
-        if self.step % config["save_step"] == 0:
-            self.save_checkpoint() 
+        # if self.step % config["save_step"] == 0:
+        #     self.save_checkpoint() 
         
         if not hasattr(self, "pre_save_time"):
             self.pre_save_time = time.time()

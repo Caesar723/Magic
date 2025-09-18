@@ -20,21 +20,26 @@ class GameRecorder:
         self.game_room=room
         self.game_player=player
         if start_record:
-            self.reset_save_flag()
+            self.reset_save_flag(player)
         else:
             self.save_flag=True
+            self.datas=[]
+            self.check_point_datas=[]
+            self.reward_datas=[]
 
         
         
 
-    def reset_save_flag(self):
+    def reset_save_flag(self,player:"Player"):
+        
         self.save_flag=False
         self.datas=[]
         self.check_point_datas=[]
-        
+        self.reward_datas=[]
+        self.game_player=player
         self.start_time=time.perf_counter()
 
-    async def store_game_message(self,message):
+    def store_game_message(self,message):
         #print(self.save_flag,message)
         if self.save_flag:
             return
@@ -47,6 +52,7 @@ class GameRecorder:
         self.start_time=time.perf_counter()
 
     async def store_game_ini_message(self,info):
+        
         if self.save_flag:
             return
         data={
@@ -55,6 +61,20 @@ class GameRecorder:
             "index":len(self.datas)
         }
         self.check_point_datas.append(data)
+
+    async def store_game_reward(self,info_index,action,reward,old_value,new_value):
+        if self.save_flag:
+            return
+        data={
+            "action":action,
+            "reward":reward,
+            "old_value":old_value,
+            "new_value":new_value,
+            "index":info_index
+        }
+        self.reward_datas.append(data)
+        
+
 
     def message_to_binary(self):
         
@@ -66,12 +86,13 @@ class GameRecorder:
             },
             "game_records":self.datas,
             "check_point_datas":self.check_point_datas,
+            "reward_datas":self.reward_datas,
         }
         binary_data = json.dumps(result, ensure_ascii=False).encode("utf-8")
         binary_data = zlib.compress(binary_data)
         return binary_data
 
-    async def save_binary(self):
+    async def save_binary(self,base_path:str="",extra_info:str=""):
         if self.save_flag:
             return
         self.save_flag=True
@@ -80,15 +101,17 @@ class GameRecorder:
         self_name=self.game_player.name
         opponent_name=self.game_player.opponent.name
 
-        
-        os.makedirs(f"{ORGPATH}/game/game_records/{self_name}",exist_ok=True)
-        filename=f"{ORGPATH}/game/game_records/{self_name}/{self_name}_{opponent_name}_{time_str}.mgf"
+        if base_path=="":
+            base_path=f"{ORGPATH}/game/game_records"
+        os.makedirs(f"{base_path}/{self_name}",exist_ok=True)
+        filename=f"{base_path}/{self_name}/{self_name}_{opponent_name}_{time_str}_{extra_info}.mgf"
 
         async with aiofiles.open(filename, "wb") as f:
             await f.write(self.message_to_binary())
 
         self.datas=[]
         self.check_point_datas=[]
+        self.reward_datas=[]
 
 if __name__=="__main__":
     import zlib

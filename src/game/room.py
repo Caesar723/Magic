@@ -80,6 +80,9 @@ class Room:
 
 
         self.initinal_player(players)
+        self.action_processor.set_game_recorder(self.game_recorder)
+
+        
         #print(self.players_socket)
 
 
@@ -129,6 +132,7 @@ class Room:
             players[0][1]:GameRecorder(self.player_1,self),
             players[1][1]:GameRecorder(self.player_2,self)
         }
+        
     
     async def game_start(self):# start the game
         players=[self.player_1,self.player_2]
@@ -146,7 +150,7 @@ class Room:
 
         for recorder_key in self.game_recorder:
             recorder:GameRecorder=self.game_recorder[recorder_key]
-            await recorder.store_game_message(self.text(self.players[recorder_key]))
+            recorder.store_game_message(self.text(self.players[recorder_key]))
 
         #######test
         #print("发送消息")
@@ -652,7 +656,7 @@ class Room:
                 except:
                     pass    
                 
-            await game_recorder.store_game_message("auto_passing(true)")
+            game_recorder.store_game_message("auto_passing(true)")
         else:
             player.flag_dict["auto_pass"]=False
             if socket!=None:
@@ -661,7 +665,7 @@ class Room:
                 except:
                     pass
                 
-            await game_recorder.store_game_message("auto_passing(false)")
+            game_recorder.store_game_message("auto_passing(false)")
     
 
 
@@ -736,7 +740,7 @@ class Room:
             player:Player=self.players[name]
             #print(player.name)
             socket:"WebSocket"=self.players_socket[name]
-            game_recorder:GameRecorder=self.game_recorder[name]
+            #game_recorder:GameRecorder=self.game_recorder[name]
             text=action.text(player)
             #print(text)
             if socket!=None:
@@ -746,7 +750,7 @@ class Room:
                 except:
                     pass
                 
-            await game_recorder.store_game_message(text)
+            #await game_recorder.store_game_message(text)
                 # print("发送成功")
 
     # async def selection_process_queue(self):

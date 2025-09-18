@@ -36,7 +36,10 @@ class List_Action_Processor:
         self.start_counter=-1
         self.action_cache:list=cache
         self.action_condition=cache_condition
+        self.game_recorder=None
 
+    def set_game_recorder(self,game_recorder):
+        self.game_recorder=game_recorder
 
     def start_record(self):#在start期间没有end又start，会把action list分开，像括号一样(abc(abcde)de)
         self.action_list.append([])
@@ -49,7 +52,13 @@ class List_Action_Processor:
         if self.start_counter==-1:
             for arr in self.action_list:
                 if arr:
-                    self.action_cache.append(List_Action(arr))
+                    action=List_Action(arr)
+                    #print(self.game_recorder,"test")
+                    if self.game_recorder!=None:
+                        for name in self.game_recorder:
+                            game_recorder=self.game_recorder[name]
+                            game_recorder.store_game_message(action.text(game_recorder.game_player))
+                    self.action_cache.append(action)
                     
                     asyncio.create_task(self.notify_condition())
                     

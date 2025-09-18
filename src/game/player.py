@@ -294,6 +294,7 @@ class Player:
     
 
     async def beginning_phase(self):#开始阶段
+        self.add_counter_dict("turn_count",1)
         self.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
         self.action_store.add_action(actions.Change_Mana(self,self,self.get_manas()))
         self.return_to_org_max_land()

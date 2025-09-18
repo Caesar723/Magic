@@ -9,7 +9,7 @@ import traceback
 import numpy as np
 import asyncio
 import random
-from game.train_agent import Agent_Train_Red as Agent_Train
+from game.train_agent import Agent_Train 
 from game.room import Room
 from game.ppo_train import Agent_PPO
 from game.rlearning.module.ppo_agent import PPOTrainer
@@ -60,6 +60,8 @@ class Multi_Agent_Room(Base_Agent_Room):
         #     "/Users/xuanpeichen/Desktop/code/python/openai/model_complete_val.pth"
         # )
 
+        
+
         super().__init__(None,None)
 
 
@@ -70,8 +72,11 @@ class Multi_Agent_Room(Base_Agent_Room):
         self.non_active_player:Agent_Train
 
         
+        
 
-    def initinal_player(self,players:list[tuple]):
+        
+
+    def initinal_player(self,players:list[tuple],is_initinal:bool=True):
         agents_deck="Eternal Phoenix+Creature+4|Raging Firekin+Creature+4|Emberheart Salamander+Creature+4|Arcane Inferno+Instant+4|Pyroblast Surge+Instant+4|Fiery Blast+Instant+4|Inferno Titan+Creature+4|Flame Tinkerer+Creature+4|Mountain+Land+24"
 
         players=[(agents_deck,"Agent1"),(agents_deck,"Agent2")]
@@ -90,10 +95,29 @@ class Multi_Agent_Room(Base_Agent_Room):
             players[0][1]:None,
             players[1][1]:None
         }
-        self.game_recorder:dict["GameRecorder"]={
-            players[0][1]:GameRecorder(self.player_1,self),
-            players[1][1]:GameRecorder(self.player_2,self)
+
+        
+        #print(self.update_flag)
+        if is_initinal:
+        
+            self.update_flag:dict[bool]={
+                self.player_1.name:False,
+                self.player_2.name:False
+            }
+            #print(record_flag)
+            self.game_recorder:dict["GameRecorder"]={
+                players[0][1]:GameRecorder(self.player_1,self),
+                players[1][1]:GameRecorder(self.player_2,self)
+            }
+
+        
+
+        self.reward_func:dict[str,function]={
+            players[0][1]:self.reward_dict[self.config.get("reward_type","reward_balance")],
+            players[1][1]:self.reward_dict[self.config.get("reward_type","reward_balance")]
         }
+        #print(self.reward_func)
+        
         self.player_2.agent.restore_checkpoint(self.get_random_restore_step(self.player_2))
 
     def get_random_restore_step(self,agent:Agent_Train):
@@ -116,7 +140,9 @@ class Multi_Agent_Room(Base_Agent_Room):
         username,type,content=message.split("|")
         #old_reward=self.get_reward_red(agent)
         #print(username,content,type)
-        old_reward=self.get_reward_attack(agent)
+        old_rewards=self.reward_func[agent.name](agent)
+        info_index=len(self.game_recorder[agent.name].datas)
+        old_reward=old_rewards["reward"]
         if action>=2 and action <=21:
             selected_creature=agent.battlefield[int(content)]
         else:
@@ -158,15 +184,18 @@ class Multi_Agent_Room(Base_Agent_Room):
         
         #change_reward=new_reward-old_reward
 
-        async def next_state_function():
-            current_reward=self.get_reward_attack(agent,selected_creature)
+        async def next_state_function(info_index=info_index):
+            
+            current_rewards=self.reward_func[agent.name](agent,selected_creature)
+            current_reward=current_rewards["reward"]
             # if action==0:
             #     new_reward=0
             # else:
                 
             new_reward=current_reward-old_reward
-            new_reward/=10
+            new_reward/=5
             if action==0:
+                info_index=len(self.game_recorder[agent.name].datas)
                 new_reward/=50
             new_reward=max(min(new_reward,0.3),-0.3)
             #await self.check_death()
@@ -193,6 +222,8 @@ class Multi_Agent_Room(Base_Agent_Room):
             if action==1:
                 done=False
             #print(message)
+            await self.game_recorder[agent.name].store_game_reward(info_index,message,new_reward,old_rewards,current_rewards)
+            
             return self.get_new_state(agent),new_reward,done,current_reward
         return next_state_function
         
@@ -328,9 +359,14 @@ class Multi_Agent_Room(Base_Agent_Room):
                 #     oppo_agent.update()
                 #     break
                 if agent==self.player_1:
-                    agent.update()
+                    is_update=agent.update()
+                    if is_update:
+                        self.update_flag[agent.name]=True
+                        
                 else:
-                    oppo_agent.update()
+                    is_update=oppo_agent.update()
+                    if is_update:
+                        self.update_flag[oppo_agent.name]=True
                 
             #print("finish")
             self.gamming=True
@@ -342,12 +378,7 @@ class Multi_Agent_Room(Base_Agent_Room):
 
     async def game_end(self,died_player:list[Agent_Train]):
         self.gamming=False
-        for recorder_key in self.game_recorder:
-            recorder:GameRecorder=self.game_recorder[recorder_key]
-            await recorder.save_binary()
-        
-        
-        
+       
         for player in [self.player_1,self.player_2]:
             await player.clear_pedding_store_task()
         
@@ -394,11 +425,13 @@ async def main():
     
     room=Multi_Agent_Room(
         #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/rainbowdqn_lstm.yaml",
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm2.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm.yaml",
+        #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm2.yaml",
         [
         "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new.yaml",
         "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new2.yaml",
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm.yaml"
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm2.yaml",
         
         ]
     )

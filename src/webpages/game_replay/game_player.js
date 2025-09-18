@@ -8,6 +8,7 @@ class Game_Player{
     constructor(message_processor,room){
         this.datas=[]
         this.check_point_datas=[]
+        this.reward_datas=[]
         this.data_index=-1
         this.wait_flag=false
         this.pause_flag=false
@@ -211,6 +212,7 @@ class Game_Player{
         this.room.oppo_player.name=datas.basic_info.opponent_name
         this.datas=datas.game_records
         this.check_point_datas=datas.check_point_datas
+        this.reward_datas=datas.reward_datas
         this.data_index=0
         this.wait_flag=false
         this.pause_flag=false
@@ -248,6 +250,7 @@ class Game_Player{
         time=Math.max(time,1)
         console.log(this.datas[this.data_index])
         this.message_processor.extractParts(this.datas[this.data_index].game_records)
+        this.show_game_reward(this.data_index)
         this.wait_flag=true
         this.current_timeout=setTimeout(() => {
             this.wait_flag=false
@@ -257,6 +260,43 @@ class Game_Player{
             const progressBar = document.getElementById("progress_bar");
             progressBar.value=this.data_index;
         }, time*1000)
+
+    }
+
+
+    show_game_reward(index){
+        let reward_info=null;
+        for (let i=0;i<this.reward_datas.length;i++){
+            if (this.reward_datas[i].index<=index){
+                reward_info=this.reward_datas[i]
+                
+            }
+        }
+        
+        if (reward_info==null){
+            return
+        }
+        const game_info=document.getElementById("game_info_reward")
+        let creatures_self_old = reward_info.old_value.score_battle_self_creatures.map(num => num.toFixed(4)); 
+        let creatures_self_new = reward_info.new_value.score_battle_self_creatures.map(num => num.toFixed(4)); 
+        let creatures_oppo_old = reward_info.old_value.score_battle_oppo_creatures.map(num => num.toFixed(4)); 
+        let creatures_oppo_new = reward_info.new_value.score_battle_oppo_creatures.map(num => num.toFixed(4)); 
+        game_info.innerHTML=`
+        <div class="game_info_reward">reward:${reward_info.reward.toFixed(4)}</div>
+        <div class="game_info_reward">score_life_self:${reward_info.old_value.score_life_self.toFixed(4)}->${reward_info.new_value.score_life_self.toFixed(4)}</div>
+        <div class="game_info_reward">score_oppo_self:${reward_info.old_value.score_oppo_self.toFixed(4)}->${reward_info.new_value.score_oppo_self.toFixed(4)}</div>
+        <div class="game_info_reward">score_mana:${reward_info.old_value.score_mana.toFixed(4)}->${reward_info.new_value.score_mana.toFixed(4)}</div>
+        <div class="game_info_reward">score_hand:${reward_info.old_value.score_hand.toFixed(4)}->${reward_info.new_value.score_hand.toFixed(4)}</div>
+        <div class="game_info_reward">score_battle_self:${reward_info.old_value.score_battle_self.toFixed(4)}->${reward_info.new_value.score_battle_self.toFixed(4)}</div>
+        <div class="game_info_reward">score_battle_oppo:${reward_info.old_value.score_battle_oppo.toFixed(4)}->${reward_info.new_value.score_battle_oppo.toFixed(4)}</div>
+        <div class="game_info_reward">score_battle_self_creatures:${creatures_self_old.join(",")}->${creatures_self_new.join(",")}</div>
+        <div class="game_info_reward">score_battle_oppo_creatures:${creatures_oppo_old.join(",")}->${creatures_oppo_new.join(",")}</div>
+        
+        `
+        const game_act_message=document.getElementById("game_info_action")
+        game_act_message.innerHTML=`
+        ${reward_info.action}
+        `
 
     }
 
@@ -302,6 +342,7 @@ class Game_Player{
         this.data_index=this.check_point_datas[restore_index+1].index
         console.log(this.check_point_datas[restore_index].game_ini_records)
         console.log(this.data_index)
+        this.show_game_reward(this.data_index)
         this.message_processor.extractParts(this.check_point_datas[restore_index].game_ini_records)
         
         this.current_timeout=setTimeout(() => {
