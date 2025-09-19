@@ -746,7 +746,7 @@ class Base_Agent_Room(Room):
             #start_index+=33
             card_counter+=1
 
-    def get_reward_balance(self,agent:Agent,battled_creature:Creature=None):#返回一个评分
+    def get_reward_balance(self,agent:Agent,battled_creature:Creature=None,attacker:Creature=None):#返回一个评分
         # if agent.life<=0:
         #     return -1
         # elif agent.opponent.life<=0:
@@ -760,7 +760,7 @@ class Base_Agent_Room(Room):
         score_battle_self_creatures=[self.get_creature_reward(card,battled_creature==card) for card in agent.battlefield]
         score_battle_self=sum(score_battle_self_creatures)#这个处以20表面随从不是很重要，重要的是敌方的血量
         
-        score_battle_oppo_creatures=[self.get_creature_reward(card) for card in agent.opponent.battlefield]
+        score_battle_oppo_creatures=[self.get_creature_reward(card,card==attacker) for card in agent.opponent.battlefield]
         score_battle_oppo=sum(score_battle_oppo_creatures)
 
         score_mana=0
@@ -786,7 +786,7 @@ class Base_Agent_Room(Room):
 
         return result
 
-    def get_reward_attack(self,agent:Agent,battled_creature:Creature=None):#返回一个评分
+    def get_reward_attack(self,agent:Agent,battled_creature:Creature=None,attacker:Creature=None):#返回一个评分
         # if agent.life<=0:
         #     return -1
         # elif agent.opponent.life<=0:
@@ -800,7 +800,7 @@ class Base_Agent_Room(Room):
         score_battle_self_creatures=[self.get_creature_reward(card,battled_creature==card) for card in agent.battlefield]
         score_battle_self=sum(score_battle_self_creatures)#这个处以20表面随从不是很重要，重要的是敌方的血量
         
-        score_battle_oppo_creatures=[self.get_creature_reward(card) for card in agent.opponent.battlefield]
+        score_battle_oppo_creatures=[self.get_creature_reward(card,card==attacker) for card in agent.opponent.battlefield]
         score_battle_oppo=sum(score_battle_oppo_creatures)
 
         score_mana=0
@@ -826,7 +826,7 @@ class Base_Agent_Room(Room):
 
         return result
 
-    def get_reward_life(self,agent:Agent,battled_creature:Creature=None):#返回一个评分
+    def get_reward_life(self,agent:Agent,battled_creature:Creature=None,attacker:Creature=None):#返回一个评分
         # if agent.life<=0:
         #     return -1
         # elif agent.opponent.life<=0:
@@ -839,7 +839,7 @@ class Base_Agent_Room(Room):
 
         score_battle_self_creatures=[self.get_creature_reward(card,battled_creature==card) for card in agent.battlefield]
         score_battle_self=sum(score_battle_self_creatures)
-        score_battle_oppo_creatures=[self.get_creature_reward(card) for card in agent.opponent.battlefield]
+        score_battle_oppo_creatures=[self.get_creature_reward(card,card==attacker) for card in agent.opponent.battlefield]
         score_battle_oppo=sum(score_battle_oppo_creatures)
 
         # score_battle_self=sum(
@@ -878,7 +878,7 @@ class Base_Agent_Room(Room):
 
         return result
 
-    def get_reward_win_base(self,agent:Agent,battled_creature:Creature=None):#返回一个评分
+    def get_reward_win_base(self,agent:Agent,battled_creature:Creature=None,attacker:Creature=None):#返回一个评分
         # if agent.life<=0:
         #     return -1
         # elif agent.opponent.life<=0:
@@ -891,7 +891,9 @@ class Base_Agent_Room(Room):
 
         score_battle_self_creatures=[self.get_creature_reward(card,battled_creature==card) for card in agent.battlefield]
         score_battle_self=sum(score_battle_self_creatures)
-        score_battle_oppo_creatures=[self.get_creature_reward(card) for card in agent.opponent.battlefield]
+        
+        
+        score_battle_oppo_creatures=[self.get_creature_reward(card,card==attacker) for card in agent.opponent.battlefield]
         score_battle_oppo=sum(score_battle_oppo_creatures)
 
         # score_battle_self=sum(

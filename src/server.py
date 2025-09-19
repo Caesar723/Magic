@@ -266,7 +266,7 @@ async def game_page(request: Request, username: str = Depends(get_current_user(d
     # deck=await database.check_deck_real(deck.name,deck.id,username)
     # client_detail=(deck,username)
     # await room_server.create_new_pveroom(client_detail)
-    return templates.TemplateResponse(f"webpages/gaming_page/gaming.html", { "request": request,"data": room_server.get_players_name(username)})
+    return templates.TemplateResponse(f"webpages/game_ai/gaming.html", { "request": request,"data": room_server.get_players_name(username)})
 
 @app.post("/matching_demo")
 async def game_page(request: Request, response: Response):
@@ -301,7 +301,7 @@ async def game_demo_page(request: Request):
     username=dic_mess["username"]
     #password=dic_mess["password"]
     
-    return templates.TemplateResponse(f"webpages/gaming_page/gaming.html", {"request": request, "data": room_server.get_players_name(username)})
+    return templates.TemplateResponse(f"webpages/game_ai/gaming.html", {"request": request, "data": room_server.get_players_name(username)})
 
 @app.get("/game_replay")
 async def game_replay_page(request: Request, username: str = Depends(get_current_user(database))):

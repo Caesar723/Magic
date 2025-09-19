@@ -120,6 +120,12 @@ class Multi_Agent_Room(Base_Agent_Room):
         old_rewards=self.reward_func[agent.name](agent)
         info_index=len(self.game_recorder[agent.name].datas)
         old_reward=old_rewards["reward"]
+        if action==1 or (action>=12 and action <=21):
+            attacker=self.attacker
+            
+            
+        else:
+            attacker=None
         if action>=2 and action <=21:
             selected_creature=agent.battlefield[int(content)]
         else:
@@ -162,7 +168,7 @@ class Multi_Agent_Room(Base_Agent_Room):
         #change_reward=new_reward-old_reward
 
         async def next_state_function(info_index=info_index):
-            current_rewards=self.reward_func[agent.name](agent,selected_creature)
+            current_rewards=self.reward_func[agent.name](agent,selected_creature,attacker)
             current_reward=current_rewards["reward"]
             # if action==0:
             #     new_reward=0

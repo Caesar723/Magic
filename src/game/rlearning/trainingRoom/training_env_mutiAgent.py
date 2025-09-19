@@ -9,6 +9,7 @@ import traceback
 import numpy as np
 import asyncio
 import random
+import os
 from game.train_agent import Agent_Train 
 from game.room import Room
 from game.ppo_train import Agent_PPO
@@ -120,11 +121,17 @@ class Multi_Agent_Room(Base_Agent_Room):
         
         self.player_2.agent.restore_checkpoint(self.get_random_restore_step(self.player_2))
 
+    # def get_random_restore_step(self,agent:Agent_Train):
+    #     save_step=agent.agent.config["save_step"]
+    #     max_restore=max(int(agent.agent.max_step//save_step)-1,0)
+    #     random_restore=random.randint(0,max_restore)
+    #     return random_restore*save_step
+
     def get_random_restore_step(self,agent:Agent_Train):
-        save_step=agent.agent.config["save_step"]
-        max_restore=max(int(agent.agent.max_step//save_step)-1,0)
-        random_restore=random.randint(0,max_restore)
-        return random_restore*save_step
+        logdir=agent.agent.logdir
+        paths=[path.split("_")[1].split(".")[0] for path in os.listdir(os.path.join(logdir,"ckpt")) if path.startswith("config")]
+        random_restore=random.choice(paths)
+        return random_restore
        
 
     
@@ -143,6 +150,12 @@ class Multi_Agent_Room(Base_Agent_Room):
         old_rewards=self.reward_func[agent.name](agent)
         info_index=len(self.game_recorder[agent.name].datas)
         old_reward=old_rewards["reward"]
+
+        if action==1 or (action>=12 and action <=21):
+            attacker=self.attacker
+            
+        else:
+            attacker=None
         if action>=2 and action <=21:
             selected_creature=agent.battlefield[int(content)]
         else:
@@ -186,7 +199,7 @@ class Multi_Agent_Room(Base_Agent_Room):
 
         async def next_state_function(info_index=info_index):
             
-            current_rewards=self.reward_func[agent.name](agent,selected_creature)
+            current_rewards=self.reward_func[agent.name](agent,selected_creature,attacker)
             current_reward=current_rewards["reward"]
             # if action==0:
             #     new_reward=0
@@ -425,13 +438,14 @@ async def main():
     
     room=Multi_Agent_Room(
         #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/rainbowdqn_lstm.yaml",
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm2.yaml",
         #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm2.yaml",
         [
         "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new.yaml",
         "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new2.yaml",
         "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm.yaml",
         "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm2.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm.yaml",
         
         ]
     )

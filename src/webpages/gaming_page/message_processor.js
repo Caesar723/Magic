@@ -210,6 +210,7 @@ class Message_Processor{
             result.flag_dict=flag_dict
             result.counter_dict=counter_dict
             result.buff_list=Buffs
+            result.card_content=content
         }
         
         
@@ -237,6 +238,7 @@ class Message_Processor{
         result.flag_dict=flag_dict
         result.counter_dict=counter_dict
         result.buff_list=Buffs
+        result.card_content=content
         return result
     }
     Instant(flag_dict,counter_dict,player,id,name,type,type_card,rarity,content,image_path,fee,Buffs){
@@ -248,7 +250,7 @@ class Message_Processor{
             const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
             result=new Instant_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,fee,name,id,player)
         }
-        
+        result.card_content=content
         result.flag_dict=flag_dict
         result.counter_dict=counter_dict
         result.buff_list=Buffs
@@ -263,11 +265,13 @@ class Message_Processor{
         else{
             const canvas=this.client.table.card_frame.generate_card(type,name,type_card,rarity,content,image_path)
             result=new Land_Hand(4,5.62,[0,60*player.unit,-20],1.5,canvas,name,id,player,manas)
+            
         }
 
         result.flag_dict=flag_dict
         result.counter_dict=counter_dict
         result.buff_list=Buffs
+        result.card_content=content
         if (get_dict(flag_dict,'tap')){
             Activate_Ability.check_battle(result,player)
             const action=new Activate_Ability(result,player)
