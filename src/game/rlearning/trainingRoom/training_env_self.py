@@ -9,6 +9,7 @@ import random
 #from room_server import RoomServer
 import numpy as np
 import asyncio
+import os
 from game.train_agent import Agent_Train
 from game.room import Room
 from game.ppo_train import Agent_PPO
@@ -116,7 +117,7 @@ class Multi_Agent_Room(Base_Agent_Room):
         username,type,content=message.split("|")
         #old_reward=self.get_reward_red(agent)
         #print(username,content,type)
-        old_rewards=self.get_reward_attack(agent)
+        old_rewards=self.reward_func[agent.name](agent)
         info_index=len(self.game_recorder[agent.name].datas)
         old_reward=old_rewards["reward"]
         if action>=2 and action <=21:
@@ -161,7 +162,7 @@ class Multi_Agent_Room(Base_Agent_Room):
         #change_reward=new_reward-old_reward
 
         async def next_state_function(info_index=info_index):
-            current_rewards=self.get_reward_attack(agent,selected_creature)
+            current_rewards=self.reward_func[agent.name](agent,selected_creature)
             current_reward=current_rewards["reward"]
             # if action==0:
             #     new_reward=0
@@ -350,10 +351,10 @@ class Multi_Agent_Room(Base_Agent_Room):
             
         #self.active_player.update()
     def get_random_restore_step(self):
-        save_step=self.config["save_step"]
-        max_restore=max(int(self.player_1.agent.step//save_step)-1,0)
-        random_restore=random.randint(0,max_restore)
-        return random_restore*save_step
+        logdir=self.player_1.agent.logdir
+        paths=[path.split("_")[1].split(".")[0] for path in os.listdir(os.path.join(logdir,"ckpt")) if path.startswith("config")]
+        random_restore=random.choice(paths)
+        return random_restore
         
 
     async def game_end(self,died_player:list[Agent_Train]):
@@ -404,7 +405,7 @@ async def tasks(room):
 async def main():
     
     room=Multi_Agent_Room(
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm2.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm.yaml",
     )
     
     await room.game_start()

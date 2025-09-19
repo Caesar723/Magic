@@ -45,7 +45,7 @@ ppo:
 
 
 optimizer:
-  learning_rate: 2.0e-4  
+  learning_rate: 2.0e-6 
   betas: [0.8, 0.99]
   eps: 1.0e-9 
   grad_clip_thresh: 1.0

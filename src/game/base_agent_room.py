@@ -751,8 +751,8 @@ class Base_Agent_Room(Room):
         #     return -1
         # elif agent.opponent.life<=0:
         #     return 1
-        self_live_reward=lambda x :x/20#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
-        oppo_live_reward=lambda x :x/20
+        self_live_reward=lambda x :x/5#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
+        oppo_live_reward=lambda x :x/5
 
         score_life_self=self_live_reward(agent.life)
         score_oppo_self=oppo_live_reward(agent.opponent.life)
@@ -791,8 +791,8 @@ class Base_Agent_Room(Room):
         #     return -1
         # elif agent.opponent.life<=0:
         #     return 1
-        self_live_reward=lambda x :x/40#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
-        oppo_live_reward=lambda x :x/15
+        self_live_reward=lambda x :x/20#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
+        oppo_live_reward=lambda x :x/5
 
         score_life_self=self_live_reward(agent.life)
         score_oppo_self=oppo_live_reward(agent.opponent.life)
@@ -831,8 +831,8 @@ class Base_Agent_Room(Room):
         #     return -1
         # elif agent.opponent.life<=0:
         #     return 1
-        self_live_reward=lambda x :x/20#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
-        oppo_live_reward=lambda x :x/40
+        self_live_reward=lambda x :x/5#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
+        oppo_live_reward=lambda x :x/10
 
         score_life_self=self_live_reward(agent.life)
         score_oppo_self=oppo_live_reward(agent.opponent.life)
@@ -883,8 +883,8 @@ class Base_Agent_Room(Room):
         #     return -1
         # elif agent.opponent.life<=0:
         #     return 1
-        self_live_reward=lambda x :x/20#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
-        oppo_live_reward=lambda x :x/40
+        self_live_reward=lambda x :x/5#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
+        oppo_live_reward=lambda x :x/5
 
         score_life_self=self_live_reward(agent.life)
         score_oppo_self=oppo_live_reward(agent.opponent.life)
@@ -916,6 +916,7 @@ class Base_Agent_Room(Room):
         reward=score_hand+(score_life_self-score_oppo_self)+score_mana+score_battle_self-score_battle_oppo
 
         strength=3
+        #print(agent.get_counter_from_dict("turn_count"))
         reward=reward/((agent.get_counter_from_dict("turn_count")+strength)/strength)
         result={
             "reward":reward,
@@ -942,7 +943,7 @@ class Base_Agent_Room(Room):
                 return 0
             state1=(p+d)/2
             state2=(p*d)**0.5
-            r_state=(state1+state2)/15
+            r_state=(state1+state2)/12
             return r_state+0.05
         p,d=card.state[0],card.state[1]
         if p<=0 or d<=0:
