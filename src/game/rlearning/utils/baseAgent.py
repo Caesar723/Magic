@@ -482,22 +482,31 @@ class BaseTrainer:
     @torch.no_grad()
     def choose_action(self,batch,extra_keys=[],isTrain=False):#如果是一个动作记得加[batch]
         models = self.models
+        print(1)
         [ models[k].train() if isTrain else models[k].eval() for k in models ] 
         if "mask" in batch[0]:
             mask=batch[0]["mask"]
         else:
             mask=None
+        print(2)
         batch=[self.dataset.get_sample_preprocess(b,extra_keys) for b in batch]
+        print(3)
         batch=self.dataset.collate_state(batch,extra_keys)
+        print(4)
         batch=batch_to_cuda(batch, self.rank)
+        print(5)
         batch=self.predict(batch,models,False,self.step,self.epoch)
+        print(6)
         actions=batch['actions']
         
         if mask is not None:
+            print(7)
             actions[mask==False]=0
+            print(8)
             dist=torch.distributions.Categorical(actions)
             act=dist.sample().item()
             batch["action"]=act
+        print(9)
         return batch
 
 
