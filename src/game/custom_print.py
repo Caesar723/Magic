@@ -11,7 +11,7 @@ def custom_print(*args, **kwargs):
     lineno = frame.f_lineno
     
     # 调用原生的 print 函数
-    original_print(f'{filename}:{lineno}:', *args, **kwargs)
+    original_print(f'{filename}:{lineno}:', *args, **kwargs,flush=True)
 
 # 重写 print 函数
 builtins.print = custom_print
