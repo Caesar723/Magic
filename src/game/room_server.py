@@ -5,6 +5,8 @@ from game.studio_room import Studio_Room
 from game.demo_room import PVE_Demo_Room
 from server_function_tool import Deck_selected
 from tasks import TASK_DICT
+import uuid
+import asyncio
 
 import game.custom_print
 class RoomServer:
@@ -24,6 +26,8 @@ class RoomServer:
             return self.client_room[player_name]
         else:
             return "no room found"
+
+    
 
     async def create_new_room(self,client_1:tuple,client_2:tuple):
         room=Room([client_1,client_2],self)
@@ -45,6 +49,8 @@ class RoomServer:
         await room.game_start()
 
     async def create_new_pvedemo_room(self,client_1:tuple):
+        # for task in asyncio.all_tasks():
+        #     print(task, task.get_coro().__name__, "done=", task.done())
         room=PVE_Demo_Room([client_1],self)
 
         self.client_room[client_1[1]]=room

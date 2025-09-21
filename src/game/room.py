@@ -107,8 +107,23 @@ class Room:
         #start executing message_process
         self.tasks.append(asyncio.create_task(self.message_process()))
         self.tasks.append(asyncio.create_task(self.action_sender()))
+        self.task_close=asyncio.create_task(self.auto_close())
 
 
+    async def auto_close(self):
+        await asyncio.sleep(30*60)
+        await self.room_server.settle_player(False,self.player_1)
+        await self.room_server.settle_player(False,self.player_2)
+        self.gamming=False
+        for task in self.tasks:
+            task.cancel()
+        # 等待任务真正结束（捕获取消异常）
+        for task in self.tasks:
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+        self.tasks.clear()
         
         
     def initinal_player(self,players:list[tuple]):
@@ -451,14 +466,18 @@ class Room:
             
 
     async def message_process(self):# 为了让每一个步骤变得有序
-        while self.gamming:
-            if not self.message_process_queue:
-                async with self.message_process_condition:
-                    await self.message_process_condition.wait_for(lambda: len(self.message_process_queue) > 0)  # 等待队列不为空
-            func=self.message_process_queue.pop(0)
-            # print(func[1])
-            await func[0](*func[1]) 
-            await self.check_death()
+        try:
+            while self.gamming:
+                if not self.message_process_queue:
+                    async with self.message_process_condition:
+                        await self.message_process_condition.wait_for(lambda: len(self.message_process_queue) > 0)  # 等待队列不为空
+                func=self.message_process_queue.pop(0)
+                # print(func[1])
+                await func[0](*func[1]) 
+                await self.check_death()
+        except asyncio.CancelledError:
+            print("message_process 停止")
+            raise
 
     async def select_attacker(self,username:str,content:str):
         
@@ -648,6 +667,14 @@ class Room:
         if player.opponent.get_flag("game_over"):
             self.gamming=False
 
+        if self.task_close:
+            self.task_close.cancel()
+            try:
+                await self.task_close
+            except asyncio.CancelledError:
+                pass
+            self.task_close=None
+
     async def auto_passing(self,username:str,content:str):
         player:Player=self.players[username]
         socket:"WebSocket"=self.players_socket[username]
@@ -723,17 +750,21 @@ class Room:
             await self.game_end(died_player)
 
     async def action_sender(self):
-        while self.gamming:
-            #print("action_sender 检查一次")
-            if not self.action_store_list_cache:
+        try:
+            while self.gamming:
+                #print("action_sender 检查一次")
+                if not self.action_store_list_cache:
+                    
+                    async with self.action_store_list_cache_condition:
+                        await self.action_store_list_cache_condition.wait_for(lambda: len(self.action_store_list_cache) > 0)  # 等待队列不为空
+                #print(self.action_store_list_cache)
+                action:actions.List_Action=self.action_store_list_cache.pop(0)
+                self.action_store_list+=action.list_action
                 
-                async with self.action_store_list_cache_condition:
-                    await self.action_store_list_cache_condition.wait_for(lambda: len(self.action_store_list_cache) > 0)  # 等待队列不为空
-            #print(self.action_store_list_cache)
-            action:actions.List_Action=self.action_store_list_cache.pop(0)
-            self.action_store_list+=action.list_action
-            
-            await self.send_action(action)
+                await self.send_action(action)
+        except asyncio.CancelledError:
+            print("action_sender 停止")
+            raise
             
 
             
