@@ -133,6 +133,7 @@ class PVE_Room(Base_Agent_Room):
     
     async def end_turn_time(self):
         await super().end_turn_time()
+        print(self.active_player.name)
         if self.active_player.name=="Agent1":
             await self.ask_agent_do_act()
 
