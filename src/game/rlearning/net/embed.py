@@ -27,7 +27,8 @@ class ManaEmbed(nn.Module):
         self.config=config
         self.embed_dim=config["embed_dim"]
         self.len_mana=config["len_mana"]
-        self.mana_embed=nn.Embedding(self.len_mana,self.embed_dim)#N*5>N*5*16
+        self.max_mana=config["max_mana"]
+        self.mana_embed=nn.Embedding(self.max_mana,self.embed_dim)#N*5>N*5*16
 
         self.mana_mlp=nn.Sequential(
             nn.Linear(self.len_mana*self.embed_dim,self.embed_dim),
