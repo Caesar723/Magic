@@ -1,6 +1,6 @@
 
 
-async function askGPT(messages_process_function,input) {
+async function askGPT(messages_process_function,input,model) {
     //const input = document.getElementById("input").value;
     //const output = document.getElementById("output");
     console.log(input)
@@ -11,14 +11,14 @@ async function askGPT(messages_process_function,input) {
     messages.appendChild(aiMsg);
 
     try {
-      const response = await fetch("https://free.v36.cm/v1/chat/completions", {
+      const response = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer sk-ao0HCUufUuNrfPzF76B4556483534dE2933fE8C4E46485Dc"
+          "Authorization": "Bearer sk-pkpksejovbeiqghttsaorzoahyszhwsvwbsedwclylrctgin"
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini",
+          model: model,
           stream: true,
           messages: [
             { role: "system", content: `
@@ -32,6 +32,7 @@ async function askGPT(messages_process_function,input) {
    - 每位玩家拥有上限20点生命值。
    - 拥有 堆叠机制（法术/技能进入堆叠，后进先出结算）。
    - 玩家通过打出 卡牌 来召唤随从或施放法术。
+   - 地牌一回合只能打出一张。地牌可以提供法力，打出一张牌就会横置一定的地牌来产生法力值。下一个回合地牌会重置。
 
    战斗规则：
    - 玩家抬起随从 → 表示该随从要进行攻击（宣攻）。
@@ -75,8 +76,10 @@ async function askGPT(messages_process_function,input) {
 
        - 推荐操作
          · 给出本回合最合理的行动建议。
+         · 如果手牌有地牌，一定先打出地牌
          · 如果能打出地牌 + 其他牌，说明理由。
          · 如果只能打出地牌，则只推荐打地牌。
+         · 如果场上有随从，考虑时候让随从进攻，或者不进攻用来防守
          · 如果完全不能行动，则推荐结束回合。
 
        - 内嵌规则解释
@@ -139,7 +142,7 @@ async function askGPT(messages_process_function,input) {
    - 保持简洁，不要过长。
 
                 ` },
-            { role: "user", content: input }
+            { role: "user", content: input+"[语言选择：中文]" }
           ]
         })
       });
@@ -188,6 +191,9 @@ class Tutor{
         headerIds: true
         });
         this.attack_flag=false;
+        this.buff_flag=false;
+        this.land_flag=false;
+        this.summon_flag=false;
         this.set_listener()
         this.toggleChat()
         this.start_game()
@@ -208,13 +214,19 @@ class Tutor{
     }
 
     async start_game(){
-        await askGPT(this.show_message,"游戏开始");
+        await askGPT(this.show_message,"游戏开始","Qwen/Qwen2.5-7B-Instruct");
     }
 
     async analysis_situation(contain_land=true){
-        this.attack_flag=false
+        //this.attack_flag=false
+        if (this.land_flag){
+            return
+        }
+        this.land_flag=true
         setTimeout(async () => {
-            await askGPT(this.show_message,"(A) 局势分析："+this.client.get_situation(contain_land));
+                await askGPT(this.show_message,"现在我打了一张地牌，描述一下地牌是什么，然后要求玩家每一个回合最好都打一张","Qwen/Qwen2.5-7B-Instruct");
+            
+            
         }, 2000);
        
     }
@@ -225,25 +237,45 @@ class Tutor{
         this.attack_flag=true
         setTimeout(async () => {
             await askGPT(this.show_message,`
-        - 检查可用 instant/flash 卡牌
-         · 如果有能改变战局的即时法术或闪现随从，判断是否该使用，如果没有就不需要推荐。
+    
 
-       - 检查可阻挡的随从
-         · 如果有随从可以阻挡，判断是否值得阻挡（例如能换掉高威胁随从），如果没有就不需要推荐。
-
-       - 如果没有合适应对
-         · 建议点击左侧按钮，让攻击结算通过。
-
-       - 关键词说明
-         · 把相关攻击者或阻挡者的关键词能力简短描述。
-
-       - 推荐操作
-         · 给出一个明确操作（使用 instant/flash、阻挡、或放行攻击）。
+       - 现在敌方开始进攻了，帮我介绍一下规则，当敌方进攻的时候我需要干什么（可以用随从阻挡，用 instant 和 flash）
+       然后描述谁是攻击者，攻击之后会怎么样，阻挡之后会怎么样，英雄血量会有什么变化
 
         攻击者信息：[name:${attacker.name} mana:${attacker.color_fee} type:${attacker.type} content:${attacker.card_content} damage:${attacker.Damage} life:${attacker.Life}]\n\n 
         (B) 局势分析（收到 攻击者信息 + 场面信息）：${this.client.get_situation(false)}
-        `);
+        `,"Qwen/Qwen2.5-7B-Instruct");
             
+        }, 1000);
+    }
+
+    async add_buff(){
+        if (this.buff_flag){
+            return
+        }
+        this.buff_flag=true
+        setTimeout(async () => {
+            await askGPT(this.show_message,"现在有人使用了 buff，请描述 buff 是什么，有哪一些 buff（属性增益，关键词 buff，亡语 buff或者别的特殊 buff）","Qwen/Qwen2.5-7B-Instruct");
+        }, 1000);
+    }
+
+    async summon_creature(){
+        if (this.summon_flag){
+            return
+        }
+        this.summon_flag=true
+        setTimeout(async () => {
+            await askGPT(this.show_message,"现在有人召唤了随从，请描述随从是什么，有哪一些随从（属性，关键词，亡语，别的特殊随从）","Qwen/Qwen2.5-7B-Instruct");
+        }, 1000);
+    }
+
+    async turn_start(){
+        if (this.turn_flag){
+            return
+        }
+        this.turn_flag=true
+        setTimeout(async () => {
+            await askGPT(this.show_message,"现在回合开始了，请描述一下回合开始的时候需要干什么(可以打地牌，打随从，打法术，随从攻击，结束回合)，检查是否有发绿光的牌，如果发绿光，说明可以打出，没有就点击右侧绿色计时按钮结束回合","Qwen/Qwen2.5-7B-Instruct");
         }, 1000);
     }
 

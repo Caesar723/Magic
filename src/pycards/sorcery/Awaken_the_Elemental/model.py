@@ -40,6 +40,8 @@ class Awaken_the_Elemental(Sorcery):
             player.append_card(new_creature,"battlefield")
             for i in range(5):
                 buff_state=StateBuff(self,new_creature,1,1)
+                buff_state.buff_missile="Cure"
+                buff_state.color_missile="rgba(10, 50, 10, 0.9)"
                 buff_state.set_end_of_turn()
                 new_creature.gain_buff(buff_state,self)
         

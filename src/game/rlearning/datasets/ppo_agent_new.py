@@ -94,13 +94,8 @@ class PPOAgentDataset(BaseDataset):
             self.datas,["global_reward"],["reward","done","action"]
         )
         
-        batch_extra["global_reward"]=sum(batch_extra["global_reward"])/self.config["max_store"]
-        reward_train=(torch.sum(batch_extra["reward"])/self.config["max_store"]).cpu().numpy()
-
-        step=trainer.epoch//self.config["n_epoch"]
-        log.SW.add_scalars( f"global_reward", {trainer.name:batch_extra["global_reward"]}, step) 
-        log.SW.add_scalars( f"reward_train", {trainer.name:reward_train}, step) 
         
+        self.log_data(trainer,batch_extra)
         
         batch_extra["action"]=batch_extra["action"].unsqueeze(-1)
         batch_extra["reward"]=batch_extra["reward"].unsqueeze(-1)

@@ -24,7 +24,7 @@ from game.type_cards.sorcery import Sorcery
 from game.rlearning.utils.file import read_yaml
 from game.base_agent_room import Base_Agent_Room
 from game.game_recorder import GameRecorder
-
+from game.rlearning.utils.agentSchedule import AgentSchedule
 
 
 
@@ -119,7 +119,7 @@ class Multi_Agent_Room(Base_Agent_Room):
         }
         #print(self.reward_func)
         
-        self.player_2.agent.restore_checkpoint(self.get_random_restore_step(self.player_2))
+        self.player_2.agent.restore_checkpoint(AgentSchedule.get_restore_step(self.player_2))
 
     # def get_random_restore_step(self,agent:Agent_Train):
     #     save_step=agent.agent.config["save_step"]
@@ -438,14 +438,16 @@ async def main():
     
     room=Multi_Agent_Room(
         #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/rainbowdqn_lstm.yaml",
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm2.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm4.yaml",
         #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm2.yaml",
         [
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new.yaml",
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new2.yaml",
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm.yaml",
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm2.yaml",
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm.yaml",
+        # "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new.yaml",
+        # "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new2.yaml",
+        # "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm.yaml",
+        # "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm2.yaml",
+        # "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm.yaml",
+
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm3.yaml",
         
         ]
     )

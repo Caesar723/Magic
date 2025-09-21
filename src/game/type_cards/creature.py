@@ -244,7 +244,7 @@ class Creature(Card):
         
     
         
-        self.player.action_store.add_action(actions.Add_Buff(card,self.player,self,"rgba(236, 230, 233, 0.8)","Missile_Hit",self.state,buff,True))
+        self.player.action_store.add_action(actions.Add_Buff(card,self.player,self,buff.color_missile,buff.buff_missile,self.state,buff,True))
         self.player.action_store.end_record()
 
     def when_loss_buff(self,player: "Player" = None, opponent: "Player" = None,buff:Buff=None,card:'Card'=None):#当失去+1+1的buff时 OK

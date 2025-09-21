@@ -24,7 +24,7 @@ from game.type_cards.sorcery import Sorcery
 from game.rlearning.utils.file import read_yaml
 from game.base_agent_room import Base_Agent_Room
 from game.game_recorder import GameRecorder
-
+from game.rlearning.utils.agentSchedule import AgentSchedule
 
 
 
@@ -175,7 +175,7 @@ class Multi_Agent_Room(Base_Agent_Room):
             # else:
                 
             new_reward=current_reward-old_reward
-            new_reward/=10
+            new_reward/=5
             if action==0:
                 info_index=len(self.game_recorder[agent.name].datas)
                 new_reward/=50
@@ -352,7 +352,7 @@ class Multi_Agent_Room(Base_Agent_Room):
             #print("finish")
             self.gamming=True
             await self.initinal_environmrnt()
-            self.player_2.agent.restore_checkpoint(self.get_random_restore_step())
+            self.player_2.agent.restore_checkpoint(AgentSchedule.get_restore_step(self.player_1))
             
             
         #self.active_player.update()
@@ -411,7 +411,7 @@ async def tasks(room):
 async def main():
     
     room=Multi_Agent_Room(
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm3.yaml",
     )
     
     await room.game_start()

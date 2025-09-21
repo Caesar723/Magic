@@ -196,18 +196,12 @@ class RainbowDQNDataset(BaseDataset):
         batch_extra=_collate_batch(
             self.datas,["global_reward"],["reward","done","action"]
         )
+        self.log_data(trainer,batch_extra)
         
-        batch_extra["global_reward"]=sum(batch_extra["global_reward"])/self.config["max_store"]
-        reward_train=(torch.sum(batch_extra["reward"])/self.config["max_store"]).cpu().numpy()
 
-        success_reward=batch_extra["reward"][batch_extra["done"]==1].cpu().numpy()
-        success_rate=sum((success_reward+1)/2)/len(success_reward)
         # print(batch_extra["action"])
         # print(success_reward,batch_extra["done"])
 
-        log.SW.add_scalars( f"global_reward", {trainer.name:batch_extra["global_reward"]}, trainer.step) 
-        log.SW.add_scalars( f"reward_train", {trainer.name:reward_train}, trainer.step) 
-        log.SW.add_scalars( f"success_rate", {trainer.name:success_rate}, trainer.step) 
         
         return self.datas
     

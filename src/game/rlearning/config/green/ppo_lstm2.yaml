@@ -4,7 +4,7 @@
 ###########################
 
 log_dir: "ppo/ppo_green_lstm_n02_v02"
-restore_step: 0
+restore_step: 177120
 new_version: True
 reward_type: "reward_win_base"
 #------------------------------------
@@ -45,7 +45,7 @@ ppo:
 
 
 optimizer:
-  learning_rate: 1.0e-7
+  learning_rate: 1.0e-6
   betas: [0.8, 0.99]
   eps: 1.0e-9 
   grad_clip_thresh: 1.0

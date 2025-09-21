@@ -504,6 +504,7 @@ class Add_Buff extends Select_Object{
         
     }
     set_animate(){
+        this.player.table.client.tutor.add_buff()
         this.selected_object.append_buff(this.buff)
         //console.log(this.selected_object)
         if (this.selected_object.type=="Creature"){
@@ -858,6 +859,7 @@ class Summon extends Animation{
                 this.player.table.opponent_battlefield.push(this.object_hold.battle)
             }
             else{
+                this.player.table.client.tutor.summon_creature()
                 this.player.table.self_battlefield.push(this.object_hold.battle)
             }
             
@@ -898,7 +900,7 @@ class Turn extends Animation{
             this.player.table.player_self.my_turn=false
         }
         else{
-            this.player.table.client.tutor.analysis_situation()
+            this.player.table.client.tutor.turn_start()
             this.player.table.timmer_turn.change_green()
             this.player.table.player_self.my_turn=true
         }

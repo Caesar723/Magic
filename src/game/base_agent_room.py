@@ -111,6 +111,7 @@ class Base_Agent_Room(Room):
     async def num2action_new(self,agent:Agent,action:int)->str:
         name=agent.name
         content=''
+        sort_function=self.create_sort_function(agent)
         if action==0:
             type_act="end_step"
         elif action==1:
@@ -119,7 +120,7 @@ class Base_Agent_Room(Room):
             type_act="select_attacker"
             self_battlefield=agent.battlefield
             
-            self_battlefield_sorted=sorted(enumerate(self_battlefield), key=lambda x: self.get_creature_reward(x[1]), reverse=True)
+            self_battlefield_sorted=sorted(enumerate(self_battlefield), key=lambda x: sort_function(x[1]), reverse=True)
             
             selected_index=self_battlefield_sorted[action-2][0]
             content=f'{selected_index}'
@@ -128,7 +129,7 @@ class Base_Agent_Room(Room):
             
             self_battlefield=agent.battlefield
             
-            self_battlefield_sorted=sorted(enumerate(self_battlefield), key=lambda x: self.get_creature_reward(x[1]), reverse=True)
+            self_battlefield_sorted=sorted(enumerate(self_battlefield), key=lambda x: sort_function(x[1]), reverse=True)
             
             selected_index=self_battlefield_sorted[action-12][0]
             content=f'{selected_index}'
@@ -159,19 +160,19 @@ class Base_Agent_Room(Room):
         type_act=""
 
         
-
+        sort_function=self.create_sort_function(agent)
         if sub_action==0:
             pass
         elif sub_action>=1 and sub_action<=10:
             opponent_battlefield=agent.opponent.battlefield
-            opponent_battlefield_sorted=sorted(enumerate(opponent_battlefield), key=lambda x: self.get_creature_reward(x[1]), reverse=True)
+            opponent_battlefield_sorted=sorted(enumerate(opponent_battlefield), key=lambda x: sort_function(x[1]), reverse=True)
             type_act="opponent_battlefield"
             selected_index=opponent_battlefield_sorted[sub_action-1][0]
             content=f"{selected_index}"
         elif sub_action>=11 and sub_action<=20:
             self_battlefield=agent.battlefield
             
-            self_battlefield_sorted=sorted(enumerate(self_battlefield), key=lambda x: self.get_creature_reward(x[1]), reverse=True)
+            self_battlefield_sorted=sorted(enumerate(self_battlefield), key=lambda x: sort_function(x[1]), reverse=True)
             
             selected_index=self_battlefield_sorted[sub_action-11][0]
             
@@ -421,8 +422,8 @@ class Base_Agent_Room(Room):
         state_batch["card_hand"]["card_has_defend"]=np.array(card_has_defend)
         state_batch["card_hand"]["card_mask"]=np.array(card_mask)
 
-        state_batch["self_board"]=self.get_creature_state_new_batch(agent.battlefield)
-        state_batch["oppo_board"]=self.get_creature_state_new_batch(oppo_agent.battlefield)
+        state_batch["self_board"]=self.get_creature_state_new_batch(agent,agent.battlefield)
+        state_batch["oppo_board"]=self.get_creature_state_new_batch(agent,oppo_agent.battlefield)
 
         
         if self.get_flag("attacker_defenders"):
@@ -488,7 +489,7 @@ class Base_Agent_Room(Room):
         result["card_has_defend"]=[1]
         return result
     
-    def get_creature_state_new_batch(self,creatures:list[Creature]):
+    def get_creature_state_new_batch(self,agent:Agent,creatures:list[Creature]):
         length=len(creatures)
         batch_result={}
         batch_result["card_special_types"]=[]
@@ -499,9 +500,9 @@ class Base_Agent_Room(Room):
         batch_result["card_mask"]=[]
 
 
-       
-        cards_sorted = sorted(creatures, key=self.get_creature_reward, reverse=True)
-
+        sort_function=self.create_sort_function(agent)
+        cards_sorted = sorted(creatures, key=sort_function, reverse=True)
+        #print(cards_sorted)
         for i in range(10):
             if i < length:
                 creature=cards_sorted[i]
@@ -628,11 +629,12 @@ class Base_Agent_Room(Room):
         
         return mask[np.newaxis, :]
 
+
     def create_action_mask_new(self,agent:Agent):
         oppo_agent=agent.opponent
         mask=np.zeros((1342))
 
-        self_battlefield_sorted=sorted(agent.battlefield, key=lambda x: self.get_creature_reward(x), reverse=True)
+        self_battlefield_sorted=sorted(agent.battlefield, key=self.create_sort_function(agent), reverse=True)
         if self.get_flag('attacker_defenders'):
             mask[1]=True
             for i,creat in enumerate(self_battlefield_sorted):
@@ -654,6 +656,16 @@ class Base_Agent_Room(Room):
             if agent.hand:self.mask_hand_new(agent,oppo_agent,mask)
         
         return mask[np.newaxis, :]
+
+    def create_sort_function(self,agent:Agent):
+        def sort_function(card:Creature):
+            score=self.get_creature_reward(card)
+            if agent.agent.config.get("sort_method","score")=="score_tap":
+                if (not card.get_flag("summoning_sickness") or card.get_flag("haste")) and\
+                not card.get_flag("tap") and (card.get_counter_from_dict("attack_counter")>0):
+                    score+=100
+            return score
+        return sort_function
 
 
     def mask_hand(self,agent:Agent,oppo_agent:Agent,mask:np.ndarray):

@@ -1,7 +1,7 @@
 .ai-avatar {
     position: fixed;
     top: 20px;
-    left: 20px;
+    left: 60px;
     width: 60px;
     height: 60px;
     border-radius: 50%;
@@ -31,7 +31,7 @@
   .chat-box {
     position: fixed;
     top: 20px;
-    left: 100px;
+    left: 140px;
     width: 320px;
     height: 280px;
     background: rgba(255, 255, 255, 0.2);

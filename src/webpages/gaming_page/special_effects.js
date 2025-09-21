@@ -381,16 +381,32 @@ class Cure extends Magic_Missile{
         this.speed=1
     }
     get_bezier_points(position,target_position){
-        const new_pos_1=[
-            (position[0]+target_position[0])/2+10,
-            -20,
-            (position[2]+target_position[2])/2
-        ]
-        const new_pos_2=[
-            (position[0]+target_position[0])/2-10,
-            -30,
-            (position[2]+target_position[2])/2
-        ]
+        // const new_pos_1=[
+        //     (position[0]+target_position[0])/2+10,
+        //     -20,
+        //     (position[2]+target_position[2])/2
+        // ]
+        // const new_pos_2=[
+        //     (position[0]+target_position[0])/2-10,
+        //     -30,
+        //     (position[2]+target_position[2])/2
+        // ]
+
+            // 中点
+        const midX = (position[0] + target_position[0]) / 2;
+        const midZ = (position[2] + target_position[2]) / 2;
+
+        // 随机幅度（你可以调节数值范围）
+        const randX1 = (Math.random() - 0.5) * 20; // -10 ~ 10
+        const randZ1 = (Math.random() - 0.5) * 20;
+        const randY1 = -20 + (Math.random() - 0.5) * 10; // -25 ~ -15
+
+        const randX2 = (Math.random() - 0.5) * 20;
+        const randZ2 = (Math.random() - 0.5) * 20;
+        const randY2 = -30 + (Math.random() - 0.5) * 10; // -35 ~ -25
+
+        const new_pos_1 = [midX + randX1, randY1, midZ + randZ1];
+        const new_pos_2 = [midX + randX2, randY2, midZ + randZ2];
         const arr=[position,new_pos_1,new_pos_2,target_position]
         return arr
     }

@@ -13,6 +13,7 @@ from game.ppo_train import Agent_PPO
 from game.player import Player
 from game.agent import Agent_Player as Agent
 import torch
+import random
 from torch import nn
 from game.type_cards.creature import Creature
 from game.type_cards.instant import Instant
@@ -20,6 +21,8 @@ from game.type_cards.land import Land
 from game.type_cards.sorcery import Sorcery
 from game.base_agent_room import Base_Agent_Room
 from game.game_recorder import GameRecorder
+from game.game_function_tool import ORGPATH
+
 
 class PVE_Demo_Room(Base_Agent_Room):
     """
@@ -42,12 +45,19 @@ class PVE_Demo_Room(Base_Agent_Room):
 
         
 
+    def choose_agent_config(self):
+        agents=[
+            f"{ORGPATH}/game/rlearning/weights/white/ppo_lstm2.yaml",
+            f"{ORGPATH}/game/rlearning/weights/green/ppo_lstm3.yaml",
+        ]
+        return random.choice(agents)
+
     def initinal_player(self,players:list[tuple]):
         #agents_deck="Eternal Phoenix+Creature+4|Raging Firekin+Creature+4|Emberheart Salamander+Creature+4|Arcane Inferno+Instant+4|Pyroblast Surge+Instant+4|Fiery Blast+Instant+4|Inferno Titan+Creature+4|Flame Tinkerer+Creature+4|Mountain+Land+24"
 
         # Agent_para=[(agents_deck,"Agent1")]
         print(self.stack)
-        self.player_1=Agent("Agent1",self)
+        self.player_1=Agent("Agent1",self,self.choose_agent_config())
         self.player_2=Player(players[0][1],self.player_1.config["cards"],self)
         self.player_1.set_opponent_player(self.player_2,self)
         self.player_2.set_opponent_player(self.player_1,self)

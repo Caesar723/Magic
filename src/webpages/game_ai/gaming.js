@@ -713,10 +713,10 @@ class Game_Client{
                 }
             }
             if (card.type=='Creature'){
-                cards_text+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content} damage:${card.Damage} life:${card.Life}] \n`
+                cards_text+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content} damage:${card.Damage} life:${card.Life}], \n`
             }
             else{
-                cards_text+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content}] \n`
+                cards_text+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content}], \n`
             }
         }
         let cards_text_battle=''
@@ -726,10 +726,10 @@ class Game_Client{
                 continue
             }
             if (card.type=='Creature'){
-                cards_text_battle+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content} damage:${card.Damage} life:${card.Life}] \n`
+                cards_text_battle+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content} damage:${card.Damage} life:${card.Life}], \n`
             }
             else{
-                cards_text_battle+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content}] \n`
+                cards_text_battle+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content}], \n`
             }
         }
         let cards_text_battle_oppo=''
@@ -739,10 +739,10 @@ class Game_Client{
                 continue
             }
             if (card.type=='Creature'){
-                cards_text_battle_oppo+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content} damage:${card.Damage} life:${card.Life}] \n`
+                cards_text_battle_oppo+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content} damage:${card.Damage} life:${card.Life}], \n`
             }
             else{
-                cards_text_battle_oppo+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content}] \n`
+                cards_text_battle_oppo+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content}], \n`
             }
         }
 
@@ -769,7 +769,7 @@ class Game_Client{
         let result=`
         法力值:{${manas}}
 
-        手牌:{${cards_text}}
+        可用手牌:{${cards_text}}
         
         我方战场:{${cards_text_battle}}
 
