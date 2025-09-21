@@ -120,7 +120,9 @@ class PVE_Room(Base_Agent_Room):
 
 
     async def end_bullet_time(self):
+
         result= await super().end_bullet_time() 
+        print(self.active_player.name)
         if self.active_player.name=="Agent1":
             await self.ask_agent_do_act()
         return result
