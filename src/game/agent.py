@@ -10,7 +10,7 @@ from game.player import Player
 from initinal_file import CARD_DICTION
 from game.game_function_tool import ORGPATH
 from game.rlearning.utils.file import read_yaml
-from game.rlearning.utils.model import get_class_by_name
+from game.rlearning.utils.model import get_class_by_name,get_model
 
 
 
@@ -28,8 +28,8 @@ class Agent_Player(Player):
         self.action_history_length=self.config.get("action_history_length",1)
 
         
-        model_class=get_class_by_name(self.config["trainer"])
-        self.agent=model_class(self.config,self.config["restore_step"],name="agent1")
+        #model_class=get_class_by_name(self.config["trainer"])
+        self.agent=get_model(self.config)
         self.select_content:str=f'{name}|cancel'
                 
     def choose_action(self,state,isTrain=False):

@@ -196,7 +196,12 @@ class Room:
             self.action_processor.add_action(actions.Lose(lose_player,lose_player))
             #await self.room_server.settle_player(True,win_player)
             #await self.room_server.settle_player(False,lose_player)
+
+        
         self.action_processor.end_record()
+        # await self.room_server.settle_player(True,win_player)
+        # await self.room_server.settle_player(False,lose_player)
+        # self.gamming=False
         #print(self.action_processor.action_cache)
 
         

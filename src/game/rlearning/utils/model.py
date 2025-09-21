@@ -208,7 +208,16 @@ def padding_mask(length, max_length=None):
     x = torch.arange(max_length, dtype=length.dtype, device=length.device)
     return x.unsqueeze(0) >= length.unsqueeze(1)
 
+def get_model(config,cache={}):
+    key=config["log_dir"]+"_"+str(config["restore_step"])
 
+    if key in cache:
+        return cache[key]
+    else:
+        model_class=get_class_by_name(config["trainer"])
+        agent=model_class(config,config["restore_step"],name="agent1")
+        cache[key]=agent
+        return agent
 
 def main():
     pass
