@@ -114,7 +114,9 @@ class PVE_Room(Base_Agent_Room):
         state=self.get_new_state(agent)
         mask=self.create_action_mask(agent)
         state["mask"]=mask
+        print("state get")
         action=agent.choose_action(state,isTrain=False)
+        print("action choose")
         # print(action)
         return await self.process_action(agent,action)
 
