@@ -458,6 +458,7 @@ class Room:
        
         
         """
+        print(self.gamming)
         username,type,content=message.split("|")
         if type in self.message_process_dict:
             async with self.message_process_condition:
