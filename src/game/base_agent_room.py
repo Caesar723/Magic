@@ -149,7 +149,7 @@ class Base_Agent_Room(Room):
             content=f"{index_card}"
             sub_action=(action-22)%33
             sub_content=self.num2subaction(agent,sub_action)
-            print(sub_content)
+            #print(sub_content)
             agent.set_select_content(sub_content)
             #print(sub_content)
         result=f"{name}|{type_act}|{content}"
@@ -954,8 +954,8 @@ class Base_Agent_Room(Room):
         #     return -1
         # elif agent.opponent.life<=0:
         #     return 1
-        self_live_reward=lambda x :x/10#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
-        oppo_live_reward=lambda x :x/10
+        self_live_reward=lambda x :x/5#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
+        oppo_live_reward=lambda x :x/5
 
         score_life_self=self_live_reward(agent.life)
         score_oppo_self=oppo_live_reward(agent.opponent.life)
@@ -988,7 +988,7 @@ class Base_Agent_Room(Room):
 
         reward=score_hand+(score_life_self-score_oppo_self)+score_mana+score_battle_self-score_battle_oppo
 
-        strength=3
+        strength=8
         #print(agent.get_counter_from_dict("turn_count"))
         reward=reward/((agent.get_counter_from_dict("turn_count")+strength)/strength)
         result={

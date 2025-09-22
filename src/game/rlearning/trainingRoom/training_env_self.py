@@ -175,7 +175,7 @@ class Multi_Agent_Room(Base_Agent_Room):
             # else:
                 
             new_reward=current_reward-old_reward
-            new_reward/=5
+            new_reward/=2
             if action==0:
                 info_index=len(self.game_recorder[agent.name].datas)
                 new_reward/=50
@@ -338,15 +338,15 @@ class Multi_Agent_Room(Base_Agent_Room):
                 #     agent.update()
                 #     oppo_agent.update()
                 #     break
-                if agent==self.player_1:
-                    is_update=agent.update()
-                    if is_update:
-                        self.update_flag[agent.name]=True
-                        
-                else:
-                    is_update=oppo_agent.update()
-                    if is_update:
-                        self.update_flag[oppo_agent.name]=True
+            if agent==self.player_1:
+                is_update=agent.update()
+                if is_update:
+                    self.update_flag[agent.name]=True
+                    
+            else:
+                is_update=oppo_agent.update()
+                if is_update:
+                    self.update_flag[oppo_agent.name]=True
                 
                 
             #print("finish")
@@ -411,7 +411,7 @@ async def tasks(room):
 async def main():
     
     room=Multi_Agent_Room(
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm3.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm3.yaml",
     )
     
     await room.game_start()

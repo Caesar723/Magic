@@ -371,15 +371,15 @@ class Multi_Agent_Room(Base_Agent_Room):
                 #     agent.update()
                 #     oppo_agent.update()
                 #     break
-                if agent==self.player_1:
-                    is_update=agent.update()
-                    if is_update:
-                        self.update_flag[agent.name]=True
-                        
-                else:
-                    is_update=oppo_agent.update()
-                    if is_update:
-                        self.update_flag[oppo_agent.name]=True
+            if agent==self.player_1:
+                is_update=agent.update()
+                if is_update:
+                    self.update_flag[agent.name]=True
+                    
+            else:
+                is_update=oppo_agent.update()
+                if is_update:
+                    self.update_flag[oppo_agent.name]=True
                 
             #print("finish")
             self.gamming=True

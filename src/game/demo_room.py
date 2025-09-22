@@ -49,6 +49,7 @@ class PVE_Demo_Room(Base_Agent_Room):
         agents=[
             f"{ORGPATH}/game/rlearning/weights/white/ppo_lstm2.yaml",
             f"{ORGPATH}/game/rlearning/weights/green/ppo_lstm3.yaml",
+            f"{ORGPATH}/game/rlearning/weights/white2/ppo_lstm3.yaml",
         ]
         return random.choice(agents)
 

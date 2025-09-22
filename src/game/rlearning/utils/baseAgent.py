@@ -298,6 +298,8 @@ class BaseTrainer:
                     error_keys.append(k)
                     pass
             for k in self.scheds:
+                if self.config.get("reset_learning_rate", False):
+                    continue
                 try:
                     self.scheds[k].load_state_dict( state_dict["scheds"][k]) 
                 except:
@@ -317,7 +319,7 @@ class BaseTrainer:
             for k in self.optims:
                 for param_group in self.optims[k].param_groups:
                     param_group["lr"] = self.config["optimizer"]["learning_rate"]  
-
+            
 
 
     def save_checkpoint(self, suffix=None): 

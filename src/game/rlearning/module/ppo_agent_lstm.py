@@ -123,16 +123,16 @@ class PPOTrainer(BaseTrainer):
             history_embed_output,
         ],dim=-1)
         #print(batch["all_embed"].shape)
-        print("Actor")
+        #print("Actor")
         batch["actions"]=models["Actor"](batch["all_embed"])
-        print("dist")
+        #print("dist")
         dist=torch.distributions.Categorical(batch["actions"])
-        print("entropy")
+        #print("entropy")
         batch["dist"]=dist
         batch["entropy"]=dist.entropy()
-        print("Critic")
+        #print("Critic")
         batch["value"]=models["Critic"](batch["all_embed"])
-        print("return")
+        #print("return")
 
 
             

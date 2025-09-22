@@ -4,7 +4,7 @@
 ###########################
 
 log_dir: "ppo/ppo_white_lstm_n02_v03"
-restore_step: 0
+restore_step: -1
 new_version: True
 reward_type: "reward_creature_base"
 sort_method: "score_tap"
@@ -23,7 +23,7 @@ max_store: 1024
 #------------------------------------
 dataset_class_name: "game.rlearning.datasets.ppo_agent_lstm.PPOAgentDataset"
 dataloader:
-  batch_size: 32
+  batch_size: 16
   num_workers: 0
 
 dataset_multiple: 10
@@ -47,7 +47,7 @@ ppo:
 
 
 optimizer:
-  learning_rate: 1.0e-6
+  learning_rate: 5.0e-7
   betas: [0.8, 0.99]
   eps: 1.0e-9 
   grad_clip_thresh: 1.0
@@ -62,7 +62,7 @@ reset_learning_rate: True
 moving_average_beta: 0
 
 #------------------------------------
-total_step: 500000
+total_step: 100000
 log_step: 20
 eval_step: 2000
 synthesis_step: 2000
