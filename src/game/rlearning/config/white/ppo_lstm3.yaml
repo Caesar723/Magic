@@ -4,8 +4,10 @@
 ###########################
 
 log_dir: "ppo/ppo_white_lstm_n02_v03"
-restore_step: 474000
+restore_step: 0
 new_version: True
+reward_type: "reward_creature_base"
+sort_method: "score_tap"
 #------------------------------------
 action_history_length: 10
 cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Creature+3|Ironclad Crusader+Creature+2|Sunlit Priestess+Creature+3|Apocalypse Riders+Sorcery+4|Call to Unity+Sorcery+4|Angelic Blessing+Sorcery+2|Righteous Conviction+Sorcery+2|Spectral Embrace+Sorcery+3|Celestial Convergence+Instant+1|Avenging Light+Instant+1|Plains+Land+15"

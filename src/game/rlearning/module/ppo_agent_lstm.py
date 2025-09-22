@@ -59,17 +59,17 @@ class PPOTrainer(BaseTrainer):
         return loss
 
     def predict(self,batch,models,isTrain,step,epoch):
-        print("HeroEmbedSelf")
+        #print("HeroEmbedSelf")
         hero_embed_self=models["HeroEmbedSelf"](batch["self_life"])
-        print("HeroEmbedOppo")
+        #print("HeroEmbedOppo")
         hero_embed_oppo=models["HeroEmbedOppo"](batch["oppo_life"])
-        print("ManaEmbed")
+        #print("ManaEmbed")
         mana_embed=models["ManaEmbed"](batch["self_mana"])
-        print("CardsHandEmbed")
+        #print("CardsHandEmbed")
         cards_hand_embed=models["CardsHandEmbed"](
             batch["card_hand_card_matrix"],
         )
-        print("CardsBoardEmbedSelf")
+        #print("CardsBoardEmbedSelf")
         cards_board_embed_self=models["CardsBoardEmbedSelf"](
             batch["self_board_card_special_types"],
             batch["self_board_card_atks"],
@@ -78,7 +78,7 @@ class PPOTrainer(BaseTrainer):
             batch["self_board_card_has_defend"],
             batch["self_board_card_mask"],
         )
-        print("CardsBoardEmbedOppo")
+        #print("CardsBoardEmbedOppo")
         cards_board_embed_oppo=models["CardsBoardEmbedOppo"](
             batch["oppo_board_card_special_types"],
             batch["oppo_board_card_atks"],
@@ -87,7 +87,7 @@ class PPOTrainer(BaseTrainer):
             batch["oppo_board_card_has_defend"],
             batch["oppo_board_card_mask"],
         )
-        print("AttackerEmbed")
+        #print("AttackerEmbed")
         attacker_embed=models["AttackerEmbed"](
             batch["attacker_card_special_types"],
             batch["attacker_card_atks"],
@@ -97,21 +97,21 @@ class PPOTrainer(BaseTrainer):
             
         ).squeeze(1)
 
-        print("pack_padded_sequence")
+        #print("pack_padded_sequence")
         #print(batch["action_history_one_hot"])
         #print(batch["action_history_length"])
 
         lengths = batch["action_history_length"].cpu()
         packed = pack_padded_sequence(batch["action_history_one_hot"], lengths, batch_first=True, enforce_sorted=False)
         #batch["action_history_packed"]=packed
-        print("HistoryEmbed")
+        #print("HistoryEmbed")
         history_embed=models["HistoryEmbed"](packed)
         history_embed_output, _ = pad_packed_sequence(history_embed, batch_first=True)
         
         history_embed_output = history_embed_output[torch.arange(len(lengths)), lengths - 1]
         
         
-        print("all_embed")
+        #print("all_embed")
         batch["all_embed"]=torch.cat([
             hero_embed_self,
             hero_embed_oppo,
