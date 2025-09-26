@@ -121,6 +121,13 @@ class Studio_Instant_Data(Studio_Card_Data):
 class Studio_Sorcery_Data(Studio_Card_Data):
     card_ability_function:Optional[str] = None
 
+class NodeInfoRogue(BaseModel):
+    node_id: str
+
+class OptionSelectRogue(BaseModel):
+    event_id: str
+    option_index: int
+
 key = Fernet.generate_key()
 cipher_suite = Fernet(key)
 ORGPATH=os.path.dirname(os.path.abspath(__file__))

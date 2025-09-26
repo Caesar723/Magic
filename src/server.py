@@ -14,6 +14,7 @@ from database import DataBase
 from security import Security
 from game.room_server import RoomServer,Room
 from game.studio_room import Studio_Room
+from game.rogue.rogue import get_router
 from initinal_file import CARD_DICTION
 from packs import *
 from tasks import TASK_DICT
@@ -26,6 +27,8 @@ ras=Security()
 room_server=RoomServer(database)
 templates = Jinja2Templates(directory=f"{ORGPATH}")
 
+app.include_router(get_router(ras,database,room_server,templates))
+
 ###cryptography
 
 ###
@@ -33,6 +36,7 @@ templates = Jinja2Templates(directory=f"{ORGPATH}")
 app.mount("/webpages", StaticFiles(directory="src/webpages"), name="webpages")
 app.mount("/cards", CustomStaticFiles(directory="src/cards"), name="cards")
 app.mount("/packet", CustomStaticFiles(directory="src/packet"), name="packet")
+app.mount("/treasures", CustomStaticFiles(directory="src/treasures"), name="treasures")
 ###
 
 

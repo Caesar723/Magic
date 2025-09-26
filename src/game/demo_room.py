@@ -60,6 +60,8 @@ class PVE_Demo_Room(Base_Agent_Room):
         print(self.stack)
         self.player_1=Agent("Agent1",self,self.choose_agent_config())
         self.player_2=Player(players[0][1],self.player_1.config["cards"],self)
+
+        #self.player_2.change_function_by_treasure()
         self.player_1.set_opponent_player(self.player_2,self)
         self.player_2.set_opponent_player(self.player_1,self)
         self.players:dict={

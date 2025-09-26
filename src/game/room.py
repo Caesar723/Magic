@@ -819,12 +819,14 @@ class Room:
         time_turn=f'int({self.turn_timer})'
         time_bullet=f'int({self.bullet_timer})'
         life_self=f'int({self_player.life})'
+        life_self_max=f'int({self_player.ini_life})'
         life_oppo=f'int({oppo_player.life})'
+        life_oppo_max=f'int({oppo_player.ini_life})'
         len_deck_self=f'int({len(self_player.library)})'
         len_deck_oppo=f'int({len(oppo_player.library)})'
         your_turn=f'int({int(self_player==self.active_player)})'
         auto_pass_flag=int(player.get_flag("auto_pass"))
-        return f"Initinal_all(parameters({self_hand}),parameters({oppo_hand}),parameters({self_battle}),parameters({oppo_battle}),parameters({self_lands}),parameters({oppo_lands}),parameters({actions_text}),parameters({manas}),{time_turn},{time_bullet},{life_self},{life_oppo},{len_deck_self},{len_deck_oppo},{your_turn},int({auto_pass_flag}))"
+        return f"Initinal_all(parameters({self_hand}),parameters({oppo_hand}),parameters({self_battle}),parameters({oppo_battle}),parameters({self_lands}),parameters({oppo_lands}),parameters({actions_text}),parameters({manas}),{time_turn},{time_bullet},{life_self},{life_self_max},{life_oppo},{life_oppo_max},{len_deck_self},{len_deck_oppo},{your_turn},int({auto_pass_flag}))"
 
 
 

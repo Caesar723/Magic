@@ -13,6 +13,20 @@ services:
       - db_data:/var/lib/mysql
       - ./db/magic_backup.sql:/docker-entrypoint-initdb.d/magic_backup.sql  # 挂载 data.sql 文件
 
+  mongo:
+    image: mongo:6
+    container_name: mongo-magic
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 20040723Caesar
+      MONGO_INITDB_DATABASE: Magic_fan_made_rogue
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/db:/data/db
+
+
   web:
     image: registry.cn-shanghai.aliyuncs.com/magic_fan_made/server_magic
     platform: linux/amd64
@@ -20,16 +34,19 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - mongo
     environment:
       DATABASE_AIOURL: mysql+aiomysql://root:20040723Caesar@db/Magic_fan_made  # 使用  作为密码
       DATABASE_PYURL: mysql+pymysql://root:20040723Caesar@db/Magic_fan_made  # 使用  作为密码
+      DATABASE_MONGOURL: mongodb://root:20040723Caesar@mongo:27017/Magic_fan_made_rogue?authSource=admin
     cap_add:
       - NET_BIND_SERVICE
     volumes:
       - ./xuanpei-chen.top_ssh:/app/src/xuanpei-chen.top_ssh
-      - data_volume:/app/src/user_cache
-      - data_volume:/app/src/user_data
+      - cache_volume:/app/src/user_cache
+      - user_volume:/app/src/user_data
 
 volumes:
   db_data:
-  data_volume:
+  cache_volume:
+  user_volume:

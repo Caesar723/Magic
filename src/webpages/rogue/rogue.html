@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>rogue</title>
+    <link rel="shortcut icon" href="/webpages/homepage/coin.png" type="image/x-icon" /> 
+    <link rel="stylesheet" href="/webpages/rogue/rogue.css">
+
+    <script src="/webpages/rogue/request_process.js"></script>
+    
+</head>
+<body>
+    <div class="background-animation">
+        <div class="floating-orb"></div>
+        <div class="floating-orb"></div>
+        <div class="floating-orb"></div>
+    </div>
+
+    <div class="map-container" id="mapContainer">
+        <div class="map-content" id="mapContent">
+            <svg class="map-svg" id="mapSvg">
+                 路径将通过JavaScript动态生成 
+            </svg>
+             节点将通过JavaScript动态生成 
+        </div>
+    </div>
+
+    <div class="inventory-panel" id="inventoryPanel">
+        <div class="inventory-header">
+            <h2 class="inventory-title">🎒 Treasures</h2>
+        </div>
+        <div class="inventory-grid" id="inventoryGrid">
+             道具将通过JavaScript动态生成 
+        </div>
+    </div>
+    <div class="inventory-toggle" id="inventoryToggle">
+        <span class="inventory-toggle-icon">▼</span>
+    </div>
+
+
+    <!-- 添加商店弹窗 -->
+    <div class="shop-modal" id="shopModal">
+        <div class="shop-container">
+            <div class="shop-header">
+                <h2 class="shop-title">🏪 神秘商店</h2>
+                <div class="currency-display">
+                    <span class="currency-icon">💰</span>
+                    <span id="currencyAmount">1000</span>
+                </div>
+            </div>
+            <div class="shop-content">
+                <div class="shop-grid" id="shopGrid">
+                     商品将通过JavaScript动态生成 
+                </div>
+            </div>
+            <button class="shop-close" id="shopClose">退出商店</button>
+        </div>
+    </div>
+    <!-- 添加战斗弹窗 -->
+    <div class="battle-modal" id="battleModal">
+        <div class="battle-container">
+            <div class="battle-left">
+                <div class="enemy-avatar" id="enemyAvatar">👹</div>
+                <div class="enemy-name" id="enemyName">暗影恶魔</div>
+                <div class="enemy-hp-container">
+                    <div class="enemy-hp-label">生命值</div>
+                    <div class="enemy-hp-bar">
+                        <div class="enemy-hp-fill" id="enemyHpFill" style="width: 100%;">
+                            <div class="enemy-hp-text" id="enemyHpText">850 / 850</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="enemy-description" id="enemyDescription">
+                    一只来自深渊的强大恶魔，拥有暗影魔法和强大的物理攻击力。它的眼中燃烧着地狱之火，散发着令人恐惧的邪恶气息。
+                </div>
+            </div>
+            <button class="battle-close" id="battleClose">×</button>
+            <div class="battle-buttons">
+                <button class="battle-button battle-enter" id="battleEnter">进入战斗</button>
+            </div>
+        </div>
+    </div>
+
+     <!-- 添加事件弹窗 -->
+     <div class="event-modal" id="eventModal">
+        <div class="event-container">
+            <div class="event-left">
+                <h2 class="event-title" id="eventTitle">神秘的古老神庙</h2>
+                <div class="event-image" id="eventImage">🏛️</div>
+                <div class="event-description" id="eventDescription">
+                    你在森林深处发现了一座被藤蔓覆盖的古老神庙。神庙的入口散发着微弱的蓝光，空气中弥漫着古老魔法的气息。
+                    石门上刻着古老的符文，似乎在诉说着远古的秘密。你感觉到这里隐藏着巨大的力量，但同时也充满了未知的危险...
+                </div>
+            </div>
+            <div class="event-right">
+                <h3 class="event-options-title">Select your action</h3>
+                <div class="event-options" id="eventOptions">
+                     选项将通过JavaScript动态生成 
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 添加卡牌按钮 -->
+    <button class="card-button" id="cardButton">Deck</button>
+
+     <!-- 添加卡牌弹窗 -->
+    <div class="card-modal" id="cardModal">
+        <div class="card-container">
+            <div class="card-header">
+                <h2 class="card-title">Deck</h2>
+                <button class="card-close" id="cardClose">×</button>
+            </div>
+            <div class="card-content">
+                <div class="card-grid" id="cardGrid">
+                     卡牌将通过JavaScript动态生成 
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="info-panel" id="infoPanel">
+        <h3 id="infoTitle">节点信息</h3>
+        <p id="infoDescription">点击节点查看详细信息</p>
+    </div>
+
+    <div class="controls-info" id="controlsInfo">
+        <div>💰 Currency: <span class="number_display">0</span></div>
+        <div>🎯 Level: <span class="number_display">0</span></div>
+        <div>💊 Max Life: <span class="number_display">0</span></div>
+    </div>
+
+    <script src="/webpages/rogue/map.js"></script>
+</body>
+</html>

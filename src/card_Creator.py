@@ -34,7 +34,7 @@ class Card_Creater:
         self.dic_type_path={"Creature":"card_info/creature.txt","Land":"card_info/land.txt","Sorcery":"card_info/sorcery.txt","Instant":"card_info/Instant.txt"}
         self.dic_cards_path={"Creature":"cards/creature","Land":"cards/land","Sorcery":"cards/sorcery","Instant":"cards/Instant"}
         
-        self.client = OpenAI(api_key="sk-BXIUJfFqAg1XqqTW7o5tQK9YyhyPQbwdNt9sMm4RIZuiStaW",base_url="https://api.chatanywhere.tech")
+        self.client = OpenAI(api_key="sk-ao0HCUufUuNrfPzF76B4556483534dE2933fE8C4E46485Dc",base_url="https://free.v36.cm/v1")
         self.messages_Creature=[
                 {"role": "system", "content": "Activate GPT-3.5-turbo assistant, set to Magic: The Gathering Creature card design mode. Each cards are different."},
                 {"role": "user", "content": "Please design a new Creature card for Magic: The Gathering."},
@@ -70,7 +70,7 @@ class Card_Creater:
     def create_Creature(self):
         #print(self.messages_Creature)
         response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="deepseek-ai/DeepSeek-R1-0528-Qwen3-8B",
             messages=self.messages_Creature
 
         )
@@ -84,7 +84,7 @@ class Card_Creater:
 
     def create_Land(self):
         response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="deepseek-ai/DeepSeek-R1-0528-Qwen3-8B",
             messages=self.messages_Land
 
         )
@@ -97,7 +97,7 @@ class Card_Creater:
 
     def create_Sorcery(self):
         response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="deepseek-ai/DeepSeek-R1-0528-Qwen3-8B",
             messages=self.messages_Sorcery
 
         )
@@ -110,7 +110,7 @@ class Card_Creater:
 
     def create_Instant(self):
         response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="deepseek-ai/DeepSeek-R1-0528-Qwen3-8B",
             messages=self.messages_Instant
 
         )
@@ -365,9 +365,9 @@ class Card_Creater:
         print("*"*100)
         print("这是输入的内容",message)
         print("*"*100)
-        print("这是输出的内容",response.choices)
+        print("这是输出的内容",response.choices[0].message.content)
         print("*"*100)
-        return
+        #return
         
         successful_flag=self.process_data_gpt(type,response.choices[0].message.content)
         if successful_flag:

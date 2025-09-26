@@ -14,6 +14,7 @@ import asyncio
 #from game.action import Action
 from game.type_action import actions
 from game.card import Card
+from game.treasure import Treasure
 from initinal_file import CARD_DICTION
 from game.type_cards.creature import Creature
 from game.type_cards.land import Land
@@ -23,6 +24,7 @@ from game.type_cards.instant import Instant
 from starlette.websockets import WebSocketDisconnect
 import game.custom_print
 
+from pytreasures.Endless_Grimoire.model import Endless_Grimoire
   
 
 class Player:
@@ -44,6 +46,9 @@ class Player:
 
         #list of Library牌库
         self.library:list[Card]=[]
+
+        #treasure
+        self.treasure:list[Treasure]=[Endless_Grimoire()]
 
         #list of Battlefield 场地
         self.battlefield:list[Creature]=[]
@@ -113,6 +118,9 @@ class Player:
         self.initinal_decks(self.deck_detail)
         self.initinal_card_dict()
 
+    def change_function_by_treasure(self):
+        for treasure in self.treasure:
+            treasure.change_function(self)
 
     def set_socket(self,socket):
         pass

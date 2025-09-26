@@ -60,6 +60,15 @@ class Home{
             }
             
         });
+        const start_gaming_rogue = document.getElementById('rogue');
+        start_gaming_rogue.addEventListener('click', (event)=> {
+            if (this.decks.seleted_deck){
+                this.start_matching_rogue()
+            }
+            else{
+                choose_a_deck()
+            }
+        });
         const start_gaming = document.getElementById('start');
         start_gaming.addEventListener('click', (event)=> {
             console.log(this.decks.seleted_deck)
@@ -143,6 +152,14 @@ class Home{
         
 
 
+    }
+    async start_matching_rogue(){
+        const response = await this.send_match_request('/rogue/initinal_room');
+        
+        console.log(response)
+        if (response["state"]=="success" || response["state"]=="already in room"){
+            window.location.href = '/rogue/rogue_map';
+        }
     }
     async start_matching_ai(){
         

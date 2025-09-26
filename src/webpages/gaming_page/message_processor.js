@@ -313,7 +313,7 @@ class Message_Processor{
         // console.log(number,test)
         // return number+test
     }
-    initinal_all(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_oppo,len_deck_self,len_deck_oppo,your_turn,auto_pass){
+    initinal_all(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_self_max,life_oppo,life_oppo_max,len_deck_self,len_deck_oppo,your_turn,auto_pass){
         // console.log(self_hand,oppo_hand,self_battle,oppo_battle,self_lands,oppo_lands,actions,manas,time_turn,time_bullet,life_self,life_oppo,len_deck_self,len_deck_oppo,your_turn)
         this.client.action_bar.actions_cache=[]
         const self_player=this.client.self_player
@@ -351,7 +351,9 @@ class Message_Processor{
         this.client.table.timmer_turn.animate_set(time_turn,this.client.table.timmer_turn.time)
         this.client.table.timmer_bullet.animate_set(time_bullet,this.client.table.timmer_bullet.time)
         self_player.player_life_ring.animate_set(life_self,self_player.player_life_ring.life)
+        self_player.player_life_ring.max_life=life_self_max
         oppo_player.player_life_ring.animate_set(life_oppo,oppo_player.player_life_ring.life)
+        oppo_player.player_life_ring.max_life=life_oppo_max
         this.client.table.deck_self_graph.number_of_cards=len_deck_self
         this.client.table.deck_oppo_graph.number_of_cards=len_deck_oppo
         if (your_turn==1){

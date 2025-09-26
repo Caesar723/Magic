@@ -5,11 +5,12 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.future import select
 from sqlalchemy import text
-
+from motor.motor_asyncio import AsyncIOMotorClient
 import bcrypt
 import os
 import json
 import random
+
 from datetime import datetime,timezone
 
 from server_function_tool import split_message_deck,Deck_Response,Task_Data,Task_Data_List
@@ -187,7 +188,9 @@ class DataBase:
         self.async_engine = create_async_engine(sql_name)
         self.AsyncSessionLocal = sessionmaker(bind=self.async_engine, class_=AsyncSession, expire_on_commit=False)
 
-
+        rogue_mongo_name=os.getenv("DATABASE_MONGOURL", "mongodb://localhost:27017/Magic_fan_made_rogue")
+        self.rogue_mongo_client = AsyncIOMotorClient(rogue_mongo_name)
+        self.rogue_database = self.rogue_mongo_client["Magic_fan_made_rogue"]
         
 
     def hash_password(self,password:str):
@@ -634,6 +637,49 @@ class DataBase:
                     user.virtual_currency+=task.gold_reward
                     session.add(user)
             await session.commit()
+
+    
+        
+
+    async def create_rogue_room(self,rogue_room:dict):
+        collection = self.rogue_database["rogue room"]
+        await collection.insert_one(rogue_room)
+
+    async def add_treasure_to_rogue_room(self,username,treasure):
+        collection = self.rogue_database["rogue room"]
+        await collection.update_one({"_id":username}, {"$push": {"profile.treasures": treasure}})
+
+    async def add_card_to_rogue_room(self,username,card,card_type):
+        collection = self.rogue_database["rogue room"]
+        await collection.update_one({"_id":username}, {"$push": {f"profile.deck_detail.{card_type}": card}})
+
+    async def get_rogue_room(self,username):
+        collection = self.rogue_database["rogue room"]
+        return await collection.find_one({"_id":username})
+
+    async def update_rogue_status(self,username,node_id,status):
+        collection = self.rogue_database["rogue room"]
+        result =await collection.update_one(
+            { "_id": username},
+            { "$set": { "map_detail.map_structure.$[outer].$[inner].status": status } },
+            array_filters=[
+                { "outer": { "$exists": True } },    # 外层数组元素（其实就是子数组）
+                { "inner.id": node_id }           # 内层数组里的条件
+            ]
+        )
+        return result.modified_count
+
+    async def update_rogue_level(self,username,level,map_structure):
+        collection = self.rogue_database["rogue room"]
+        await collection.update_one({"_id":username}, {"$set": {"map_detail.level": level,"map_detail.map_structure": map_structure}})
+
+    async def change_detail_in_rogue_room(self,username,key,content):
+        collection = self.rogue_database["rogue room"]
+        await collection.update_one({"_id":username}, {"$set": {key: content}})
+
+    async def delete_rogue_room(self,username):
+        collection = self.rogue_database["rogue room"]
+        await collection.delete_one({"_id":username})
 
 
 if __name__=="__main__":
