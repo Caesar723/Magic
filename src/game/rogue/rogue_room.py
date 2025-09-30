@@ -22,17 +22,19 @@ from game.type_cards.sorcery import Sorcery
 from game.base_agent_room import Base_Agent_Room
 from game.game_recorder import GameRecorder
 from game.game_function_tool import ORGPATH
+from game.rlearning.utils.model import get_class_by_name
 
 
-class PVE_Demo_Room(Base_Agent_Room):
+class Rogue_Room(Base_Agent_Room):
     """
     当回合开始的时候，向那个活跃的agent发送做动作的请求
     做好一个动作之后把状态奖励等放入agent里
     直到agent 做出了 0:end turn的这个动作
     """
 
-    def __init__(self,players:list[tuple],room_server) -> None:
+    def __init__(self,players:list[tuple],rogue_info:dict,room_server) -> None:
         #self.agent1=Agent_PPO(251,352)
+        self.rogue_info=rogue_info
         
         super().__init__(players,room_server)
 
@@ -43,27 +45,34 @@ class PVE_Demo_Room(Base_Agent_Room):
         self.active_player:"Agent|Player"#进行操作的玩家
         self.non_active_player:"Agent|Player"
 
-        
-
-    def choose_agent_config(self):
-        agents=[
-            f"{ORGPATH}/game/rlearning/weights/white/ppo_lstm2.yaml",
-            f"{ORGPATH}/game/rlearning/weights/green/ppo_lstm3.yaml",
-            f"{ORGPATH}/game/rlearning/weights/white2/ppo_lstm3.yaml",
-        ]
-        return random.choice(agents)
-
+    
     def initinal_player(self,players:list[tuple]):
         #agents_deck="Eternal Phoenix+Creature+4|Raging Firekin+Creature+4|Emberheart Salamander+Creature+4|Arcane Inferno+Instant+4|Pyroblast Surge+Instant+4|Fiery Blast+Instant+4|Inferno Titan+Creature+4|Flame Tinkerer+Creature+4|Mountain+Land+24"
 
         # Agent_para=[(agents_deck,"Agent1")]
-        print(self.stack)
-        self.player_1=Agent("Agent1",self,self.choose_agent_config())
-        self.player_2=Player(players[0][1],self.player_1.config["cards"],self)
+        print(self.stack,"test")
+        self.player_1,self.player_2=Agent("Agent1",self,self.rogue_info["agent_config"]),\
+                                    Player(players[0][1],players[0][0],self)
+
+        self.player_2.ini_life=self.rogue_info["self_max_life"]
+        self.player_2.life=self.rogue_info["self_max_life"]
+
+        self.player_1.ini_life=self.rogue_info["agent_max_life"]
+        self.player_1.life=self.rogue_info["agent_max_life"]
+
+
+        for treasure in self.rogue_info["treasures"]:
+            class_treasure=get_class_by_name(treasure)
+            self.player_2.treasure.append(class_treasure())
+        
+        
+
         self.player_1.set_opponent_player(self.player_2,self)
         self.player_2.set_opponent_player(self.player_1,self)
 
         self.player_2.change_function_by_treasure()
+
+        
         self.players:dict={
             "Agent1":self.player_1,
             players[0][1]:self.player_2
@@ -74,9 +83,10 @@ class PVE_Demo_Room(Base_Agent_Room):
             players[0][1]:None
         }
         self.game_recorder:dict["GameRecorder"]={
-            "Agent1":GameRecorder(self.player_1,self,start_record=False),
-            players[0][1]:GameRecorder(self.player_2,self,start_record=False)
+            "Agent1":GameRecorder(self.player_1,self),
+            players[0][1]:GameRecorder(self.player_2,self)
         }
+        print(self.game_recorder,"test")
 
 
 
@@ -87,9 +97,7 @@ class PVE_Demo_Room(Base_Agent_Room):
         # 获取state，done，计算reward
         #返回new state 和 reward 和 done
         message:str=await self.num2action(agent,action)
-        print(message)
-        print(self.get_reward_attack(agent)["reward"])
-
+        
         await self.message_receiver(message)
 
         
@@ -112,19 +120,30 @@ class PVE_Demo_Room(Base_Agent_Room):
 
 
 
+        
+
+
+
+
+
+
     async def ask_agent_do_act(self):
         await asyncio.sleep(1)
         agent:Agent=self.player_1
         state=self.get_new_state(agent)
         mask=self.create_action_mask(agent)
         state["mask"]=mask
+        print("state get")
         action=agent.choose_action(state,isTrain=False)
+        print("action choose")
         # print(action)
         return await self.process_action(agent,action)
 
 
     async def end_bullet_time(self):
+
         result= await super().end_bullet_time() 
+        print(self.active_player.name)
         if self.active_player.name=="Agent1":
             await self.ask_agent_do_act()
         return result
@@ -137,6 +156,7 @@ class PVE_Demo_Room(Base_Agent_Room):
     
     async def end_turn_time(self):
         await super().end_turn_time()
+        print(self.active_player.name)
         if self.active_player.name=="Agent1":
             await self.ask_agent_do_act()
 
@@ -153,23 +173,18 @@ class PVE_Demo_Room(Base_Agent_Room):
         return result
          
 
-
-
-
-
-    async def update_task(self,died_player:list[Player]):
-        if self.get_flag("update_task"):
-            return
-        self.flag_dict["update_task"]=True
-        if len(died_player)==2:
-            for player in died_player:
-                player.flag_dict["win"]=False
+    async def game_end(self,died_player:list[Player]):
+        await super().game_end(died_player)
+        if self.player_2 in died_player:
+            await self.rogue_info["game_end_fail_function"]()
         else:
-            lose_player=died_player[0]
-            win_player=lose_player.opponent
-            win_player.flag_dict["win"]=True
-            lose_player.flag_dict["win"]=False
-        
+            await self.rogue_info["game_end_success_function"]()
+
+
+
+
+
+
 
         
 

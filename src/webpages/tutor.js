@@ -142,7 +142,7 @@ async function askGPT(messages_process_function,input,model) {
    - 保持简洁，不要过长。
 
                 ` },
-            { role: "user", content: input+"[语言选择：中文]" }
+            { role: "user", content: input+"[语言选择：英文]" }
           ]
         })
       });

@@ -3,6 +3,7 @@ from game.room import Room
 from game.player_agent_room import PVE_Room
 from game.studio_room import Studio_Room
 from game.demo_room import PVE_Demo_Room
+from game.rogue.rogue_room import Rogue_Room
 from server_function_tool import Deck_selected
 from tasks import TASK_DICT
 import uuid
@@ -35,8 +36,6 @@ class RoomServer:
         self.client_room[client_1[1]]=room
         self.client_room[client_2[1]]=room
 
-        print(self.client_room)
-
         await room.game_start()
 
 
@@ -56,6 +55,15 @@ class RoomServer:
         self.client_room[client_1[1]]=room
 
         await room.game_start()
+
+    async def create_new_rogue_room(self,client_1:tuple,rogue_info:dict):
+        room=Rogue_Room([client_1],rogue_info,self)
+
+        self.client_room[client_1[1]]=room
+        
+
+        await room.game_start()
+
 
     async def create_new_studio_room(self,client_1:tuple):
         room=Studio_Room([client_1],self)

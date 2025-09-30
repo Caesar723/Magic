@@ -42,6 +42,15 @@ class Sorcery(Card):
         player.append_card(self,"graveyard")
         return prepared_function
     
+    async def auto_play_this_card(self,player:'Player',opponent:'Player'):# when player use the card return prepared function
+        self.player.action_store.start_record()
+        await super().auto_play_this_card(player,opponent)
+        prepared_function=await self.card_ability(player,opponent,auto_select=True)
+        if prepared_function!="cancel":
+            self.player.action_store.add_action(actions.Play_Cards(self,self.player))
+        self.player.action_store.end_record()
+        return prepared_function
+
     async def attact_to_object(self,object:Union["Creature","Player"],power:int,color:str,type_missile:str):# it won't get hurt object can be card ot player
         if isinstance(object,(type(self.player),type(self.player.opponent))):
             await object.take_damage(self,power)

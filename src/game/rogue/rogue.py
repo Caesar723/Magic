@@ -65,7 +65,7 @@ def get_router(
             return {"state":"not in room"}
         if node["name"]!="shop" and node["status"]!="current":
             return {"state":"not a shop"}
-        shop_info=rogue_manager.node_to_json(node,hide=False)
+        shop_info=rogue_manager.node_to_json(node,rogue_room,hide=False)
         return {"state":"success","shop_info":shop_info}
 
     @router.post("/close_shop")
@@ -75,13 +75,36 @@ def get_router(
         rogue_room=await database.get_rogue_room(username)
         if not rogue_room:
             return {"state":"not in room"}
-        await enter_routine(data.node_id,username)
-        return {"state":"success"}
+        node=rogue_manager.get_node_by_id(rogue_room["map_detail"]["map_structure"],data.node_id)
+        if node["name"]=="shop":
+            await enter_routine(data.node_id,username)
+            return {"state":"success"}
+        else:
+            return  {"state":"not in room"}
 
     @router.post("/shop_buy")
-    async def shop_buy(request: Request, username: str = Depends(get_current_user(database))):
+    async def shop_buy(request: Request,data:ShopBugRogue, username: str = Depends(get_current_user(database))):
         if type(username)==RedirectResponse:
             return username
+        rogue_room=await database.get_rogue_room(username)
+        if not rogue_room:
+            return {"state":"not in room"}
+        node=rogue_manager.get_node_by_id(rogue_room["map_detail"]["map_structure"],data.shop_id)
+        if node["name"]=="shop":
+            item=rogue_manager.get_shop_item_by_id(node,data.item_id)
+            if item is not None and item["type"]=="treasure" and not item["is_selled"]:
+                current_currency=rogue_room["profile"]["currency"]
+                item_class=get_class_by_name(item["class_name"])
+                item_spend=item_class.price
+                if current_currency>=item_spend:
+                    await database.buy_shop_item(username,data.shop_id,round(current_currency-item_spend),data.item_id)
+                    await database.add_treasure_to_rogue_room(username,item["class_name"])
+
+                    return {"state":"success"}
+                else:
+                    return {"state":"not enough currency"}
+            else:
+                return {"state":"not in room"}
 
     @router.post("/shop_sell")
     async def shop_sell(request: Request, username: str = Depends(get_current_user(database))):
@@ -113,7 +136,7 @@ def get_router(
 
         map_structure=rogue_room["map_detail"]["map_structure"]
 
-        return rogue_manager.to_json(map_structure)
+        return rogue_manager.to_json(map_structure,rogue_room)
 
 
     @router.post("/treasure_info")
@@ -171,7 +194,7 @@ def get_router(
                 else:
                     print("game end")
                     await database.delete_rogue_room(username)
-                    return {"state":"success"}
+                    return {"state":"end"}
                     
             count=await database.update_rogue_status(username,node_id,"completed")
             if count==0: return {"state":"failed"}
@@ -198,7 +221,7 @@ def get_router(
             return {"state":"not in room"}
         if node["name"]!="event":
             return {"state":"not a event"}
-        event_info=rogue_manager.node_to_json(node,hide=False)
+        event_info=rogue_manager.node_to_json(node,rogue_room,hide=False)
         return {"state":"success","event_info":event_info}
 
     
@@ -207,9 +230,38 @@ def get_router(
     async def battle(request: Request,data:NodeInfoRogue, username: str = Depends(get_current_user(database))):
         if type(username)==RedirectResponse:
             return username
-        await enter_routine(data.node_id,username)
         
-        return {"state":"success"}
+        rogue_room=await database.get_rogue_room(username)
+        if not rogue_room:
+            return {"state":"not in room"}
+        node=rogue_manager.get_node_by_id(rogue_room["map_detail"]["map_structure"],data.node_id)
+        if not node or node["name"]!="battle":
+            return {"state":"not in room"}
+
+        if room_server.check_client_in_room(username):
+            return {"state":"find!"}
+        rogue_info=rogue_manager.room_to_rogue_info(node,rogue_room)
+        deck=rogue_manager.room_to_deck_detail(rogue_room)
+
+        async def game_end_success():
+            await database.add_currency_to_rogue_room(username,rogue_info["agent_win_price"])
+            await enter_routine(data.node_id,username)
+            return {"state":"success"}
+
+        async def game_end_fail():
+            await database.delete_rogue_room(username)
+            return {"state":"success"}
+        rogue_info["game_end_success_function"]=game_end_success
+        rogue_info["game_end_fail_function"]=game_end_fail
+        
+        client_detail=(deck,username)
+        await room_server.create_new_rogue_room(client_detail,rogue_info)
+        return {"state":"find!"}
+        #rogue_info["enter_routine"]=enter_routine(data.node_id,username)
+
+        
+        
+       
 
     @router.post("/get_cards_info")
     async def get_cards_info(request: Request, username: str = Depends(get_current_user(database))):
@@ -235,12 +287,16 @@ def get_router(
         event_class=get_class_by_name(node["event"])
         if not event_class or data.option_index>=len(event_class.options):
             return {"state":"not a event"}
-        event_class.options[data.option_index]["function"](rogue_room)
+        if event_class.options[data.option_index]["valid_check"](rogue_room):
+            event_class.options[data.option_index]["function"](rogue_room)
 
-        await enter_routine(data.event_id,username)
-        return {"state":"success"}
+            await enter_routine(data.event_id,username)
+            return {"state":"success"}
+        else:
+            return {"state":"event can't select"}
 
 
+   
     
     return router
 

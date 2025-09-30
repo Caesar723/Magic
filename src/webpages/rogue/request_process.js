@@ -87,6 +87,12 @@ class Request_Processor{
         console.log(data)
         return data
     }
+
+    async shop_buy(node_id,item_id){
+        const data = await this.send_request("shop_buy",{shop_id:node_id,item_id,item_id})
+        console.log(data)
+        return data
+    }
     
     
 }

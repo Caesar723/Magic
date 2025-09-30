@@ -88,6 +88,16 @@ class Land(Card):
         player.append_card(self,"land_area")
         return prepared_function
 
+    async def auto_play_this_card(self,player:'Player',opponent:'Player'):# when player use the card return prepared function
+        self.player.action_store.start_record()
+        await super().auto_play_this_card(player,opponent)
+        prepared_function=await self.when_enter_battlefield(player,opponent,auto_select=True)
+        if prepared_function!="cancel":
+            player.append_card(self,"land_area")
+            self.player.action_store.add_action(actions.Play_Cards(self,self.player))
+        self.player.action_store.end_record()
+        return prepared_function
+
     def when_gain_buff(self,player: "Player" = None, opponent: "Player" = None,buff:Buff=None,card:'Card'=None):#当获得+1+1的buff时 OK
         self.player.action_store.start_record()
         

@@ -38,22 +38,7 @@ class Rogue_Manager:
             "profile": {
                 "deck_detail": self.deck_detail_to_dict(deck_detail),
                 "treasures": [
-            "pytreasures.Endless_Grimoire.model.Endless_Grimoire",
-            "pytreasures.Amulet_of_the_Time_Weaver.model.Amulet_of_the_Time_Weaver",
-            "pytreasures.Boots_of_Blazing_Speed.model.Boots_of_Blazing_Speed",
-            "pytreasures.Boots_of_Blinding_Speed.model.Boots_of_Blinding_Speed",
-            "pytreasures.Boots_of_the_Swift_Strider.model.Boots_of_the_Swift_Strider",
-            "pytreasures.Boots_of_the_Time_Traveler.model.Boots_of_the_Time_Traveler",
-            "pytreasures.Chrono-Sand_Hourglass.model.Chrono_Sand_Hourglass",
-            "pytreasures.Cloak_of_the_Shadow_Thief.model.Cloak_of_the_Shadow_Thief",
-            "pytreasures.Cursed_Coin_of_Misfortune.model.Cursed_Coin_of_Misfortune",
-            "pytreasures.Lucky_Charm_of_the_Mischievous_Sprite.model.Lucky_Charm_of_the_Mischievous_Sprite",
-            "pytreasures.Lucky_Charm_of_the_Trickster.model.Lucky_Charm_of_the_Trickster",
-            "pytreasures.Lucky_Clover_Pin.model.Lucky_Clover_Pin",
-            "pytreasures.Mirror_of_Misdirection.model.Mirror_of_Misdirection",
-            "pytreasures.Mirror_of_Reflection.model.Mirror_of_Reflection",
-            "pytreasures.Shield_of_the_Trickster.model.Shield_of_the_Trickster",
-            "pytreasures.Spectral_Lantern.model.Spectral_Lantern",
+            
                 ],
                 "max_life": 20,
                 "currency": 10,#初始 10 货币
@@ -127,11 +112,11 @@ class Rogue_Manager:
             elif type_=="shop":
                 treasure_info=self.treasure_info[levels[level]]
                 treasures=random.sample(treasure_info["treasure_list"],3)
-                treasures=[{"id":str(uuid.uuid4()),"class_name":treasure} for treasure in treasures]
+                treasures=[{"id":str(uuid.uuid4()),"class_name":treasure,"type":"treasure","is_selled":False} for treasure in treasures]
                 result={
                     "name":type_,
                     "status":"locked",
-                    "treasures":treasures
+                    "items":treasures
                 }
             elif type_=="event":
                 event_info=self.event_info[levels[level]]
@@ -144,10 +129,29 @@ class Rogue_Manager:
         result["id"]=str(uuid.uuid4())
         return result
 
-    def to_json(self,room_structure:dict):
-        return [[self.node_to_json(node) for node in nodes] if len(nodes)>1 else self.node_to_json(nodes[0]) for nodes in room_structure]
+    def to_json(self,room_structure:dict,room_info:dict):
+        return [[self.node_to_json(node,room_info) for node in nodes] if len(nodes)>1 else self.node_to_json(nodes[0],room_info) for nodes in room_structure]
 
-    def node_to_json(self,node:dict,hide:bool=True):
+    def room_to_rogue_info(self,battle_node:dict,room_info:dict):
+
+        return {
+            "self_max_life":room_info["profile"]["max_life"],
+            "treasures":room_info["profile"]["treasures"],
+            "agent_config":battle_node["agent_config"],
+            "agent_max_life":battle_node["agent_max_life"],
+            "agent_win_price":battle_node["agent_win_price"],
+            "extra_info":room_info["extra_info"]
+        }
+
+    def room_to_deck_detail(self,room_info:dict):
+        deck_list=room_info["profile"]["deck_detail"]
+        result=[]
+        for deck in deck_list:
+            result.append(deck["name"]+"+"+deck["type_card"]+"+"+str(deck["number"]))
+        return "|".join(result)
+
+
+    def node_to_json(self,node:dict,room_info:dict,hide:bool=True):
         if node["name"]=="Start":
             return {
                 "id":node["id"],
@@ -175,11 +179,12 @@ class Rogue_Manager:
                 }
             elif node["name"]=="shop":
                 treasures=[]
-                for treasure in node["treasures"]:
+                for treasure in node["items"]:
                     class_treasure=get_class_by_name(treasure["class_name"])
                     
                     treasures.append({
                         "id":treasure["id"],
+                        "is_selled":treasure["is_selled"],
                         "name":class_treasure.name,
                         "price":class_treasure.price,
                         "image_path":class_treasure.image_path,
@@ -194,9 +199,16 @@ class Rogue_Manager:
             elif node["name"]=="event":
                 event_class=get_class_by_name(node["event"])
                 options = [
-                    {k: v for k, v in opt.items() if k != "function"}
-                    for opt in event_class.options
+                    # {k: v for k, v in opt.items() if k != "function"}
+                    # for opt in event_class.options
                 ]
+                for opt in event_class.options:
+                    options.append({
+                        "title":opt["title"],
+                        "description":opt["description"],
+                        "is_valid":opt["valid_check"](room_info),
+                    })
+
                 return {
                     "id":node["id"],
                     "name":node["name"],
@@ -224,6 +236,13 @@ class Rogue_Manager:
                 if node["id"]==node_id:
                     return node
         return None
+
+    def get_shop_item_by_id(self,shop_node:dict,item_id:str):
+        for treasure in shop_node["items"]:
+            if treasure["id"]==item_id:
+                return treasure
+        return None
+        
 
     def get_next_node_layer(self,map_structure:list,node_id:str):
         for i_layer,layer in enumerate(map_structure):

@@ -1,0 +1,252 @@
+Date : 2025-09-29 08:03:24
+Directory : /Users/xuanpeichen/Desktop/code/python/openai
+Total : 155 files,  15653 codes, 1607 comments, 4578 blanks, all 21838 lines
+
+Languages
++------------------+------------+------------+------------+------------+------------+
+| language         | files      | code       | comment    | blank      | total      |
++------------------+------------+------------+------------+------------+------------+
+| Python           |         88 |      6,447 |        790 |      2,202 |      9,439 |
+| JavaScript       |         28 |      4,534 |        486 |      1,043 |      6,063 |
+| CSS              |          8 |      2,208 |         41 |        258 |      2,507 |
+| YAML             |         21 |      2,084 |        280 |        945 |      3,309 |
+| HTML             |          9 |        376 |         10 |        130 |        516 |
+| pip requirements |          1 |          4 |          0 |          0 |          4 |
++------------------+------------+------------+------------+------------+------------+
+
+Directories
++--------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                         | files      | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                            |        155 |     15,653 |      1,607 |      4,578 |     21,838 |
+| . (Files)                                                                                                    |          2 |         25 |          0 |          2 |         27 |
+| src                                                                                                          |        153 |     15,628 |      1,607 |      4,576 |     21,811 |
+| src (Files)                                                                                                  |          9 |        908 |         19 |        147 |      1,074 |
+| src/game                                                                                                     |         72 |      7,230 |      1,050 |      2,883 |     11,163 |
+| src/game (Files)                                                                                             |         16 |      1,416 |         45 |        344 |      1,805 |
+| src/game/rlearning                                                                                           |         45 |      4,943 |        985 |      2,313 |      8,241 |
+| src/game/rlearning/config                                                                                    |         17 |      1,736 |        238 |        802 |      2,776 |
+| src/game/rlearning/config/green                                                                              |          4 |        434 |         56 |        188 |        678 |
+| src/game/rlearning/config/red                                                                                |          2 |        175 |         28 |         94 |        297 |
+| src/game/rlearning/config/white                                                                              |         11 |      1,127 |        154 |        520 |      1,801 |
+| src/game/rlearning/datasets                                                                                  |          5 |        643 |         82 |        330 |      1,055 |
+| src/game/rlearning/module                                                                                    |          5 |        463 |         31 |        180 |        674 |
+| src/game/rlearning/net                                                                                       |          4 |        318 |         12 |        114 |        444 |
+| src/game/rlearning/trainingRoom                                                                              |          3 |        596 |        514 |        473 |      1,583 |
+| src/game/rlearning/utils                                                                                     |          8 |        860 |         66 |        273 |      1,199 |
+| src/game/rlearning/weights                                                                                   |          3 |        327 |         42 |        141 |        510 |
+| src/game/rlearning/weights/green                                                                             |          1 |        109 |         14 |         47 |        170 |
+| src/game/rlearning/weights/white                                                                             |          1 |        108 |         14 |         47 |        169 |
+| src/game/rlearning/weights/white2                                                                            |          1 |        110 |         14 |         47 |        171 |
+| src/game/rogue                                                                                               |          6 |        826 |         19 |        222 |      1,067 |
+| src/game/rogue (Files)                                                                                       |          5 |        792 |         19 |        211 |      1,022 |
+| src/game/rogue/events                                                                                        |          1 |         34 |          0 |         11 |         45 |
+| src/game/type_action                                                                                         |          1 |          8 |          1 |          0 |          9 |
+| src/game/type_cards                                                                                          |          4 |         37 |          0 |          4 |         41 |
+| src/pycards                                                                                                  |         11 |        120 |          1 |         -4 |        117 |
+| src/pycards/Instant                                                                                          |          4 |         27 |          0 |         -3 |         24 |
+| src/pycards/Instant/Alchemist_s_Chaotic_Blend                                                                |          1 |          2 |          0 |          0 |          2 |
+| src/pycards/Instant/Avenging_Light                                                                           |          1 |          6 |          0 |         -1 |          5 |
+| src/pycards/Instant/Celestial_Convergence                                                                    |          1 |          7 |          0 |         -1 |          6 |
+| src/pycards/Instant/Verdant_Surge                                                                            |          1 |         12 |          0 |         -1 |         11 |
+| src/pycards/creature                                                                                         |          1 |          8 |          0 |         -2 |          6 |
+| src/pycards/creature/Titan_Giant                                                                             |          1 |          8 |          0 |         -2 |          6 |
+| src/pycards/sorcery                                                                                          |          6 |         85 |          1 |          1 |         87 |
+| src/pycards/sorcery/Angelic_Blessing                                                                         |          1 |         11 |          0 |         -2 |          9 |
+| src/pycards/sorcery/Awaken_the_Elemental                                                                     |          1 |         16 |          1 |          0 |         17 |
+| src/pycards/sorcery/Call_to_Unity                                                                            |          1 |         22 |          0 |          5 |         27 |
+| src/pycards/sorcery/Forest_s_Embrace                                                                         |          1 |         16 |          0 |          1 |         17 |
+| src/pycards/sorcery/Righteous_Conviction                                                                     |          1 |         10 |          0 |         -1 |          9 |
+| src/pycards/sorcery/Spectral_Embrace                                                                         |          1 |         10 |          0 |         -2 |          8 |
+| src/pytreasures                                                                                              |         16 |        252 |          0 |        119 |        371 |
+| src/pytreasures/Amulet_of_the_Time_Weaver                                                                    |          1 |         19 |          0 |         11 |         30 |
+| src/pytreasures/Boots_of_Blazing_Speed                                                                       |          1 |         20 |          0 |          6 |         26 |
+| src/pytreasures/Boots_of_Blinding_Speed                                                                      |          1 |         20 |          0 |          8 |         28 |
+| src/pytreasures/Boots_of_the_Swift_Strider                                                                   |          1 |         19 |          0 |          8 |         27 |
+| src/pytreasures/Boots_of_the_Time_Traveler                                                                   |          1 |         21 |          0 |          8 |         29 |
+| src/pytreasures/Chrono-Sand_Hourglass                                                                        |          1 |         14 |          0 |          8 |         22 |
+| src/pytreasures/Cloak_of_the_Shadow_Thief                                                                    |          1 |         13 |          0 |          7 |         20 |
+| src/pytreasures/Cursed_Coin_of_Misfortune                                                                    |          1 |         13 |          0 |          7 |         20 |
+| src/pytreasures/Endless_Grimoire                                                                             |          1 |         22 |          0 |          7 |         29 |
+| src/pytreasures/Lucky_Charm_of_the_Mischievous_Sprite                                                        |          1 |         13 |          0 |          7 |         20 |
+| src/pytreasures/Lucky_Charm_of_the_Trickster                                                                 |          1 |         13 |          0 |          7 |         20 |
+| src/pytreasures/Lucky_Clover_Pin                                                                             |          1 |         13 |          0 |          7 |         20 |
+| src/pytreasures/Mirror_of_Misdirection                                                                       |          1 |         13 |          0 |          7 |         20 |
+| src/pytreasures/Mirror_of_Reflection                                                                         |          1 |         13 |          0 |          7 |         20 |
+| src/pytreasures/Shield_of_the_Trickster                                                                      |          1 |         13 |          0 |          7 |         20 |
+| src/pytreasures/Spectral_Lantern                                                                             |          1 |         13 |          0 |          7 |         20 |
+| src/webpages                                                                                                 |         45 |      7,118 |        537 |      1,431 |      9,086 |
+| src/webpages (Files)                                                                                         |          7 |        425 |         29 |        103 |        557 |
+| src/webpages/draw_card                                                                                       |          1 |       -128 |         -4 |        -41 |       -173 |
+| src/webpages/game_ai                                                                                         |          4 |      1,495 |        168 |        389 |      2,052 |
+| src/webpages/game_replay                                                                                     |          4 |      1,030 |         89 |        269 |      1,388 |
+| src/webpages/gaming_page                                                                                     |          7 |          7 |         14 |          3 |         24 |
+| src/webpages/homepage                                                                                        |          4 |         66 |          1 |         27 |         94 |
+| src/webpages/loginpage                                                                                       |          2 |         22 |          0 |          6 |         28 |
+| src/webpages/rogue                                                                                           |          4 |      2,157 |        124 |        374 |      2,655 |
+| src/webpages/shop_page                                                                                       |          4 |        548 |         15 |         67 |        630 |
+| src/webpages/studio                                                                                          |          5 |      1,288 |         99 |        220 |      1,607 |
+| src/webpages/task_page                                                                                       |          3 |        208 |          2 |         14 |        224 |
++--------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++--------------------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| filename                                                                                                     | language         | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| /Users/xuanpeichen/Desktop/code/python/openai/docker-compose.yml                                             | YAML             |         21 |          0 |          2 |         23 |
+| /Users/xuanpeichen/Desktop/code/python/openai/requirements.txt                                               | pip requirements |          4 |          0 |          0 |          4 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/card_Creator.py                                            | Python           |         -1 |          1 |          0 |          0 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/card_img_compress.py                                       | Python           |         26 |          3 |          6 |         35 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/database.py                                                | Python           |        201 |          5 |         24 |        230 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/agent.py                                              | Python           |         22 |          1 |          6 |         29 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/base_agent_room.py                                    | Python           |        729 |         99 |        203 |      1,031 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/buffs.py                                              | Python           |         12 |          0 |          3 |         15 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/card.py                                               | Python           |          3 |          0 |         -1 |          2 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/demo_room.py                                          | Python           |        113 |         14 |         71 |        198 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/game_recorder.py                                      | Python           |         96 |          4 |         25 |        125 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/player.py                                             | Python           |         30 |          2 |         10 |         42 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/player_agent_room.py                                  | Python           |       -185 |        -18 |        -37 |       -240 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/ppo_train.py                                          | Python           |         10 |          1 |         -1 |         10 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm.yaml                  | YAML             |        108 |         14 |         47 |        169 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm2.yaml                 | YAML             |        108 |         14 |         47 |        169 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm3.yaml                 | YAML             |        109 |         14 |         47 |        170 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm4.yaml                 | YAML             |        109 |         14 |         47 |        170 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/red/ppo.yaml                         | YAML             |         86 |         14 |         46 |        146 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/red/ppo2.yaml                        | YAML             |         89 |         14 |         48 |        151 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/action_embed.yaml              | YAML             |        102 |         14 |         48 |        164 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/action_embed2.yaml             | YAML             |        102 |         14 |         48 |        164 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo.yaml                       | YAML             |         88 |         14 |         45 |        147 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo2.yaml                      | YAML             |         91 |         14 |         47 |        152 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm copy.yaml             | YAML             |        105 |         14 |         48 |        167 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm.yaml                  | YAML             |        105 |         14 |         48 |        167 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm2.yaml                 | YAML             |        108 |         14 |         47 |        169 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm3.yaml                 | YAML             |        110 |         14 |         47 |        171 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new.yaml                   | YAML             |        100 |         14 |         47 |        161 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new2.yaml                  | YAML             |        100 |         14 |         47 |        161 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/rainbowdqn_lstm.yaml           | YAML             |        116 |         14 |         48 |        178 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/datasets/action_embed.py                    | Python           |        116 |         17 |         67 |        200 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/datasets/ppo_agent.py                       | Python           |        105 |          9 |         62 |        176 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/datasets/ppo_agent_lstm.py                  | Python           |        125 |         17 |         66 |        208 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/datasets/ppo_agent_new.py                   | Python           |        112 |         17 |         65 |        194 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/datasets/rainbow_dqn.py                     | Python           |        185 |         22 |         70 |        277 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/module/action_embed.py                      | Python           |         91 |          1 |         41 |        133 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/module/ppo_agent.py                         | Python           |         79 |          1 |         33 |        113 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/module/ppo_agent_lstm.py                    | Python           |         88 |         21 |         34 |        143 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/module/ppo_agent_new.py                     | Python           |         71 |          1 |         33 |        105 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/module/rainbow_dqn.py                       | Python           |        134 |          7 |         39 |        180 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/net/baseNets.py                             | Python           |         23 |          6 |         13 |         42 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/net/embed.py                                | Python           |        190 |          2 |         67 |        259 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/net/ppo.py                                  | Python           |         35 |          0 |         12 |         47 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/net/rainbow_dqn.py                          | Python           |         70 |          4 |         22 |         96 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/trainingRoom/training_env.py                | Python           |        189 |        166 |        152 |        507 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/trainingRoom/training_env_mutiAgent.py      | Python           |        208 |        180 |        169 |        557 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/trainingRoom/training_env_self.py           | Python           |        199 |        168 |        152 |        519 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/utils/agentSchedule.py                      | Python           |         25 |          2 |          5 |         32 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/utils/baseAgent.py                          | Python           |        365 |         46 |        111 |        522 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/utils/baseDataset.py                        | Python           |         95 |          6 |         24 |        125 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/utils/common.py                             | Python           |          1 |          0 |          0 |          1 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/utils/data.py                               | Python           |        138 |          8 |         42 |        188 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/utils/file.py                               | Python           |         27 |          3 |         18 |         48 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/utils/log.py                                | Python           |         42 |          0 |         14 |         56 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/utils/model.py                              | Python           |        167 |          1 |         59 |        227 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/weights/green/ppo_lstm3.yaml                | YAML             |        109 |         14 |         47 |        170 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/weights/white/ppo_lstm2.yaml                | YAML             |        108 |         14 |         47 |        169 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/weights/white2/ppo_lstm3.yaml               | YAML             |        110 |         14 |         47 |        171 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rogue/base_event.py                                   | Python           |         27 |          0 |         17 |         44 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rogue/events/Mysterious_Ancient_Temple.py             | Python           |         34 |          0 |         11 |         45 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rogue/rogue.py                                        | Python           |        226 |          3 |         54 |        283 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rogue/rogue_dict.py                                   | Python           |        157 |          0 |         14 |        171 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rogue/rogue_manager.py                                | Python           |        272 |          3 |         42 |        317 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/rogue/rogue_room.py                                   | Python           |        110 |         13 |         84 |        207 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/room.py                                               | Python           |         81 |         13 |         17 |        111 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/room_server.py                                        | Python           |         28 |          2 |         13 |         43 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/studio_class.py                                       | Python           |        702 |         21 |        167 |        890 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/studio_room.py                                        | Python           |         85 |         16 |         16 |        117 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/train_agent.py                                        | Python           |          6 |         10 |          5 |         21 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/training_env.py                                       | Python           |       -328 |       -120 |       -159 |       -607 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/treasure.py                                           | Python           |         12 |          0 |          6 |         18 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/type_action/actions.py                                | Python           |          8 |          1 |          0 |          9 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/type_cards/creature.py                                | Python           |         10 |          0 |          0 |         10 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/type_cards/instant.py                                 | Python           |          8 |          0 |          4 |         12 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/type_cards/land.py                                    | Python           |         10 |          0 |          0 |         10 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/game/type_cards/sorcery.py                                 | Python           |          9 |          0 |          0 |          9 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/packs.py                                                   | Python           |          8 |          0 |          0 |          8 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Alchemist_s_Chaotic_Blend/model.py         | Python           |          2 |          0 |          0 |          2 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Avenging_Light/model.py                    | Python           |          6 |          0 |         -1 |          5 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Celestial_Convergence/model.py             | Python           |          7 |          0 |         -1 |          6 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pycards/Instant/Verdant_Surge/model.py                     | Python           |         12 |          0 |         -1 |         11 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pycards/creature/Titan_Giant/model.py                      | Python           |          8 |          0 |         -2 |          6 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Angelic_Blessing/model.py                  | Python           |         11 |          0 |         -2 |          9 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Awaken_the_Elemental/model.py              | Python           |         16 |          1 |          0 |         17 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Call_to_Unity/model.py                     | Python           |         22 |          0 |          5 |         27 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Forest_s_Embrace/model.py                  | Python           |         16 |          0 |          1 |         17 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Righteous_Conviction/model.py              | Python           |         10 |          0 |         -1 |          9 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pycards/sorcery/Spectral_Embrace/model.py                  | Python           |         10 |          0 |         -2 |          8 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pytreasures/Amulet_of_the_Time_Weaver/model.py             | Python           |         19 |          0 |         11 |         30 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pytreasures/Boots_of_Blazing_Speed/model.py                | Python           |         20 |          0 |          6 |         26 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pytreasures/Boots_of_Blinding_Speed/model.py               | Python           |         20 |          0 |          8 |         28 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pytreasures/Boots_of_the_Swift_Strider/model.py            | Python           |         19 |          0 |          8 |         27 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pytreasures/Boots_of_the_Time_Traveler/model.py            | Python           |         21 |          0 |          8 |         29 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pytreasures/Chrono-Sand_Hourglass/model.py                 | Python           |         14 |          0 |          8 |         22 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pytreasures/Cloak_of_the_Shadow_Thief/model.py             | Python           |         13 |          0 |          7 |         20 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pytreasures/Cursed_Coin_of_Misfortune/model.py             | Python           |         13 |          0 |          7 |         20 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pytreasures/Endless_Grimoire/model.py                      | Python           |         22 |          0 |          7 |         29 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pytreasures/Lucky_Charm_of_the_Mischievous_Sprite/model.py | Python           |         13 |          0 |          7 |         20 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pytreasures/Lucky_Charm_of_the_Trickster/model.py          | Python           |         13 |          0 |          7 |         20 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pytreasures/Lucky_Clover_Pin/model.py                      | Python           |         13 |          0 |          7 |         20 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pytreasures/Mirror_of_Misdirection/model.py                | Python           |         13 |          0 |          7 |         20 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pytreasures/Mirror_of_Reflection/model.py                  | Python           |         13 |          0 |          7 |         20 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pytreasures/Shield_of_the_Trickster/model.py               | Python           |         13 |          0 |          7 |         20 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/pytreasures/Spectral_Lantern/model.py                      | Python           |         13 |          0 |          7 |         20 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/server.py                                                  | Python           |        187 |          3 |         38 |        228 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/server_function_tool.py                                    | Python           |        319 |          1 |         34 |        354 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/server_start.py                                            | Python           |          1 |          0 |          0 |          1 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/tasks.py                                                   | Python           |         59 |          0 |         13 |         72 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/treasure_Creator.py                                        | Python           |        108 |          6 |         32 |        146 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/crypto.js                                         | JavaScript       |          1 |          0 |          0 |          1 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/draw_card/pack.js                                 | JavaScript       |       -128 |         -4 |        -41 |       -173 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/game_ai/animation.js                              | JavaScript       |        714 |         88 |        187 |        989 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/game_ai/gaming.html                               | HTML             |         64 |          2 |         30 |         96 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/game_ai/gaming.js                                 | JavaScript       |        600 |         77 |        157 |        834 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/game_ai/tutor.css                                 | CSS              |        117 |          1 |         15 |        133 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/game_replay/game_player.css                       | CSS              |        195 |          2 |         38 |        235 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/game_replay/game_player.js                        | JavaScript       |        287 |         13 |         58 |        358 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/game_replay/gaming.html                           | HTML             |         86 |          1 |         30 |        117 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/game_replay/gaming.js                             | JavaScript       |        462 |         73 |        143 |        678 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/animation.js                          | JavaScript       |         -2 |          2 |          0 |          0 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/gaming.css                            | CSS              |          1 |          0 |          0 |          1 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/gaming.html                           | HTML             |          1 |          0 |         -1 |          0 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/gaming.js                             | JavaScript       |        -41 |        -12 |        -17 |        -70 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/message_processor.js                  | JavaScript       |          7 |          0 |         -1 |          6 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/special_effects.js                    | JavaScript       |          0 |         12 |          4 |         16 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/gaming_page/start_game.js                         | JavaScript       |         41 |         12 |         18 |         71 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/homepage/home.js                                  | JavaScript       |         23 |          0 |          3 |         26 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/homepage/homepage.js                              | JavaScript       |         11 |          1 |          9 |         21 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/homepage/protectpage.html                         | HTML             |         18 |          0 |         10 |         28 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/homepage/style.css                                | CSS              |         14 |          0 |          5 |         19 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/loginpage/login.html                              | HTML             |          5 |          0 |          1 |          6 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/loginpage/login.js                                | JavaScript       |         17 |          0 |          5 |         22 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/mark.js                                           | JavaScript       |         58 |          9 |          3 |         70 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/pack.js                                           | JavaScript       |        139 |         12 |         43 |        194 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/pako.js                                           | JavaScript       |          1 |          1 |          1 |          3 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/purify.js                                         | JavaScript       |          1 |          2 |          1 |          4 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/rogue/map.js                                      | JavaScript       |        746 |         95 |        181 |      1,022 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/rogue/request_process.js                          | JavaScript       |         79 |          0 |         19 |         98 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/rogue/rogue.css                                   | CSS              |      1,215 |         24 |        157 |      1,396 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/rogue/rogue.html                                  | HTML             |        117 |          5 |         17 |        139 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/service-worker.js                                 | JavaScript       |          1 |          0 |          0 |          1 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/shop_page/item.js                                 | JavaScript       |        138 |          4 |         22 |        164 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/shop_page/list.js                                 | JavaScript       |         76 |          0 |         15 |         91 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/shop_page/shop.html                               | HTML             |         42 |          1 |         10 |         53 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/shop_page/style.css                               | CSS              |        292 |         10 |         20 |        322 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/studio/cards_add.js                               | JavaScript       |         61 |          1 |          5 |         67 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/studio/creating_page.html                         | HTML             |         21 |          0 |         31 |         52 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/studio/editor.js                                  | JavaScript       |        876 |         78 |        138 |      1,092 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/studio/start_studio.js                            | JavaScript       |         64 |         17 |         26 |        107 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/studio/studio.css                                 | CSS              |        266 |          3 |         20 |        289 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/task_page/style.css                               | CSS              |        108 |          1 |          3 |        112 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/task_page/task.html                               | HTML             |         22 |          1 |          2 |         25 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/task_page/task.js                                 | JavaScript       |         78 |          0 |          9 |         87 |
+| /Users/xuanpeichen/Desktop/code/python/openai/src/webpages/tutor.js                                          | JavaScript       |        224 |          5 |         55 |        284 |
+| Total                                                                                                        |                  |     15,653 |      1,607 |      4,578 |     21,838 |
++--------------------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+

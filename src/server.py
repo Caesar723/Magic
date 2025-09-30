@@ -572,6 +572,16 @@ async def download_file(filename: str,username: str = Depends(get_current_user(d
         return {"error": "File not found"}
     return FileResponse(path=file_path, filename=filename, media_type="application/octet-stream")
 
+@app.get("/gaming_rogue") 
+async def game_page(request: Request, username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        print(username)
+        return username
+    # deck=await database.check_deck_real(deck.name,deck.id,username)
+    # client_detail=(deck,username)
+    # await room_server.create_new_pveroom(client_detail)
+    return templates.TemplateResponse(f"webpages/rogue/gaming.html", { "request": request,"data": room_server.get_players_name(username)})
+
 
 def main():
     import uvicorn

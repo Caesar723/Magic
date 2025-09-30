@@ -232,7 +232,7 @@ body {
     padding: 20px;
     color: var(--text-primary);
     max-width: 300px;
-    z-index: 100;
+    z-index: 10000;
     transform: translateX(100%);
     transition: transform 0.3s ease;
     backdrop-filter: blur(10px);
@@ -1001,6 +1001,16 @@ body {
 .event-option {
     background: var(--bg-tertiary);
     border: 2px solid var(--border-color);
+    border-radius: 15px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.event-option-invalid {
+    background: #737373;
+    border: 2px solid #262626;
     border-radius: 15px;
     padding: 20px;
     cursor: pointer;

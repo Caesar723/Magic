@@ -128,6 +128,11 @@ class OptionSelectRogue(BaseModel):
     event_id: str
     option_index: int
 
+class ShopBugRogue(BaseModel):
+    shop_id:str
+    item_id:str
+    
+
 key = Fernet.generate_key()
 cipher_suite = Fernet(key)
 ORGPATH=os.path.dirname(os.path.abspath(__file__))

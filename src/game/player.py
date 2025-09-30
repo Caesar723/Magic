@@ -24,8 +24,7 @@ from game.type_cards.instant import Instant
 from starlette.websockets import WebSocketDisconnect
 import game.custom_print
 
-from pytreasures.Endless_Grimoire.model import Endless_Grimoire
-  
+
 
 class Player:
 
@@ -48,7 +47,7 @@ class Player:
         self.library:list[Card]=[]
 
         #treasure
-        self.treasure:list[Treasure]=[Endless_Grimoire()]
+        self.treasure:list[Treasure]=[]
 
         #list of Battlefield 场地
         self.battlefield:list[Creature]=[]
@@ -111,6 +110,9 @@ class Player:
         self.selection_lock = asyncio.Lock()
         self.socket_connected_flag=False
         self.selection_event=asyncio.Event()
+
+    async def game_start(self):
+        pass
     
     def set_opponent_player(self,opponent:"Player",room:'Room'):
         self.opponent:"Player"=opponent
@@ -279,6 +281,30 @@ class Player:
             return result
         else:
             return checked_result
+
+    async def auto_play_card(self,card:Card,start_bullet_time:bool=True):# player 打出一张牌
+        checked_result=card.check_can_use(self)
+        if checked_result[0] or checked_result[1]=="not enough cost":
+
+            self.action_store.start_record()
+            result=await card.auto_play_this_card(self,self.opponent)
+            if result=="cancel":
+                self.action_store.end_record()
+                return (False,"Selection Error")
+
+            for card_when_play in self.get_cards_from_dict("when_play_a_card"):
+                if card_when_play!=card:
+                    await card_when_play.when_play_a_card(card,self,self.opponent)
+            await self.room.put_prepared_function_to_stack(result,card)
+            if start_bullet_time:await self.room.start_bullet_time() 
+
+            self.action_store.end_record()
+
+            return (True,"success")
+        else:
+            return checked_result
+
+        
         
     
     async def check_creature_die(self,card:Creature):

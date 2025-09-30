@@ -167,6 +167,9 @@ class Room:
             recorder:GameRecorder=self.game_recorder[recorder_key]
             recorder.store_game_message(self.text(self.players[recorder_key]))
 
+        await self.active_player.game_start()
+        await self.non_active_player.game_start()
+
         #######test
         #print("发送消息")
         #asyncio.create_task(tasks(self))
@@ -827,7 +830,6 @@ class Room:
         your_turn=f'int({int(self_player==self.active_player)})'
         auto_pass_flag=int(player.get_flag("auto_pass"))
         return f"Initinal_all(parameters({self_hand}),parameters({oppo_hand}),parameters({self_battle}),parameters({oppo_battle}),parameters({self_lands}),parameters({oppo_lands}),parameters({actions_text}),parameters({manas}),{time_turn},{time_bullet},{life_self},{life_self_max},{life_oppo},{life_oppo_max},{len_deck_self},{len_deck_oppo},{your_turn},int({auto_pass_flag}))"
-
 
 
     def __repr__(self):

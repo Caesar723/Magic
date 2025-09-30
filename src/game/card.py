@@ -171,7 +171,9 @@ class Card:
         self.player.action_store.end_record()
         return (True,prepared_function)
     
-        
+    async def auto_play_this_card(self,player:'Player',opponent:'Player'):# when player use the card return prepared function
+        pass
+
             
 
     # def when_enter_battlefield(self):# 可以检查时候要用when_play_this_card如果是打出的可以用，如果是召唤的不用
@@ -186,7 +188,7 @@ class Card:
     def when_go_to_library(self):#当卡牌进入牌库
         pass
 
-    async def when_discard(self,player: "Player" = None, opponent: "Player" = None):#当卡牌被弃置
+    def when_discard(self,player: "Player" = None, opponent: "Player" = None):#当卡牌被弃置
         pass
 
     def get_flag(self,flag_name:str)->bool:

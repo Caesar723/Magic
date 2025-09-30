@@ -24,6 +24,18 @@ class Base_Event:
         pass
 
     @classmethod
+    def cheak_valid_1(cls,player_profile:dict):
+        return True
+
+    @classmethod
+    def cheak_valid_2(cls,player_profile:dict):
+        return False
+
+    @classmethod
+    def cheak_valid_3(cls,player_profile:dict):
+        return True
+
+    @classmethod
     def get_treasure(cls,player_profile:dict):
         pass
     

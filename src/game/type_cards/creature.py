@@ -219,6 +219,15 @@ class Creature(Card):
         # player.hand.remove(self)
         # player.battlefield.append(self)
 
+    async def auto_play_this_card(self,player:'Player',opponent:'Player'):# when player use the card return prepared function
+        self.player.action_store.start_record()
+        await super().auto_play_this_card(player,opponent)
+        prepared_function=await self.when_enter_battlefield(player,opponent,auto_select=True)
+        if prepared_function!="cancel":
+            player.append_card(self,"battlefield")
+            self.player.action_store.add_action(actions.Play_Cards(self,self.player))
+        self.player.action_store.end_record()
+        return prepared_function
 
 
     async def when_clicked(self):
@@ -243,8 +252,10 @@ class Creature(Card):
         self.player.action_store.start_record()
         
     
-        
-        self.player.action_store.add_action(actions.Add_Buff(card,self.player,self,buff.color_missile,buff.buff_missile,self.state,buff,True))
+        if self in self.player.battlefield or self in self.player.land_area:
+            self.player.action_store.add_action(actions.Add_Buff(card,self.player,self,buff.color_missile,buff.buff_missile,self.state,buff,True))
+        else:
+            self.player.action_store.add_action(actions.Add_Buff(card,self.player,self,"rgba(236, 230, 233, 0.8)","None",self.state,buff,True))
         self.player.action_store.end_record()
 
     def when_loss_buff(self,player: "Player" = None, opponent: "Player" = None,buff:Buff=None,card:'Card'=None):#当失去+1+1的buff时 OK

@@ -669,6 +669,22 @@ class DataBase:
         )
         return result.modified_count
 
+    async def buy_shop_item(self,username,node_id,rest_currency,item_id):
+        collection = self.rogue_database["rogue room"]
+        await collection.update_one(
+            { "_id": username},
+            { "$set": { "map_detail.map_structure.$[outer].$[inner].items.$[ininner].is_selled": True,"profile.currency": rest_currency } },
+            array_filters=[
+                { "outer": { "$exists": True } },    # 外层数组元素（其实就是子数组）
+                { "inner.id": node_id },           # 内层数组里的条件
+                {"ininner.id":item_id}
+            ]
+        )
+
+    async def add_currency_to_rogue_room(self,username,currency):
+        collection = self.rogue_database["rogue room"]
+        await collection.update_one({"_id":username}, {"$inc": {"profile.currency": currency}})
+
     async def update_rogue_level(self,username,level,map_structure):
         collection = self.rogue_database["rogue room"]
         await collection.update_one({"_id":username}, {"$set": {"map_detail.level": level,"map_detail.map_structure": map_structure}})

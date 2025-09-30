@@ -24,17 +24,20 @@ Mysterious_Ancient_Temple.options=[
         {
             "title": "Cautious Exploration",
             "description": 'Carefully enter the temple, paying close attention to traps and clues. Gain +50 EXP and discover a hidden chest.',
-            "function": Mysterious_Ancient_Temple.function_1
+            "function": Mysterious_Ancient_Temple.function_1,
+            "valid_check":Mysterious_Ancient_Temple.cheak_valid_1
         },
         {
             "title": "Charge In",
             "description": 'Bravely rush deep into the temple, ignoring potential dangers. 50% chance to obtain rare equipment, 50% chance to trigger a trap.',
-            "function": Mysterious_Ancient_Temple.function_2
+            "function": Mysterious_Ancient_Temple.function_2,
+            "valid_check":Mysterious_Ancient_Temple.cheak_valid_2
         },
         {
             "title": "Leave the Place",
             "description": 'Feeling it’s too dangerous, you decide to leave. You remain in your current state and gain no rewards.',
-            "function": Mysterious_Ancient_Temple.function_3
+            "function": Mysterious_Ancient_Temple.function_3,
+            "valid_check":Mysterious_Ancient_Temple.cheak_valid_3
         },
         
     ]

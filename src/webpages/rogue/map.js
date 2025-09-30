@@ -492,8 +492,8 @@ class InteractiveMap {
                     </div>
                     <button class="buy-button ${this.currency < item.price ? 'insufficient-funds' : ''}" 
                             data-item-id="${item.id}" 
-                            ${this.currency < item.price ? 'disabled' : ''}>
-                        ${this.currency < item.price ? '金币不足' : '购买'}
+                            ${this.currency < item.price || item.is_selled? 'disabled' : ''}>
+                        ${this.currency < item.price || item.is_selled ? "Can't Buy" : 'Buy'}
                     </button>
                 </div>
             `;
@@ -508,19 +508,20 @@ class InteractiveMap {
         });
     }
     
-    purchaseItem(item) {
-        if (this.currency >= item.price) {
-            this.currency -= item.price;
+    async purchaseItem(item) {
+        if (this.currency< item.price){
+            this.showSmallMessage(
+                "Not enough currency",
+                `Buy ${item.name} need ${item.price} coins ,You have ${this.currency}。`
+            )
             
-            // 添加到道具背包
-            this.addItem({
-                name: item.name,
-                icon: item.icon,
-                description: item.description
-            });
+        }
+        const response=await this.request_processor.shop_buy(this.currentNode.id,item.id)
+        if(response.state=="success"){
+            item.is_selled=true;
             
-            // 更新货币显示
-            this.updateCurrencyDisplay();
+            
+            await this.update_map_info();
             
             // 重新渲染商店以更新按钮状态
             this.renderShop();
@@ -543,14 +544,11 @@ class InteractiveMap {
             
             console.log('[v0] Purchased item:', item.name, 'for', item.price, 'currency. Remaining:', this.currency);
         } else {
-            // 显示金币不足提示
-            document.getElementById('infoTitle').textContent = '金币不足';
-            document.getElementById('infoDescription').textContent = `购买 ${item.name} 需要 ${item.price} 金币，您当前只有 ${this.currency} 金币。`;
-            this.infoPanel.classList.add('show');
+            this.showSmallMessage(
+                "Failed",
+                `You can't buy ${item.name}`
+            )
             
-            setTimeout(() => {
-                this.infoPanel.classList.remove('show');
-            }, 3000);
         }
     }
     
@@ -696,11 +694,16 @@ class InteractiveMap {
         }, 3000);
         if(this.currentNode){
             await this.request_processor.select_routine(this.currentNode.id);
-            await this.request_processor.battle(this.currentNode.id);
-            await this.update_map_info();
+            const response=await this.request_processor.battle(this.currentNode.id);
+            if(response.state=="find!"){
+                await this.update_map_info();
+                this.closeBattle();
+                window.location.href = '/gaming_rogue';
+            }
+            
         }
         this.currentNode = null;
-        this.closeBattle();
+        
         console.log('[v0] Entered battle');
 
 
@@ -749,15 +752,21 @@ class InteractiveMap {
         
         randomEvent.options.forEach((option, index) => {
             const optionElement = document.createElement('div');
-            optionElement.className = 'event-option';
+            if (option.is_valid){
+                optionElement.className = 'event-option';
+                
+                optionElement.addEventListener('click', async () => {
+                    await this.selectEventOption(index,event,option, randomEvent.title);
+                });
+            }else{
+                optionElement.className = 'event-option-invalid';
+            }
             optionElement.innerHTML = `
                 <div class="event-option-title">${option.title}</div>
                 <div class="event-option-description">${option.description}</div>
             `;
             
-            optionElement.addEventListener('click', async () => {
-                await this.selectEventOption(index,event,option, randomEvent.title);
-            });
+            
             
             eventOptions.appendChild(optionElement);
         });

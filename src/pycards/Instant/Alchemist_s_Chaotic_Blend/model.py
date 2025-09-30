@@ -36,5 +36,7 @@ class Alchemist_s_Chaotic_Blend(Instant_Undo):
             card_lib:"Instant|Sorcery"=random.choice(cards_lib)
             player.remove_card(card_lib,"library")
             new_func=await card_lib.card_ability(player,opponent,auto_select=True)
+            if new_func=="cancel":
+                return 
             self.stack.append((new_func,card_lib))
         
