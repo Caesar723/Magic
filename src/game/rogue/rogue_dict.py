@@ -9,6 +9,12 @@ ROGUE_AGENTS_DICT={
                 "name":"Explodichick",
                 "avatar": '💣',
                 "description":"A small explosion-prone chicken that can explode when hit."
+            },
+            {
+                "config_path":f"{ORGPATH}/game/rlearning/weights/red/ppo_lstm.yaml",
+                "name":"Flame Dragon",
+                "avatar": '🐲',
+                "description":"An ancient flame dragon that wields the power of blazing fire. Its scales burn like molten lava, and its breath can incinerate everything in its path. Legends say only the bravest warriors dare to challenge it."
             }
         ],
         "config_lists_boss":[
@@ -18,6 +24,12 @@ ROGUE_AGENTS_DICT={
                 "avatar": '🐍',
                 "description":"A thousand-fanged serpent that can shoot fireballs and poison darts."
             },
+            {
+                "config_path":f"{ORGPATH}/game/rlearning/weights/red/ppo_lstm.yaml",
+                "name":"Flame Dragon",
+                "avatar": '🐲',
+                "description":"An ancient flame dragon that wields the power of blazing fire. Its scales burn like molten lava, and its breath can incinerate everything in its path. Legends say only the bravest warriors dare to challenge it."
+            }
         ],
         "monster_max_life":10,
         "boss_max_life":30,

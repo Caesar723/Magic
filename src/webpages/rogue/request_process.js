@@ -93,6 +93,12 @@ class Request_Processor{
         console.log(data)
         return data
     }
+
+    async give_up_rogue(){
+        const data = await this.send_request("give_up_rogue")
+        console.log(data)
+        return data
+    }
     
     
 }

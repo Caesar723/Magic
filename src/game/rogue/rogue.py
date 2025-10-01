@@ -289,6 +289,7 @@ def get_router(
             return {"state":"not a event"}
         if event_class.options[data.option_index]["valid_check"](rogue_room):
             event_class.options[data.option_index]["function"](rogue_room)
+            await database.update_rogue_room(username,rogue_room)
 
             await enter_routine(data.event_id,username)
             return {"state":"success"}
@@ -296,6 +297,12 @@ def get_router(
             return {"state":"event can't select"}
 
 
+    @router.post("/give_up_rogue")
+    async def give_up_rogue(request: Request, username: str = Depends(get_current_user(database))):
+        if type(username)==RedirectResponse:
+            return username
+        await database.delete_rogue_room(username)
+        return {"state":"success"}
    
     
     return router

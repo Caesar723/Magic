@@ -439,7 +439,7 @@ async def main():
     room=Multi_Agent_Room(
         #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/rainbowdqn_lstm.yaml",
         #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm4.yaml",
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm3.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/red/ppo_lstm.yaml",
         [
         # "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new.yaml",
         # "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new2.yaml",

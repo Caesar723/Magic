@@ -11,6 +11,9 @@
     
 </head>
 <body>
+
+
+    <button class="give-up-button" id="giveUpButton">Give Up</button>
     <div class="background-animation">
         <div class="floating-orb"></div>
         <div class="floating-orb"></div>
@@ -131,6 +134,19 @@
         <div>💰 Currency: <span class="number_display">0</span></div>
         <div>🎯 Level: <span class="number_display">0</span></div>
         <div>💊 Max Life: <span class="number_display">0</span></div>
+    </div>
+
+
+
+    <div class="confirm-modal" id="confirmModal">
+        <div class="confirm-container">
+            <h2 class="confirm-title">⚠️ Confirm Give Up</h2>
+            <p class="confirm-message">Are you sure you want to give up? All progress will be lost.</p>
+            <div class="confirm-buttons">
+                <button class="confirm-butto  n confirm-yes" id="confirmYes">Yes</button>
+                <button class="confirm-button confirm-no" id="confirmNo">No</button>
+            </div>
+        </div>
     </div>
 
     <script src="/webpages/rogue/map.js"></script>

@@ -29,7 +29,7 @@ class Base_Event:
 
     @classmethod
     def cheak_valid_2(cls,player_profile:dict):
-        return False
+        return True
 
     @classmethod
     def cheak_valid_3(cls,player_profile:dict):

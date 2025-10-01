@@ -1394,3 +1394,132 @@ body {
 .card-stat-icon {
     font-size: 12px;
 }
+
+
+
+
+.give-up-button {
+    position: fixed;
+    top: 20px;
+    left: 40px;
+    z-index: 200;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border: 2px solid #f87171;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.give-up-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5);
+}
+
+.give-up-button:active {
+    transform: scale(0.95);
+}
+
+/* 添加确认弹窗样式 */
+.confirm-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 400;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.confirm-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.confirm-container {
+    width: 90%;
+    max-width: 400px;
+    background: var(--bg-secondary);
+    border: 3px solid var(--accent-primary);
+    border-radius: 20px;
+    padding: 30px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+}
+
+.confirm-modal.show .confirm-container {
+    transform: scale(1);
+}
+
+.confirm-title {
+    color: var(--text-primary);
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.confirm-message {
+    color: var(--text-secondary);
+    font-size: 16px;
+    text-align: center;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.confirm-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.confirm-button {
+    padding: 12px 30px;
+    border: 2px solid;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.confirm-yes {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border-color: #f87171;
+    color: white;
+}
+
+.confirm-yes:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5);
+}
+
+.confirm-no {
+    background: linear-gradient(135deg, var(--node-current-bg));
+    border-color: var(--node-current-border);
+    color: var(--text-primary);
+}
+
+.confirm-no:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px var(--node-current-shadow);
+}
+
+.confirm-button:active {
+    transform: scale(0.95);
+}

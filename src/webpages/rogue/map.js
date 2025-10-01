@@ -250,6 +250,7 @@ class InteractiveMap {
         this.inventory=treasure_info;
         this.renderInventory();
         this.renderControlsInfo(profile_info);
+        this.initGiveUpButton();
         console.log(map_info)
         console.log(treasure_info)
         console.log(profile_info)
@@ -970,6 +971,42 @@ class InteractiveMap {
         }
         this.renderCards();
         console.log('[v0] Added card:', name, 'quantity:', quantity);
+    }
+
+    initGiveUpButton() {
+        const giveUpButton = document.getElementById('giveUpButton');
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmYes = document.getElementById('confirmYes');
+        const confirmNo = document.getElementById('confirmNo');
+
+        // 点击放弃按钮显示确认弹窗
+        giveUpButton.addEventListener('click', () => {
+            confirmModal.classList.add('show');
+        });
+
+        // 点击确认按钮
+        confirmYes.addEventListener('click', async () => {
+            confirmModal.classList.remove('show');
+            // 这里可以添加重置游戏的逻辑
+            const response = await this.request_processor.give_up_rogue();
+            if(response.state!="success"){
+                this.showSmallMessage("give up","You can't give up");
+                return 
+            }
+            window.location.href = '/';
+        });
+
+        // 点击取消按钮
+        confirmNo.addEventListener('click', () => {
+            confirmModal.classList.remove('show');
+        });
+
+        // 点击背景关闭
+        confirmModal.addEventListener('click', (e) => {
+            if (e.target === confirmModal) {
+                confirmModal.classList.remove('show');
+            }
+        });
     }
 
 }
