@@ -560,7 +560,7 @@ p {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.25rem;
+  font-size: 2.25vw;
   font-weight: bold;
   color: #fb4b24;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
