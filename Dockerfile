@@ -1,4 +1,4 @@
-FROM registry.cn-shanghai.aliyuncs.com/magic_fan_made/pythonmagic::latest
+FROM registry.cn-shanghai.aliyuncs.com/magic_fan_made/pythonmagic:latest
 
 WORKDIR /app
 
