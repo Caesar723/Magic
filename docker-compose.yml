@@ -43,10 +43,10 @@ services:
       - NET_BIND_SERVICE
     volumes:
       - ./xuanpei-chen.top_ssh:/app/src/xuanpei-chen.top_ssh
-      - cache_volume:/app/src/user_cache
-      - user_volume:/app/src/user_data
+      - data_volume_cache:/app/src/user_cache
+      - data_volume:/app/src/user_data
 
 volumes:
   db_data:
-  cache_volume:
-  user_volume:
+  data_volume_cache:
+  data_volume:
