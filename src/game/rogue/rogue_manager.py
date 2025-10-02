@@ -91,10 +91,11 @@ class Rogue_Manager:
                 "agent_win_price":random.randint(agent_info["boss_win_price_min"],agent_info["boss_win_price_max"]),
                 "avatar":agent["avatar"],
                 "description":agent["description"],
+                "treasures":[],
             }
         else:
             types=["battle","shop","event"]
-            types_percentage=[0.5,0.25,0.25]
+            types_percentage=[0.4,0.25,0.35]
             type_=random.choices(types,types_percentage)[0]
             if type_=="battle":
                 agent_info=self.agents_info["agent_"+levels[level]]
@@ -108,6 +109,7 @@ class Rogue_Manager:
                     "agent_win_price":random.randint(agent_info["win_price_min"],agent_info["win_price_max"]),
                     "avatar":agent["avatar"],
                     "description":agent["description"],
+                    "treasures":[],
                 }
             elif type_=="shop":
                 treasure_info=self.treasure_info[levels[level]]
@@ -140,7 +142,8 @@ class Rogue_Manager:
             "agent_config":battle_node["agent_config"],
             "agent_max_life":battle_node["agent_max_life"],
             "agent_win_price":battle_node["agent_win_price"],
-            "extra_info":room_info["extra_info"]
+            "extra_info":room_info["extra_info"],
+            "agent_treasures":battle_node["treasures"]
         }
 
     def room_to_deck_detail(self,room_info:dict):

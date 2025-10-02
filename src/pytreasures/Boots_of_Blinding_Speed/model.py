@@ -12,7 +12,7 @@ from initinal_file import CARD_DICTION
 class Boots_of_Blinding_Speed(Treasure):
     name="Boots of Blinding Speed"
     content="At the start of your game, add 2 Islands to your land area."
-    price=12
+    price=22
     background="Crafted by a mischievous gnome who loved to outpace his enemies."
     image_path="treasures/Boots_of_Blinding_Speed/image.png"
 

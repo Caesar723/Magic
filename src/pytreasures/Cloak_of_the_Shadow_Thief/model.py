@@ -12,7 +12,7 @@ from game.type_cards.creature import Creature
 class Cloak_of_the_Shadow_Thief(Treasure):
     name="Cloak of the Shadow Thief"
     content="Your creatures gain lifelink."
-    price=15
+    price=25
     background="Woven from shadows stolen from the realm of stealthy assassins, this cloak grants its wearer the ability to vanish from sight."
     image_path="treasures/Cloak_of_the_Shadow_Thief/image.png"
 

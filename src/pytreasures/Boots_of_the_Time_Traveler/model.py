@@ -11,7 +11,7 @@ from game.treasure import Treasure
 class Boots_of_the_Time_Traveler(Treasure):
     name="Boots of the Time Traveler"
     content="At the beginning of your upkeep, you may put a time counter on Boots of the Time Traveler. Then, if there are exactly 10 time counters on it, take an extra turn after this one and set the time counter to 0."
-    price=22
+    price=23
     background="Crafted by a legendary gnome inventor, these boots allow the wearer to manipulate time itself."
     image_path="treasures/Boots_of_the_Time_Traveler/image.png"
 

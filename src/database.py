@@ -683,6 +683,7 @@ class DataBase:
 
     async def update_rogue_room(self,username,rogue_room):
         collection = self.rogue_database["rogue room"]
+        rogue_room["profile"]["max_life"]=max(rogue_room["profile"]["max_life"],1)
         await collection.replace_one({"_id":username}, rogue_room,upsert=True)
 
     async def add_currency_to_rogue_room(self,username,currency):

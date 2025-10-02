@@ -64,6 +64,10 @@ class Rogue_Room(Base_Agent_Room):
         for treasure in self.rogue_info["treasures"]:
             class_treasure=get_class_by_name(treasure)
             self.player_2.treasure.append(class_treasure())
+
+        for treasure in self.rogue_info["agent_treasures"]:
+            class_treasure=get_class_by_name(treasure)
+            self.player_1.treasure.append(class_treasure())
         
         
 
@@ -71,6 +75,7 @@ class Rogue_Room(Base_Agent_Room):
         self.player_2.set_opponent_player(self.player_1,self)
 
         self.player_2.change_function_by_treasure()
+        self.player_1.change_function_by_treasure()
 
         
         self.players:dict={

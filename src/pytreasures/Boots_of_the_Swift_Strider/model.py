@@ -11,7 +11,7 @@ from initinal_file import CARD_DICTION
 class Boots_of_the_Swift_Strider(Treasure):
     name="Boots of the Swift Strider"
     content="At the start of your game, add 1 Forests to your land area."
-    price=8
+    price=18
     background="Crafted by elusive forest creatures to enhance speed and agility."
     image_path="treasures/Boots_of_the_Swift_Strider/image.png"
 

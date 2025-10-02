@@ -12,7 +12,7 @@ import random
 class Mirror_of_Misdirection(Treasure):
     name="Mirror of Misdirection"
     content="Whenever your opponent targets a friendly minion with a spell or effect, there are 30% chance that redirect it to a different random target."
-    price=0
+    price=12
     background="Crafted by mischievous gnomes, this enchanted mirror confounds even the most skilled spellcasters."
     image_path="treasures/Mirror_of_Misdirection/image.png"
 

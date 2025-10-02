@@ -27,7 +27,7 @@ class Shield_of_the_Trickster_Buff(StateBuff):
 class Shield_of_the_Trickster(Treasure):
     name="Shield of the Trickster"
     content="At the start of your turn, swap the Attack and Health of a random enemy minion."
-    price=8
+    price=12
     background="Crafted by mischievous fae, this shield confounds foes with its unpredictable magic."
     image_path="treasures/Shield_of_the_Trickster/image.png"
 

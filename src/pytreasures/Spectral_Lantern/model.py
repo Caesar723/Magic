@@ -14,7 +14,7 @@ from game.type_cards.creature import Creature
 class Spectral_Lantern(Treasure):
     name="Spectral Lantern"
     content="Whenever you gain life, put a +1/+1 counter on target creature you control."
-    price=7
+    price=17
     background="A lantern that illuminates the battlefield with ghostly light."
     image_path="treasures/Spectral_Lantern/image.png"
 

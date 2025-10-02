@@ -24,7 +24,7 @@ from game.type_cards.instant import Instant
 from starlette.websockets import WebSocketDisconnect
 import game.custom_print
 
-
+from pytreasures.Void_Scepter.model import Void_Scepter as test
 
 class Player:
 

@@ -1,3 +1,4 @@
+from tkinter import E
 from fastapi import FastAPI, Body,Depends, Form, HTTPException, Response, Request, status,APIRouter,WebSocket,UploadFile,File
 from fastapi.responses import HTMLResponse, RedirectResponse,FileResponse
 from fastapi.templating import Jinja2Templates
@@ -378,7 +379,9 @@ async def entering_game(websocket: WebSocket,username: str = Depends(get_current
         if e.code == 1001:
             print("Connection closed by the client or server going away.")
     except Exception as e:
-        await websocket.close()
+        print(e)
+        if not websocket.client_state.name == "CLOSED":
+            await websocket.close()
         
         
 

@@ -69,7 +69,7 @@ class Lucky_Charm_Card_Instant(Instant):
 class Lucky_Clover_Pin(Treasure):
     name="Lucky Clover Pin"
     content="At the start of your turn, add a random Lucky Charm card to your hand."
-    price=0
+    price=30
     background="A small, enchanted pin that brings luck and charms to those who wear it."
     image_path="treasures/Lucky_Clover_Pin/image.png"
 

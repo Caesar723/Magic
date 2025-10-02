@@ -13,7 +13,7 @@ from game.treasure import Treasure
 class Endless_Grimoire(Treasure):
     name="Endless Grimoire"
     content="Whenever you cast a sorcery or instant, draw a card."
-    price=16
+    price=26
     background="A spellbook that never runs out."
     image_path="treasures/Endless_Grimoire/image.png"
 

@@ -11,7 +11,7 @@ from initinal_file import CARD_DICTION
 class Boots_of_Blazing_Speed(Treasure):
     name="Boots of Blazing Speed"
     content="At the start of your game, add 2 Mountains to your land area."
-    price=12
+    price=22
     background="Crafted by ancient fire elementals, these boots grant incredible swiftness to their wearer."
     image_path="treasures/Boots_of_Blazing_Speed/image.png"
 
