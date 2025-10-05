@@ -7,17 +7,17 @@ from game.rogue.base_card_batch import BaseCardBatch
 
 
 
-class Land_Blue(BaseCardBatch):
-    name:str="Land Blue"
+class Land_Red(BaseCardBatch):
+    name:str="Land Red"
     price:int=10
-    background:str="Island"
-    image_path:str="cards/land/Island/image.jpg"
-    content:str="Add 4 Island to your deck \n (generate 1 blue mana)"
+    background:str="Mountain"
+    image_path:str="cards/land/Mountain/image.jpg"
+    content:str="Add 4 Mountain to your deck \n (generate 1 red mana)"
 
 
     cards=[
         {
-            "name":"Island",
+            "name":"Mountain",
             "type_card":"Land",
             "number":4,
         },

@@ -61,11 +61,12 @@ ROGUE_AGENTS_DICT={
             }
         ],
         "config_lists_boss":[
+            
             {
-                "config_path":f"{ORGPATH}/game/rlearning/weights/green/ppo_lstm3.yaml",
-                "name":"Mukaso, the Thousand-Fanged Serpent",
-                "avatar": '🐍',
-                "description":"A thousand-fanged serpent that can shoot fireballs and poison darts."
+                "config_path":f"{ORGPATH}/game/rlearning/weights/angle/ppo_lstm6.yaml",
+                "name":"Adjudicator",
+                "avatar": '⚖️',
+                "description":"A divine judge who weighs the souls of mortals and delivers righteous judgment upon the wicked."
             },
             {
                 "config_path":f"{ORGPATH}/game/rlearning/weights/red/ppo_lstm.yaml",
@@ -85,10 +86,10 @@ ROGUE_AGENTS_DICT={
     "agent_high_level":{
         "config_lists_monster":[
             {
-                "config_path":f"{ORGPATH}/game/rlearning/weights/green/ppo_lstm3.yaml",
-                "name":"Mukaso, the Thousand-Fanged Serpent",
-                "avatar": '🐍',
-                "description":"A thousand-fanged serpent that can shoot fireballs and poison darts."
+                "config_path":f"{ORGPATH}/game/rlearning/weights/angle/ppo_lstm6.yaml",
+                "name":"Adjudicator",
+                "avatar": '⚖️',
+                "description":"A divine judge who weighs the souls of mortals and delivers righteous judgment upon the wicked."
             },
             {
                 "config_path":f"{ORGPATH}/game/rlearning/weights/red/ppo_lstm.yaml",

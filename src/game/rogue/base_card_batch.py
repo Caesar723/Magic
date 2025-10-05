@@ -19,7 +19,8 @@ class BaseCardBatch:
             flag=False
             for card_dict in deck:
                 if card_dict["name"]==card["name"] and card_dict["type_card"]==card["type_card"]:
-                    card_dict["number"]+=card["number"]
+                    card_dict["number"]=int(card_dict["number"])
+                    card_dict["number"]+=int(card["number"])
                     flag=True
                     break
             if not flag:

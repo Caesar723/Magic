@@ -34,10 +34,10 @@ class Blightsteel_Colossus(Creature):
         self.flag_dict["Trample"]=True
 
         buff_infect=Infect(self,self)
-        self.gain_buff(buff_infect,self)
-
+        self.buffs.append(buff_infect)
         buff_indestructible=Indestructible(self,self)
-        self.gain_buff(buff_indestructible,self)
+        self.buffs.append(buff_indestructible)
+        self.update_buff()
 
 
         

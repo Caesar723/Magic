@@ -127,7 +127,7 @@ class Rogue_Manager:
 
                 live_ranges=[(5,10),(8,15),(12,20)]
                 live=random.randint(live_ranges[level][0],live_ranges[level][1])
-                price=(live*2)//(3)
+                price=(live*5)//(2)
                 live_item={
                     "id":str(uuid.uuid4()),
                     "live":live,
@@ -317,6 +317,9 @@ class Rogue_Manager:
             player.room = SimpleNamespace()
             player.room.stack = None
             player.room.get_flag=None
+            player.opponent=None
+            player.action_store=SimpleNamespace()
+            player.action_store.start_record=lambda: None
             card_obj=card_class(player)
             image=card_obj.image_path.replace("image.jpg","compress_img.jpg")
             result={
