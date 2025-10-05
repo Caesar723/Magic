@@ -571,7 +571,8 @@ body {
 .shop-item-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; /* 按比例填充并裁剪 */
+    border-radius: 8px;
 }
 
 .shop-item-name {

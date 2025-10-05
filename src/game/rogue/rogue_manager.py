@@ -7,7 +7,7 @@ if __name__=="__main__":
     sys.path.append("/Users/xuanpeichen/Desktop/code/python/openai/src")
 from game.game_function_tool import ORGPATH
 from game.rlearning.utils.model import get_class_by_name
-from game.rogue.rogue_dict import ROGUE_AGENTS_DICT,ROGUE_TREASURE_DICT,ROGUE_EVENT_DICT
+from game.rogue.rogue_dict import ROGUE_AGENTS_DICT,ROGUE_TREASURE_DICT,ROGUE_EVENT_DICT,ROGUE_CARD_BATCH_DICT
 from initinal_file import CARD_DICTION
 
 class Rogue_Manager:
@@ -18,6 +18,7 @@ class Rogue_Manager:
         self.treasure_info=ROGUE_TREASURE_DICT
 
         self.event_info=ROGUE_EVENT_DICT
+        self.card_batch_info=ROGUE_CARD_BATCH_DICT
 
     def deck_detail_to_dict(self,deck_detail):
         result=[]
@@ -95,7 +96,7 @@ class Rogue_Manager:
             }
         else:
             types=["battle","shop","event"]
-            types_percentage=[0.4,0.25,0.35]
+            types_percentage=[0.35,0.25,0.40]
             type_=random.choices(types,types_percentage)[0]
             if type_=="battle":
                 agent_info=self.agents_info["agent_"+levels[level]]
@@ -112,13 +113,34 @@ class Rogue_Manager:
                     "treasures":[],
                 }
             elif type_=="shop":
+                all_items=[]
                 treasure_info=self.treasure_info[levels[level]]
                 treasures=random.sample(treasure_info["treasure_list"],3)
                 treasures=[{"id":str(uuid.uuid4()),"class_name":treasure,"type":"treasure","is_selled":False} for treasure in treasures]
+
+                all_items.extend(treasures)
+
+                card_batch_info=self.card_batch_info[levels[level]]
+                card_batch=random.sample(card_batch_info["card_batch_list"],2)
+                card_batch=[{"id":str(uuid.uuid4()),"class_name":card,"type":"card_batch","is_selled":False} for card in card_batch]
+                all_items.extend(card_batch)
+
+                live_ranges=[(5,10),(8,15),(12,20)]
+                live=random.randint(live_ranges[level][0],live_ranges[level][1])
+                price=(live*2)//(3)
+                live_item={
+                    "id":str(uuid.uuid4()),
+                    "live":live,
+                    "price":price,
+                    "type":"live",
+                    "is_selled":False
+                }
+                all_items.append(live_item)
+
                 result={
                     "name":type_,
                     "status":"locked",
-                    "items":treasures
+                    "items":all_items
                 }
             elif type_=="event":
                 event_info=self.event_info[levels[level]]
@@ -181,23 +203,44 @@ class Rogue_Manager:
                     "description":node["description"],
                 }
             elif node["name"]=="shop":
-                treasures=[]
-                for treasure in node["items"]:
-                    class_treasure=get_class_by_name(treasure["class_name"])
-                    
-                    treasures.append({
-                        "id":treasure["id"],
-                        "is_selled":treasure["is_selled"],
-                        "name":class_treasure.name,
-                        "price":class_treasure.price,
-                        "image_path":class_treasure.image_path,
-                        "description":class_treasure.content,
-                    })
+                items=[]
+                for item in node["items"]:
+                    if item["type"]=="treasure":
+                        class_treasure=get_class_by_name(item["class_name"])
+                        
+                        items.append({
+                            "id":item["id"],
+                            "is_selled":item["is_selled"],
+                            "name":class_treasure.name,
+                            "price":class_treasure.price,
+                            "image_path":class_treasure.image_path,
+                            "description":class_treasure.content,
+                        })
+                    elif item["type"]=="card_batch":
+                        class_card_batch=get_class_by_name(item["class_name"])
+                        items.append({
+                            "id":item["id"],
+                            "is_selled":item["is_selled"],
+                            "name":class_card_batch.name,
+                            "price":class_card_batch.price,
+                            "image_path":class_card_batch.image_path,
+                            "description":class_card_batch.content,
+                        })
+                    elif item["type"]=="live":
+                        live=item["live"]
+                        items.append({
+                            "id":item["id"],
+                            "is_selled":item["is_selled"],
+                            "name":"Live",
+                            "price":item["price"],
+                            "image_path":"cards/sorcery/Divine Offering/compress_img.jpg",
+                            "description":f"recover {live} live to your hero",
+                        })
                 return {
                     "id":node["id"],
                     "name":node["name"],
                     "status":node["status"],
-                    "shop_items":treasures
+                    "shop_items":items
                 }
             elif node["name"]=="event":
                 event_class=get_class_by_name(node["event"])

@@ -1,4 +1,5 @@
 import random
+import uuid
 
 from game.rogue.rogue_dict import ROGUE_TREASURE_DICT
 from game.rogue.base_event import Base_Event
@@ -27,11 +28,11 @@ class Void_Rift(Base_Event):
         if player_profile["extra_info"].get("void_mark_1",False) and player_profile["extra_info"].get("void_mark_2",False):
             
             boss_detail={
-                
+                "id":str(uuid.uuid4()),
                 "name":"battle",
                 "status":"locked",
                 "agent_name":"🌀",
-                "agent_config":f"{ORGPATH}/game/rlearning/weights/red/ppo_lstm.yaml",
+                "agent_config":f"{ORGPATH}/game/rlearning/weights/boss/ppo_transformer.yaml",
                 "agent_max_life":100,
                 "agent_win_price":random.randint(40,80),
                 "avatar":"🌀",

@@ -37,6 +37,10 @@ def sw_figure_lines(tag, datas, labels, global_step):
     plt.legend()
     SW.add_figure(tag, fig, global_step=global_step) 
 
+
+def sw_add_embedding(tag, data, label, global_step):
+    SW.add_embedding(data, tag=tag, metadata=label, global_step=global_step)
+
 def sw_figure(tag, data, global_step):
     if type(data) is matplotlib.figure.Figure:
         fig = data 

@@ -39,9 +39,10 @@ class Celestial_Seraph(Creature):
         self.creature_store=[]
 
     async def when_start_attcak(self, card: "Creature | Player", player: "Player" = None, opponent: "Player" = None):
-        creature=random.choice(opponent.battlefield)
-        await self.exile_object(creature,"rgba(239, 228, 83, 0.8)","Missile_Hit")
-        self.creature_store.append(creature)
+        if opponent.battlefield:
+            creature=random.choice(opponent.battlefield)
+            await self.exile_object(creature,"rgba(239, 228, 83, 0.8)","Missile_Hit")
+            self.creature_store.append(creature)
         
 
     async def when_leave_battlefield(self, player: "Player" = None, opponent: "Player" = None, name: str = 'battlefield'):

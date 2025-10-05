@@ -190,6 +190,8 @@ class InteractiveMap {
             this.cards=cards_info;
             this.renderCards();
         }
+
+        this.updateCurrencyDisplay();
         
     }
     
@@ -535,8 +537,8 @@ class InteractiveMap {
             }, 600);
             
             // 显示购买成功信息
-            document.getElementById('infoTitle').textContent = '购买成功！';
-            document.getElementById('infoDescription').textContent = `您已成功购买 ${item.name}，已添加到道具背包中。`;
+            document.getElementById('infoTitle').textContent = 'Purchase Success!';
+            document.getElementById('infoDescription').textContent = `You have successfully purchased ${item.name}, and it has been added to the道具背包中。`;
             this.infoPanel.classList.add('show');
             
             setTimeout(() => {
@@ -686,8 +688,8 @@ class InteractiveMap {
     
     async enterBattle() {
         // 这里可以添加进入战斗的逻辑
-        document.getElementById('infoTitle').textContent = '战斗开始！';
-        document.getElementById('infoDescription').textContent = '你勇敢地迎战强敌，战斗即将开始！';
+        document.getElementById('infoTitle').textContent = 'Battle Start!';
+        document.getElementById('infoDescription').textContent = 'You bravely face the strong enemy, and the battle is about to begin!';
         this.infoPanel.classList.add('show');
         
         setTimeout(() => {

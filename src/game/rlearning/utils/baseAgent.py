@@ -20,7 +20,7 @@ from torch.nn.parallel import DataParallel as DP
 from game.rlearning.utils.model import get_class_by_name, init_model, whether_contain_parameters
 from game.rlearning.utils.file import read_symbol_link, save_yaml, set_symbol_link
 import game.rlearning.utils.log as log 
-from game.rlearning.utils.data import batch_to_cuda,detach_cuda
+from game.rlearning.utils.data import batch_to_cuda,detach_cuda,to_cpu
 from game.rlearning.utils.common import CHECKPOINT_ROOT_PATH
 from game.game_function_tool import ORGPATH
 
@@ -30,7 +30,37 @@ def nested_get(d, keys):
             return None
         d = d[k]
     return d
+def _collate_batch(batch, s_keys, g_keys,extra_keys=[]):
+    #规定&为字典层级分割符
+    
+    collate_batch = {}
+    #-----------------------
+    for k in s_keys:
+        k=k.split("&")
+        v=nested_get(batch[0],k)
+        if v is None:
+            continue
+        collate_batch["_".join(k)] = [ nested_get(b,k) for b in batch ]
 
+    #-----------------------
+
+    for k in g_keys:
+        k=k.split("&")
+        v=nested_get(batch[0],k)
+        
+        
+        if v is None:
+            continue
+        v = [ torch.from_numpy(np.array(nested_get(b,k))) for b in batch ]
+        # print([i.shape for i in v])
+        for ek in extra_keys:
+            if ek in k:
+                k.remove(ek)
+        collate_batch["_".join(k)] = torch.stack(v, dim=0)
+        # print(collate_batch[k].shape)
+        # print(k)
+    
+    return collate_batch
 class BaseTrainer:
     def __init__(self, config,restore_step, rank=0, n_gpus=1,name="main"):
         self.config = config
@@ -161,6 +191,10 @@ class BaseTrainer:
         self._init_extra()
 
 
+
+        self.embedding_store_data = None
+
+
     def _init_dataset(self):
         config = self.config 
         self.dataset_class = get_class_by_name(config["dataset_class_name"])
@@ -201,6 +235,8 @@ class BaseTrainer:
 
     def update(self):
         if self.dataset.is_full():
+            self.store_embedding_to_tensorboard()
+
             self.dataset.data_preprocess(self)
             self._init_dataloader()
             self.save_checkpoint()
@@ -509,7 +545,32 @@ class BaseTrainer:
             act=dist.sample().item()
             batch["action"]=act
         #print(9)
+
         return batch
+
+
+    def embedding_store(self,state,data):
+        pass
+
+    def store_embedding_to_tensorboard(self):
+        if self.embedding_store_data is not None:
+            # print(self.embedding_store_data.keys())
+            for k in self.embedding_store_data:
+                self.embedding_store_data[k] = _collate_batch(
+                    self.embedding_store_data[k],
+                    [],
+                    ["embedding","label"],
+                )
+            for key in self.embedding_store_data:
+                # print(self.embedding_store_data[key]["embedding"].shape)
+                # print(self.embedding_store_data[key]["label"].shape)
+                log.sw_add_embedding(
+                    "embedding/"+key, 
+                    self.embedding_store_data[key]["embedding"],
+                    self.embedding_store_data[key]["label"] , 
+                    global_step=self.step
+                )
+            self.embedding_store_data = None
 
 
     def reset_model_parameters(self,model):

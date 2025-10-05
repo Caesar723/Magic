@@ -78,6 +78,17 @@ class Multi_Agent_Room(Base_Agent_Room):
         
         self.player_1.set_opponent_player(self.player_2,self)
         self.player_2.set_opponent_player(self.player_1,self)
+        for treasure in self.agent1.config.get("treasures",[]):
+            class_treasure=get_class_by_name(treasure)
+            self.player_1.treasure.append(class_treasure())
+            
+        for treasure in self.agent2.config.get("treasures",[]):
+            class_treasure=get_class_by_name(treasure)
+            self.player_2.treasure.append(class_treasure())
+
+        self.player_1.change_function_by_treasure()
+        self.player_2.change_function_by_treasure()
+
         self.players:dict[Agent_Train]={
             players[0][1]:self.player_1,
             players[1][1]:self.player_2
@@ -179,6 +190,13 @@ class Multi_Agent_Room(Base_Agent_Room):
             if action==0:
                 info_index=len(self.game_recorder[agent.name].datas)
                 new_reward/=50
+
+            if self.config.get("long_sight",False):
+                if action>=2 and action <=11:
+                    new_reward=0
+                if action==0:
+                    new_reward=0
+                #new_reward*=5
             new_reward=max(min(new_reward,0.3),-0.3)
             #await self.check_death()
             die_player=await self.check_player_die()
@@ -411,7 +429,7 @@ async def tasks(room):
 async def main():
     
     room=Multi_Agent_Room(
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm3.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/boss/ppo_transformer.yaml",
     )
     
     await room.game_start()

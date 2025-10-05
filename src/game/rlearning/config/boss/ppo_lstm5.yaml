@@ -1,0 +1,173 @@
+
+###########################
+# Common
+###########################
+
+log_dir: "ppo/ppo_boss_lstm_n02_v02"
+restore_step: -1
+new_version: True
+new_history: True
+reward_type: "reward_win_base"
+sort_method: "score_tap"
+#------------------------------------
+action_history_length: 10
+cards: "Forest's Embrace+Sorcery+2|Titan's Strength+Instant+4|Verdant Surge+Instant+3|Sylvan Harmonist+Creature+4|Chronostrider+Creature+1|Apocalypse Riders+Sorcery+4|Call to Unity+Sorcery+4|Angelic Blessing+Sorcery+1|Spectral Embrace+Sorcery+4|Verdant Titan+Creature+2|Forest+Land+10|Plains+Land+10|Cataclysmic Inferno+Sorcery+4|Mountain+Land+5"
+treasures:
+- "pytreasures.Mirror_of_Reflection.model.Mirror_of_Reflection"
+- "pytreasures.Cloak_of_the_Shadow_Thief.model.Cloak_of_the_Shadow_Thief"
+
+#------------------------------------
+
+
+###########################
+#  Train 
+###########################
+seed: 1247
+max_store: 1024
+#------------------------------------
+dataset_class_name: "game.rlearning.datasets.ppo_agent_lstm_new.PPOAgentDataset"
+dataloader:
+  batch_size: 32
+  num_workers: 0
+
+dataset_multiple: 10
+
+
+#------------------------------------
+trainer: "game.rlearning.module.ppo_agent_lstm.PPOTrainer"
+
+w_val_loss: 0.5
+w_act_loss: 0.5
+w_kl_loss: 0.1
+w_entropy_loss: 0.0
+
+ppo:
+  gamma: 0.99
+  lambd: 0.95
+  clip_para: 0.2
+  
+
+
+
+optimizer:
+  learning_rate: 1.0e-6
+  betas: [0.8, 0.99]
+  eps: 1.0e-9 
+  grad_clip_thresh: 1.0
+  n_warmup_steps: 0
+
+scheduler:
+  step_size: 200
+  gamma: 0.998
+
+reset_epoch: False
+reset_learning_rate: True
+moving_average_beta: 0
+
+#------------------------------------
+total_step: 500000
+log_step: 20
+eval_step: 2000
+synthesis_step: 2000
+synthesis_items: 20
+save_step: 2000
+epochs: 5
+n_epoch: 15
+###########################
+#  Model 
+###########################
+shared_card_cfg: &shared_card_cfg
+  max_card_id: 100
+  max_card_type: 4
+
+  card_special_types_len: 20
+  card_cost_len: 6
+  num_cards: 10
+
+  max_mana: 20
+
+
+  id_dim: 32
+  type_dim: 16
+  cat_emb_dim: 16
+  mana_dim: 16
+  cont_hidden: 32
+  card_embed_dim: 128
+  
+  
+
+
+
+model:
+
+  
+  HeroEmbedSelf:
+    class_name: 'game.rlearning.net.embed.HeroEmbed'
+    len_life: 21
+    embed_dim: 16
+    
+
+  HeroEmbedOppo:
+    class_name: 'game.rlearning.net.embed.HeroEmbed'
+    len_life: 21
+    embed_dim: 16
+
+  ManaEmbed:
+    class_name: 'game.rlearning.net.embed.ManaEmbed'
+    len_mana: 5
+    embed_dim: 16
+    max_mana: 20
+
+  CardsHandEmbed:
+    class_name: 'game.rlearning.net.embed.HandEmbedNew'
+    <<: *shared_card_cfg
+    card_hand_dim: 40
+
+
+  CardsBoardEmbedSelf:
+    class_name: 'game.rlearning.net.embed.BoardEmbed'
+    <<: *shared_card_cfg
+
+
+  CardsBoardEmbedOppo:
+    class_name: 'game.rlearning.net.embed.BoardEmbed'
+    <<: *shared_card_cfg
+
+
+  AttackerEmbed:
+    class_name: 'game.rlearning.net.embed.CardBoardEmbed'
+    <<: *shared_card_cfg
+
+  ActionEmbed:
+    class_name: 'game.rlearning.net.embed.ActionEmbed'
+    action_dim: 1342
+    action_embed_dim: 128
+    is_g: False
+
+  Dense:
+    class_name: 'game.rlearning.net.baseNets.Dense'
+    d_in: 16
+    d_out: 560
+    is_g: False
+
+  HistoryEmbed:
+    class_name: 'game.rlearning.net.embed.HistoryEmbed'
+    history_dim: 43
+    history_embed_dim: 128
+    
+
+  Actor:
+    class_name: 'game.rlearning.net.ppo.Actor'
+    input_dim: 688
+    hidden_dim: 512
+    output_dim: 1342
+    deep: 5
+  Critic:
+    class_name: 'game.rlearning.net.ppo.Critic'
+    input_dim: 688
+    hidden_dim: 512
+    output_dim: 1
+    deep: 5
+  
+
+    

@@ -210,6 +210,7 @@ ROGUE_EVENT_DICT={
             
             "game.rogue.events.Shattered_Mirror.Shattered_Mirror",
             
+            "game.rogue.events.Whispering_Tome.Whispering_Tome",
             
             
             
@@ -243,6 +244,60 @@ ROGUE_EVENT_DICT={
             "game.rogue.events.Spirit_of_the_Bloom.Spirit_of_the_Bloom",
             "game.rogue.events.Stellar_Altar.Stellar_Altar",
             "game.rogue.events.Void_Rift.Void_Rift",
+        ],
+    },
+}
+
+ROGUE_CARD_BATCH_DICT={
+    "low_level":{
+        "card_batch_list":[
+            "game.rogue.card_batch.Break_the_Hourglass.Break_the_Hourglass",
+            "game.rogue.card_batch.Carry_Beyond.Carry_Beyond",
+            "game.rogue.card_batch.Channel_Mana.Channel_Mana",
+            
+            "game.rogue.card_batch.Land_Black.Land_Black",
+            "game.rogue.card_batch.Land_Blue.Land_Blue",
+            "game.rogue.card_batch.Land_Green.Land_Green",
+            "game.rogue.card_batch.Land_Red.Land_Red",
+            "game.rogue.card_batch.Land_White.Land_White",
+            "game.rogue.card_batch.Primal_Interruption.Primal_Interruption",
+            "game.rogue.card_batch.Roar_of_Domination.Roar_of_Domination",
+            "game.rogue.card_batch.Tidal_Revelation.Tidal_Revelation",
+            "game.rogue.card_batch.Turn_Blows_to_Power.Turn_Blows_to_Power",
+        ],
+    },
+    "middle_level":{
+        "card_batch_list":[
+            "game.rogue.card_batch.Break_the_Hourglass.Break_the_Hourglass",
+            "game.rogue.card_batch.Carry_Beyond.Carry_Beyond",
+            "game.rogue.card_batch.Channel_Mana.Channel_Mana",
+            
+            "game.rogue.card_batch.Land_Black.Land_Black",
+            "game.rogue.card_batch.Land_Blue.Land_Blue",
+            "game.rogue.card_batch.Land_Green.Land_Green",
+            "game.rogue.card_batch.Land_Red.Land_Red",
+            "game.rogue.card_batch.Land_White.Land_White",
+            "game.rogue.card_batch.Primal_Interruption.Primal_Interruption",
+            "game.rogue.card_batch.Roar_of_Domination.Roar_of_Domination",
+            "game.rogue.card_batch.Tidal_Revelation.Tidal_Revelation",
+            "game.rogue.card_batch.Turn_Blows_to_Power.Turn_Blows_to_Power",
+        ],
+    },
+    "high_level":{
+        "card_batch_list":[
+            "game.rogue.card_batch.Break_the_Hourglass.Break_the_Hourglass",
+            "game.rogue.card_batch.Carry_Beyond.Carry_Beyond",
+            "game.rogue.card_batch.Channel_Mana.Channel_Mana",
+            "game.rogue.card_batch.Crush_All.Crush_All",
+            "game.rogue.card_batch.Land_Black.Land_Black",
+            "game.rogue.card_batch.Land_Blue.Land_Blue",
+            "game.rogue.card_batch.Land_Green.Land_Green",
+            "game.rogue.card_batch.Land_Red.Land_Red",
+            "game.rogue.card_batch.Land_White.Land_White",
+            "game.rogue.card_batch.Primal_Interruption.Primal_Interruption",
+            "game.rogue.card_batch.Roar_of_Domination.Roar_of_Domination",
+            "game.rogue.card_batch.Tidal_Revelation.Tidal_Revelation",
+            "game.rogue.card_batch.Turn_Blows_to_Power.Turn_Blows_to_Power",
         ],
     },
 }

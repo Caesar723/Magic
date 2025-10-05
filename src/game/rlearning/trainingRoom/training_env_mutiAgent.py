@@ -83,10 +83,23 @@ class Multi_Agent_Room(Base_Agent_Room):
         players=[(agents_deck,"Agent1"),(agents_deck,"Agent2")]
         
         self.player_1=Agent_Train(players[0][1],self,self.agent1)
-        self.player_2=Agent_Train(players[1][1],self,self.agent_list[random.randint(0,len(self.agent_list)-1)])
+        agent_oppo=self.agent_list[random.randint(0,len(self.agent_list)-1)]
+        self.player_2=Agent_Train(players[1][1],self,agent_oppo)
         
         self.player_1.set_opponent_player(self.player_2,self)
         self.player_2.set_opponent_player(self.player_1,self)
+
+        for treasure in self.agent1.config.get("treasures",[]):
+            class_treasure=get_class_by_name(treasure)
+            self.player_1.treasure.append(class_treasure())
+            
+        for treasure in agent_oppo.config.get("treasures",[]):
+            class_treasure=get_class_by_name(treasure)
+            self.player_2.treasure.append(class_treasure())
+
+        self.player_1.change_function_by_treasure()
+        self.player_2.change_function_by_treasure()
+
         self.players:dict[Agent_Train]={
             players[0][1]:self.player_1,
             players[1][1]:self.player_2
@@ -174,7 +187,8 @@ class Multi_Agent_Room(Base_Agent_Room):
             #print(action)
             reward_func=await self.process_action(agent_oppo,action_oppo)
 
-            if agent_oppo==self.player_1:
+            
+            if agent_oppo==self.player_1 and np.sum(mask)!=1:
                 if action_oppo!=0:
                     await agent_oppo.store_data(state,action_oppo,reward_func)
                 else:
@@ -210,6 +224,15 @@ class Multi_Agent_Room(Base_Agent_Room):
             if action==0:
                 info_index=len(self.game_recorder[agent.name].datas)
                 new_reward/=50
+            
+
+            if self.config.get("long_sight",False):
+                if action>=2 and action <=11:
+                    new_reward=0
+                if action==0:
+                    new_reward=0
+                #new_reward*=5
+                
             new_reward=max(min(new_reward,0.3),-0.3)
             #await self.check_death()
             die_player=await self.check_player_die()
@@ -439,12 +462,19 @@ async def main():
     room=Multi_Agent_Room(
         #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/rainbowdqn_lstm.yaml",
         #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm4.yaml",
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/red/ppo_lstm.yaml",
+        #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/boss/ppo_lstm5.yaml",
+        #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/boss/ppo_transformer.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/angle/ppo_lstm6.yaml",
+        
         [
         # "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new.yaml",
         # "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new2.yaml",
         # "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm.yaml",
         "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm2.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/red/ppo_lstm.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/angle/ppo_transformer.yaml",
+        #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm4.yaml",
+       #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/boss/ppo_transformer.yaml",
         # "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm.yaml",
 
         #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm3.yaml",

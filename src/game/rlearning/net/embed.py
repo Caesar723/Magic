@@ -163,6 +163,52 @@ class CardBoardEmbed(nn.Module):
         head_out=self.fuse_mlp(head_in)#N*10*128
         return head_out
 
+class CardBoardEmbedNew(nn.Module):
+    
+    
+    def __init__(self,config):
+        super().__init__()
+        self.config=config
+        self.embed_dim=config["card_embed_dim"]
+        self.card_special_types_embed=nn.Sequential(
+            nn.Linear(config["card_special_types_len"],config["cat_emb_dim"]),
+            nn.Tanh(),
+        )#N*10*20->N*10*16
+
+        # 连续路经：针对 [atk_n, hp_n, has_atk, has_hp, 交互项]
+        cont_in = 4+2  # 基本4项 + 交互2项 
+        self.cont_mlp = nn.Sequential(
+            nn.Linear(cont_in, config["cont_hidden"]),
+            nn.Tanh(),
+            nn.Linear(config["cont_hidden"], config["id_dim"]),  # 对齐到 id_dim，方便与 ID 融合
+            nn.Tanh()
+        )#N*10*9->N*10*32
+        self.combat_mlp=nn.Sequential(
+            nn.Linear(config["combat_dim"],config["id_dim"]),
+            nn.Tanh(),
+            
+        )#N*10*32->N*10*32
+        self.fuse_mlp=nn.Sequential(
+            nn.Linear(config["cat_emb_dim"]+config["id_dim"]+config["id_dim"],self.embed_dim),
+            nn.Tanh()
+        )
+
+    def forward(self,card_special_types,combat, atk_n, hp_n, has_atk, has_hp):
+        special_vec=self.card_special_types_embed(card_special_types)#N*10*16
+        combat_vec=self.combat_mlp(combat)#N*10*32
+        atk_n=atk_n.unsqueeze(-1)
+        hp_n=hp_n.unsqueeze(-1)
+        has_atk=has_atk.unsqueeze(-1)
+        has_hp=has_hp.unsqueeze(-1)
+        comb1 = atk_n + hp_n
+        comb2 = atk_n * hp_n
+
+        cont_vec=self.cont_mlp(torch.cat([atk_n, hp_n,has_atk, has_hp, comb1, comb2], dim=-1).float())
+        
+
+        head_in=torch.cat([special_vec,cont_vec,combat_vec],dim=-1)#N*10*(16+32+32)
+        head_out=self.fuse_mlp(head_in)#N*10*128
+        return head_out
 
 
 class HandEmbed(nn.Module): 
@@ -232,7 +278,27 @@ class BoardEmbed(nn.Module):
         x=x.view(x.size(0),-1)
         return self.head(x)
 
-    
+class BoardEmbedNew(nn.Module):
+    def __init__(self,config):
+        super().__init__()
+        self.config=config
+        self.card_board_embed=CardBoardEmbedNew(config)
+        self.attn_pool=AttnPool(config["card_embed_dim"])
+        self.head = nn.Sequential(
+            nn.Linear(10*(config["card_embed_dim"] + (config["card_embed_dim"] if config.get("use_attn_pool",True) else 0)), config["card_embed_dim"]),
+            nn.Tanh(),
+        )
+    def forward(self,card_special_types,combat, atk_n, hp_n, has_atk, has_hp,mask):
+        card_board_embed=self.card_board_embed(card_special_types,combat, atk_n, hp_n, has_atk, has_hp)
+        if self.config.get("use_attn_pool",True):
+            B, N, D = card_board_embed.shape
+            ctx=self.attn_pool(card_board_embed,mask)#N*128
+            ctx_exp = ctx.unsqueeze(1).expand(B, N, ctx.shape[-1])
+            x = torch.cat([card_board_embed,ctx_exp],dim=-1)
+        else:
+            x = card_board_embed
+        x=x.view(x.size(0),-1)
+        return self.head(x) 
 
 class ActionEmbed(nn.Module):
     def __init__(self,config):
