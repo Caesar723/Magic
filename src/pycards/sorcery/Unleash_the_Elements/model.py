@@ -28,4 +28,13 @@ class Unleash_the_Elements(Sorcery):
 
 
 
-        
+    @select_object("",1)
+    async def card_ability(self,player:Player,opponent:Player,selected_object:tuple[Card]):
+        for creature_self in player.battlefield:
+            await self.attact_to_object(creature_self,3,"rgba(0,255,0,1)","Cure")
+            if await creature_self.check_dead():
+                self.exile_object(creature_self,"rgba(0,255,0,1)","Missile_Hit")
+        for creature_oppo in opponent.battlefield:
+            await self.attact_to_object(creature_oppo,3,"rgba(0,255,0,1)","Cure")
+            if await creature_oppo.check_dead():
+                self.exile_object(creature_oppo,"rgba(0,255,0,1)","Missile_Hit")

@@ -39,6 +39,7 @@ class Lucky_Charm_Card_Sorcery(Sorcery):
         self.mana_cost:str="1"
         self.color:str="green"
         self.type_card:str="Sorcery"
+        self.type:str="Sorcery"
         self.rarity:str="Uncommon"
         self.content:str="Draw a card."
         self.image_path:str="treasures/Lucky_Clover_Pin/image.png"
@@ -55,6 +56,7 @@ class Lucky_Charm_Card_Instant(Instant):
         self.mana_cost:str="1"
         self.color:str="green"
         self.type_card:str="Instant"
+        self.type:str="Instant"
         self.rarity:str="Uncommon"
         self.content:str="Deal 1 damage to an object."
         self.image_path:str="treasures/Lucky_Clover_Pin/image.png"
@@ -74,6 +76,18 @@ class Lucky_Clover_Pin(Treasure):
     image_path="treasures/Lucky_Clover_Pin/image.png"
 
     def change_function(self,player:"Player"):
+        
+        if hasattr(player, "id_dict"):
+            #print("Lucky_Clover_Pin",player.id_dict)
+            max_id=max(player.id_dict.values())
+            obj_creature=Lucky_Charm_Card_Creature(player)
+            obj_sorcery=Lucky_Charm_Card_Sorcery(player)
+            obj_instant=Lucky_Charm_Card_Instant(player)
+
+            player.id_dict[f"{obj_creature.name}+{obj_creature.type}"]=max_id+1
+            player.id_dict[f"{obj_sorcery.name}+{obj_sorcery.type}"]=max_id+2
+            player.id_dict[f"{obj_instant.name}+{obj_instant.type}"]=max_id+3
+            #print("Lucky_Clover_Pin",player.id_dict)
         previews_func=player.beginning_phase
 
         card_class_list=[Lucky_Charm_Card_Creature,Lucky_Charm_Card_Sorcery,Lucky_Charm_Card_Instant]

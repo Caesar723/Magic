@@ -17,7 +17,7 @@ ROGUE_AGENTS_DICT={
                 "description":"An ancient flame dragon that wields the power of blazing fire. Its scales burn like molten lava, and its breath can incinerate everything in its path. Legends say only the bravest warriors dare to challenge it."
             },
             {
-                "config_path":f"{ORGPATH}/game/rlearning/weights/green/ppo_lstm3.yaml",
+                "config_path":f"{ORGPATH}/game/rlearning/weights/green/ppo_lstm6.yaml",
                 "name":"Mukaso, the Thousand-Fanged Serpent",
                 "avatar": '🐍',
                 "description":"A thousand-fanged serpent that can shoot fireballs and poison darts."
@@ -25,7 +25,7 @@ ROGUE_AGENTS_DICT={
         ],
         "config_lists_boss":[
             {
-                "config_path":f"{ORGPATH}/game/rlearning/weights/green/ppo_lstm3.yaml",
+                "config_path":f"{ORGPATH}/game/rlearning/weights/green/ppo_lstm6.yaml",
                 "name":"Mukaso, the Thousand-Fanged Serpent",
                 "avatar": '🐍',
                 "description":"A thousand-fanged serpent that can shoot fireballs and poison darts."
@@ -54,7 +54,7 @@ ROGUE_AGENTS_DICT={
                 "description":"A small explosion-prone chicken that can explode when hit."
             },
             {
-                "config_path":f"{ORGPATH}/game/rlearning/weights/green/ppo_lstm3.yaml",
+                "config_path":f"{ORGPATH}/game/rlearning/weights/green/ppo_lstm6.yaml",
                 "name":"Mukaso, the Thousand-Fanged Serpent",
                 "avatar": '🐍',
                 "description":"A thousand-fanged serpent that can shoot fireballs and poison darts."
@@ -100,7 +100,7 @@ ROGUE_AGENTS_DICT={
         ],
         "config_lists_boss":[
             {
-                "config_path":f"{ORGPATH}/game/rlearning/weights/green/ppo_lstm3.yaml",
+                "config_path":f"{ORGPATH}/game/rlearning/weights/green/ppo_lstm6.yaml",
                 "name":"Mukaso, the Thousand-Fanged Serpent",
                 "avatar": '🐍',
                 "description":"A thousand-fanged serpent that can shoot fireballs and poison darts."

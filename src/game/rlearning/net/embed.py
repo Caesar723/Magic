@@ -262,10 +262,20 @@ class BoardEmbed(nn.Module):
         self.config=config
         self.card_board_embed=CardBoardEmbed(config)
         self.attn_pool=AttnPool(config["card_embed_dim"])
-        self.head = nn.Sequential(
-            nn.Linear(10*(config["card_embed_dim"] + (config["card_embed_dim"] if config.get("use_attn_pool",True) else 0)), config["card_embed_dim"]),
-            nn.Tanh(),
-        )
+
+        if self.config.get("attention_whole_card",True):
+            self.head = nn.Sequential(
+                nn.Linear(10*(config["card_embed_dim"] + (config["card_embed_dim"] if config.get("use_attn_pool",True) else 0)), config["card_embed_dim"]),
+                nn.Tanh(),
+            )
+        else:
+            self.head = nn.Sequential(
+                nn.Linear(config["card_embed_dim"]+ (config["card_embed_dim"] if config.get("use_attn_pool",True) else 0), config["card_embed_dim"]//2),
+                nn.Tanh(),
+                nn.Linear(config["card_embed_dim"]//2, config["card_embed_dim"]//4),
+                nn.Tanh(),
+            )
+
     def forward(self,card_special_types, atk_n, hp_n, has_atk, has_hp,mask):
         card_board_embed=self.card_board_embed(card_special_types, atk_n, hp_n, has_atk, has_hp)
         if self.config.get("use_attn_pool",True):
@@ -275,8 +285,16 @@ class BoardEmbed(nn.Module):
             x = torch.cat([card_board_embed,ctx_exp],dim=-1)
         else:
             x = card_board_embed
-        x=x.view(x.size(0),-1)
-        return self.head(x)
+
+        
+
+        if self.config.get("attention_whole_card",True):
+            x=x.view(x.size(0),-1)
+            return self.head(x)
+        else:
+            x=self.head(x)
+            x=x.view(x.size(0),-1)
+            return x
 
 class BoardEmbedNew(nn.Module):
     def __init__(self,config):
@@ -284,10 +302,18 @@ class BoardEmbedNew(nn.Module):
         self.config=config
         self.card_board_embed=CardBoardEmbedNew(config)
         self.attn_pool=AttnPool(config["card_embed_dim"])
-        self.head = nn.Sequential(
-            nn.Linear(10*(config["card_embed_dim"] + (config["card_embed_dim"] if config.get("use_attn_pool",True) else 0)), config["card_embed_dim"]),
-            nn.Tanh(),
-        )
+        if self.config.get("attention_whole_card",True):
+            self.head = nn.Sequential(
+                nn.Linear(10*(config["card_embed_dim"] + (config["card_embed_dim"] if config.get("use_attn_pool",True) else 0)), config["card_embed_dim"]),
+                nn.Tanh(),
+            )
+        else:
+            self.head = nn.Sequential(
+                nn.Linear(config["card_embed_dim"]+ (config["card_embed_dim"] if config.get("use_attn_pool",True) else 0), config["card_embed_dim"]//2),
+                nn.Tanh(),
+                nn.Linear(config["card_embed_dim"]//2, config["card_embed_dim"]//4),
+                nn.Tanh(),
+            )
     def forward(self,card_special_types,combat, atk_n, hp_n, has_atk, has_hp,mask):
         card_board_embed=self.card_board_embed(card_special_types,combat, atk_n, hp_n, has_atk, has_hp)
         if self.config.get("use_attn_pool",True):
@@ -297,8 +323,15 @@ class BoardEmbedNew(nn.Module):
             x = torch.cat([card_board_embed,ctx_exp],dim=-1)
         else:
             x = card_board_embed
-        x=x.view(x.size(0),-1)
-        return self.head(x) 
+        
+
+        if self.config.get("attention_whole_card",True):
+            x=x.view(x.size(0),-1)
+            return self.head(x)
+        else:
+            x=self.head(x)
+            x=x.view(x.size(0),-1)
+            return x
 
 class ActionEmbed(nn.Module):
     def __init__(self,config):

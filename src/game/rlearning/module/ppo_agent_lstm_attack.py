@@ -50,7 +50,9 @@ class PPOTrainer(BaseTrainer):
             loss["kl_loss"]=kl_loss
 
         if self.config.get("w_entropy_loss",0)>0:
+
             entropy_loss=-batch["entropy"]
+            entropy_loss=entropy_loss.mean()
             total_loss+=self.config["w_entropy_loss"]*entropy_loss
             loss["entropy_loss"]=entropy_loss
 

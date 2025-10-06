@@ -56,6 +56,7 @@ class Base_Agent_Room(Room):
             "reward_life":self.get_reward_life,
             "reward_win_base":self.get_reward_win_base,
             "reward_creature_base":self.get_reward_creature_base,
+            "reward_mana":self.get_reward_mana,
         }
         super().__init__(players,room_server)
 
@@ -150,6 +151,7 @@ class Base_Agent_Room(Room):
             sub_action=(action-22)%33
             sub_content=self.num2subaction(agent,sub_action)
             #print(sub_content)
+            print(sub_content)
             agent.set_select_content(sub_content)
             #print(sub_content)
         result=f"{name}|{type_act}|{content}"
@@ -892,6 +894,61 @@ class Base_Agent_Room(Room):
 
         return result
 
+    
+    def get_reward_mana(self,agent:Agent,battled_creature:Creature=None,attacker:Creature=None):#返回一个评分
+        # if agent.life<=0:
+        #     return -1
+        # elif agent.opponent.life<=0:
+        #     return 1
+        self_live_reward=lambda x :x/10#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
+        oppo_live_reward=lambda x :x/10
+
+        score_life_self=self_live_reward(agent.life)
+        score_oppo_self=oppo_live_reward(agent.opponent.life)
+
+        score_battle_self_creatures=[self.get_creature_reward(card,battled_creature==card)+0.05 for card in agent.battlefield]
+        score_battle_self=sum(score_battle_self_creatures)
+        score_battle_oppo_creatures=[self.get_creature_reward(card,card==attacker) for card in agent.opponent.battlefield]
+        score_battle_oppo=sum(score_battle_oppo_creatures)
+
+        # score_battle_self=sum(
+        #     [
+        #         self.get_creature_reward(card,battled_creature==card) for card in agent.battlefield
+        #     ]
+        # )#这个处以20表面随从不是很重要，重要的是敌方的血量
+        
+        # score_battle_oppo=sum(
+        #     [
+        #         self.get_creature_reward(card) for card in agent.opponent.battlefield
+        #     ]
+        # )
+
+        score_mana=0
+        for land in agent.land_area:
+            score_mana+=sum(land.generate_mana().values())*2
+
+        score_hand=len(agent.hand)/30
+        score_mana=score_mana/20
+
+        reward=score_hand+(score_life_self-score_oppo_self)+score_mana+score_battle_self-score_battle_oppo
+        strength=10
+        #print(agent.get_counter_from_dict("turn_count"))
+        reward=reward/((agent.get_counter_from_dict("turn_count")+strength)/strength)
+        result={
+            "reward":reward,
+            "score_life_self":score_life_self,
+            "score_oppo_self":score_oppo_self,
+            "score_mana":score_mana,
+            "score_hand":score_hand,
+            "score_battle_self":score_battle_self,
+            "score_battle_oppo":score_battle_oppo,
+            "score_battle_self_creatures":score_battle_self_creatures,
+            "score_battle_oppo_creatures":score_battle_oppo_creatures
+        }
+        #print(score_life_self,score_oppo_self,score_mana,score_battle_self,score_battle_oppo)
+
+        return result
+
     def get_reward_win_base(self,agent:Agent,battled_creature:Creature=None,attacker:Creature=None):#返回一个评分
         # if agent.life<=0:
         #     return -1
@@ -1017,7 +1074,7 @@ class Base_Agent_Room(Room):
             state1=(p+d)/2
             state2=(p*d)**0.5
             r_state=(state1+state2)/12
-            return r_state+0.05
+            return r_state+1
         p,d=card.state[0],card.state[1]
         if p<=0 or d<=0:
             return 0
@@ -1027,4 +1084,4 @@ class Base_Agent_Room(Room):
         for flag in ["reach","Trample","flying","haste","Flash","lifelink"]:
             if card.get_flag(flag):
                 r_state*=1.1
-        return r_state+0.05
+        return r_state+0.1

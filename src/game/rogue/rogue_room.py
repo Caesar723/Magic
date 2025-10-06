@@ -102,7 +102,7 @@ class Rogue_Room(Base_Agent_Room):
         # 获取state，done，计算reward
         #返回new state 和 reward 和 done
         message:str=await self.num2action(agent,action)
-        
+        print(message)
         await self.message_receiver(message)
 
         
