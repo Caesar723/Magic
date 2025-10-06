@@ -1011,17 +1011,17 @@ class Base_Agent_Room(Room):
         #     return -1
         # elif agent.opponent.life<=0:
         #     return 1
-        self_live_reward=lambda x :x/5#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
-        oppo_live_reward=lambda x :x/5
+        self_live_reward=lambda x :x/10#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
+        oppo_live_reward=lambda x :x/10
 
         score_life_self=self_live_reward(agent.life)
         score_oppo_self=oppo_live_reward(agent.opponent.life)
 
-        score_battle_self_creatures=[self.get_creature_reward(card,battled_creature==card) for card in agent.battlefield]
+        score_battle_self_creatures=[self.get_creature_reward(card,battled_creature==card)+0.2 for card in agent.battlefield]
         score_battle_self=sum(score_battle_self_creatures)
         
         
-        score_battle_oppo_creatures=[self.get_creature_reward(card,card==attacker) for card in agent.opponent.battlefield]
+        score_battle_oppo_creatures=[self.get_creature_reward(card,card==attacker)+0.1 for card in agent.opponent.battlefield]
         score_battle_oppo=sum(score_battle_oppo_creatures)
 
         # score_battle_self=sum(
@@ -1074,7 +1074,7 @@ class Base_Agent_Room(Room):
             state1=(p+d)/2
             state2=(p*d)**0.5
             r_state=(state1+state2)/12
-            return r_state+1
+            return r_state+0.05
         p,d=card.state[0],card.state[1]
         if p<=0 or d<=0:
             return 0
@@ -1084,4 +1084,4 @@ class Base_Agent_Room(Room):
         for flag in ["reach","Trample","flying","haste","Flash","lifelink"]:
             if card.get_flag(flag):
                 r_state*=1.1
-        return r_state+0.1
+        return r_state+0.05

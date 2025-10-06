@@ -465,7 +465,7 @@ async def main():
         #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/boss/ppo_lstm5.yaml",
         #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/boss/ppo_transformer.yaml",
         #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/growing/ppo_lstm6.yaml",
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm6.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/angle/ppo_lstm7.yaml",
         
         [
         # "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_new.yaml",
@@ -475,6 +475,7 @@ async def main():
         "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/red/ppo_lstm.yaml",
         #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/angle/ppo_transformer.yaml",
         "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/angle/ppo_lstm6.yaml",
+        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm6.yaml",
         #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm4.yaml",
        #"/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/boss/ppo_transformer.yaml",
         # "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/green/ppo_lstm.yaml",
