@@ -96,7 +96,7 @@ class Rogue_Manager:
             }
         else:
             types=["battle","shop","event"]
-            types_percentage=[0.35,0.25,0.40]
+            types_percentage=[0.25,0.25,0.50]
             type_=random.choices(types,types_percentage)[0]
             if type_=="battle":
                 agent_info=self.agents_info["agent_"+levels[level]]

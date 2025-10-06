@@ -42,8 +42,11 @@ async def send_select_request(card:'Card',type:str,number:int,selection_random:b
                 async with player.selection_lock:
                     if not auto_select:
                         await player.send_text(f"select({type})")
+                        print("select")
                         data =await player.receive_text()# ...|player;区域;index
+                        print("receive_text",data)
                         obj=get_object(data,room,type,card)
+                        print("get_object",obj)
                         if obj:
                             if ("cancel"==obj and selection_random):
                                 obj=random_select(player,type)
@@ -57,8 +60,10 @@ async def send_select_request(card:'Card',type:str,number:int,selection_random:b
             objects=await card.selection_step(player,player.opponent,selection_random)
             #return objects
         if ("cancel" in objects):
+            print("cancel")
             raise asyncio.CancelledError("Client cancellation")
         else:
+            print("return objects",objects)
             return objects
     except asyncio.CancelledError:
         return "cancel"

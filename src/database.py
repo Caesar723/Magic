@@ -671,6 +671,7 @@ class DataBase:
 
     async def buy_shop_item(self,username,node_id,rest_currency,item_id):
         collection = self.rogue_database["rogue room"]
+        print("buy_shop_item",rest_currency)
         await collection.update_one(
             { "_id": username},
             { "$set": { "map_detail.map_structure.$[outer].$[inner].items.$[ininner].is_selled": True,"profile.currency": rest_currency } },

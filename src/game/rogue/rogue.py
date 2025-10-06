@@ -92,11 +92,11 @@ def get_router(
         node=rogue_manager.get_node_by_id(rogue_room["map_detail"]["map_structure"],data.shop_id)
         if node["name"]=="shop":
             item=rogue_manager.get_shop_item_by_id(node,data.item_id)
-            current_currency=rogue_room["profile"]["currency"]
+            current_currency=int(rogue_room["profile"]["currency"])
             if item is not None and item["type"]=="treasure" and not item["is_selled"]:
                 
                 item_class=get_class_by_name(item["class_name"])
-                item_spend=item_class.price
+                item_spend=int(item_class.price)
                 if current_currency>=item_spend:
                     await database.buy_shop_item(username,data.shop_id,round(current_currency-item_spend),data.item_id)
                     await database.add_treasure_to_rogue_room(username,item["class_name"])
@@ -108,9 +108,12 @@ def get_router(
 
             elif item is not None and item["type"]=="card_batch" and not item["is_selled"]:
                 item_class=get_class_by_name(item["class_name"])
-                item_spend=item_class.price
+                item_spend=int(item_class.price)
                 if current_currency>=item_spend:
-                    await database.buy_shop_item(username,data.shop_id,round(current_currency-item_spend),data.item_id)
+                    
+                    #await database.buy_shop_item(username,data.shop_id,round(current_currency-item_spend),data.item_id)
+                    rogue_room["profile"]["currency"]=round(current_currency-item_spend)
+                    item["is_selled"]=True
                     item_class.put_card_to_deck(rogue_room["profile"]["deck_detail"])
                     await database.update_rogue_room(username,rogue_room)
                     return {"state":"success"}
@@ -119,10 +122,13 @@ def get_router(
 
             elif item is not None and item["type"]=="live" and not item["is_selled"]:
                 
-                item_spend=item["price"]
+                item_spend=int(item["price"])
                 if current_currency>=item_spend:
-                    await database.buy_shop_item(username,data.shop_id,round(current_currency-item_spend),data.item_id)
+                    
+                    #await database.buy_shop_item(username,data.shop_id,round(current_currency-item_spend),data.item_id)
                     rogue_room["profile"]["max_life"]+=int(item["live"])
+                    rogue_room["profile"]["currency"]=round(current_currency-item_spend)
+                    item["is_selled"]=True
                     await database.update_rogue_room(username,rogue_room)
                     return {"state":"success"}
                 else:
