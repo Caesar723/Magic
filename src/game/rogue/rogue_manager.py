@@ -80,6 +80,12 @@ class Rogue_Manager:
 
     def create_node(self,is_boss:bool,level=0):
         levels=["low_level","middle_level","high_level"]
+
+        mana_treasure=[
+            "pytreasures.Boots_of_Blazing_Speed.model.Boots_of_Blazing_Speed",
+            "pytreasures.Boots_of_Blinding_Speed.model.Boots_of_Blinding_Speed",
+            "pytreasures.Boots_of_the_Swift_Strider.model.Boots_of_the_Swift_Strider",
+        ]
         if is_boss:
             agent_info=self.agents_info["agent_"+levels[level]]
             agent=random.choice(agent_info["config_lists_boss"])
@@ -92,7 +98,9 @@ class Rogue_Manager:
                 "agent_win_price":random.randint(agent_info["boss_win_price_min"],agent_info["boss_win_price_max"]),
                 "avatar":agent["avatar"],
                 "description":agent["description"],
-                "treasures":[],
+                "treasures":[
+                    *random.choices(mana_treasure,k=level),
+                ],
             }
         else:
             types=["battle","shop","event"]
@@ -110,7 +118,9 @@ class Rogue_Manager:
                     "agent_win_price":random.randint(agent_info["win_price_min"],agent_info["win_price_max"]),
                     "avatar":agent["avatar"],
                     "description":agent["description"],
-                    "treasures":[],
+                    "treasures":[
+                        *random.choices(mana_treasure,k=level),
+                    ],
                 }
             elif type_=="shop":
                 all_items=[]

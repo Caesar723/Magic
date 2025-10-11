@@ -21,7 +21,7 @@ class Sun_Ring(Treasure):
     def change_function(self,player:"Player"):
         previews_func=player.take_damage
         async def take_damage(self_player,card,value):
-            value=max(value-1,0)
+            value=max(int(value/2),0)
             result=await previews_func(card,value)
             return result
         player.take_damage = types.MethodType(take_damage, player)

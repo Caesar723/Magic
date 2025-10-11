@@ -201,6 +201,12 @@ class Room:
         for recorder_key in self.game_recorder:
             recorder:GameRecorder=self.game_recorder[recorder_key]
             await recorder.save_binary()
+
+        for player in self.players:
+            player:Player=self.players[player]
+            
+            player.selection_event.set()
+                
         await self.update_task(died_player)
         self.action_processor.start_record()
         if len(died_player)==2:
@@ -329,7 +335,8 @@ class Room:
             if socket!=None:
                 try:
                     await socket.send_text("end_bullet()")
-                except:
+                except Exception as e:
+                    print(e)
                     pass
                 
             #await game_recorder.store_game_message("end_bullet()")
@@ -422,7 +429,8 @@ class Room:
             if socket!=None and not self.players[name_player].get_flag("auto_pass"):
                 try:
                     await socket.send_text("start_bullet()")
-                except:
+                except Exception as e:
+                    print(e)
                     pass 
             #await game_recorder.store_game_message("start_bullet()")
         #print("start_bullet()")
@@ -481,6 +489,9 @@ class Room:
                 await self.check_death()
         except asyncio.CancelledError:
             print("message_process 停止")
+            raise
+        except Exception as e:
+            print(e)
             raise
 
     async def select_attacker(self,username:str,content:str):
@@ -614,7 +625,8 @@ class Room:
         if socket!=None:
             try:
                 await socket.send_text("end_bullet()")
-            except:
+            except Exception as e:
+                print(e)
                 pass
         #await game_recorder.store_game_message("end_bullet()")
         
@@ -787,7 +799,8 @@ class Room:
                 # print("准备发送",action)
                 try:
                     await socket.send_text(text)
-                except:
+                except Exception as e:
+                    print(e)
                     pass
                 
             #await game_recorder.store_game_message(text)

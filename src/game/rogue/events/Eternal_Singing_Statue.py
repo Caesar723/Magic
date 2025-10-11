@@ -36,7 +36,7 @@ Eternal_Singing_Statue.options=[
     },
     {
         "title": "Sing Along",
-        "description": 'Join the melody. 50% chance to obtain *Harmony Gem*, 50% chance to weaken yourself (-1 max life).',
+        "description": 'Join the melody. 50% chance to obtain treasure, 50% chance to weaken yourself (-1 max life).',
         "function": Eternal_Singing_Statue.function_2,
         "valid_check":Eternal_Singing_Statue.cheak_valid_2
     },

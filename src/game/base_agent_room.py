@@ -900,13 +900,13 @@ class Base_Agent_Room(Room):
         #     return -1
         # elif agent.opponent.life<=0:
         #     return 1
-        self_live_reward=lambda x :x/10#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
-        oppo_live_reward=lambda x :x/10
+        self_live_reward=lambda x :x/40#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
+        oppo_live_reward=lambda x :x/40
 
         score_life_self=self_live_reward(agent.life)
         score_oppo_self=oppo_live_reward(agent.opponent.life)
 
-        score_battle_self_creatures=[self.get_creature_reward(card,battled_creature==card)+0.05 for card in agent.battlefield]
+        score_battle_self_creatures=[self.get_creature_reward(card,battled_creature==card)+0.25 for card in agent.battlefield]
         score_battle_self=sum(score_battle_self_creatures)
         score_battle_oppo_creatures=[self.get_creature_reward(card,card==attacker) for card in agent.opponent.battlefield]
         score_battle_oppo=sum(score_battle_oppo_creatures)
@@ -931,7 +931,7 @@ class Base_Agent_Room(Room):
         score_mana=score_mana/20
 
         reward=score_hand+(score_life_self-score_oppo_self)+score_mana+score_battle_self-score_battle_oppo
-        strength=10
+        strength=7
         #print(agent.get_counter_from_dict("turn_count"))
         reward=reward/((agent.get_counter_from_dict("turn_count")+strength)/strength)
         result={
@@ -1011,8 +1011,8 @@ class Base_Agent_Room(Room):
         #     return -1
         # elif agent.opponent.life<=0:
         #     return 1
-        self_live_reward=lambda x :x/10#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
-        oppo_live_reward=lambda x :x/10
+        self_live_reward=lambda x :x/40#lambda x :1/(1+np.e**(4-x))#用于红色的公式，卖血
+        oppo_live_reward=lambda x :x/40
 
         score_life_self=self_live_reward(agent.life)
         score_oppo_self=oppo_live_reward(agent.opponent.life)

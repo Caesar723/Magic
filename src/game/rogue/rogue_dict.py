@@ -217,6 +217,10 @@ ROGUE_EVENT_DICT={
             
             
             "game.rogue.events.Withered_Bloom.Withered_Bloom",
+
+            "game.rogue.events.Whispering_Roots.Whispering_Roots",
+
+            "game.rogue.events.Ancient_Grove.Ancient_Grove",
             
         ],
     },
@@ -232,6 +236,9 @@ ROGUE_EVENT_DICT={
             "game.rogue.events.Whispering_Flame.Whispering_Flame",
             "game.rogue.events.Whispering_Tome.Whispering_Tome",
             "game.rogue.events.Withered_Bloom.Withered_Bloom",
+            "game.rogue.events.Whispering_Roots.Whispering_Roots",
+
+            "game.rogue.events.Ancient_Grove.Ancient_Grove",
             
         ],
     },
@@ -245,6 +252,8 @@ ROGUE_EVENT_DICT={
             "game.rogue.events.Spirit_of_the_Bloom.Spirit_of_the_Bloom",
             "game.rogue.events.Stellar_Altar.Stellar_Altar",
             "game.rogue.events.Void_Rift.Void_Rift",
+            "game.rogue.events.Emerald_Colossus.Emerald_Colossus",
+            
         ],
     },
 }
