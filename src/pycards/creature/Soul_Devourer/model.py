@@ -7,6 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.creature import Creature
 from game.game_function_tool import select_object
+from game.buffs import StateBuff
 
 
 class Soul_Devourer(Creature):
@@ -33,4 +34,11 @@ class Soul_Devourer(Creature):
 
 
 
-        
+    async def when_a_creature_die(self,creature:"Creature",player: "Player" = None, opponent: "Player" = None):#当随从死亡时（放入一个死亡随从的参数）
+        if self in player.battlefield:
+            power,live=creature.state
+            for i in range(power):
+                buff=StateBuff(self,self,1,1)
+                buff.buff_missile="Cure"
+                buff.color_missile="rgba(10, 10, 10, 0.9)"
+                self.gain_buff(buff,self)

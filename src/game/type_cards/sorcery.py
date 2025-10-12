@@ -10,13 +10,14 @@ if TYPE_CHECKING:
 
 from game.card import Card
 from game.type_action import actions
-from game.game_function_tool import select_object
+from game.game_function_tool import select_object,backup_instance_methods
 
 
 class Sorcery(Card):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        backup_instance_methods(self)
 
     @select_object("",1)
     async def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):# when player use the card

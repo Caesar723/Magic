@@ -387,8 +387,8 @@ class Player:
 
     async def cleanup_step(self):#清理步骤（Cleanup Step）：玩家将手牌调整至最大手牌限制，移除所有“直到回合结束”类的效果，并移除所有受到的伤害。清空法术力（包括敌方）
         self.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
-        #self.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
-        #self.opponent.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
+        self.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
+        self.opponent.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
         self.action_store.add_action(actions.Change_Mana(self,self,self.get_manas()))
         self.opponent.action_store.add_action(actions.Change_Mana(self.opponent,self.opponent,self.opponent.get_manas()))
 
@@ -626,7 +626,14 @@ class Player:
             return cards
         return []
 
-        
+    def add_time_counter(self,number:int):
+
+        self.add_counter_dict("time_counter",number)
+        if self.get_counter_from_dict("time_counter")>=10:
+            self.set_counter_dict("time_counter",0)
+            self.add_counter_dict("extra_turn",1)
+
+
     def text(self,player)-> str:
         if self.name==player.name:
             return f"player({self.name},Self)"

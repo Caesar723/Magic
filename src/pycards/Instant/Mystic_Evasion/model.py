@@ -27,5 +27,15 @@ class Mystic_Evasion(Instant):
         self.image_path:str="cards/Instant/Mystic Evasion/image.jpg"
 
 
+    @select_object("",1)
+    async def card_ability(self,player:Player,opponent:Player,selected_object:tuple[Card]):
+        if player.room.attacker:
+            if player.room.attacker in opponent.battlefield or player.room.attacker in player.battlefield:
+                player.room.attacker.player.remove_card(player.room.attacker,"battlefield")
 
+                new_card=type(player.room.attacker)(player.room.attacker.player)
+                player.room.attacker.player.append_card(new_card,"hand")
+
+        player.draw_card(1)
+        
         

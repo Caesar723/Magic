@@ -39,15 +39,19 @@ class Temporal_Traveler(Creature):
         cards_graveyard=player.get_cards_by_pos_type("graveyard",(Instant,Sorcery),except_type=(Instant_Undo,))
         if cards_graveyard:
             card_graveyard:"Instant|Sorcery"=random.choice(cards_graveyard)
+
+            # player.action_store.start_record()
+            await player.auto_play_card(card_graveyard,start_bullet_time=False)
+            # player.action_store.end_record()
             
-            new_func=await card_graveyard.card_ability(player,opponent,auto_select=True)
-            #await player.room.put_prepared_function_to_stack(new_func,card_graveyard)
-            player.room.action_processor.start_record()
-            player.room.action_processor.start_record()
-            player.room.action_processor.add_action(Play_Cards(card_graveyard,card_graveyard.player))
-            player.room.action_processor.end_record()
+            # new_func=await card_graveyard.card_ability(player,opponent,auto_select=True)
+            # #await player.room.put_prepared_function_to_stack(new_func,card_graveyard)
+            # player.room.action_processor.start_record()
+            # player.room.action_processor.start_record()
+            # player.room.action_processor.add_action(Play_Cards(card_graveyard,card_graveyard.player))
+            # player.room.action_processor.end_record()
             
-            await new_func()
-            player.room.action_processor.end_record()
+            # await new_func()
+            # player.room.action_processor.end_record()
 
         

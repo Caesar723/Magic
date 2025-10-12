@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 from game.card import Card
 from game.type_action import actions
-from game.game_function_tool import select_object
+from game.game_function_tool import select_object,backup_instance_methods
 from game.buffs import Buff
 
 class Land(Card):
@@ -18,6 +18,8 @@ class Land(Card):
         super().__init__(player)
 
         self.flag_dict:dict={}
+
+        backup_instance_methods(self)
 
 
 

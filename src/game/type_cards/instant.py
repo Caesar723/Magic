@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 from game.card import Card
 from game.type_action import actions
-from game.game_function_tool import select_object
+from game.game_function_tool import select_object,backup_instance_methods
 
 
 
@@ -20,6 +20,7 @@ class Instant(Card):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        backup_instance_methods(self)
 
     @select_object("",1)
     async def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
@@ -119,6 +120,8 @@ class Instant_Undo(Instant):
         self.undo_range="all"#all,Sorcery|Creature|Instant|Land这个是是all 或者是 Sorcery|Creature这样的组合
         self.stack=player.room.stack
         self.get_flag_room=player.room.get_flag
+
+        backup_instance_methods(self)
 
     def check_can_use(self, player: 'Player') -> tuple[bool]:
         result= super().check_can_use(player)

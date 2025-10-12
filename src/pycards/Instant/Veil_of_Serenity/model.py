@@ -23,7 +23,7 @@ class Veil_of_Serenity(Instant):
         self.color:str="gold"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
-        self.content:str="Exile target enchantment or creature spell."
+        self.content:str="Exile target creature spell."
         self.image_path:str="cards/Instant/Veil of Serenity/image.jpg"
 
     @select_object("all_creatures",1)

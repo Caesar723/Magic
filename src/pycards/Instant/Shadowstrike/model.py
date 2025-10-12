@@ -19,7 +19,7 @@ class Shadowstrike(Instant):
 
         self.type:str="Instant"
 
-        self.mana_cost:str="1B"
+        self.mana_cost:str="2B"
         self.color:str="black"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
@@ -27,5 +27,10 @@ class Shadowstrike(Instant):
         self.image_path:str="cards/Instant/Shadowstrike/image.jpg"
 
 
-
+    @select_object("all_creatures",1)
+    async def card_ability(self,player:Player,opponent:Player,selected_object:tuple[Card]):
+        if selected_object:
+            if selected_object[0].get_flag("tap"):
+                await self.destroy_object(selected_object[0],"rgba(0,0,0,0.5)","Missile_Hit")
+            player.draw_card(1)
         

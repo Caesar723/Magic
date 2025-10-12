@@ -7,7 +7,8 @@ if TYPE_CHECKING:
  
 from game.type_cards.creature import Creature
 from game.game_function_tool import select_object
-
+from game.buffs import Indestructible
+import random
 
 class Ancient_Stonewood(Creature):
     
@@ -28,9 +29,18 @@ class Ancient_Stonewood(Creature):
         self.color:str="green"
         self.type_card:str="Creature - Treefolk"
         self.rarity:str="Rare"
-        self.content:str="Indestructible. Whenever Ancient Stonewood is dealt damage, it deals that much damage to target creature an opponent controls."
+        self.content:str="Indestructible. Whenever Ancient Stonewood is dealt damage, it deals that much damage to random creature an opponent controls."
         self.image_path:str="cards/creature/Ancient Stonewood/image.jpg"
 
 
 
-        
+        buff_indestructible=Indestructible(self,self)
+        self.buffs.append(buff_indestructible)
+        self.update_buff()
+
+
+    async def when_hurt(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当受到伤害时 OK
+        super().when_hurt(card,value,player,opponent)
+        if opponent.battlefield:
+            card_opponent=random.choice(opponent.battlefield)
+            await self.attact_to_object(card_opponent,value,"rgba(10, 243, 10, 0.9)","Missile_Hit")
