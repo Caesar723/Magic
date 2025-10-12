@@ -330,6 +330,7 @@ class Player:
     async def beginning_phase(self):#开始阶段
         self.add_counter_dict("turn_count",1)
         self.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
+        self.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
         self.action_store.add_action(actions.Change_Mana(self,self,self.get_manas()))
         self.return_to_org_max_land()
         self.untap_step()
@@ -386,7 +387,8 @@ class Player:
 
     async def cleanup_step(self):#清理步骤（Cleanup Step）：玩家将手牌调整至最大手牌限制，移除所有“直到回合结束”类的效果，并移除所有受到的伤害。清空法术力（包括敌方）
         self.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
-        # self.opponent.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
+        #self.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
+        #self.opponent.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
         self.action_store.add_action(actions.Change_Mana(self,self,self.get_manas()))
         self.opponent.action_store.add_action(actions.Change_Mana(self.opponent,self.opponent,self.opponent.get_manas()))
 
@@ -453,6 +455,32 @@ class Player:
                 card.when_go_to_landarea(card.player,card.player.opponent)
                 self.action_store.add_action(actions.Summon(card,self))
 
+    def change_position(self,card:Card,target_player:"Player",target_index:int=-1):#会发送消息给client
+
+
+        
+        self.battlefield.remove(card)
+        keys=card.check_overwritten()
+        for key in keys:
+            self.remove_card_from_dict(key,card)
+        for key in keys:
+            target_player.put_card_to_dict(key,card)
+
+        if target_index==-1:
+            target_player.battlefield.append(card)
+        else:
+            target_index=min(max(target_index,0),len(target_player.battlefield))
+            target_player.battlefield.insert(target_index,card)
+
+        card.player=target_player
+
+        card.when_go_to_battlefield(target_player,target_player.opponent)
+
+
+        self.action_store.add_action(actions.Change_Position(card,self,target_player,target_index))
+
+            
+            
     def mana_consumed(self,cost:"dict"):#自己的魔力池减少
         #cost=card.cost
         for key in cost:

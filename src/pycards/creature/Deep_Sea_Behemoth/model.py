@@ -31,24 +31,22 @@ class Deep_Sea_Behemoth(Creature):
         self.content:str="When Deep Sea Behemoth enters the battlefield, gain control of target creature for as long as you control Deep Sea Behemoth."
         self.image_path:str="cards/creature/Deep Sea Behemoth/image.jpg"
 
-
-    def __init__(self,player) -> None:
-        super().__init__(player)
         self.control_creature=None
+
+
 
     @select_object("opponent_creatures",1)
     async def when_enter_battlefield(self,player:Player,opponent:Player,selected_object:tuple["Card"]):
         if selected_object:
             self.control_creature=selected_object[0]
             
-            opponent.remove_card(self.control_creature,"battlefield")
-
-            self.control_creature.player=player
-            player.append_card(self.control_creature,"battlefield")
+            
+            opponent.change_position(self.control_creature,player,-1)
 
 
     async def when_die(self,player:Player,opponent:Player,name:str="battlefield"):
         if self.control_creature and self.control_creature in self.player.battlefield:
-            player.remove_card(self.control_creature,"battlefield")
-            self.control_creature.player=opponent
-            opponent.append_card(self.control_creature,"battlefield")   
+            
+            player.change_position(self.control_creature,opponent,-1)
+            
+           

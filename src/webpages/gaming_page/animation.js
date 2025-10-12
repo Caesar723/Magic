@@ -936,6 +936,54 @@ class Change_Mana extends Animation{
     }
 }
 
+class Change_Position extends Animation{
+    constructor(object_hold,player,taget_player,target_index){///player must be self  mana_cost[blue,white,black,red,green]
+        super(object_hold,player)
+        this.taget_player=taget_player
+        this.target_index=target_index
+        this.name='Change_Position'
+    }
+    insert_to_table(array,index,object_hold){
+        if (index==-1){
+            array.push(object_hold);
+        }
+        else{
+            index=Math.min(Math.max(index,0),array.length);
+            array.splice(index, 0, object_hold);
+        }
+    }
+    set_animate(){
+        
+        if (this.player instanceof Opponent){
+            this.table.opponent_battlefield_delete.push(this.object_hold.battle);
+        }
+        else{
+            this.table.self_battlefield_delete.push(this.object_hold.battle);
+        }
+        
+        if (this.taget_player instanceof Opponent){
+            this.insert_to_table(this.table.opponent_battlefield,this.target_index,this.object_hold.battle);
+        }
+        else{
+            this.insert_to_table(this.table.self_battlefield,this.target_index,this.object_hold.battle);
+        }
+
+
+        this.player.music.play_music_effect("card_send")
+    }
+
+
+    draw_action(ctx,canvas,camera){
+
+        
+        super.draw_action(ctx,canvas,camera)
+        //console.log(this.object_hold.size,position)
+        //ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
+
+        
+    }
+}
+
 class Win extends Animation{
     constructor(object_hold,player){///player must be self  mana_cost[blue,white,black,red,green]
         super(object_hold,player)

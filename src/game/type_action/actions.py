@@ -332,6 +332,15 @@ class Change_Mana(Action):
         mana=f"state({','.join(map(str,self.mana))})" 
         return f"action(Change_Mana,parameters({self.object_hold.text(player)},{self.player.text(player)},{mana}))"
 
+class Change_Position(Action):
+    def __init__(self,object_hold:"Card|Player",player:"Player",taget_player:"Player",target_index:int=-1) -> None:
+        self.object_hold:"Card|Player"=object_hold # store the controled card
+        self.player:"Player"=player # who use the card
+        self.taget_player:"Player"=taget_player # who use the card
+        self.target_index:int=target_index
+
+    def text(self,player:"Player")-> str:
+        return f"action(Change_Position,parameters({self.object_hold.text(player)},{self.player.text(player)},{self.taget_player.text(player)},int({self.target_index})))"
 
 class Win(Action):
     def __init__(self,object_hold:"Card|Player",player:"Player") -> None:

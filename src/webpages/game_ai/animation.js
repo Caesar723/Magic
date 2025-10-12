@@ -943,7 +943,57 @@ class Change_Mana extends Animation{
         return this.player.mana_bar.check_finish()
     }
 }
+class Change_Position extends Animation{
+    constructor(object_hold,player,taget_player,target_index){///player must be self  mana_cost[blue,white,black,red,green]
+        super(object_hold,player)
+        this.taget_player=taget_player
+        this.target_index=target_index
+        this.name='Change_Position'
+    }
+    insert_to_table(array,index,object_hold){
+        if (index==-1){
+            array.push(object_hold);
+        }
+        else{
+            index=Math.min(Math.max(index,0),array.length);
+            array.splice(index, 0, object_hold);
+        }
+    }
+    set_animate(){
+        const table=this.object_hold.battle.table;
+        
+        if (this.player instanceof Opponent){
+            table.opponent_battlefield_delete.push(this.object_hold.battle);
+        }
+        else{
+            table.self_battlefield_delete.push(this.object_hold.battle);
+        }
 
+
+        this.object_hold.battle.player=this.taget_player.type_name;
+        this.object_hold.player=this.taget_player;
+        if (this.taget_player instanceof Opponent){
+            this.insert_to_table(table.opponent_battlefield,this.target_index,this.object_hold.battle);
+        }
+        else{
+            this.insert_to_table(table.self_battlefield,this.target_index,this.object_hold.battle);
+        }
+
+
+        this.player.music.play_music_effect("card_send")
+    }
+
+
+    draw_action(ctx,canvas,camera){
+
+        
+        super.draw_action(ctx,canvas,camera)
+        //console.log(this.object_hold.size,position)
+        //ctx.drawImage(this.arrow_img,canvas.width/2-100,canvas.height/2-100,300,200)
+
+        
+    }
+}
 class Win extends Animation{
     constructor(object_hold,player){///player must be self  mana_cost[blue,white,black,red,green]
         super(object_hold,player)
