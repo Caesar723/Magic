@@ -1,0 +1,136 @@
+import torch
+import numpy as np
+
+
+from game.rlearning.utils.baseDataset import BaseDataset
+from game.rlearning.utils.data import batch_to_cuda,detach_cuda,to_cpu,to_cuda
+import game.rlearning.utils.log as log
+
+
+def nested_get(d, keys):
+    for k in keys:
+        if not isinstance(d,dict) or k not in d:
+            return None
+        d = d[k]
+    return d
+
+def _collate_batch(batch, s_keys, g_keys,extra_keys=[]):
+    #规定&为字典层级分割符
+    
+    collate_batch = {}
+    #-----------------------
+    for k in s_keys:
+        k=k.split("&")
+        v=nested_get(batch[0],k)
+        if v is None:
+            continue
+        collate_batch["_".join(k)] = [ nested_get(b,k) for b in batch ]
+
+    #-----------------------
+
+    for k in g_keys:
+        k=k.split("&")
+        v=nested_get(batch[0],k)
+        
+        
+        if v is None:
+            continue
+        v = [ torch.from_numpy(np.array(nested_get(b,k))) for b in batch ]
+        for ek in extra_keys:
+            if ek in k:
+                k.remove(ek)
+        collate_batch["_".join(k)] = torch.stack(v, dim=0)
+        # print(collate_batch[k].shape)
+        # print(k)
+    
+    return collate_batch
+
+
+class AgentTestDataset(BaseDataset):
+    def __init__(self, config):
+        super().__init__(config)
+        
+
+    
+
+    def get_sample(self, data):
+        card_ids=data["card_hand"]["card_ids"]
+        #print(card_ids)
+        id_dict={}
+        for i in card_ids:
+            if i==0:continue
+            id_dict[i]=id_dict.get(i,0)+1
+        card_mat=np.zeros((4,40))
+        #print(id_dict)
+        for i in id_dict:
+            id_dict[i]=max(0,min(id_dict[i],4))
+            if id_dict[i]==0:continue
+            card_mat[id_dict[i]-1][i-1]=1
+        #print(card_mat)
+
+        data["card_hand"]["card_matrix"]=card_mat
+        return data
+    
+    
+    
+    
+    
+
+    def collate_state(self,batch,extra_keys=[]):
+        s_keys=[]
+        g_keys=[
+            "self_life","oppo_life","self_mana",
+            "card_hand&card_matrix",
+            # "card_hand&card_ids","card_hand&card_types",
+            # "card_hand&card_costs","card_hand&card_special_types",
+            # "card_hand&card_atks","card_hand&card_hps",
+            # "card_hand&card_has_attack","card_hand&card_has_defend",
+            # "card_hand&card_mask",
+
+            "self_board&card_special_types","self_board&card_atks","self_board&card_hps",
+            "self_board&card_has_attack","self_board&card_has_defend","self_board&card_mask",
+
+            "oppo_board&card_special_types","oppo_board&card_atks","oppo_board&card_hps",
+            "oppo_board&card_has_attack","oppo_board&card_has_defend","oppo_board&card_mask",
+
+            "attacker&card_special_types","attacker&card_atks","attacker&card_hps",
+            "attacker&card_has_attack","attacker&card_has_defend",
+        ]
+        
+        for key in extra_keys[::-1]:
+            for i in range(len(g_keys)):
+                g_keys[i]=key+"&"+g_keys[i]
+            
+            
+            
+
+        
+        batch=_collate_batch(batch,s_keys,g_keys,extra_keys)
+        
+        batch["self_life"]=batch["self_life"].to(torch.float32) 
+        batch["oppo_life"]=batch["oppo_life"].to(torch.float32) 
+
+        
+        return batch
+    
+    
+
+    
+    
+    def collate_fn(self,batch):
+        batch=batch.copy()
+        
+        batch_state=self.collate_state(
+            batch,["state"]
+        )
+        batch_next_state=self.collate_state(
+            batch,["next_state"]
+        )
+
+        batch_extra=_collate_batch(batch,[],["action","advantage","rewards_adv","old_prob_log"])
+           
+        batch_state.update(batch_extra)
+        batch_state["next_state"]=batch_next_state
+        
+
+        return batch_state
