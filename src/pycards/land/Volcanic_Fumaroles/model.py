@@ -15,6 +15,8 @@ class Volcanic_Fumaroles(Land):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=179
+
         self.name:str="Volcanic Fumaroles"
 
         self.type:str="Land"

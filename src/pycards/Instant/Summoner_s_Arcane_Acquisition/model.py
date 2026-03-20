@@ -15,6 +15,8 @@ class Summoner_s_Arcane_Acquisition(Instant_Undo):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=65
+
         self.name:str="Summoner's Arcane Acquisition"
 
         self.type:str="Instant"

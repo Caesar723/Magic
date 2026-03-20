@@ -15,6 +15,8 @@ class Rift_in_Reality(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=226
+
         self.name:str="Rift in Reality"
 
         self.type:str="Sorcery"
@@ -25,6 +27,13 @@ class Rift_in_Reality(Sorcery):
         self.rarity:str="Rare"
         self.content:str="Rift in Reality allows you to exile target permanent. At the beginning of the next end step, return the exiled card to the battlefield under its owner's control with a sleight of hand counter on it. If it doesn't have sleight of hand counter on it, it's owner draws a card."
         self.image_path:str="cards/sorcery/Rift in Reality/image.jpg"
+
+    @select_object("opponent_permanents",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        if selected_object:
+            target = selected_object[0]
+            await self.exile_object(target, "rgba(239, 228, 83, 0.8)", "Missile_Hit")
+
 
 
 

@@ -15,6 +15,8 @@ class Soul_Siphon(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=228
+
         self.name:str="Soul Siphon"
 
         self.type:str="Sorcery"

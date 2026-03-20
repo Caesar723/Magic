@@ -38,6 +38,8 @@ class Mystic_Barrier(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=34
+
         self.name:str="Mystic Barrier"
 
         self.type:str="Instant"

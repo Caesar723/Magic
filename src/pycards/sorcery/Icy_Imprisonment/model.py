@@ -15,6 +15,8 @@ class Icy_Imprisonment(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=214
+
         self.name:str="Icy Imprisonment"
 
         self.type:str="Sorcery"

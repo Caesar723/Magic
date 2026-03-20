@@ -16,6 +16,8 @@ class Inferno_Titan(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=117
+
         self.name:str="Inferno Titan"
         self.live:int=6
         self.power:int=6

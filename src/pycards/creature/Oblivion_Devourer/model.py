@@ -16,6 +16,8 @@ class Oblivion_Devourer(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=131
+
         self.name:str="Oblivion Devourer"
         self.live:int=6
         self.power:int=6

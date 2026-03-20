@@ -16,6 +16,8 @@ class Call_to_Unity(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=188
+
         self.name:str="Call to Unity"
 
         self.type:str="Sorcery"

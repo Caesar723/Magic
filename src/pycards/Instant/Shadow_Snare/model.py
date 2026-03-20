@@ -15,6 +15,8 @@ class Shadow_Snare(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=62
+
         self.name:str="Shadow Snare"
 
         self.type:str="Instant"

@@ -15,6 +15,8 @@ class Celestial_Rebirth(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=14
+
         self.name:str="Celestial Rebirth"
 
         self.type:str="Instant"
@@ -25,6 +27,22 @@ class Celestial_Rebirth(Instant):
         self.rarity:str="Rare"
         self.content:str="Return target creature card from your graveyard to the battlefield. It gains indestructible until end of turn. Exile Celestial Rebirth."
         self.image_path:str="cards/Instant/Celestial Rebirth/image.jpg"
+
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        from game.type_cards.creature import Creature
+        from game.buffs import Indestructible
+        
+        creatures = player.get_cards_by_pos_type("graveyard", (Creature,))
+        if creatures:
+            creature = await player.send_selection_cards(creatures, selection_random=True)
+            player.remove_card(creature, "graveyard")
+            player.append_card(creature, "battlefield")
+            
+            buff = Indestructible(self, creature)
+            buff.set_end_of_turn()
+            creature.gain_buff(buff, self)
+
 
 
 

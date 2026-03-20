@@ -16,6 +16,8 @@ class Righteous_Conviction(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=227
+
         self.name:str="Righteous Conviction"
 
         self.type:str="Sorcery"

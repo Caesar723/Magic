@@ -16,6 +16,8 @@ class Ephemeral_Insight(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=20
+
         self.name:str="Ephemeral Insight"
 
         self.type:str="Instant"

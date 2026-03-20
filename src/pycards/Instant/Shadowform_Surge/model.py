@@ -15,6 +15,8 @@ class Shadowform_Surge(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=63
+
         self.name:str="Shadowform Surge"
 
         self.type:str="Instant"
@@ -25,6 +27,17 @@ class Shadowform_Surge(Instant):
         self.rarity:str="Rare"
         self.content:str="Target creature gets -3/-3 until end of turn. If that creature dies this turn, create a 2/2 black Shade creature token with lifelink."
         self.image_path:str="cards/Instant/Shadowform Surge/image.jpg"
+
+    @select_object("opponent_creatures",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        from game.buffs import StateBuff
+        
+        if selected_object:
+            target = selected_object[0]
+            buff = StateBuff(self, target, -3, -3)
+            buff.set_end_of_turn()
+            target.gain_buff(buff, self)
+
 
 
 

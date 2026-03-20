@@ -18,6 +18,8 @@ class Earthquake_Tremor(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=203
+
         self.name:str="Earthquake Tremor"
 
         self.type:str="Sorcery"

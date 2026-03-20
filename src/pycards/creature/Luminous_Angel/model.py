@@ -15,6 +15,8 @@ class Luminous_Angel(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=120
+
         self.name:str="Luminous Angel"
         self.live:int=4
         self.power:int=4

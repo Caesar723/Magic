@@ -15,6 +15,8 @@ class Celestial_Intervention(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=13
+
         self.name:str="Celestial Intervention"
 
         self.type:str="Instant"

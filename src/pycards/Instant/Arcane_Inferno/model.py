@@ -15,6 +15,8 @@ class Arcane_Inferno(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=3
+
         self.name:str="Arcane Inferno"
 
         self.type:str="Instant"

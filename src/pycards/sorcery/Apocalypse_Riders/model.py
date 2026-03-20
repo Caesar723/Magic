@@ -17,6 +17,8 @@ class Apocalypse_Riders(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=182
+
         self.name:str="Apocalypse Riders"
 
         self.type:str="Sorcery"

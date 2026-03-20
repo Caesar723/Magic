@@ -21,6 +21,8 @@ class Wild_Growth_Rush(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=86
+
         self.name:str="Wild Growth Rush"
 
         self.type:str="Instant"

@@ -15,6 +15,8 @@ class Arcane_Reflection(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=6
+
         self.name:str="Arcane Reflection"
 
         self.type:str="Instant"
@@ -25,6 +27,18 @@ class Arcane_Reflection(Instant):
         self.rarity:str="Rare"
         self.content:str="Arcane Reflection allows you to return target instant or sorcery card from your graveyard to your hand."
         self.image_path:str="cards/Instant/Arcane Reflection/image.jpg"
+
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        from game.type_cards.instant import Instant
+        from game.type_cards.sorcery import Sorcery
+        
+        cards = player.get_cards_by_pos_type("graveyard", (Instant, Sorcery))
+        if cards:
+            card = await player.send_selection_cards(cards, selection_random=True)
+            player.remove_card(card, "graveyard")
+            player.append_card(card, "hand")
+
 
 
 

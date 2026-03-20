@@ -15,6 +15,8 @@ class Ephemeral_Bolt(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=19
+
         self.name:str="Ephemeral Bolt"
 
         self.type:str="Instant"

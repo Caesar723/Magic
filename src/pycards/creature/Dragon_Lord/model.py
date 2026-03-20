@@ -15,6 +15,8 @@ class Dragon_Lord(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=102
+
         self.name:str="Dragon Lord"
         self.live:int=6
         self.power:int=6

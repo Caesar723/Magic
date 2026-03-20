@@ -15,6 +15,8 @@ class Night_Stalker__(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=128
+
         self.name:str="Night Stalker"
         self.live:int=1
         self.power:int=2

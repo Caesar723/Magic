@@ -15,6 +15,8 @@ class Harbinger_of_the_Eternal_Tides(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=115
+
         self.name:str="Harbinger of the Eternal Tides"
         self.live:int=4
         self.power:int=2

@@ -17,6 +17,8 @@ class Thundering_Behemoth(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=155
+
         self.name:str="Thundering Behemoth"
         self.live:int=5
         self.power:int=6

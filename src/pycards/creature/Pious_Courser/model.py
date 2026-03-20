@@ -15,6 +15,8 @@ class Pious_Courser(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=132
+
         self.name:str="Pious Courser"
         self.live:int=2
         self.power:int=2

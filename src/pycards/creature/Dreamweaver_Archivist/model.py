@@ -16,6 +16,8 @@ class Dreamweaver_Archivist(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=103
+
         self.name:str="Dreamweaver Archivist"
         self.live:int=2
         self.power:int=2

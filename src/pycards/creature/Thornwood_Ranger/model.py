@@ -15,6 +15,8 @@ class Thornwood_Ranger(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=152
+
         self.name:str="Thornwood Ranger"
         self.live:int=1
         self.power:int=2

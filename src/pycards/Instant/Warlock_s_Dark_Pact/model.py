@@ -15,6 +15,8 @@ class Warlock_s_Dark_Pact(Instant_Undo):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=83
+
         self.name:str="Warlock's Dark Pact"
 
         self.type:str="Instant"

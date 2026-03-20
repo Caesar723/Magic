@@ -15,6 +15,8 @@ class Nexus_of_the_Eternal_Seas(Land):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=173
+
         self.name:str="Nexus of the Eternal Seas"
 
         self.type:str="Land"

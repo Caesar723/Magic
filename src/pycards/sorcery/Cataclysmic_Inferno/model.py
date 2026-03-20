@@ -18,6 +18,8 @@ class Cataclysmic_Inferno(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=189
+
         self.name:str="Cataclysmic Inferno"
 
         self.type:str="Sorcery"

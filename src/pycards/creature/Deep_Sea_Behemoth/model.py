@@ -15,6 +15,8 @@ class Deep_Sea_Behemoth(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=101
+
         self.name:str="Deep Sea Behemoth"
         self.live:int=7
         self.power:int=7

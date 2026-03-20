@@ -15,6 +15,8 @@ class Eldritch_Rebirth(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=204
+
         self.name:str="Eldritch Rebirth"
 
         self.type:str="Sorcery"
@@ -25,6 +27,16 @@ class Eldritch_Rebirth(Sorcery):
         self.rarity:str="Rare"
         self.content:str="Eldritch Rebirth allows you to return all creature cards with converted mana cost 3 or less from your graveyard to the battlefield. If Eldritch Rebirth was cast from your graveyard, you may return all creature cards with converted mana cost 4 or greater from your graveyard to the battlefield instead."
         self.image_path:str="cards/sorcery/Eldritch Rebirth/image.jpg"
+
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        from game.type_cards.creature import Creature
+        
+        creatures = [c for c in player.graveyard if isinstance(c, Creature) and sum(c.cost.values()) <= 3]
+        for creature in creatures[:]:
+            player.remove_card(creature, "graveyard")
+            player.append_card(creature, "battlefield")
+
 
 
 

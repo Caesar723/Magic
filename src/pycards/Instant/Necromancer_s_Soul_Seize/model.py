@@ -18,6 +18,8 @@ class Necromancer_s_Soul_Seize(Instant_Undo):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=49
+
         self.name:str="Necromancer's Soul Seize"
 
         self.type:str="Instant"

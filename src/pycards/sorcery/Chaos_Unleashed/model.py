@@ -15,6 +15,8 @@ class Chaos_Unleashed(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=194
+
         self.name:str="Chaos Unleashed"
 
         self.type:str="Sorcery"

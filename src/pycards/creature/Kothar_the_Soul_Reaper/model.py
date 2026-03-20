@@ -16,6 +16,8 @@ class Kothar_the_Soul_Reaper(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=119
+
         self.name:str="Kothar the Soul Reaper"
         self.live:int=5
         self.power:int=5

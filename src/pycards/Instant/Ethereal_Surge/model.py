@@ -26,6 +26,11 @@ class Ethereal_Surge(Instant):
         self.content:str="Counter target spell with converted mana cost X. If that spell is countered this way, return it to its owner's hand instead of putting it into their graveyard."
         self.image_path:str="cards/Instant/Ethereal Surge/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        func, card = await self.undo_stack(player, opponent)
+
+
 
 
         

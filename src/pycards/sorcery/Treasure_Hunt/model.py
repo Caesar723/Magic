@@ -15,6 +15,8 @@ class Treasure_Hunt(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=237
+
         self.name:str="Treasure Hunt"
 
         self.type:str="Sorcery"
@@ -25,6 +27,23 @@ class Treasure_Hunt(Sorcery):
         self.rarity:str="Common"
         self.content:str="Reveal the top X cards of your library. Put all land cards revealed this way into your hand and the rest on the bottom of your library in any order."
         self.image_path:str="cards/sorcery/Treasure Hunt/image.jpg"
+
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        from game.type_cards.land import Land
+        
+        revealed = []
+        for _ in range(min(5, len(player.library))):
+            if player.library:
+                card = player.library[0]
+                revealed.append(card)
+                player.remove_card(card, "library")
+                
+                if isinstance(card, Land):
+                    player.append_card(card, "hand")
+                else:
+                    player.append_card(card, "graveyard")
+
 
 
 

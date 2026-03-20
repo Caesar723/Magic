@@ -16,6 +16,8 @@ class Mechanist_s_Disruption_Device(Instant_Undo):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=31
+
         self.name:str="Mechanist's Disruption Device"
 
         self.type:str="Instant"

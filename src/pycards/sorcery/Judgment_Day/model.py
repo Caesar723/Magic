@@ -16,6 +16,8 @@ class Judgment_Day(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=215
+
         self.name:str="Judgment Day"
 
         self.type:str="Sorcery"

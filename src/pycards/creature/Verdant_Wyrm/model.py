@@ -20,6 +20,8 @@ class Verdant_Wyrm(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=160
+
         self.name:str="Verdant Wyrm"
         self.live:int=4
         self.power:int=4

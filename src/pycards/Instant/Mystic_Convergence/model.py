@@ -16,6 +16,8 @@ class Mystic_Convergence(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=36
+
         self.name:str="Mystic Convergence"
 
         self.type:str="Instant"

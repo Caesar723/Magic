@@ -18,6 +18,8 @@ class Awaken_the_Elemental(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=185
+
         self.name:str="Awaken the Elemental"
 
         self.type:str="Sorcery"

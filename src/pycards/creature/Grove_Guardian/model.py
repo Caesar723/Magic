@@ -15,6 +15,8 @@ class Grove_Guardian(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=113
+
         self.name:str="Grove Guardian"
         self.live:int=5
         self.power:int=3

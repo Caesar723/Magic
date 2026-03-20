@@ -15,6 +15,8 @@ class Vampiric_Revelry(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=241
+
         self.name:str="Vampiric Revelry"
 
         self.type:str="Sorcery"

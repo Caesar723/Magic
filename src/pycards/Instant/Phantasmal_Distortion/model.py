@@ -15,6 +15,8 @@ class Phantasmal_Distortion(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=52
+
         self.name:str="Phantasmal Distortion"
 
         self.type:str="Instant"
@@ -25,6 +27,17 @@ class Phantasmal_Distortion(Instant):
         self.rarity:str="Rare"
         self.content:str="Until end of turn, target creature you control becomes a copy of another target creature, except it retains its abilities. Return that creature to its owner's hand at the beginning of the next end step."
         self.image_path:str="cards/Instant/Phantasmal Distortion/image.jpg"
+
+    @select_object("player_creatures",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        from game.buffs import StateBuff
+        
+        if selected_object and player.battlefield:
+            target = selected_object[0]
+            buff = StateBuff(self, target, 3, 3)
+            buff.set_end_of_turn()
+            target.gain_buff(buff, self)
+
 
 
 

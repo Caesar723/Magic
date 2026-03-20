@@ -17,6 +17,8 @@ class Blazeheart_Berserker__(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=93
+
         self.name:str="Blazeheart Berserker"
         self.live:int=2
         self.power:int=3

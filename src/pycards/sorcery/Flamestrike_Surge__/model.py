@@ -26,6 +26,17 @@ class Flamestrike_Surge__(Sorcery):
         self.content:str="Flamestrike Surge deals 3 damage to any target and you may discard a card. If you do, draw a card."
         self.image_path:str="cards/sorcery/Flamestrike Surge/image.jpg"
 
+    @select_object("opponent_permanents",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        if selected_object:
+            await selected_object[0].take_damage(3, self, player, opponent)
+        
+        if player.hand:
+            card = await player.send_selection_cards(player.hand, selection_random=True)
+            player.discard(card)
+            await player.draw_cards(1)
+
+
 
 
         

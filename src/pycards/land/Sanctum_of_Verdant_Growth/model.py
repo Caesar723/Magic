@@ -15,6 +15,8 @@ class Sanctum_of_Verdant_Growth(Land):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=176
+
         self.name:str="Sanctum of Verdant Growth"
 
         self.type:str="Land"

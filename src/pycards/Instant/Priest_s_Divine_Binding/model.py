@@ -16,6 +16,8 @@ class Priest_s_Divine_Binding(Instant_Undo):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=54
+
         self.name:str="Priest's Divine Binding"
 
         self.type:str="Instant"

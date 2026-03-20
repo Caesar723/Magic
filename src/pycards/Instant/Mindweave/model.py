@@ -26,6 +26,12 @@ class Mindweave(Instant):
         self.content:str="Counter target spell unless its controller pays X. If that spell is countered this way, you may draw X cards."
         self.image_path:str="cards/Instant/Mindweave/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        func, card = await self.undo_stack(player, opponent)
+        player.draw_card(1)
+
+
 
 
         

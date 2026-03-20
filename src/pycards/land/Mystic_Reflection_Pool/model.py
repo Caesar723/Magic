@@ -15,6 +15,8 @@ class Mystic_Reflection_Pool(Land):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=172
+
         self.name:str="Mystic Reflection Pool"
 
         self.type:str="Land"

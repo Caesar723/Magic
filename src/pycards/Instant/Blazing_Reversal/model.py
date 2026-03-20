@@ -15,6 +15,8 @@ class Blazing_Reversal(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=11
+
         self.name:str="Blazing Reversal"
 
         self.type:str="Instant"
@@ -25,6 +27,12 @@ class Blazing_Reversal(Instant):
         self.rarity:str="Rare"
         self.content:str="Change the target of target spell or ability with a single target. You may choose new targets for the redirection. If Blazing Reversal is in your graveyard, you may cast it by sacrificing a Mountain and paying its flashback cost. If you do, exile it as it resolves."
         self.image_path:str="cards/Instant/Blazing Reversal/image.jpg"
+
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        # Simplified: just draw a card as changing targets is complex
+        player.draw_card(1)
+
 
 
 

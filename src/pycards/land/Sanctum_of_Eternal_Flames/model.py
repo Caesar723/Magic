@@ -15,6 +15,8 @@ class Sanctum_of_Eternal_Flames(Land):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=175
+
         self.name:str="Sanctum of Eternal Flames"
 
         self.type:str="Land"

@@ -15,6 +15,8 @@ class Flameblast(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=208
+
         self.name:str="Flameblast"
 
         self.type:str="Sorcery"

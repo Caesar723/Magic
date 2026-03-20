@@ -26,6 +26,11 @@ class Mystic_Reversal(Sorcery):
         self.content:str="Counter target spell unless its controller pays 3. If the spell is countered this way, exile it instead of putting it into its owner's graveyard."
         self.image_path:str="cards/sorcery/Mystic Reversal/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        func, card = await self.undo_stack(player, opponent)
+
+
 
 
         

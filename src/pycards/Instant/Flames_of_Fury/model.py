@@ -16,6 +16,8 @@ class Flames_of_Fury(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=27
+
         self.name:str="Flames of Fury"
 
         self.type:str="Instant"

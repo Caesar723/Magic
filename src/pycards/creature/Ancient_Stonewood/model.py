@@ -44,3 +44,4 @@ class Ancient_Stonewood(Creature):
         if opponent.battlefield:
             card_opponent=random.choice(opponent.battlefield)
             await self.attact_to_object(card_opponent,value,"rgba(10, 243, 10, 0.9)","Missile_Hit")
+

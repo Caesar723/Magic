@@ -15,6 +15,8 @@ class Unleash_the_Elements(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=239
+
         self.name:str="Unleash the Elements"
 
         self.type:str="Sorcery"

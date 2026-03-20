@@ -15,6 +15,8 @@ class Swift_Ward(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=68
+
         self.name:str="Swift Ward"
 
         self.type:str="Instant"

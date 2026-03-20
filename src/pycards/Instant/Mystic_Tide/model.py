@@ -26,6 +26,11 @@ class Mystic_Tide(Instant):
         self.content:str="Counter target spell unless its controller pays 3. If you control an Island, you may return target creature to its owner's hand."
         self.image_path:str="cards/Instant/Mystic Tide/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        func, card = await self.undo_stack(player, opponent)
+
+
 
 
         

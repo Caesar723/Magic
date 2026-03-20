@@ -15,6 +15,8 @@ class Blazeburst(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=10
+
         self.name:str="Blazeburst"
 
         self.type:str="Instant"

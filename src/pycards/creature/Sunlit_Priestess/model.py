@@ -15,6 +15,8 @@ class Sunlit_Priestess(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=145
+
         self.name:str="Sunlit Priestess"
         self.live:int=2
         self.power:int=2

@@ -34,6 +34,8 @@ class Phantom_Shield(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=53
+
         self.name:str="Phantom Shield"
 
         self.type:str="Instant"

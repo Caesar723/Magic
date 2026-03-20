@@ -16,6 +16,8 @@ class Timeless_Intervention(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=74
+
         self.name:str="Timeless Intervention"
 
         self.type:str="Instant"

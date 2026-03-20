@@ -15,6 +15,8 @@ class Veil_of_Serenity(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=76
+
         self.name:str="Veil of Serenity"
 
         self.type:str="Instant"

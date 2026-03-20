@@ -15,6 +15,8 @@ class Mystic_Evocation(Instant_Undo):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=38
+
         self.name:str="Mystic Evocation"
 
         self.type:str="Instant"

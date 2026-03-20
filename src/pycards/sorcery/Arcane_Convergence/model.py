@@ -15,6 +15,8 @@ class Arcane_Convergence(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=183
+
         self.name:str="Arcane Convergence"
 
         self.type:str="Sorcery"
@@ -25,6 +27,13 @@ class Arcane_Convergence(Sorcery):
         self.rarity:str="Rare"
         self.content:str="Arcane Convergence allows you to untap all lands you control and add X mana in any combination of colors to your mana pool, where X is the number of sorcery cards in your graveyard."
         self.image_path:str="cards/sorcery/Arcane Convergence/image.jpg"
+
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        for land in player.land_area:
+            if land.is_tapped:
+                land.untap()
+
 
 
 

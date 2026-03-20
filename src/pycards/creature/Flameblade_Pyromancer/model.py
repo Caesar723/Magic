@@ -15,6 +15,8 @@ class Flameblade_Pyromancer(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=112
+
         self.name:str="Flameblade Pyromancer"
         self.live:int=2
         self.power:int=2

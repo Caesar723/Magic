@@ -1,7 +1,9 @@
-# 忽略Python缓存文件
-__pycache__/
-*.pyc
 
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
 # 忽略环境配置文件
 .env
 

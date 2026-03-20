@@ -15,6 +15,8 @@ class Tidal_Sprite(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=156
+
         self.name:str="Tidal Sprite"
         self.live:int=1
         self.power:int=1

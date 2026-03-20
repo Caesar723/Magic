@@ -224,6 +224,7 @@ class Creature(Card):
         await super().auto_play_this_card(player,opponent)
         prepared_function=await self.when_enter_battlefield(player,opponent,auto_select=True)
         if prepared_function!="cancel":
+            player.remove_card(self,"hand")
             player.append_card(self,"battlefield")
             self.player.action_store.add_action(actions.Play_Cards(self,self.player))
         self.player.action_store.end_record()

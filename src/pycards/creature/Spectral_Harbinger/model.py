@@ -16,6 +16,8 @@ class Spectral_Harbinger(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=143
+
         self.name:str="Spectral Harbinger"
         self.live:int=3
         self.power:int=2

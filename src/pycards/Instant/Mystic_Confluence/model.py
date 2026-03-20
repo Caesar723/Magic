@@ -26,6 +26,13 @@ class Mystic_Confluence(Instant):
         self.content:str="Choose three. You may choose the same mode more than once. Counter target spell unless its controller pays 3. Return target creature to its owner's hand. Draw a card."
         self.image_path:str="cards/Instant/Mystic Confluence/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        # Simplified: counter a spell and draw a card
+        func, card = await self.undo_stack(player, opponent)
+        player.draw_card(1)
+
+
 
 
         

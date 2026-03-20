@@ -15,6 +15,8 @@ class Flame_Tinkerer(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=111
+
         self.name:str="Flame Tinkerer"
         self.live:int=1
         self.power:int=2

@@ -15,6 +15,8 @@ class Honorable_Protection(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=29
+
         self.name:str="Honorable Protection"
 
         self.type:str="Instant"

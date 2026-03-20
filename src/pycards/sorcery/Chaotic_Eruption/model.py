@@ -15,6 +15,8 @@ class Chaotic_Eruption(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=195
+
         self.name:str="Chaotic Eruption"
 
         self.type:str="Sorcery"
@@ -25,6 +27,12 @@ class Chaotic_Eruption(Sorcery):
         self.rarity:str="Rare"
         self.content:str="Destroy target land. For each land destroyed this way, its controller may discard a card. If they don't, create a 3/3 Elemental token."
         self.image_path:str="cards/sorcery/Chaotic Eruption/image.jpg"
+
+    @select_object("opponent_lands",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        if selected_object:
+            await self.destroy_object(selected_object[0], "rgba(255,0,0,0.5)", "Missile_Hit")
+
 
 
 

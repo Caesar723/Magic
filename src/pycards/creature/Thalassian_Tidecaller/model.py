@@ -16,6 +16,8 @@ class Thalassian_Tidecaller(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=149
+
         self.name:str="Thalassian Tidecaller"
         self.live:int=2
         self.power:int=2

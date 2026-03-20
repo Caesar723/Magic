@@ -19,6 +19,8 @@ class Sage_of_the_Ancient_Grove(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=137
+
         self.name:str="Sage of the Ancient Grove"
         self.live:int=4
         self.power:int=4

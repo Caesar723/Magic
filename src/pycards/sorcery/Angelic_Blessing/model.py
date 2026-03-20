@@ -17,6 +17,8 @@ class Angelic_Blessing(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=181
+
         self.name:str="Angelic Blessing"
 
         self.type:str="Sorcery"

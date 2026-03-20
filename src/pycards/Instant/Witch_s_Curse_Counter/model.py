@@ -45,6 +45,8 @@ class Witch_s_Curse_Counter(Instant_Undo):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=87
+
         self.name:str="Witch's Curse Counter"
 
         self.type:str="Instant"

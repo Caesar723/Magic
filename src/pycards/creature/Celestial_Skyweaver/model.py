@@ -17,6 +17,8 @@ class Celestial_Skyweaver(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=99
+
         self.name:str="Celestial Skyweaver"
         self.live:int=5
         self.power:int=2

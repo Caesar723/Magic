@@ -15,6 +15,8 @@ class Celestial_Haven(Land):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=166
+
         self.name:str="Celestial Haven"
 
         self.type:str="Land"

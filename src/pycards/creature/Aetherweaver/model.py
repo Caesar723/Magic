@@ -5,7 +5,7 @@ import random
 if TYPE_CHECKING:
     from game.player import Player
     from game.card import Card
- 
+
 from game.type_cards.creature import Creature
 from game.game_function_tool import select_object
 from game.type_cards.instant import Instant

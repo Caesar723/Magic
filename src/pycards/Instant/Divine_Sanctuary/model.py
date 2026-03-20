@@ -51,6 +51,8 @@ class Divine_Sanctuary(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=17
+
         self.name:str="Divine Sanctuary"
 
         self.type:str="Instant"

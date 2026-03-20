@@ -15,6 +15,8 @@ class Mountain(Land):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=171
+
         self.name:str="Mountain"
 
         self.type:str="Land"

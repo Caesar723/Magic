@@ -15,6 +15,8 @@ class Abyssal_Echoes(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=180
+
         self.name:str="Abyssal Echoes"
 
         self.type:str="Sorcery"

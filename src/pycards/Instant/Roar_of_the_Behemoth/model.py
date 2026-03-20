@@ -44,6 +44,8 @@ class Roar_of_the_Behemoth(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=59
+
         self.name:str="Roar of the Behemoth"
 
         self.type:str="Instant"

@@ -15,6 +15,8 @@ class Rogue_s_Trickery(Instant_Undo):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=60
+
         self.name:str="Rogue's Trickery"
 
         self.type:str="Instant"

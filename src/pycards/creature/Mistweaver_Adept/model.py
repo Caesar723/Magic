@@ -15,6 +15,8 @@ class Mistweaver_Adept(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=125
+
         self.name:str="Mistweaver Adept"
         self.live:int=1
         self.power:int=2

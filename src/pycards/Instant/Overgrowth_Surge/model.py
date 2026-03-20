@@ -15,6 +15,8 @@ class Overgrowth_Surge(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=50
+
         self.name:str="Overgrowth Surge"
 
         self.type:str="Instant"

@@ -15,6 +15,8 @@ class Luminous_Glade(Land):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=170
+
         self.name:str="Luminous Glade"
 
         self.type:str="Land"

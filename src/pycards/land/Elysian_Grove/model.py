@@ -15,6 +15,8 @@ class Elysian_Grove(Land):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=167
+
         self.name:str="Elysian Grove"
 
         self.type:str="Land"

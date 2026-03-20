@@ -15,6 +15,8 @@ class Eternal_Phoenix(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=110
+
         self.name:str="Eternal Phoenix"
         self.live:int=3
         self.power:int=3

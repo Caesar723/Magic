@@ -15,6 +15,8 @@ class Monk_s_Inner_Rebound(Instant_Undo):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=33
+
         self.name:str="Monk's Inner Rebound"
 
         self.type:str="Instant"

@@ -15,6 +15,8 @@ class Ranger_s_Sniping_Shot(Instant_Undo):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=57
+
         self.name:str="Ranger's Sniping Shot"
 
         self.type:str="Instant"

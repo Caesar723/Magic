@@ -15,6 +15,8 @@ class Divine_Rebirth(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=201
+
         self.name:str="Divine Rebirth"
 
         self.type:str="Sorcery"
@@ -25,6 +27,17 @@ class Divine_Rebirth(Sorcery):
         self.rarity:str="Mythic Rare"
         self.content:str="Return target creature card from your graveyard to the battlefield. If it's an Angel, create two 4/4 white Angel creature tokens with flying tapped and attacking."
         self.image_path:str="cards/sorcery/Divine Rebirth/image.jpg"
+
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        from game.type_cards.creature import Creature
+        
+        creatures = player.get_cards_by_pos_type("graveyard", (Creature,))
+        if creatures:
+            creature = await player.send_selection_cards(creatures, selection_random=True)
+            player.remove_card(creature, "graveyard")
+            player.append_card(creature, "battlefield")
+
 
 
 

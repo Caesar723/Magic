@@ -16,6 +16,8 @@ class Storm_Bringer(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=144
+
         self.name:str="Storm Bringer"
         self.live:int=5
         self.power:int=5

@@ -15,6 +15,8 @@ class Swamp(Land):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=177
+
         self.name:str="Swamp"
 
         self.type:str="Land"

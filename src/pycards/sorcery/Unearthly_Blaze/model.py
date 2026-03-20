@@ -15,6 +15,8 @@ class Unearthly_Blaze(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=238
+
         self.name:str="Unearthly Blaze"
 
         self.type:str="Sorcery"

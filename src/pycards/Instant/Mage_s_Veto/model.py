@@ -15,6 +15,8 @@ class Mage_s_Veto(Instant_Undo):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=30
+
         self.name:str="Mage's Veto"
 
         self.type:str="Instant"

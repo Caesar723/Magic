@@ -15,6 +15,8 @@ class Pyroblast_Surge(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=56
+
         self.name:str="Pyroblast Surge"
 
         self.type:str="Instant"

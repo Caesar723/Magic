@@ -21,6 +21,8 @@ class Forest_s_Embrace(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=212
+
         self.name:str="Forest's Embrace"
 
         self.type:str="Sorcery"

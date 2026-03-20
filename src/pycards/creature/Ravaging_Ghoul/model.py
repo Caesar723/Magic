@@ -15,6 +15,8 @@ class Ravaging_Ghoul(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=136
+
         self.name:str="Ravaging Ghoul"
         self.live:int=2
         self.power:int=2

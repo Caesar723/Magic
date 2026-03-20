@@ -26,6 +26,13 @@ class Ephemeral_Eruption(Sorcery):
         self.content:str="Ephemeral Eruption deals 4 damage to each creature. At the beginning of the next end step, sacrifice Ephemeral Eruption and return all creatures dealt damage this way to the battlefield under their owner's control."
         self.image_path:str="cards/sorcery/Ephemeral Eruption/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        all_creatures = list(player.battlefield) + list(opponent.battlefield)
+        for creature in all_creatures:
+            await creature.take_damage(4, self, player, opponent)
+
+
 
 
         

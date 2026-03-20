@@ -15,6 +15,8 @@ class Voidwisp_Harbinger(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=161
+
         self.name:str="Voidwisp Harbinger"
         self.live:int=4
         self.power:int=2

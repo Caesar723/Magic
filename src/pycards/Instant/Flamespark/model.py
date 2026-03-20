@@ -15,6 +15,8 @@ class Flamespark(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=28
+
         self.name:str="Flamespark"
 
         self.type:str="Instant"

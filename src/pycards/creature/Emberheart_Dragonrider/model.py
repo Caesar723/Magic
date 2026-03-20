@@ -15,6 +15,8 @@ class Emberheart_Dragonrider(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=107
+
         self.name:str="Emberheart Dragonrider"
         self.live:int=3
         self.power:int=3

@@ -16,6 +16,8 @@ class Verdant_Surge(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=82
+
         self.name:str="Verdant Surge"
 
         self.type:str="Instant"

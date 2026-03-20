@@ -15,6 +15,8 @@ class Unyielding_Resolve(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=240
+
         self.name:str="Unyielding Resolve"
 
         self.type:str="Sorcery"

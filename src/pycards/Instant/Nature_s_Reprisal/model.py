@@ -26,6 +26,12 @@ class Nature_s_Reprisal(Instant):
         self.content:str="Destroy target artifact or enchantment."
         self.image_path:str="cards/Instant/Nature's Reprisal/image.jpg"
 
+    @select_object("opponent_permanents",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        if selected_object:
+            await self.destroy_object(selected_object[0], "rgba(255,0,0,0.5)", "Missile_Hit")
+
+
 
 
         

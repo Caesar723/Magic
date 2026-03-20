@@ -15,6 +15,8 @@ class Mystical_Barrier(Instant_Undo):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=45
+
         self.name:str="Mystical Barrier"
 
         self.type:str="Instant"

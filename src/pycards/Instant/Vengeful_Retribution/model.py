@@ -16,6 +16,8 @@ class Vengeful_Retribution(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=78
+
         self.name:str="Vengeful Retribution"
 
         self.type:str="Instant"

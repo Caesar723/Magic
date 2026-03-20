@@ -14,6 +14,8 @@ class Angelic_Protector(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=91
+
         self.name:str="Angelic Protector"
         self.live:int=2
         self.power:int=2

@@ -16,6 +16,8 @@ class Emberheart_Berserker__(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=106
+
         self.name:str="Emberheart Berserker"
         self.live:int=2
         self.power:int=3

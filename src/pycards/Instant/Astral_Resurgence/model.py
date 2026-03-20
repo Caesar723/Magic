@@ -18,6 +18,8 @@ class Astral_Resurgence(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=7
+
         self.name:str="Astral Resurgence"
 
         self.type:str="Instant"

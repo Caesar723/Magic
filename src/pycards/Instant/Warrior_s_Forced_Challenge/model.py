@@ -16,6 +16,8 @@ class Warrior_s_Forced_Challenge(Instant_Undo):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=84
+
         self.name:str="Warrior's Forced Challenge"
 
         self.type:str="Instant"

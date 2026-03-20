@@ -16,6 +16,8 @@ class Time_Reversal(Instant_Undo):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=72
+
         self.name:str="Time Reversal"
 
         self.type:str="Instant"

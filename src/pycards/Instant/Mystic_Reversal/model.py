@@ -26,6 +26,11 @@ class Mystic_Reversal(Instant):
         self.content:str="Counter target spell. If that spell is countered this way, its controller may cast it without paying its mana cost during their next turn."
         self.image_path:str="cards/Instant/Mystic Reversal/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        func, card = await self.undo_stack(player, opponent)
+
+
 
 
         

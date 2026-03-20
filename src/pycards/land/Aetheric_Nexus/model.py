@@ -15,6 +15,8 @@ class Aetheric_Nexus(Land):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=163
+
         self.name:str="Aetheric Nexus"
 
         self.type:str="Land"

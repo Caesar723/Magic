@@ -20,6 +20,8 @@ class Sylvan_Harmonist(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=146
+
         self.name:str="Sylvan Harmonist"
         self.live:int=3
         self.power:int=2

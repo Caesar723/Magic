@@ -16,6 +16,8 @@ class Celestial_Seraph(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=98
+
         self.name:str="Celestial Seraph"
         self.live:int=5
         self.power:int=5
@@ -41,6 +43,7 @@ class Celestial_Seraph(Creature):
     async def when_start_attcak(self, card: "Creature | Player", player: "Player" = None, opponent: "Player" = None):
         if opponent.battlefield:
             creature=random.choice(opponent.battlefield)
+            print("exile", creature)
             await self.exile_object(creature,"rgba(239, 228, 83, 0.8)","Missile_Hit")
             self.creature_store.append(creature)
         

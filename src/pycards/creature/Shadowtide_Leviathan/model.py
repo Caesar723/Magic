@@ -15,6 +15,8 @@ class Shadowtide_Leviathan(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=140
+
         self.name:str="Shadowtide Leviathan"
         self.live:int=8
         self.power:int=8

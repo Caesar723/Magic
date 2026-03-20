@@ -15,6 +15,8 @@ class Fiery_Blast(Instant):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=26
+
         self.name:str="Fiery Blast"
 
         self.type:str="Instant"

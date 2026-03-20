@@ -15,6 +15,8 @@ class Arcane_Haven(Land):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=164
+
         self.name:str="Arcane Haven"
 
         self.type:str="Land"

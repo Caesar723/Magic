@@ -16,6 +16,8 @@ class Falling_Stars(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=206
+
         self.name:str="Falling Stars"
 
         self.type:str="Sorcery"

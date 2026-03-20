@@ -15,6 +15,8 @@ class Spectral_Embrace(Sorcery):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=230
+
         self.name:str="Spectral Embrace"
 
         self.type:str="Sorcery"

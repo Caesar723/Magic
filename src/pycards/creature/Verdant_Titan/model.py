@@ -20,6 +20,8 @@ class Verdant_Titan(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=159
+
         self.name:str="Verdant Titan"
         self.live:int=5
         self.power:int=5

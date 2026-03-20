@@ -15,6 +15,8 @@ class Essence_Channeler(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=109
+
         self.name:str="Essence Channeler"
         self.live:int=2
         self.power:int=2

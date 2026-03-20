@@ -16,6 +16,8 @@ class Druid_s_Natural_Fury(Instant_Undo):
     def __init__(self,player) -> None:
         super().__init__(player)
 
+        self.fixed_id:int=18
+
         self.name:str="Druid's Natural Fury"
 
         self.type:str="Instant"
