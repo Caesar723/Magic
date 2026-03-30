@@ -24,7 +24,7 @@ class Seraph_of_the_Eternal_Flame(Creature):
         self.type_creature:str="Angel"
         self.type:str="Creature"
 
-        self.mana_cost:str="1WW"
+        self.mana_cost:str="3WW"
         self.color:str="gold"
         self.type_card:str="Angel"
         self.rarity:str="Rare"

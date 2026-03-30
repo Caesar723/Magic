@@ -2,53 +2,64 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestThunderclap_Behemoth(CardTestCaseBase):
-    async def test_thunderclap_behemoth_smoke(self):
+    async def test_thunderclap_behemoth_has_trample(self):
         card_cls = load_card_class_from_path("pycards/creature/Thunderclap_Behemoth/model.py", "Thunderclap_Behemoth")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        behemoth = env.get_battlefield_creature(env.p1, "Thunderclap Behemoth")
+        self.assert_state(behemoth, {"zone": "battlefield", "state": (6, 6), "flags": {"Trample": True}})
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_thunderclap_behemoth_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_thunderclap_behemoth_attack_trigger_scales_trample_damage(self):
         card_cls = load_card_class_from_path("pycards/creature/Thunderclap_Behemoth/model.py", "Thunderclap_Behemoth")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        ally = env.put_creatures(env.p1, "Big Ally", 4, 4, 1)[0]
+        defender = env.put_creatures(env.p2, "Defender", 2, 4, 1)[0]
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
+        self.assertTrue(result[0])
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        behemoth = env.get_battlefield_creature(env.p1, "Thunderclap Behemoth")
+        await env.simulate_combat(behemoth, defender)
+        self.assertEqual(env.p2.life, 15)
+        self.assertEqual(ally.state[0], 4)
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
+    async def test_thunderclap_behemoth_no_attack_trigger_when_attacking_alone(self):
+        """Requires another creature with power >= 4; Behemoth is skipped when counting."""
+        card_cls = load_card_class_from_path("pycards/creature/Thunderclap_Behemoth/model.py", "Thunderclap_Behemoth")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        defender = env.put_creatures(env.p2, "Solo Defender", 2, 4, 1)[0]
 
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
 
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        behemoth = env.get_battlefield_creature(env.p1, "Thunderclap Behemoth")
+        await env.simulate_combat(behemoth, defender)
+        self.assertEqual(env.p2.life, 18)
+        self.assertEqual(env.card_zone(defender), "graveyard")
+
+    async def test_thunderclap_behemoth_no_attack_trigger_when_ally_below_four_power(self):
+        """Another creature on board with power 3 does not satisfy the condition."""
+        card_cls = load_card_class_from_path("pycards/creature/Thunderclap_Behemoth/model.py", "Thunderclap_Behemoth")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.put_creatures(env.p1, "Small Ally", 3, 3, 1)
+        defender = env.put_creatures(env.p2, "Blocker", 2, 4, 1)[0]
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+
+        behemoth = env.get_battlefield_creature(env.p1, "Thunderclap Behemoth")
+        await env.simulate_combat(behemoth, defender)
+        self.assertEqual(env.p2.life, 18)
+        self.assertEqual(env.card_zone(defender), "graveyard")

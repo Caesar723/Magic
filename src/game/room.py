@@ -536,7 +536,8 @@ class Room:
         self.get_flag("attacker_defenders") and\
         not card.get_flag("tap") and \
         (not self.attacker.get_flag("flying") or (card.get_flag("flying") or card.get_flag("reach")))and \
-        self.check_landwalk(self.attacker,player):
+        self.check_landwalk(self.attacker,player) and \
+        not self.attacker.get_flag("unblockable"):
             for recorder_key in self.game_recorder:
                 recorder:GameRecorder=self.game_recorder[recorder_key]
                 await recorder.store_game_ini_message("select_defender")
@@ -657,7 +658,7 @@ class Room:
                 await recorder.store_game_ini_message("activate_ability")
             self.action_processor.start_record()
             #self.action_processor.add_action(actions.Activate_Ability(card,player))
-            await card.when_clicked(player,player.opponent)
+            await card.when_clicked(player,player.opponent,manual=True)
             self.action_processor.add_action(actions.Change_Mana(card,player,player.get_manas()))
 
             self.action_processor.end_record()
@@ -739,9 +740,10 @@ class Room:
             await asyncio.sleep(0.5)
             await self.update_timer()
             
-    async def put_prepared_function_to_stack(self,prepared_function,card:Card):
+    async def put_prepared_function_to_stack(self,prepared_function,card:Card,start_bullet_time:bool=True):
         self.stack.append((prepared_function,card))
-        await self.start_bullet_time()
+        if start_bullet_time:
+            await self.start_bullet_time()
         
 
 

@@ -24,7 +24,7 @@ class Raging_Firekin(Creature):
         self.type_creature:str="Elemental Creature - Elemental"
         self.type:str="Creature"
 
-        self.mana_cost:str="1R"
+        self.mana_cost:str="2R"
         self.color:str="red"
         self.type_card:str="Elemental Creature - Elemental"
         self.rarity:str="Uncommon"

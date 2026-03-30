@@ -2,53 +2,53 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestBlightsteel_Colossus(CardTestCaseBase):
-    async def test_blightsteel_colossus_smoke(self):
+    async def test_blightsteel_colossus_keywords_and_buffs(self):
         card_cls = load_card_class_from_path("pycards/creature/Blightsteel_Colossus/model.py", "Blightsteel_Colossus")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        colossus = env.get_battlefield_creature(env.p1, "Blightsteel Colossus")
+        self.assert_state(colossus, {
+            "zone": "battlefield",
+            "state": (11, 11),
+            "flags": {"Trample": True},
+            "buffs_contains": ["Infect", "Indestructible"],
+        })
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_blightsteel_colossus_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_blightsteel_infect_kills_small_blocker_via_state_buff(self):
         card_cls = load_card_class_from_path("pycards/creature/Blightsteel_Colossus/model.py", "Blightsteel_Colossus")
         env = self.make_env()
-        card = card_cls(env.p1)
+        colossus = card_cls(env.p1)
+        blocker = env.put_creatures(env.p2, "Chump", 2, 2, 1)[0]
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
-
-        result = await env.play_card(card, env.p1)
+        result = await env.play_card(colossus, env.p1)
         await env.resolve_stack()
+        self.assertTrue(result[0])
+        colossus_bf = env.get_battlefield_creature(env.p1, "Blightsteel Colossus")
+        env.ready_attacker(colossus_bf)
+        await env.simulate_combat(colossus_bf, blocker)
+        await env.room.check_death()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        self.assertEqual(env.card_zone(blocker), "graveyard")
+        self.assert_state(colossus_bf, {"zone": "battlefield"})
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
+    async def test_blightsteel_unblocked_combat_drops_opponent_life_by_power(self):
+        card_cls = load_card_class_from_path("pycards/creature/Blightsteel_Colossus/model.py", "Blightsteel_Colossus")
+        env = self.make_env()
+        colossus = card_cls(env.p1)
+        p2_before = env.p2.life
 
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
+        result = await env.play_card(colossus, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        colossus_bf = env.get_battlefield_creature(env.p1, "Blightsteel Colossus")
+        env.ready_attacker(colossus_bf)
+        await env.simulate_combat(colossus_bf)
+        await env.room.check_death()
 
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        self.assertEqual(env.p2.life, p2_before - 11)
+        self.assert_state(colossus_bf, {"zone": "battlefield"})

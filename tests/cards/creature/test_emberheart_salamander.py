@@ -1,54 +1,87 @@
+from unittest.mock import patch
+
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestEmberheart_Salamander(CardTestCaseBase):
-    async def test_emberheart_salamander_smoke(self):
+    async def test_emberheart_salamander_has_trample(self):
         card_cls = load_card_class_from_path("pycards/creature/Emberheart_Salamander/model.py", "Emberheart_Salamander")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        salamander = env.get_battlefield_creature(env.p1, "Emberheart Salamander")
+        self.assert_state(salamander, {"state": (4, 2), "flags": {"Trample": True}})
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
+    async def test_emberheart_salamander_etb_deals_two_damage(self):
+        card_cls = load_card_class_from_path("pycards/creature/Emberheart_Salamander/model.py", "Emberheart_Salamander")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        target = env.put_creatures(env.p2, "Burn Target", 2, 2, 1)[0]
 
-    async def test_emberheart_salamander_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+        def _pick_burn_target(seq):
+            for item in seq:
+                if getattr(item, "name", None) == "Burn Target":
+                    return item
+            return seq[0]
+
+        with patch("game.game_function_tool.random.choice", side_effect=_pick_burn_target):
+            result = await env.play_card(card, env.p1)
+            await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        env.get_battlefield_creature(env.p1, "Emberheart Salamander")
+        await env.room.check_death()
+        self.assertTrue(
+            target.actual_live < 2 or env.card_zone(target) == "graveyard",
+            msg="ETB should deal 2 damage to the scripted target creature",
+        )
+
+    async def test_emberheart_salamander_etb_two_damage_to_opponent_player_when_patched(self):
         card_cls = load_card_class_from_path("pycards/creature/Emberheart_Salamander/model.py", "Emberheart_Salamander")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        def _force_opponent(seq):
+            for item in seq:
+                if item is env.p2:
+                    return item
+            return seq[0]
 
-        result = await env.play_card(card, env.p1)
-        await env.resolve_stack()
+        with patch("game.game_function_tool.random.choice", side_effect=_force_opponent):
+            before = env.p2.life
+            result = await env.play_card(card, env.p1)
+            await env.resolve_stack()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(env.p2.life, before - 2)
+        env.get_battlefield_creature(env.p1, "Emberheart Salamander")
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
+    async def test_emberheart_salamander_trample_deals_excess_to_opponent(self):
+        card_cls = load_card_class_from_path("pycards/creature/Emberheart_Salamander/model.py", "Emberheart_Salamander")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        chump = env.put_creatures(env.p2, "Chump", 1, 1, 1)[0]
 
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
+        def _etb_hits_player(seq):
+            for item in seq:
+                if item is env.p2:
+                    return item
+            return seq[0]
 
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        with patch("game.game_function_tool.random.choice", side_effect=_etb_hits_player):
+            result = await env.play_card(card, env.p1)
+            await env.resolve_stack()
+        self.assertTrue(result[0])
+
+        salamander = env.get_battlefield_creature(env.p1, "Emberheart Salamander")
+        env.ready_attacker(salamander)
+        p2_before = env.p2.life
+        await env.simulate_combat(salamander, chump)
+        await env.room.check_death()
+
+        self.assertEqual(env.card_zone(chump), "graveyard")
+        self.assertEqual(env.p2.life, p2_before - 3)

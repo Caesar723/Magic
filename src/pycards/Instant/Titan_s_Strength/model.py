@@ -23,7 +23,7 @@ class Titan_s_Strength(Instant):
 
         self.type:str="Instant"
 
-        self.mana_cost:str="2GG"
+        self.mana_cost:str="3GG"
         self.color:str="green"
         self.type_card:str="Instant"
         self.rarity:str="Rare"

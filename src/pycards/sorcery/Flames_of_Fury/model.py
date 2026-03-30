@@ -28,6 +28,13 @@ class Flames_of_Fury(Sorcery):
         self.content:str="Flames of Fury deals 3 damage to target creature or player. If you control a Mountain, Flames of Fury deals 1 additional damage."
         self.image_path:str="cards/sorcery/Flames of Fury/image.jpg"
 
+    @select_object("all_roles",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        if not selected_object:
+            return
+        has_mountain = any(getattr(land, "name", "") == "Mountain" for land in player.land_area)
+        damage = 4 if has_mountain else 3
+        await self.attact_to_object(selected_object[0], damage, "rgba(255,0,0,1)", "Missile_Hit")
 
 
         

@@ -7,7 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
-
+import random
 
 class Nature_s_Embrace(Sorcery):
     
@@ -25,7 +25,7 @@ class Nature_s_Embrace(Sorcery):
         self.color:str="green"
         self.type_card:str="Sorcery"
         self.rarity:str="Mythic Rare"
-        self.content:str="Search your library for a creature card and put it onto the battlefield tapped. Then shuffle your library."
+        self.content:str="Search your library for a creature card and put it onto the battlefield tapped, the state of the creature is 4/4. Then shuffle your library."
         self.image_path:str="cards/sorcery/Nature's Embrace/image.jpg"
 
     @select_object("",1)
@@ -34,9 +34,14 @@ class Nature_s_Embrace(Sorcery):
         
         creatures = player.get_cards_by_pos_type("library", (Creature,))
         if creatures:
-            creature = await player.send_selection_cards(creatures, selection_random=True)
+            creature = random.choice(creatures)
             player.remove_card(creature, "library")
-            player.append_card(creature, "battlefield")
+            new_creature=type(creature)(player)
+            new_creature.live=4
+            new_creature.power=4
+            new_creature.actual_live=4
+            new_creature.actual_power=4
+            player.append_card(new_creature, "battlefield")
             creature.tap()
 
 

@@ -2,45 +2,40 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestChaotic_Eruption(CardTestCaseBase):
-    async def test_chaotic_eruption_smoke(self):
+    async def test_chaotic_eruption_destroys_target_opponent_land(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Chaotic_Eruption/model.py", "Chaotic_Eruption")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        land = env.p2.hand.pop(0)
+        env.p2.land_area.append(land)
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertNotIn(land, env.p2.land_area)
+        self.assertIn(land, env.p2.graveyard)
 
-    async def test_chaotic_eruption_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_chaotic_eruption_no_target_land_does_not_crash(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Chaotic_Eruption/model.py", "Chaotic_Eruption")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
+        env.p2.land_area = []
+        result = await env.play_card(card, env.p1)
+        self.assertFalse(result[0])
 
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+    async def test_chaotic_eruption_only_destroys_one_land(self):
+        card_cls = load_card_class_from_path("pycards/sorcery/Chaotic_Eruption/model.py", "Chaotic_Eruption")
+        env = self.make_env()
+        card = card_cls(env.p1)
+
+        first_land = env.p2.hand.pop(0)
+        second_land = env.p2.hand.pop(0)
+        env.p2.land_area.extend([first_land, second_land])
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p2.land_area), 1)
+        self.assertEqual(len(env.p2.graveyard), 1)

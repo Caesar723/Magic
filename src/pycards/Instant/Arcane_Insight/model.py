@@ -26,6 +26,14 @@ class Arcane_Insight(Instant):
         self.content:str="Draw two cards, then discard a card unless you discard an instant or sorcery card."
         self.image_path:str="cards/Instant/Arcane Insight/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
+        player.draw_card(2)
+        if not player.hand:
+            return
+        card=await player.send_selection_cards(player.hand,selection_random=True)
+        if card=="cancel":
+            return
+        if card.type not in ("Instant","Sorcery"):
+            player.discard(card)
 
-
-        

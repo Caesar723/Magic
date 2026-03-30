@@ -7,7 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
-
+import random
 
 class Call_of_the_Tides(Sorcery):
     
@@ -19,13 +19,19 @@ class Call_of_the_Tides(Sorcery):
 
         self.type:str="Sorcery"
 
-        self.mana_cost:str="3UU"
+        self.mana_cost:str="2UU"
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Common"
-        self.content:str="Draw two cards, then discard a card."
+        self.content:str="Draw two cards, then discard a card randomly. Scry 2."
         self.image_path:str="cards/sorcery/Call of the Tides/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
+        player.draw_card(2)
+        if player.hand:
+            card=random.choice(player.hand)
+            if card!="cancel":
+                player.discard(card)
+        await self.Scry(player,opponent,2)
 
-
-        

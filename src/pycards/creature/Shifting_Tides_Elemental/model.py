@@ -33,6 +33,13 @@ class Shifting_Tides_Elemental(Creature):
         self.content:str="Islandwalk (This creature can't be blocked as long as defending player controls an Island.), When Shifting Tides Elemental enters the battlefield, you may return target land to its owner's hand."
         self.image_path:str="cards/creature/Shifting Tides Elemental/image.jpg"
 
+    @select_object("all_lands",1)
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ()):
+        if not selected_object:
+            return
+        land=selected_object[0]
+        owner=land.player
+        if land in owner.land_area:
+            owner.remove_card(land,"land_area")
+            owner.append_card(type(land)(owner),"hand")
 
-
-        

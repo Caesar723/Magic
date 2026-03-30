@@ -2,53 +2,45 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestThundering_Behemoth(CardTestCaseBase):
-    async def test_thundering_behemoth_smoke(self):
+    async def test_thundering_behemoth_etb_grants_team_trample(self):
         card_cls = load_card_class_from_path("pycards/creature/Thundering_Behemoth/model.py", "Thundering_Behemoth")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        ally = env.put_creatures(env.p1, "Ally", 2, 2, 1)[0]
+        enemy = env.put_creatures(env.p2, "Enemy", 2, 2, 1)[0]
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        behemoth = env.get_battlefield_creature(env.p1, "Thundering Behemoth")
+        self.assert_state(behemoth, {"zone": "battlefield", "state": (6, 5), "flags": {"Trample": True}})
+        self.assertTrue(ally.get_flag("Trample"))
+        self.assertFalse(enemy.get_flag("Trample"))
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_thundering_behemoth_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_thundering_behemoth_team_trample_buff_ends_after_end_step_hooks(self):
         card_cls = load_card_class_from_path("pycards/creature/Thundering_Behemoth/model.py", "Thundering_Behemoth")
         env = self.make_env()
         card = card_cls(env.p1)
-
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        ally = env.put_creatures(env.p1, "Ally EOT", 2, 2, 1)[0]
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertTrue(ally.get_flag("Trample"))
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        for buff in list(ally.buffs):
+            if type(buff).__name__ == "KeyBuff" and getattr(buff, "key_name", None) == "Trample":
+                buff.when_end_turn()
+        self.assertFalse(ally.get_flag("Trample"))
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+    async def test_thundering_behemoth_etb_only_buffs_self_when_no_other_creatures(self):
+        card_cls = load_card_class_from_path("pycards/creature/Thundering_Behemoth/model.py", "Thundering_Behemoth")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        behemoth = env.get_battlefield_creature(env.p1, "Thundering Behemoth")
+        self.assertTrue(behemoth.get_flag("Trample"))
+        self.assertFalse(env.p2.battlefield)

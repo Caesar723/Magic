@@ -2,45 +2,39 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestIcy_Imprisonment(CardTestCaseBase):
-    async def test_icy_imprisonment_smoke(self):
+    async def test_icy_imprisonment_freezes_all_enemy_creatures(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Icy_Imprisonment/model.py", "Icy_Imprisonment")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        e1 = env.put_creatures(env.p2, "Enemy A", 2, 2, 1)[0]
+        e2 = env.put_creatures(env.p2, "Enemy B", 2, 2, 1)[0]
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assert_state(e1, {"buffs_contains": ["Frozen"]})
+        self.assert_state(e2, {"buffs_contains": ["Frozen"]})
 
-    async def test_icy_imprisonment_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_icy_imprisonment_no_enemy_creatures_is_safe(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Icy_Imprisonment/model.py", "Icy_Imprisonment")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        env.p2.battlefield = []
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+
+    async def test_icy_imprisonment_does_not_freeze_friendly_creatures(self):
+        card_cls = load_card_class_from_path("pycards/sorcery/Icy_Imprisonment/model.py", "Icy_Imprisonment")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        friend = env.put_creatures(env.p1, "Friend", 2, 2, 1)[0]
+        env.put_creatures(env.p2, "Enemy", 2, 2, 1)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertNotIn("Frozen", [type(b).__name__ for b in friend.buffs])

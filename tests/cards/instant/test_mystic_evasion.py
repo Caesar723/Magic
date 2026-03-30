@@ -1,46 +1,51 @@
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
+from pycards.land.Forest.model import Forest
 
 
 class TestMystic_Evasion(CardTestCaseBase):
-    async def test_mystic_evasion_smoke(self):
+    async def test_mystic_evasion_bounces_current_attacker_and_draws(self):
         card_cls = load_card_class_from_path("pycards/Instant/Mystic_Evasion/model.py", "Mystic_Evasion")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        attacker = env.put_creatures(env.p2, "Attacker", 3, 3, 1)[0]
+        env.room.attacker = attacker
+        env.p1.library = [Forest(env.p1)]
+        p2_hand_before = len(env.p2.hand)
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p2.hand), p2_hand_before + 1)
 
-    async def test_mystic_evasion_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_mystic_evasion_no_attacker_still_draws(self):
         card_cls = load_card_class_from_path("pycards/Instant/Mystic_Evasion/model.py", "Mystic_Evasion")
         env = self.make_env()
         card = card_cls(env.p1)
-
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        env.room.attacker = None
+        env.p1.library = [Forest(env.p1)]
+        hand_before = len(env.p1.hand)
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.hand), hand_before + 1)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+    async def test_mystic_evasion_empty_library_still_bounces_attacker(self):
+        card_cls = load_card_class_from_path("pycards/Instant/Mystic_Evasion/model.py", "Mystic_Evasion")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.p1.library.clear()
+
+        attacker = env.put_creatures(env.p2, "Attacker", 3, 3, 1)[0]
+        env.room.attacker = attacker
+        p1_hand_before = len(env.p1.hand)
+        p2_hand_before = len(env.p2.hand)
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertGreater(len(env.p2.hand), p2_hand_before)
+        self.assertEqual(len(env.p1.hand), p1_hand_before)
+        self.assertIsNone(env.find_card_by_name(env.p2, "Attacker", zones=("battlefield",)))

@@ -24,7 +24,7 @@ class Avacyn__Guardian_of_Hope(Creature):
         self.type_creature:str="Angel Creature"
         self.type:str="Creature"
 
-        self.mana_cost:str="3W"
+        self.mana_cost:str="5W"
         self.color:str="gold"
         self.type_card:str="Angel Creature"
         self.rarity:str="Mythic Rare"

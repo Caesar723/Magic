@@ -78,3 +78,22 @@ class TestCelestial_Herald(CardTestCaseBase):
         after_life = env.snapshot()
         self.assertEqual(after_life["p2"]["life"], before_life["p2"]["life"] - 3)
         self.assertGreaterEqual(after_life["p1"]["life"], before_life["p1"]["life"])
+
+    async def test_celestial_herald_upkeep_with_empty_opponent_battlefield_no_exile(self):
+        card_cls = load_card_class_from_path("pycards/creature/Celestial_Herald/model.py", "Celestial_Herald")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.p2.battlefield.clear()
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        herald = env.get_battlefield_creature(env.p1, "Celestial Herald")
+
+        snap_before = env.snapshot()
+        await env.trigger(herald, "when_start_turn", env.p1, env.p2)
+        await env.room.check_death()
+        snap_after = env.snapshot()
+
+        self.assertEqual(snap_after["p2"]["exile_count"], snap_before["p2"]["exile_count"])
+        self.assertIs(herald.creature_store, False)

@@ -24,7 +24,7 @@ class Awaken_the_Elemental(Sorcery):
 
         self.type:str="Sorcery"
 
-        self.mana_cost:str="4GG"
+        self.mana_cost:str="2GG"
         self.color:str="green"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"

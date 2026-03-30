@@ -2,53 +2,44 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestGuardian_of_the_Grove__(CardTestCaseBase):
-    async def test_guardian_of_the_grove___smoke(self):
+    async def test_guardian_of_the_grove_etb_only_checks_for_forest(self):
+        card_cls = load_card_class_from_path("pycards/creature/Guardian_of_the_Grove__/model.py", "Guardian_of_the_Grove__")
+        mountain_cls = load_card_class_from_path("pycards/land/Mountain/model.py", "Mountain")
+        env = self.make_env()
+        card = card_cls(env.p1)
+
+        mountain = mountain_cls(env.p1)
+        env.p1.library = [mountain]
+
+        env.put_on_battlefield(card, env.p1)
+        await env.trigger(card, "when_enter_battlefield", env.p1, env.p2)
+        guardian = env.get_battlefield_creature(env.p1, "Guardian of the Grove")
+        self.assert_state(guardian, {"zone": "battlefield", "state": (3, 3)})
+        self.assertEqual(len(env.p1.library), 1)
+        self.assertEqual(env.p1.library[0].name, "Mountain")
+
+    async def test_guardian_of_the_grove_play_resolves_guardian_to_battlefield(self):
+        """Full cast path; ETB library effect is covered by the direct trigger test above."""
         card_cls = load_card_class_from_path("pycards/creature/Guardian_of_the_Grove__/model.py", "Guardian_of_the_Grove__")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        g = env.get_battlefield_creature(env.p1, "Guardian of the Grove")
+        self.assert_state(g, {"zone": "battlefield", "state": (3, 3)})
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_guardian_of_the_grove___custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_guardian_of_the_grove_play_with_empty_library_skips_land_search(self):
         card_cls = load_card_class_from_path("pycards/creature/Guardian_of_the_Grove__/model.py", "Guardian_of_the_Grove__")
         env = self.make_env()
         card = card_cls(env.p1)
-
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        env.p1.library.clear()
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
-
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.land_area), 0)
+        env.get_battlefield_creature(env.p1, "Guardian of the Grove")

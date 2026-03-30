@@ -2,45 +2,46 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestDivine_Intervention(CardTestCaseBase):
-    async def test_divine_intervention_smoke(self):
+    async def test_divine_intervention_exiles_all_nonland_permanents(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Divine_Intervention/model.py", "Divine_Intervention")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        c1 = env.put_creatures(env.p1, "Self C", 2, 2, 1)[0]
+        c2 = env.put_creatures(env.p2, "Enemy C", 2, 2, 1)[0]
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertNotEqual(env.card_zone(c1), "battlefield")
+        self.assertNotEqual(env.card_zone(c2), "battlefield")
 
-    async def test_divine_intervention_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_divine_intervention_leaves_lands_untouched(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Divine_Intervention/model.py", "Divine_Intervention")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        land_1 = env.p1.hand.pop(0)
+        land_2 = env.p2.hand.pop(0)
+        env.p1.land_area.append(land_1)
+        env.p2.land_area.append(land_2)
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertIn(land_1, env.p1.land_area)
+        self.assertIn(land_2, env.p2.land_area)
+
+    async def test_divine_intervention_empty_battlefields_exiles_nothing_but_resolves(self):
+        card_cls = load_card_class_from_path("pycards/sorcery/Divine_Intervention/model.py", "Divine_Intervention")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.p1.battlefield.clear()
+        env.p2.battlefield.clear()
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertFalse(env.p1.battlefield)
+        self.assertFalse(env.p2.battlefield)

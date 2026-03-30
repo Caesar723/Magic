@@ -2,45 +2,36 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestShadowform_Surge(CardTestCaseBase):
-    async def test_shadowform_surge_smoke(self):
+    async def test_shadowform_surge_applies_minus_three_minus_three(self):
         card_cls = load_card_class_from_path("pycards/Instant/Shadowform_Surge/model.py", "Shadowform_Surge")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        target = env.put_creatures(env.p2, "Surge Target", 3, 3, 1)[0]
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assert_state(target, {"buffs_contains": ["StateBuff"]})
 
-    async def test_shadowform_surge_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_shadowform_surge_can_kill_small_creature(self):
         card_cls = load_card_class_from_path("pycards/Instant/Shadowform_Surge/model.py", "Shadowform_Surge")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        victim = env.put_creatures(env.p2, "Small Target", 2, 2, 1)[0]
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertNotEqual(env.card_zone(victim), "battlefield")
+
+    async def test_shadowform_surge_requires_opponent_creature_target(self):
+        card_cls = load_card_class_from_path("pycards/Instant/Shadowform_Surge/model.py", "Shadowform_Surge")
+        env = self.make_env()
+        card = card_cls(env.p1)
+
+        env.put_creatures(env.p1, "Only Ally", 3, 3, 1)
+        result = await env.play_card(card, env.p1)
+
+        self.assertFalse(result[0])

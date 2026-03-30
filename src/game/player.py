@@ -148,9 +148,9 @@ class Player:
         self.cards_store_dict["when_creature_die"]=[]
     def get_cards_from_dict(self,key:str)->list[Card]:
         if key in self.cards_store_dict:
-            return self.cards_store_dict[key]
+            return self.cards_store_dict[key].copy()
         else:
-            return []
+            return [].copy()
         
     def put_card_to_dict(self,key:str,card:Card)->None:# put a card to self.cards_store_dict
         if key in self.cards_store_dict:
@@ -295,8 +295,8 @@ class Player:
             for card_when_play in self.get_cards_from_dict("when_play_a_card"):
                 if card_when_play!=card:
                     await card_when_play.when_play_a_card(card,self,self.opponent)
-            await self.room.put_prepared_function_to_stack(result,card)
-            if start_bullet_time:await self.room.start_bullet_time() 
+            await self.room.put_prepared_function_to_stack(result,card,start_bullet_time)
+            # if start_bullet_time:await self.room.start_bullet_time() 
 
             self.action_store.end_record()
 
@@ -324,6 +324,18 @@ class Player:
             #self.action_store.end_record()
             # card.when_die(self,self.opponent)
             # card.when_leave_battlefield(self,self.opponent,'graveyard')
+        return result
+
+    async def check_land_die(self,card:Land):
+        result=await card.check_dead()
+        if result:
+            for card_self in self.get_cards_from_dict("when_land_die"):
+                if card_self!=card:
+                    await card_self.when_a_land_die(card,card_self.player,card_self.player.opponent)
+            for card_opponent in self.opponent.get_cards_from_dict("when_land_die"):
+                if card_opponent!=card:
+                    await card_opponent.when_a_land_die(card,card_opponent.player,card_opponent.player.opponent)
+            await card.when_move_to_graveyard(self,self.opponent)
         return result
     
 
@@ -565,7 +577,7 @@ class Player:
             self.future_function.cancel()
             #await self.send_text("end_select()")
 
-    def check_can_use(self,cost:dict)->tuple[bool]:#cost={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
+    def check_can_use(self,cost:dict,except_land:list[Land]=[])->tuple[bool]:#cost={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
         player_mana=dict(self.mana)
         difference={key:cost[key]-player_mana[key] for key in player_mana}
         sum_negative_numbers = sum(difference[key] for key in difference if (difference[key] < 0 and key!='colorless'))
@@ -574,7 +586,7 @@ class Player:
         land_store=[]
 
         for land in self.land_area:
-            if land.check_can_use(self)[0]:
+            if land.check_can_use(self)[0] and land not in except_land:
                 mana=land.generate_mana()
                 #print(mana)
                 for key in mana:

@@ -1,46 +1,40 @@
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
+from pycards.land.Forest.model import Forest
 
 
 class TestPrimal_Surge(CardTestCaseBase):
-    async def test_primal_surge_smoke(self):
+    async def test_primal_surge_shuffles_hand_and_grants_extra_land_play(self):
         card_cls = load_card_class_from_path("pycards/Instant/Primal_Surge/model.py", "Primal_Surge")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        env.p1.hand.append(Forest(env.p1))
+        before = env.p1.get_counter_from_dict("lands_summon_max")
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.get_counter_from_dict("lands_summon_max"), before + 1)
 
-    async def test_primal_surge_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_primal_surge_reverts_land_counter_at_end_turn(self):
         card_cls = load_card_class_from_path("pycards/Instant/Primal_Surge/model.py", "Primal_Surge")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        before = env.p1.get_counter_from_dict("lands_summon_max")
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
+        await env.trigger(card, "when_end_turn", env.p1, env.p2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.get_counter_from_dict("lands_summon_max"), before)
+
+    async def test_primal_surge_does_not_raise_opponent_land_play_cap(self):
+        card_cls = load_card_class_from_path("pycards/Instant/Primal_Surge/model.py", "Primal_Surge")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        opp_before = env.p2.get_counter_from_dict("lands_summon_max")
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertEqual(env.p2.get_counter_from_dict("lands_summon_max"), opp_before)

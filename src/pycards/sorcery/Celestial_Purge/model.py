@@ -21,14 +21,14 @@ class Celestial_Purge(Sorcery):
 
         self.type:str="Sorcery"
 
-        self.mana_cost:str="1W"
+        self.mana_cost:str="2W"
         self.color:str="gold"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
         self.content:str="Exile target black or red permanent."
         self.image_path:str="cards/sorcery/Celestial Purge/image.jpg"
 
-    @select_object("opponent_permanents",1)
+    @select_object("opponent_roles",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         if selected_object:
             target = selected_object[0]

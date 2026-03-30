@@ -48,30 +48,14 @@ class Mystic_Barrier(Instant):
         self.color:str="gold"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
-        self.content:str="Choose one - your creatures gain hexproof until end of turn.Target player can't cast noncreature spells until end of turn."
+        self.content:str="Target player can't cast noncreature spells until end of turn."
         self.image_path:str="cards/Instant/Mystic Barrier/image.jpg"
 
     @select_object("",1)
     async def card_ability(self,player:Player,opponent:Player,selected_object:tuple[Card]):
-        if selected_object:
-            if selected_object[0].selection_index==1:
-                for card in player.battlefield:
-                    buff=KeyBuff(self,card,"Hexproof")
-                    card.gain_buff(buff,self)
-                
-                
-            elif selected_object[0].selection_index==2:
 
-                for card in opponent.hand:
-                    buff=Mystic_Barrier_Buff(self,card)
-                    card.gain_buff(buff,self)
+        for card in opponent.hand:
+            buff=Mystic_Barrier_Buff(self,card)
+            buff.set_end_of_turn()
+            card.gain_buff(buff,self)
                 
-
-        
-    async def selection_step(self, player: "Player" = None, opponent: "Player" = None,selection_random:bool=False):
-        selection1=self.create_selection("your creatures gain hexproof until end of turn",1)
-        selection2=self.create_selection("target player can't cast noncreature spells until end of turn",2)
-        card=await player.send_selection_cards([selection1,selection2],selection_random)
-        print(card)
-        
-        return [card]

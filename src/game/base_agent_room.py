@@ -461,9 +461,9 @@ class Base_Agent_Room(Room):
                 special_types[0]=1
         elif isinstance(card,Land):
             card_type=3
-            if not (Land.when_enter_battlefield is card.when_enter_battlefield.__func__):
+            if not (Land.when_enter_landarea is card.when_enter_landarea.__func__):
                 special_types[0]=1
-            if not (Land.when_leave_battlefield is card.when_leave_battlefield.__func__):
+            if not (Land.when_enter_landarea is card.when_enter_landarea.__func__):
                 special_types[1]=1
         elif isinstance(card,Sorcery):
             card_type=4
@@ -727,7 +727,7 @@ class Base_Agent_Room(Room):
         instance_dict={
             Creature:"when_enter_battlefield",
             Instant:"card_ability",
-            Land:"when_enter_battlefield",
+            Land:"when_enter_landarea",
             Sorcery:"card_ability"
         }
 

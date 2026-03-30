@@ -35,4 +35,6 @@ class Elite_Squire(Creature):
 
         self.flag_dict["Vigilance"]=True
 
-        
+    async def when_start_attcak(self, card: "Creature | Player", player: "Player" = None, opponent: "Player" = None):
+        return await super().when_start_attcak(card, player, opponent)
+

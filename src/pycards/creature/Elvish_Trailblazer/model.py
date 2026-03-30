@@ -28,7 +28,7 @@ class Elvish_Trailblazer(Creature):
         self.type_creature:str="Elf Creature"
         self.type:str="Creature"
 
-        self.mana_cost:str="1G"
+        self.mana_cost:str="2G"
         self.color:str="green"
         self.type_card:str="Elf Creature"
         self.rarity:str="Uncommon"

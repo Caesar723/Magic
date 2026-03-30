@@ -7,7 +7,12 @@ if TYPE_CHECKING:
  
 from game.type_cards.instant import Instant
 from game.game_function_tool import select_object
-
+from pycards.land.Forest.model import Forest
+from pycards.land.Plains.model import Plains
+from pycards.land.Swamp.model import Swamp
+from pycards.land.Mountain.model import Mountain
+from pycards.land.Island.model import Island
+import random
 
 class Verdant_Blessing(Instant):
     
@@ -26,6 +31,13 @@ class Verdant_Blessing(Instant):
         self.content:str="Verdant Blessing allows you to search your library for a basic land card and put it onto the battlefield tapped. Then, shuffle your library."
         self.image_path:str="cards/Instant/Verdant Blessing/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
+        basic_lands=player.get_cards_by_pos_type("library",(Plains,Swamp,Mountain,Island,Forest))
+        if basic_lands:
+            land=random.choice(basic_lands)
+            player.remove_card(land,"library")
+            player.append_card(land,"land_area")
+            land.tap()
 
 
-        

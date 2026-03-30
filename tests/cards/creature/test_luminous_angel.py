@@ -2,53 +2,45 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestLuminous_Angel(CardTestCaseBase):
-    async def test_luminous_angel_smoke(self):
+    async def test_luminous_angel_keywords_and_upkeep_growth(self):
         card_cls = load_card_class_from_path("pycards/creature/Luminous_Angel/model.py", "Luminous_Angel")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
+        self.assertTrue(result[0])
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        angel = env.get_battlefield_creature(env.p1, "Luminous Angel")
+        self.assert_state(angel, {"flags": {"flying": True, "lifelink": True}, "state": (4, 4)})
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
+        env.p1.life = 20
+        await env.trigger(angel, "when_start_turn", env.p1, env.p2)
+        self.assertEqual(angel.state, (5, 5))
 
-    async def test_luminous_angel_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_luminous_angel_upkeep_no_growth_below_twenty_life(self):
         card_cls = load_card_class_from_path("pycards/creature/Luminous_Angel/model.py", "Luminous_Angel")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
-
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
+        self.assertTrue(result[0])
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        angel = env.get_battlefield_creature(env.p1, "Luminous Angel")
+        env.p1.life = 19
+        before = tuple(angel.state)
+        await env.trigger(angel, "when_start_turn", env.p1, env.p2)
+        self.assertEqual(tuple(angel.state), before)
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+    async def test_luminous_angel_upkeep_growth_at_exactly_twenty_life(self):
+        card_cls = load_card_class_from_path("pycards/creature/Luminous_Angel/model.py", "Luminous_Angel")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        angel = env.get_battlefield_creature(env.p1, "Luminous Angel")
+        env.p1.life = 20
+        await env.trigger(angel, "when_start_turn", env.p1, env.p2)
+        self.assertEqual(angel.state, (5, 5))

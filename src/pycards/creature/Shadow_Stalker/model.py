@@ -25,7 +25,7 @@ class Shadow_Stalker(Creature):
         self.type_creature:str="Creature - Assassin"
         self.type:str="Creature"
 
-        self.mana_cost:str="3BB"
+        self.mana_cost:str="2BB"
         self.color:str="black"
         self.type_card:str="Creature - Assassin"
         self.rarity:str="Rare"

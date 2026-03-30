@@ -7,7 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
-
+from game.type_action import actions
 
 class Arcane_Convergence(Sorcery):
     
@@ -31,8 +31,19 @@ class Arcane_Convergence(Sorcery):
     @select_object("",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         for land in player.land_area:
-            if land.is_tapped:
+            if land.get_flag("tap"):
                 land.untap()
+        sorceries = player.get_cards_by_pos_type("graveyard",(Sorcery,))
+        mana_count=len(sorceries)
+        while mana_count>0:
+            for key in ["U","B","R","G","W"]:
+                player.mana[key]+= 1
+                mana_count-=1
+                if mana_count<=0:
+                    break
+            
+
+        player.action_store.add_action(actions.Change_Mana(self, player, player.get_manas()))
 
 
 

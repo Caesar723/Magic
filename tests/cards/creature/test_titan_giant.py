@@ -2,53 +2,47 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestTitan_Giant(CardTestCaseBase):
-    async def test_titan_giant_smoke(self):
+    async def test_titan_giant_etb_destroys_other_small_creatures(self):
         card_cls = load_card_class_from_path("pycards/creature/Titan_Giant/model.py", "Titan_Giant")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        friendly_small = env.put_creatures(env.p1, "Friendly Small", 2, 2, 1)[0]
+        friendly_big = env.put_creatures(env.p1, "Friendly Big", 6, 6, 1)[0]
+        enemy_small = env.put_creatures(env.p2, "Enemy Small", 3, 3, 1)[0]
+        enemy_big = env.put_creatures(env.p2, "Enemy Big", 6, 6, 1)[0]
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        titan = env.get_battlefield_creature(env.p1, "Titan Giant")
+        self.assert_state(titan, {"zone": "battlefield", "state": (8, 8)})
+        self.assertEqual(env.card_zone(friendly_small), "graveyard")
+        self.assertEqual(env.card_zone(enemy_small), "graveyard")
+        self.assertEqual(env.card_zone(friendly_big), "battlefield")
+        self.assertEqual(env.card_zone(enemy_big), "battlefield")
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_titan_giant_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_titan_giant_preserves_five_power_creatures(self):
+        """ETB destroys only creatures with power strictly less than 5."""
         card_cls = load_card_class_from_path("pycards/creature/Titan_Giant/model.py", "Titan_Giant")
         env = self.make_env()
         card = card_cls(env.p1)
-
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
-
+        five = env.put_creatures(env.p1, "Five Power", 5, 5, 1)[0]
+        four = env.put_creatures(env.p2, "Four Power", 4, 4, 1)[0]
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertEqual(env.card_zone(five), "battlefield")
+        self.assertEqual(env.card_zone(four), "graveyard")
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
-
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+    async def test_titan_giant_etb_with_empty_board_only_enters(self):
+        card_cls = load_card_class_from_path("pycards/creature/Titan_Giant/model.py", "Titan_Giant")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        titan = env.get_battlefield_creature(env.p1, "Titan Giant")
+        self.assert_state(titan, {"zone": "battlefield", "state": (8, 8)})
+        self.assertFalse(env.p2.battlefield)

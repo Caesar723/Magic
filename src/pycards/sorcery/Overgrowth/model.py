@@ -23,9 +23,19 @@ class Overgrowth(Sorcery):
         self.color:str="green"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Search your library for a basic land card and put it onto the battlefield tapped. Then shuffle your library."
+        self.content:str="Search your library for a basic land card and put it onto the battlefield tapped. Then shuffle your library. Untap up to one land you control."
         self.image_path:str="cards/sorcery/Overgrowth/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
+        for card in list(player.library):
+            if getattr(card,"type","")=="Land":
+                player.remove_card(card,"library")
+                player.append_card(card,"land_area")
+                card.tap()
+                break
+        for land in player.land_area:
+            if land.get_flag("tap"):
+                land.untap()
+                break
 
-
-        

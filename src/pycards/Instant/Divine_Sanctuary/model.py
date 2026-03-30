@@ -35,10 +35,12 @@ class Divine_Sanctuary_Buff(Buff):
             return result
         
         def die(self_card):
-            pass
+            # Immunity prevents forced death effects for this turn.
+            self_card.flag_dict["die"] = False
 
         def gain_buff(self_card:Creature,buff:Buff,card):
-            pass
+            # Ignore all additional effects while protected by sanctuary.
+            return None
 
         card.get_flag = types.MethodType(get_flag, card)
         card.die = types.MethodType(die, card)

@@ -37,6 +37,8 @@ class Thunderclap_Behemoth(Creature):
     async def when_start_attcak(self,defender:Creature,player:Player,opponent:Player):
         flag=False
         for creature in player.battlefield:
+            if creature is self:
+                continue
             if creature.state[0]>=4:
                 flag=True
                 break

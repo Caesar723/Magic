@@ -2,45 +2,46 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestShadow_Snare(CardTestCaseBase):
-    async def test_shadow_snare_smoke(self):
+    async def test_shadow_snare_applies_minus_three_minus_three(self):
         card_cls = load_card_class_from_path("pycards/Instant/Shadow_Snare/model.py", "Shadow_Snare")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        target = env.put_creatures(env.p2, "Victim", 5, 5, 1)[0]
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assert_state(target, {"buffs_contains": ["StateBuff"]})
+        self.assertEqual(target.state[0], 2)
+        self.assertEqual(target.state[1], 2)
 
-    async def test_shadow_snare_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+        buff = [b for b in target.buffs if b.__class__.__name__ == "StateBuff"][0]
+        buff.when_end_turn()
+        self.assertEqual(target.state[0], 5)
+        self.assertEqual(target.state[1], 5)
+
+    async def test_shadow_snare_kills_small_target(self):
         card_cls = load_card_class_from_path("pycards/Instant/Shadow_Snare/model.py", "Shadow_Snare")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        target = env.put_creatures(env.p2, "Small Victim", 2, 2, 1)[0]
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertNotEqual(env.card_zone(target), "battlefield")
+
+    async def test_shadow_snare_controller_life_unchanged(self):
+        card_cls = load_card_class_from_path("pycards/Instant/Shadow_Snare/model.py", "Shadow_Snare")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.put_creatures(env.p2, "Victim", 4, 4, 1)
+        ctrl_life = env.p1.life
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.life, ctrl_life)

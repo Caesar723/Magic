@@ -1,54 +1,56 @@
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
+from pycards.creature.Night_Stalker__.model import Night_Stalker__
+from pycards.land.Forest.model import Forest
+from pycards.land.Plains.model import Plains
 
 
 class TestSage_of_the_Ancient_Grove(CardTestCaseBase):
-    async def test_sage_of_the_ancient_grove_smoke(self):
+    async def test_sage_of_the_ancient_grove_reach_and_land_tutor(self):
         card_cls = load_card_class_from_path("pycards/creature/Sage_of_the_Ancient_Grove/model.py", "Sage_of_the_Ancient_Grove")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        land = Forest(env.p1)
+        env.p1.library = [land]
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        sage = env.get_battlefield_creature(env.p1, "Sage of the Ancient Grove")
+        self.assert_state(sage, {"zone": "battlefield", "state": (4, 4), "flags": {"reach": True}})
+        self.assertEqual(len(env.p1.library), 0)
+        self.assertEqual(len(env.p1.land_area), 1)
+        self.assertTrue(env.p1.land_area[0].get_flag("tap"))
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_sage_of_the_ancient_grove_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_sage_of_the_ancient_grove_no_land_in_library_skips_search(self):
         card_cls = load_card_class_from_path("pycards/creature/Sage_of_the_Ancient_Grove/model.py", "Sage_of_the_Ancient_Grove")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        env.p1.library = [Night_Stalker__(env.p1)]
+        lands_before = len(env.p1.land_area)
+        lib_before = len(env.p1.library)
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        sage = env.get_battlefield_creature(env.p1, "Sage of the Ancient Grove")
+        self.assert_state(sage, {"zone": "battlefield", "flags": {"reach": True}})
+        self.assertEqual(len(env.p1.land_area), lands_before)
+        self.assertEqual(len(env.p1.library), lib_before)
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+    async def test_sage_of_the_ancient_grove_tutors_first_basic_in_library_order(self):
+        card_cls = load_card_class_from_path("pycards/creature/Sage_of_the_Ancient_Grove/model.py", "Sage_of_the_Ancient_Grove")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        first = Forest(env.p1)
+        second = Plains(env.p1)
+        env.p1.library = [first, second]
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertIn(first, env.p1.land_area)
+        self.assertIn(second, env.p1.library)
+        self.assertTrue(first.get_flag("tap"))

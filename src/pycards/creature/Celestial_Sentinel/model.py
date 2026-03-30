@@ -17,14 +17,14 @@ class Celestial_Sentinel(Creature):
 
         self.name:str="Celestial Sentinel"
         self.live:int=3
-        self.power:int=3
+        self.power:int=2
         self.actual_live:int=3
-        self.actual_power:int=3
+        self.actual_power:int=2
 
         self.type_creature:str="Angel Creature"
         self.type:str="Creature"
 
-        self.mana_cost:str="1W"
+        self.mana_cost:str="2W"
         self.color:str="gold"
         self.type_card:str="Angel Creature"
         self.rarity:str="Rare"

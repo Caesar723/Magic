@@ -6,6 +6,7 @@ from game.studio_class import generate_creature_class,generate_instant_class,gen
 from game.player import Player
 from game.card import Card
 from server_function_tool import Studio_Card_Data
+from game.game_recorder import GameRecorder
 from initinal_file import CARD_DICTION
 
 class Studio_Player(Player):
@@ -60,6 +61,11 @@ class Studio_Room(PVE_Room):
             "Agent1":None,
             players[0][1]:None
         }
+        self.game_recorder:dict["GameRecorder"]={
+            players[0][1]:GameRecorder(self.player_2,self),
+            "Agent1":GameRecorder(self.player_1,self)
+        }
+        
 
     async def add_card(self,username:str,content:str):
         """

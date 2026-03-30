@@ -2,53 +2,66 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestShifting_Tides_Elemental(CardTestCaseBase):
-    async def test_shifting_tides_elemental_smoke(self):
+    async def test_shifting_tides_elemental_bounces_selected_land_to_new_card(self):
         card_cls = load_card_class_from_path("pycards/creature/Shifting_Tides_Elemental/model.py", "Shifting_Tides_Elemental")
+        land_cls = load_card_class_from_path("pycards/land/Mountain/model.py", "Mountain")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        opp_land = land_cls(env.p2)
+        env.p2.action_store.start_record()
+        env.p2.append_card(opp_land, "land_area")
+        env.p2.action_store.end_record()
+        hand_before = len(env.p2.hand)
+
+        env.script_selection(env.p1, [0])
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        elemental = env.get_battlefield_creature(env.p1, "Shifting Tides Elemental")
+        self.assert_state(elemental, {"zone": "battlefield", "state": (2, 3)})
+        self.assertEqual(len(env.p2.land_area), 0)
+        self.assertEqual(len(env.p2.hand), hand_before + 1)
+        self.assertTrue(any(c.name == "Mountain" for c in env.p2.hand))
+        self.assertIsNot(env.p2.hand[-1], opp_land)
+        self.assertEqual(env.p1.life, 20)
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_shifting_tides_elemental_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_shifting_tides_elemental_can_bounce_own_land(self):
         card_cls = load_card_class_from_path("pycards/creature/Shifting_Tides_Elemental/model.py", "Shifting_Tides_Elemental")
+        land_cls = load_card_class_from_path("pycards/land/Island/model.py", "Island")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        own_land = land_cls(env.p1)
+        env.p1.land_area.append(own_land)
+        hand_before = len(env.p1.hand)
 
+        env.script_selection(env.p1, [own_land])
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.land_area), 0)
+        self.assertGreaterEqual(len(env.p1.hand), hand_before)
+        self.assertIsNotNone(env.find_card_by_name(env.p1, "Island", zones=("hand",)))
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
+    async def test_shifting_tides_elemental_bouncing_only_opp_land_leaves_controller_land_area_empty(self):
+        """With no own lands, ETB target list is only opponent lands; bounce does not create p1 lands."""
+        card_cls = load_card_class_from_path("pycards/creature/Shifting_Tides_Elemental/model.py", "Shifting_Tides_Elemental")
+        land_cls = load_card_class_from_path("pycards/land/Mountain/model.py", "Mountain")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.p1.land_area.clear()
+        opp_land = land_cls(env.p2)
+        env.p2.land_area.append(opp_land)
+        p2_hand_before = len(env.p2.hand)
 
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
+        env.script_selection(env.p1, [0])
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
 
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.land_area), 0)
+        self.assertGreater(len(env.p2.hand), p2_hand_before)
+        self.assertEqual(env.p1.life, 20)

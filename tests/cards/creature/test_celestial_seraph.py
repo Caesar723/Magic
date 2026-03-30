@@ -2,53 +2,60 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestCelestial_Seraph(CardTestCaseBase):
-    async def test_celestial_seraph_smoke(self):
+    async def test_celestial_seraph_enters_with_flying_lifelink(self):
         card_cls = load_card_class_from_path("pycards/creature/Celestial_Seraph/model.py", "Celestial_Seraph")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
+        self.assertTrue(result[0])
+        seraph = env.get_battlefield_creature(env.p1, "Celestial Seraph")
+        self.assert_state(seraph, {
+            "zone": "battlefield",
+            "state": (5, 5),
+            "flags": {"flying": True, "lifelink": True},
+        })
+
+    async def test_celestial_seraph_attack_exiles_and_leave_returns(self):
+        card_cls = load_card_class_from_path("pycards/creature/Celestial_Seraph/model.py", "Celestial_Seraph")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        seraph = env.get_battlefield_creature(env.p1, "Celestial Seraph")
+
+        before = env.snapshot()
+        await env.simulate_combat(seraph)
+        await env.room.check_death()
+        after_attack = env.snapshot()
+        self.assertEqual(after_attack["p2"]["battlefield"].count("Test Defender"), 1)
+        self.assertEqual(after_attack["p2"]["exile_count"], 1)
+        self.assertEqual(after_attack["p2"]["life"], before["p2"]["life"] - 5)
+
+        await env.move_to_graveyard(seraph)
+        after_leave = env.snapshot()
+        self.assertEqual(after_leave["p2"]["battlefield"].count("Test Defender"), 2)
+
+    async def test_celestial_seraph_attack_with_empty_opponent_battlefield_exiles_nothing(self):
+        card_cls = load_card_class_from_path("pycards/creature/Celestial_Seraph/model.py", "Celestial_Seraph")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.p2.battlefield.clear()
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        seraph = env.get_battlefield_creature(env.p1, "Celestial Seraph")
+
+        before = env.snapshot()
+        await env.simulate_combat(seraph)
+        await env.room.check_death()
         after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
-
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_celestial_seraph_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
-        card_cls = load_card_class_from_path("pycards/creature/Celestial_Seraph/model.py", "Celestial_Seraph")
-        env = self.make_env()
-        card = card_cls(env.p1)
-
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
-
-        result = await env.play_card(card, env.p1)
-        await env.resolve_stack()
-
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
-
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        self.assertEqual(after["p2"]["exile_count"], before["p2"]["exile_count"])
+        self.assertEqual(seraph.creature_store, [])
+        self.assertEqual(after["p2"]["life"], before["p2"]["life"] - 5)

@@ -2,45 +2,44 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestUnyielding_Resolve(CardTestCaseBase):
-    async def test_unyielding_resolve_smoke(self):
+    async def test_unyielding_resolve_gives_team_lifelink_and_indestructible(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Unyielding_Resolve/model.py", "Unyielding_Resolve")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        c1 = env.put_creatures(env.p1, "Ally One", 2, 2, 1)[0]
+        c2 = env.put_creatures(env.p1, "Ally Two", 3, 3, 1)[0]
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertTrue(c1.get_flag("lifelink"))
+        self.assertTrue(c2.get_flag("lifelink"))
+        self.assert_state(c1, {"buffs_contains": ["Indestructible"]})
+        self.assert_state(c2, {"buffs_contains": ["Indestructible"]})
 
-    async def test_unyielding_resolve_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_unyielding_resolve_does_not_buff_opponent_creatures(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Unyielding_Resolve/model.py", "Unyielding_Resolve")
         env = self.make_env()
         card = card_cls(env.p1)
-
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        ally = env.put_creatures(env.p1, "Ally", 2, 2, 1)[0]
+        foe = env.put_creatures(env.p2, "Foe", 2, 2, 1)[0]
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
+        self.assertTrue(result[0])
+        self.assert_state(ally, {"buffs_contains": ["Indestructible"]})
+        self.assertNotIn("Indestructible", [type(b).__name__ for b in foe.buffs])
+        self.assertFalse(foe.get_flag("lifelink"))
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+    async def test_unyielding_resolve_empty_battlefield_resolves(self):
+        card_cls = load_card_class_from_path("pycards/sorcery/Unyielding_Resolve/model.py", "Unyielding_Resolve")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.p1.battlefield.clear()
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertFalse(env.p1.battlefield)

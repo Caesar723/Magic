@@ -29,7 +29,7 @@ class Flamespark(Instant):
         self.image_path:str="cards/Instant/Flamespark/image.jpg"
 
     @select_object("all_roles",1)
-    async def when_enter_battlefield(self,player:'Player',opponent:'Player',selected_object:tuple['Card']=()):
+    async def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
         damage=3
         if selected_object:
             for land in player.land_area:

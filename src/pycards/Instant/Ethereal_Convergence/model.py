@@ -34,7 +34,7 @@ class Ethereal_Convergence(Instant):
         for creature in all_creatures:
             owner = creature.player
             owner.remove_card(creature, "battlefield")
-            owner.append_card(creature, "hand")
+            owner.append_card(type(creature)(owner), "hand")
 
 
 

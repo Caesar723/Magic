@@ -32,6 +32,7 @@ class Mist_Djinn(Creature):
         self.image_path:str="cards/creature/Mist Djinn/image.jpg"
 
     async def when_finish_defend(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK
-        pass
+        # Mist Djinn can continue blocking additional attackers in the same combat.
+        return None
 
         

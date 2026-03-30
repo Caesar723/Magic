@@ -1,54 +1,46 @@
+from unittest.mock import AsyncMock, patch
+
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestVoidwisp_Harbinger(CardTestCaseBase):
-    async def test_voidwisp_harbinger_smoke(self):
+    async def test_voidwisp_harbinger_keywords_and_scry(self):
         card_cls = load_card_class_from_path("pycards/creature/Voidwisp_Harbinger/model.py", "Voidwisp_Harbinger")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        library_before = len(env.p1.library)
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        harbinger = env.get_battlefield_creature(env.p1, "Voidwisp Harbinger")
+        self.assert_state(harbinger, {
+            "zone": "battlefield",
+            "state": (2, 4),
+            "flags": {"Flash": True, "flying": True},
+        })
+        self.assertEqual(len(env.p1.library), library_before)
+        self.assertEqual(env.p2.life, 20)
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_voidwisp_harbinger_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_voidwisp_harbinger_etb_invokes_scry_two(self):
         card_cls = load_card_class_from_path("pycards/creature/Voidwisp_Harbinger/model.py", "Voidwisp_Harbinger")
         env = self.make_env()
         card = card_cls(env.p1)
+        with patch.object(card, "Scry", new_callable=AsyncMock) as mock_scry:
+            result = await env.play_card(card, env.p1)
+            await env.resolve_stack()
+        self.assertTrue(result[0])
+        mock_scry.assert_awaited_once()
+        args = mock_scry.await_args[0]
+        self.assertEqual(args[2], 2)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
-
+    async def test_voidwisp_harbinger_etb_does_not_change_opponent_hand(self):
+        card_cls = load_card_class_from_path("pycards/creature/Voidwisp_Harbinger/model.py", "Voidwisp_Harbinger")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        opp_hand_before = len(env.p2.hand)
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
-
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p2.hand), opp_hand_before)

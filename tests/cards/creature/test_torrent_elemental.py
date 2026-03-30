@@ -2,53 +2,44 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestTorrent_Elemental(CardTestCaseBase):
-    async def test_torrent_elemental_smoke(self):
+    async def test_torrent_elemental_has_flash_and_flying(self):
         card_cls = load_card_class_from_path("pycards/creature/Torrent_Elemental/model.py", "Torrent_Elemental")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        elemental = env.get_battlefield_creature(env.p1, "Torrent Elemental")
+        self.assert_state(elemental, {
+            "zone": "battlefield",
+            "state": (2, 3),
+            "flags": {"Flash": True, "flying": True},
+        })
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_torrent_elemental_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_torrent_elemental_unblocked_attack_deals_two(self):
         card_cls = load_card_class_from_path("pycards/creature/Torrent_Elemental/model.py", "Torrent_Elemental")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
-
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
+        self.assertTrue(result[0])
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        elemental = env.get_battlefield_creature(env.p1, "Torrent Elemental")
+        await env.simulate_combat(elemental)
+        self.assertEqual(env.p2.life, 18)
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+    async def test_torrent_elemental_blocked_by_large_reach_no_player_damage(self):
+        card_cls = load_card_class_from_path("pycards/creature/Torrent_Elemental/model.py", "Torrent_Elemental")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        elemental = env.get_battlefield_creature(env.p1, "Torrent Elemental")
+        blocker = env.put_creatures(env.p2, "Wall", 5, 5, 1, reach=True)[0]
+        life_before = env.p2.life
+        await env.simulate_combat(elemental, blocker)
+        self.assertEqual(env.p2.life, life_before)

@@ -7,7 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
-
+import random
 
 class Vampiric_Revelry(Sorcery):
     
@@ -25,9 +25,13 @@ class Vampiric_Revelry(Sorcery):
         self.color:str="black"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Target player sacrifices a creature. You gain life equal to that creature's toughness."
+        self.content:str="randomly destroy an creature. You gain life equal to that creature's toughness."
         self.image_path:str="cards/sorcery/Vampiric Revelry/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
+        creature=random.choice(opponent.battlefield+player.battlefield)
+        gain=creature.state[1]
+        await self.destroy_object(creature,"rgba(0,0,0,0.5)","Cure")
+        await self.cure_to_object(player, max(gain, 0), "rgba(0,255,0,1)", "Cure")
 
-
-        

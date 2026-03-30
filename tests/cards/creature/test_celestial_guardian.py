@@ -2,53 +2,50 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestCelestial_Guardian(CardTestCaseBase):
-    async def test_celestial_guardian_smoke(self):
-        card_cls = load_card_class_from_path("pycards/creature/Celestial_Guardian/model.py", "Celestial_Guardian")
+    async def test_celestial_guardian_keywords_and_vigilance_attack(self):
+        guardian_cls = load_card_class_from_path("pycards/creature/Celestial_Guardian/model.py", "Celestial_Guardian")
         env = self.make_env()
-        card = card_cls(env.p1)
+        card = guardian_cls(env.p1)
+        env.p1.life = 15  # below ini_life cap so ETB +2 life is observable
 
-        before = env.snapshot()
+        before_life = env.p1.life
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.life, before_life + 2)
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        guardian = env.get_battlefield_creature(env.p1, "Celestial Guardian")
+        self.assert_state(guardian, {
+            "zone": "battlefield",
+            "state": (3, 3),
+            "flags": {"flying": True, "Vigilance": True},
+        })
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
+        await env.simulate_combat(guardian)
+        self.assertEqual(env.p2.life, 17)
+        self.assertFalse(guardian.get_flag("tap"))
 
-    async def test_celestial_guardian_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
-        card_cls = load_card_class_from_path("pycards/creature/Celestial_Guardian/model.py", "Celestial_Guardian")
+    async def test_celestial_guardian_etb_life_gain_does_not_affect_opponent(self):
+        guardian_cls = load_card_class_from_path("pycards/creature/Celestial_Guardian/model.py", "Celestial_Guardian")
         env = self.make_env()
-        card = card_cls(env.p1)
-
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
-
+        card = guardian_cls(env.p1)
+        env.p1.life = 15
+        opp_life = env.p2.life
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertEqual(env.p2.life, opp_life)
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
-
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+    async def test_celestial_guardian_blocked_attack_does_not_damage_opponent(self):
+        guardian_cls = load_card_class_from_path("pycards/creature/Celestial_Guardian/model.py", "Celestial_Guardian")
+        env = self.make_env()
+        card = guardian_cls(env.p1)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        guardian = env.get_battlefield_creature(env.p1, "Celestial Guardian")
+        wall = env.put_creatures(env.p2, "Wall", 1, 10, 1)[0]
+        opp_life = env.p2.life
+        await env.simulate_combat(guardian, wall)
+        self.assertEqual(env.p2.life, opp_life)
+        self.assertEqual(env.card_zone(wall), "battlefield")

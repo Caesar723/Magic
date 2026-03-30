@@ -2,45 +2,44 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestCall_of_the_Ancient_Ones(CardTestCaseBase):
-    async def test_call_of_the_ancient_ones_smoke(self):
+    async def test_call_of_the_ancient_ones_reanimates_from_graveyard(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Call_of_the_Ancient_Ones/model.py", "Call_of_the_Ancient_Ones")
+        creature_cls = load_card_class_from_path("pycards/creature/Night_Stalker__/model.py", "Night_Stalker__")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        target = creature_cls(env.p2)
+        env.p2.graveyard.append(target)
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertIn(target, env.p1.battlefield)
+        self.assertNotIn(target, env.p2.graveyard)
 
-    async def test_call_of_the_ancient_ones_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_call_of_the_ancient_ones_empty_graveyards_resolves(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Call_of_the_Ancient_Ones/model.py", "Call_of_the_Ancient_Ones")
         env = self.make_env()
         card = card_cls(env.p1)
-
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        env.p1.graveyard.clear()
+        env.p2.graveyard.clear()
+        bf_before = len(env.p1.battlefield)
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.battlefield), bf_before)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+    async def test_call_of_the_ancient_ones_reanimates_from_controller_graveyard(self):
+        card_cls = load_card_class_from_path("pycards/sorcery/Call_of_the_Ancient_Ones/model.py", "Call_of_the_Ancient_Ones")
+        creature_cls = load_card_class_from_path("pycards/creature/Night_Stalker__/model.py", "Night_Stalker__")
+        env = self.make_env()
+        card = card_cls(env.p1)
+
+        target = creature_cls(env.p1)
+        env.p1.graveyard.append(target)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertIn(target, env.p1.battlefield)
+        self.assertNotIn(target, env.p1.graveyard)

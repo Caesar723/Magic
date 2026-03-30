@@ -34,12 +34,9 @@ class Guardian_of_the_Grove__(Creature):
         self.image_path:str="cards/creature/Guardian of the Grove/image.jpg"
     @select_object("",1)
     async def when_enter_battlefield(self,player: "Player" = None,opponent: "Player" = None,selected_object:tuple['Card']=()):
-        for card in player.library:
-            if isinstance(card,Forest):
-                player.remove_card(card,"library")
-                player.append_card(card,"battlefield")
-                card.tap()
-                break
-        
-
-        
+        forests = player.get_cards_by_pos_type("library", (Forest,))
+        if forests:
+            land = forests[0]
+            player.remove_card(land, "library")
+            player.append_card(land, "land_area")
+            land.tap()

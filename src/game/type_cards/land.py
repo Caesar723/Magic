@@ -10,6 +10,7 @@ from game.card import Card
 from game.type_action import actions
 from game.game_function_tool import select_object,backup_instance_methods
 from game.buffs import Buff
+from game.game_function_tool import reset_instance_methods
 
 class Land(Card):
     
@@ -41,19 +42,49 @@ class Land(Card):
         return {}
 
     @select_object("",1)
-    async def when_enter_battlefield(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
+    async def when_enter_landarea(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
         pass
 
-    def when_leave_battlefield(self):
+    def die(self):
+        self.flag_dict["die"]=True
+
+    async def check_dead(self):#check whether land die,or whether appear at land area
+        if self.get_flag("die"):
+            return True
+        else:
+            return False
+
+    def reset_to_orginal_state(self):
+        reset_instance_methods(self)
+
+    async def when_move_to_graveyard(self, player: "Player" = None, opponent: "Player" = None):#移入墓地 OK
+        await self.when_die(player,opponent)
+        await self.when_leave_landarea(player,opponent,'graveyard')
+        self.reset_to_orginal_state()
+        
+        # player.remove_card(self,"battlefield")
+        # player.append_card(self,"graveyard")
+
+    async def when_leave_landarea(self,player: "Player" = None, opponent: "Player" = None,name:str='land_area'):# when creature leave battlefield
+        player.remove_card(self,"land_area")
+        player.append_card(self,name)
+
+    async def when_die(self,player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
-    def when_die(self):
+    async def when_sacrificed(self,player: "Player" = None, opponent: "Player" = None):#当牺牲时
         pass
 
-    def when_sacrificed(self):#当牺牲时
-        pass
+    async def sacrifice(self,color:str,type_missile:str):#当牺牲时
+        self.flag_dict["die"]=True
+        self.player.action_store.add_action(actions.Attack_To_Object(self,self.player,self,color,type_missile,(0,0)))
+        await self.when_sacrificed(self.player,self.player.opponent)
+        
 
-    async def when_clicked(self,player:'Player'=None,opponent:'Player'=None):#当地牌被点击时横置，有一些是获得mana，有一些是别的能力   #启动式能力（Activated Abilities）：玩家可以在任何时候支付成本来使用的能力，通常格式为“[成本]：[效果]”。
+    async def when_clicked(self,player:'Player'=None,opponent:'Player'=None,manual:bool=False):#当地牌被点击时横置，有一些是获得mana，有一些是别的能力   #启动式能力（Activated Abilities）：玩家可以在任何时候支付成本来使用的能力，通常格式为“[成本]：[效果]”。
+        # Mana abilities only apply while the land is in its owner's land zone (not e.g. mis-zoned on battlefield).
+        if self not in self.player.land_area:
+            return False
         if not self.get_flag("tap"):
             self.player.add_counter_dict("spend_land_count",1)
             mana=self.generate_mana()
@@ -83,7 +114,7 @@ class Land(Card):
 
        
         player.add_counter_dict("lands_summon",1)
-        prepared_function=await self.when_enter_battlefield(player,opponent)
+        prepared_function=await self.when_enter_landarea(player,opponent)
         if prepared_function=="cancel":
             return prepared_function
         player.remove_card(self,"hand")
@@ -93,7 +124,7 @@ class Land(Card):
     async def auto_play_this_card(self,player:'Player',opponent:'Player'):# when player use the card return prepared function
         self.player.action_store.start_record()
         await super().auto_play_this_card(player,opponent)
-        prepared_function=await self.when_enter_battlefield(player,opponent,auto_select=True)
+        prepared_function=await self.when_enter_landarea(player,opponent,auto_select=True)
         if prepared_function!="cancel":
             player.remove_card(self,"hand")
             player.append_card(self,"land_area")

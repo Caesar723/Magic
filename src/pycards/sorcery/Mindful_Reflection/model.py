@@ -26,6 +26,11 @@ class Mindful_Reflection(Sorcery):
         self.content:str="Draw two cards, then discard a card."
         self.image_path:str="cards/sorcery/Mindful Reflection/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
+        player.draw_card(2)
+        if player.hand:
+            card=await player.send_selection_cards(player.hand,selection_random=True)
+            if card!="cancel":
+                player.discard(card)
 
-
-        

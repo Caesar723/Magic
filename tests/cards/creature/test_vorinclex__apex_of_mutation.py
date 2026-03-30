@@ -2,53 +2,43 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestVorinclex__Apex_of_Mutation(CardTestCaseBase):
-    async def test_vorinclex__apex_of_mutation_smoke(self):
+    async def test_vorinclex_has_trample_and_infect_buff(self):
         card_cls = load_card_class_from_path("pycards/creature/Vorinclex__Apex_of_Mutation/model.py", "Vorinclex__Apex_of_Mutation")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
+        self.assertTrue(result[0])
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        vorinclex = env.get_battlefield_creature(env.p1, "Vorinclex, Apex of Mutation")
+        self.assert_state(vorinclex, {
+            "zone": "battlefield",
+            "state": (6, 6),
+            "flags": {"Trample": True},
+            "buffs_contains": ["Infect"],
+        })
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_vorinclex__apex_of_mutation_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_vorinclex_infect_combat_kills_blocker(self):
         card_cls = load_card_class_from_path("pycards/creature/Vorinclex__Apex_of_Mutation/model.py", "Vorinclex__Apex_of_Mutation")
         env = self.make_env()
         card = card_cls(env.p1)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        vorinclex = env.get_battlefield_creature(env.p1, "Vorinclex, Apex of Mutation")
+        blocker = env.put_creatures(env.p2, "Chump", 2, 2, 1)[0]
+        await env.simulate_combat(vorinclex, blocker)
+        self.assertNotEqual(env.card_zone(blocker), "battlefield")
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+    async def test_vorinclex_etb_does_not_damage_controller(self):
+        card_cls = load_card_class_from_path("pycards/creature/Vorinclex__Apex_of_Mutation/model.py", "Vorinclex__Apex_of_Mutation")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.p1.life = 4
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
-
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.life, 4)

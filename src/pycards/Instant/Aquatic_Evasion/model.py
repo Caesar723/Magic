@@ -7,6 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.instant import Instant
 from game.game_function_tool import select_object
+from game.buffs import KeyBuff
 
 
 class Aquatic_Evasion(Instant):
@@ -26,6 +27,14 @@ class Aquatic_Evasion(Instant):
         self.content:str="Target creature you control gains hexproof until end of turn. Draw a card."
         self.image_path:str="cards/Instant/Aquatic Evasion/image.jpg"
 
-
-
+    @select_object("your_creatures",1)
+    async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
+        player.draw_card(1)
+        if not selected_object:
+            return
+        target=selected_object[0]
+        buff=KeyBuff(self,target,"Hexproof")
+        buff.set_end_of_turn()
+        target.gain_buff(buff,self)
         
+

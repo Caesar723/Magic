@@ -28,6 +28,10 @@ class Fiery_Burst(Sorcery):
         self.content:str="Fiery Burst deals 2 damage to target creature or player."
         self.image_path:str="cards/sorcery/Fiery Burst/image.jpg"
 
+    @select_object("all_roles",1)
+    async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
+        if selected_object:
+            await self.attact_to_object(selected_object[0],2,"rgba(255,0,0,1)","Missile_Hit")
 
 
         

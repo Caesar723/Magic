@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from game.card import Card
  
 from game.type_cards.land import Land
+from game.type_action import actions
 from game.game_function_tool import select_object
 
 
@@ -25,9 +26,18 @@ class Aetheric_Nexus(Land):
         self.color:str="gold"
         self.type_card:str="Land"
         self.rarity:str="Rare"
-        self.content:str="Aetheric Nexus enters the battlefield untapped and adds one colorless mana to your mana pool. You may also tap Aetheric Nexus to add one mana of any color, but only if you control an artifact."
+        self.content:str="Aetheric Nexus enters the battlefield untapped and adds one colorless mana to your mana pool. You may also tap Aetheric Nexus to add one mana of any color, but only if you control a creature."
         self.image_path:str="cards/land/Aetheric Nexus/image.jpg"
 
 
+    @select_object("",1)
+    async def when_enter_landarea(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
+        self.tap()
+        player.mana["colorless"]+=1
+        player.action_store.add_action(actions.Change_Mana(self, player, player.get_manas()))
 
-        
+    def generate_mana(self) -> dict:
+        if self.player.battlefield:
+            return {"colorless":1}
+        else:
+            return {}

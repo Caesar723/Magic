@@ -2,53 +2,46 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestVerdant_Titan(CardTestCaseBase):
-    async def test_verdant_titan_smoke(self):
+    async def test_verdant_titan_etb_and_attack_each_put_land_tapped(self):
         card_cls = load_card_class_from_path("pycards/creature/Verdant_Titan/model.py", "Verdant_Titan")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        forest_cls = card.put_land.__globals__["Forest"]
+        env.p1.library = [forest_cls(env.p1), forest_cls(env.p1)]
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
+        self.assertTrue(result[0])
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        titan = env.get_battlefield_creature(env.p1, "Verdant Titan")
+        self.assert_state(titan, {"flags": {"Trample": True, "Vigilance": True}, "state": (5, 5)})
+        self.assertEqual(len(env.p1.land_area), 1)
+        self.assertTrue(env.p1.land_area[0].get_flag("tap"))
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
+        await env.trigger(titan, "when_start_attcak", env.p2, env.p1, env.p2)
+        self.assertEqual(len(env.p1.land_area), 2)
+        self.assertTrue(env.p1.land_area[1].get_flag("tap"))
 
-    async def test_verdant_titan_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_verdant_titan_empty_library_etb_no_extra_land(self):
         card_cls = load_card_class_from_path("pycards/creature/Verdant_Titan/model.py", "Verdant_Titan")
         env = self.make_env()
         card = card_cls(env.p1)
-
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
-
+        env.p1.library.clear()
+        lands_before = len(env.p1.land_area)
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.land_area), lands_before)
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
-
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+    async def test_verdant_titan_etb_does_not_put_lands_under_opponent_control(self):
+        card_cls = load_card_class_from_path("pycards/creature/Verdant_Titan/model.py", "Verdant_Titan")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        forest_cls = card.put_land.__globals__["Forest"]
+        env.p1.library = [forest_cls(env.p1)]
+        opp_lands_before = len(env.p2.land_area)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p2.land_area), opp_lands_before)

@@ -2,45 +2,55 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestArcane_Convergence(CardTestCaseBase):
-    async def test_arcane_convergence_smoke(self):
+    async def test_arcane_convergence_untaps_all_your_lands(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Arcane_Convergence/model.py", "Arcane_Convergence")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        land1 = env.p1.hand.pop(0)
+        land2 = env.p1.hand.pop(0)
+        env.p1.land_area.extend([land1, land2])
+        land1.flag_dict["tap"] = True
+        land2.flag_dict["tap"] = True
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertFalse(land1.get_flag("tap"))
+        self.assertFalse(land2.get_flag("tap"))
+        self.assertEqual(env.card_zone(card), "graveyard")
 
-    async def test_arcane_convergence_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_arcane_convergence_no_tapped_lands_still_resolves(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Arcane_Convergence/model.py", "Arcane_Convergence")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
+        land1 = env.p1.hand.pop(0)
+        land2 = env.p1.hand.pop(0)
+        env.p1.land_area.extend([land1, land2])
+        mana_before = dict(env.p1.mana)
 
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertFalse(land1.get_flag("tap"))
+        self.assertFalse(land2.get_flag("tap"))
+        self.assertEqual(env.p1.mana, mana_before)
+        self.assertEqual(env.card_zone(card), "graveyard")
+
+    async def test_arcane_convergence_does_not_untap_opponent_lands(self):
+        card_cls = load_card_class_from_path("pycards/sorcery/Arcane_Convergence/model.py", "Arcane_Convergence")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        opp_land = env.p2.hand.pop(0)
+        env.p2.land_area.append(opp_land)
+        opp_land.flag_dict["tap"] = True
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertTrue(opp_land.get_flag("tap"))
+        self.assertEqual(env.card_zone(card), "graveyard")

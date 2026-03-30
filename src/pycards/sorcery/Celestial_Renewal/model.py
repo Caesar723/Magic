@@ -7,6 +7,8 @@ if TYPE_CHECKING:
  
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
+import random
+from game.buffs import StateBuff
 
 
 class Celestial_Renewal(Sorcery):
@@ -21,11 +23,11 @@ class Celestial_Renewal(Sorcery):
 
         self.type:str="Sorcery"
 
-        self.mana_cost:str="3GW"
+        self.mana_cost:str="2GW"
         self.color:str="gold"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Celestial Renewal allows you to return all creature cards from your graveyard to the battlefield. Those creatures gain hexproof until end of turn."
+        self.content:str="Celestial Renewal allows you to return 3 random creatures cards from your graveyard to the battlefield. Those creatures' stats become 1/1."
         self.image_path:str="cards/sorcery/Celestial Renewal/image.jpg"
 
     @select_object("",1)
@@ -33,9 +35,13 @@ class Celestial_Renewal(Sorcery):
         from game.type_cards.creature import Creature
         
         creatures = player.get_cards_by_pos_type("graveyard", (Creature,))
-        for creature in creatures[:]:
+        for creature in random.choice(creatures,2):
             player.remove_card(creature, "graveyard")
-            player.append_card(creature, "battlefield")
+            new_creature=type(creature)(player)
+            org_state=new_creature.state
+            buff=StateBuff(self,new_creature,1-org_state[0],1-org_state[1])
+            new_creature.gain_buff(buff,self)
+            player.append_card(new_creature, "battlefield")
 
 
 

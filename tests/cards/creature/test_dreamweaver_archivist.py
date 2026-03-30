@@ -2,53 +2,53 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestDreamweaver_Archivist(CardTestCaseBase):
-    async def test_dreamweaver_archivist_smoke(self):
+    async def test_dreamweaver_archivist_choose_draw_then_discard_keeps_hand_size(self):
         card_cls = load_card_class_from_path("pycards/creature/Dreamweaver_Archivist/model.py", "Dreamweaver_Archivist")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        hand_before = len(env.p1.hand)
+        env.script_selection(env.p1, [0])  # choose "draw a card and discard a card"
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        archivist = env.get_battlefield_creature(env.p1, "Dreamweaver Archivist")
+        self.assert_state(archivist, {"zone": "battlefield", "state": (2, 2)})
+        # play consumes one card from hand; ETB draw+discard net 0
+        self.assertEqual(len(env.p1.hand), hand_before - 1)
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
+    async def test_dreamweaver_archivist_draw_with_empty_library_still_resolves(self):
+        """Draw branch with empty library: ETB still completes and creature enters."""
+        card_cls = load_card_class_from_path("pycards/creature/Dreamweaver_Archivist/model.py", "Dreamweaver_Archivist")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.p1.library.clear()
+        env.script_selection(env.p1, [0])
 
-    async def test_dreamweaver_archivist_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.library), 0)
+        env.get_battlefield_creature(env.p1, "Dreamweaver Archivist")
+
+    async def test_dreamweaver_archivist_do_nothing_option_leaves_hand_size_stable(self):
         card_cls = load_card_class_from_path("pycards/creature/Dreamweaver_Archivist/model.py", "Dreamweaver_Archivist")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        opening_hand = len(env.p1.hand)
+        lib_before = len(env.p1.library)
+        env.script_selection(env.p1, [1])  # "Do nothing" selection card (selection_index 2)
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
-
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        self.assertTrue(result[0])
+        archivist = env.get_battlefield_creature(env.p1, "Dreamweaver Archivist")
+        self.assert_state(archivist, {"zone": "battlefield"})
+        # play_card adds then resolves to battlefield; ETB branch skipped → same count as before cast
+        self.assertEqual(len(env.p1.hand), opening_hand)
+        self.assertEqual(len(env.p1.library), lib_before)

@@ -1,46 +1,71 @@
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
+from pycards.land.Forest.model import Forest
 
 
 class TestMystic_Confluence(CardTestCaseBase):
-    async def test_mystic_confluence_smoke(self):
+    async def test_mystic_confluence_bounces_creature_and_draws(self):
         card_cls = load_card_class_from_path("pycards/Instant/Mystic_Confluence/model.py", "Mystic_Confluence")
+        spell_cls = load_card_class_from_path("pycards/Instant/Arcane_Insight/model.py", "Arcane_Insight")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        target = env.put_creatures(env.p2, "Bounce Me", 2, 2, 1)[0]
+        env.p1.library = [Forest(env.p1)]
+        hand_before = len(env.p1.hand)
+        opp_hand_before = len(env.p2.hand)
+
+        async def _noop():
+            return None
+
+        env.room.stack.append((_noop, spell_cls(env.p2)))
+        env.room.flag_dict["bullet_time"] = True
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.hand), hand_before + 1)
+        self.assertEqual(len(env.p2.hand), opp_hand_before + 1)
+        self.assertIsNot(env.p2.hand[-1], target)
 
-    async def test_mystic_confluence_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_mystic_confluence_draws_when_opponent_battlefield_empty(self):
+        """No creatures to bounce; counter still runs if stack has a spell; draw still happens."""
         card_cls = load_card_class_from_path("pycards/Instant/Mystic_Confluence/model.py", "Mystic_Confluence")
+        spell_cls = load_card_class_from_path("pycards/Instant/Arcane_Insight/model.py", "Arcane_Insight")
         env = self.make_env()
         card = card_cls(env.p1)
+        env.p1.library = [Forest(env.p1)]
+        hand_before = len(env.p1.hand)
+        self.assertEqual(len(env.p2.battlefield), 0)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
+        async def _noop():
+            return None
 
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        env.room.stack.append((_noop, spell_cls(env.p2)))
+        env.room.flag_dict["bullet_time"] = True
+
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.hand), hand_before + 1)
+
+    async def test_mystic_confluence_opponent_library_unchanged(self):
+        card_cls = load_card_class_from_path("pycards/Instant/Mystic_Confluence/model.py", "Mystic_Confluence")
+        spell_cls = load_card_class_from_path("pycards/Instant/Arcane_Insight/model.py", "Arcane_Insight")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.put_creatures(env.p2, "B", 1, 1, 1)
+        env.p1.library = [Forest(env.p1)]
+        opp_lib_before = len(env.p2.library)
+
+        async def _noop():
+            return None
+
+        env.room.stack.append((_noop, spell_cls(env.p2)))
+        env.room.flag_dict["bullet_time"] = True
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p2.library), opp_lib_before)

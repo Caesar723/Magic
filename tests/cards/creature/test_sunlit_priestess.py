@@ -2,53 +2,40 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestSunlit_Priestess(CardTestCaseBase):
-    async def test_sunlit_priestess_smoke(self):
+    async def test_sunlit_priestess_etb_gain_three_life(self):
         card_cls = load_card_class_from_path("pycards/creature/Sunlit_Priestess/model.py", "Sunlit_Priestess")
         env = self.make_env()
         card = card_cls(env.p1)
-
-        before = env.snapshot()
-        result = await env.play_card(card, env.p1)
-        await env.resolve_stack()
-        after = env.snapshot()
-
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
-
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_sunlit_priestess_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
-        card_cls = load_card_class_from_path("pycards/creature/Sunlit_Priestess/model.py", "Sunlit_Priestess")
-        env = self.make_env()
-        card = card_cls(env.p1)
-
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        env.p1.life = 10
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        priestess = env.get_battlefield_creature(env.p1, "Sunlit Priestess")
+        self.assert_state(priestess, {"zone": "battlefield", "state": (2, 2)})
+        self.assertEqual(env.p1.life, 13)
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
+    async def test_sunlit_priestess_does_not_change_opponent_life(self):
+        card_cls = load_card_class_from_path("pycards/creature/Sunlit_Priestess/model.py", "Sunlit_Priestess")
+        env = self.make_env()
+        card = card_cls(env.p1)
 
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
+        opp_before = env.p2.life
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
 
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        self.assertTrue(result[0])
+        self.assertEqual(env.p2.life, opp_before)
+
+    async def test_sunlit_priestess_etb_gains_three_even_from_low_starting_life(self):
+        card_cls = load_card_class_from_path("pycards/creature/Sunlit_Priestess/model.py", "Sunlit_Priestess")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.p1.life = 1
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.life, 4)

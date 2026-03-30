@@ -2,53 +2,50 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestSpectral_Harbinger(CardTestCaseBase):
-    async def test_spectral_harbinger_smoke(self):
+    async def test_spectral_harbinger_etb_exiles_grave_creature_and_gains_life(self):
         card_cls = load_card_class_from_path("pycards/creature/Spectral_Harbinger/model.py", "Spectral_Harbinger")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        dead = env.create_creature(env.p1, "Dead Creature", 2, 2)
+        env.p1.graveyard.append(dead)
+        env.p1.life = 10
+        life_before = env.p1.life
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        harbinger = env.get_battlefield_creature(env.p1, "Spectral Harbinger")
+        self.assert_state(harbinger, {"flags": {"flying": True, "lifelink": True}, "state": (2, 3)})
+        self.assertEqual(len(env.p1.graveyard), 0)
+        self.assertEqual(env.p1.life, life_before + 2)
+        self.assertEqual(env.p2.life, 20)
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_spectral_harbinger_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_spectral_harbinger_empty_graveyard_etb_no_life_gain(self):
         card_cls = load_card_class_from_path("pycards/creature/Spectral_Harbinger/model.py", "Spectral_Harbinger")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        env.p1.life = 10
+        self.assertEqual(len(env.p1.graveyard), 0)
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        harbinger = env.get_battlefield_creature(env.p1, "Spectral Harbinger")
+        self.assert_state(harbinger, {"zone": "battlefield", "flags": {"flying": True, "lifelink": True}})
+        self.assertEqual(env.p1.life, 10)
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+    async def test_spectral_harbinger_does_not_exile_from_opponent_graveyard(self):
+        card_cls = load_card_class_from_path("pycards/creature/Spectral_Harbinger/model.py", "Spectral_Harbinger")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        dead_opp = env.create_creature(env.p2, "Opp Dead", 2, 2)
+        env.p2.graveyard.append(dead_opp)
+        env.p1.life = 10
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertIn(dead_opp, env.p2.graveyard)

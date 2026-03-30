@@ -28,6 +28,10 @@ class Unearthly_Blaze(Sorcery):
         self.content:str="Unearthly Blaze deals 3 damage to any target."
         self.image_path:str="cards/sorcery/Unearthly Blaze/image.jpg"
 
+    @select_object("all_roles",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        if selected_object:
+            await self.attact_to_object(selected_object[0],3,"rgba(255,0,0,1)","Missile_Hit")
 
 
         

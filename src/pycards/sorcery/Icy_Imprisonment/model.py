@@ -21,7 +21,7 @@ class Icy_Imprisonment(Sorcery):
 
         self.type:str="Sorcery"
 
-        self.mana_cost:str="2UU"
+        self.mana_cost:str="1UU"
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"

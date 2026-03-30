@@ -228,3 +228,52 @@ class Infect(Buff):
         card.deal_damage = types.MethodType(deal_damage, card)
         card.attact_to_object = types.MethodType(attact_to_object, card)
         
+class Clone(Buff):
+    def __init__(self,card:"Card",selected_card:"Creature",reference_card:"Creature") -> None:
+        super().__init__(card,selected_card)
+        self.card=card#这个buff是属于哪一张卡的
+        self.card_type:str="Clone"#这个buff是用在那个类型的
+        self.content:str=f"clone({reference_card.name})"#描述buff
+        self.buff_name=f"{card.name}"
+        self.reference_card=reference_card
+
+        self.state_reference=self.reference_card.state
+        
+        self.state_card=selected_card.state
+    def change_function(self,card:"Creature"):
+
+        previews_func_key=card.get_flag
+        previews_func_state=card.calculate_state
+
+        for attr_name in dir(self.reference_card.__class__):
+            attr = getattr(self.reference_card.__class__, attr_name)
+            if callable(attr) and not attr_name.startswith("__"):
+                bound_method = types.MethodType(attr, card)
+                setattr(card, attr_name, bound_method)
+
+        
+        copid_flag_dict=self.reference_card.flag_dict.copy()
+        def get_flag(self_card,key):
+            result=previews_func_key(key)
+            if key in copid_flag_dict:
+                return copid_flag_dict[key]
+            return result
+        card.get_flag = types.MethodType(get_flag, card)
+
+        
+        
+        
+        def calculate_state(self_card):
+            power,live=previews_func_state()
+            power+=self.state_reference[0]-self.state_card[0]
+            live+=self.state_reference[1]-self.state_card[1]
+            return (power,live)
+        card.calculate_state = types.MethodType(calculate_state, card)
+
+        keys=card.check_overwritten()
+        for key in keys:
+            card.player.put_card_to_dict(key,card)
+
+        
+
+        

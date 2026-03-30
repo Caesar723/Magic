@@ -1,46 +1,48 @@
+from unittest.mock import patch
+
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestThunderstrike(CardTestCaseBase):
-    async def test_thunderstrike_smoke(self):
+    async def test_thunderstrike_deals_heavy_damage_to_chosen_creature(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Thunderstrike/model.py", "Thunderstrike")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        target = env.put_creatures(env.p2, "Thunder Target", 3, 3, 1)[0]
+        life_before = env.p2.life
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertNotEqual(env.card_zone(target), "battlefield")
+        self.assertLess(env.p2.life, life_before)
 
-    async def test_thunderstrike_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_thunderstrike_survivor_does_not_splash_opponent_life(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Thunderstrike/model.py", "Thunderstrike")
         env = self.make_env()
         card = card_cls(env.p1)
+        tank = env.put_creatures(env.p2, "Tank", 10, 12, 1)[0]
+        life_before = env.p2.life
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
+        def _pick_tank(seq):
+            return tank if tank in seq else seq[0]
 
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        with patch("game.game_function_tool.random.choice", side_effect=_pick_tank):
+            result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
+        self.assertTrue(result[0])
+        self.assertEqual(env.card_zone(tank), "battlefield")
+        self.assertEqual(env.p2.life, life_before)
+        self.assertEqual(tank.state[1], 4)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+    async def test_thunderstrike_does_not_damage_controller_life(self):
+        card_cls = load_card_class_from_path("pycards/sorcery/Thunderstrike/model.py", "Thunderstrike")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.put_creatures(env.p2, "Victim", 2, 2, 1)
+        life_before = env.p1.life
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.life, life_before)

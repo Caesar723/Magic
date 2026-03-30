@@ -22,7 +22,7 @@ class Timeless_Intervention(Instant):
 
         self.type:str="Instant"
 
-        self.mana_cost:str="4GW"
+        self.mana_cost:str="2GW"
         self.color:str="gold"
         self.type_card:str="Instant"
         self.rarity:str="Rare"

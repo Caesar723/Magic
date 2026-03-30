@@ -1,54 +1,56 @@
+from unittest.mock import patch
+
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestDeep_Sea_Behemoth(CardTestCaseBase):
-    async def test_deep_sea_behemoth_smoke(self):
+    async def test_deep_sea_behemoth_etb_steals_creature_and_returns_on_death(self):
         card_cls = load_card_class_from_path("pycards/creature/Deep_Sea_Behemoth/model.py", "Deep_Sea_Behemoth")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        stolen = env.put_creatures(env.p2, "Enemy Target", 2, 2, 1)[0]
+        env.script_selection(env.p1, [0])
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
+        self.assertTrue(result[0])
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        behemoth = env.get_battlefield_creature(env.p1, "Deep Sea Behemoth")
+        self.assertIn(stolen, env.p1.battlefield)
+        self.assertNotIn(stolen, env.p2.battlefield)
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
+        await env.move_to_graveyard(behemoth)
+        await env.resolve_stack()
+        self.assertIn(stolen, env.p2.battlefield)
 
-    async def test_deep_sea_behemoth_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_deep_sea_behemoth_steals_scripted_second_creature(self):
         card_cls = load_card_class_from_path("pycards/creature/Deep_Sea_Behemoth/model.py", "Deep_Sea_Behemoth")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        a = env.put_creatures(env.p2, "First Fish", 1, 1, 1)[0]
+        b = env.put_creatures(env.p2, "Second Fish", 3, 3, 1)[0]
 
+        def _pick_second(seq):
+            self.assertGreaterEqual(len(seq), 2)
+            return seq[1]
+
+        with patch("game.game_function_tool.random.choice", side_effect=_pick_second):
+            result = await env.play_card(card, env.p1)
+            await env.resolve_stack()
+        self.assertTrue(result[0])
+
+        self.assertIn(a, env.p2.battlefield)
+        self.assertIn(b, env.p1.battlefield)
+        self.assertNotIn(b, env.p2.battlefield)
+
+    async def test_deep_sea_behemoth_fails_play_without_opponent_creature_to_steal(self):
+        card_cls = load_card_class_from_path("pycards/creature/Deep_Sea_Behemoth/model.py", "Deep_Sea_Behemoth")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.p2.battlefield.clear()
         result = await env.play_card(card, env.p1)
-        await env.resolve_stack()
-
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
-
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        self.assertFalse(result[0])
+        self.assertIn(card, env.p1.hand)
+        self.assertEqual(len(env.p1.battlefield), 0)

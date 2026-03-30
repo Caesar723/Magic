@@ -2,53 +2,80 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestFlame_Tinkerer(CardTestCaseBase):
-    async def test_flame_tinkerer_smoke(self):
+    async def test_flame_tinkerer_etb_allows_optional_trigger(self):
         card_cls = load_card_class_from_path("pycards/creature/Flame_Tinkerer/model.py", "Flame_Tinkerer")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        target = env.put_creatures(env.p2, "Burn Target", 2, 2, 1)[0]
+        original_life = target.state[1]
+
+        async def _no_trigger_selection(player=None, opponent=None, selection_random=False):
+            return [card.create_selection("Do nothing", 2)]
+
+        card.selection_step = _no_trigger_selection
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        tinkerer = env.get_battlefield_creature(env.p1, "Flame Tinkerer")
+        self.assert_state(tinkerer, {"zone": "battlefield", "state": (2, 1)})
+        self.assertEqual(target.state[1], original_life)
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_flame_tinkerer_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_flame_tinkerer_etb_pay_r_deals_one_damage(self):
         card_cls = load_card_class_from_path("pycards/creature/Flame_Tinkerer/model.py", "Flame_Tinkerer")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        target = env.put_creatures(env.p2, "Burn Target", 2, 2, 1)[0]
+        env.p1.mana["R"] = 1
+
+        async def _pick_target(player=None, opponent=None, selection_random=False):
+            return [target]
+
+        card.selection_step = _pick_target
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(target.state[1], 1)
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
+    async def test_flame_tinkerer_pay_r_without_mana_skips_damage(self):
+        card_cls = load_card_class_from_path("pycards/creature/Flame_Tinkerer/model.py", "Flame_Tinkerer")
+        env = self.make_env()
+        card = card_cls(env.p1)
 
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
+        target = env.put_creatures(env.p2, "Burn Target", 2, 2, 1)[0]
+        env.p1.mana["R"] = 0
 
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        async def _pay_and_target(player=None, opponent=None, selection_random=False):
+            return [target]
+
+        card.selection_step = _pay_and_target
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertEqual(target.state[1], 2)
+
+    async def test_flame_tinkerer_pay_r_kills_one_toughness_creature(self):
+        card_cls = load_card_class_from_path("pycards/creature/Flame_Tinkerer/model.py", "Flame_Tinkerer")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        victim = env.put_creatures(env.p2, "One Toughness", 1, 1, 1)[0]
+        env.p1.mana["R"] = 1
+
+        async def _pick_victim(player=None, opponent=None, selection_random=False):
+            return [victim]
+
+        card.selection_step = _pick_victim
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        await env.room.check_death()
+        self.assertEqual(env.card_zone(victim), "graveyard")

@@ -26,7 +26,7 @@ class Vorinclex__Apex_of_Mutation(Creature):
         self.type_creature:str="Legendary Creature - Phyrexian Mutant"
         self.type:str="Creature"
 
-        self.mana_cost:str="3GG"
+        self.mana_cost:str="4GG"
         self.color:str="green"
         self.type_card:str="Legendary Creature - Phyrexian Mutant"
         self.rarity:str="Mythic Rare"

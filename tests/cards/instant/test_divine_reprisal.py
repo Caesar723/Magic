@@ -1,46 +1,51 @@
+from unittest.mock import patch
+
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestDivine_Reprisal(CardTestCaseBase):
-    async def test_divine_reprisal_smoke(self):
+    async def test_divine_reprisal_destroys_target_creature(self):
         card_cls = load_card_class_from_path("pycards/Instant/Divine_Reprisal/model.py", "Divine_Reprisal")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        target = env.put_creatures(env.p2, "Reprisal Target", 2, 2, 1)[0]
+        env.room.attacker = target
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(env.card_zone(target), "graveyard")
 
-    async def test_divine_reprisal_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_divine_reprisal_does_not_destroy_non_attacker(self):
         card_cls = load_card_class_from_path("pycards/Instant/Divine_Reprisal/model.py", "Divine_Reprisal")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        target = env.put_creatures(env.p2, "Safe Target", 2, 2, 1)[0]
+        env.room.attacker = None
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(env.card_zone(target), "battlefield")
+
+    async def test_divine_reprisal_does_not_destroy_selected_non_attacker(self):
+        card_cls = load_card_class_from_path("pycards/Instant/Divine_Reprisal/model.py", "Divine_Reprisal")
+        env = self.make_env()
+        card = card_cls(env.p1)
+
+        not_attacker = env.put_creatures(env.p2, "Not Attacking", 2, 2, 1)[0]
+        real_attacker = env.put_creatures(env.p2, "Actual Attacker", 3, 3, 1)[0]
+        env.room.attacker = real_attacker
+
+        def _pick_first(seq):
+            return seq[0]
+
+        with patch("random.choice", side_effect=_pick_first):
+            result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertEqual(env.card_zone(not_attacker), "battlefield")
+        self.assertEqual(env.card_zone(real_attacker), "battlefield")

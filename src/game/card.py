@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING,Union
 if TYPE_CHECKING:
     from game.player import Player
     from game.type_cards.creature import Creature
+    from game.type_cards.land import Land
 
 
 import re
@@ -144,6 +145,13 @@ class Card:
         if await object.check_dead():
             await self.when_kill_creature(object,self.player,self.player.opponent)
 
+    async def destroy_land(self,land:"Land",color:str,type_missile:str):
+        land.die()
+        self.player.action_store.add_action(actions.Attack_To_Object(self,self.player,land,color,type_missile,(0,0)))
+        if await land.check_dead():
+            await self.when_kill_land(land,self.player,self.player.opponent)
+
+
 
     async def exile_object(self,object:"Creature",color:str,type_missile:str):
         object.flag_dict["exile"]=True
@@ -226,10 +234,16 @@ class Card:
     #         return True
     #     return False
 
+    async def when_a_land_die(self,land:"Land",player: "Player" = None, opponent: "Player" = None):#当土地死亡时
+        pass
+
     async def when_a_creature_die(self,creature:"Creature",player: "Player" = None, opponent: "Player" = None):#当随从死亡时（放入一个死亡随从的参数）
         pass
 
     async def when_an_object_hert(self,object:"Player|Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当一个card or 人物收到伤害，object是card 或者 player
+        pass
+
+    async def when_kill_land(self,card:"Land",player: "Player" = None, opponent: "Player" = None):#OK
         pass
 
     async def when_kill_creature(self,card:"Creature",player: "Player" = None, opponent: "Player" = None):#OK

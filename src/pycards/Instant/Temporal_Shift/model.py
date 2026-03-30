@@ -21,7 +21,7 @@ class Temporal_Shift(Instant):
 
         self.type:str="Instant"
 
-        self.mana_cost:str="2UU"
+        self.mana_cost:str="3UU"
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Rare"

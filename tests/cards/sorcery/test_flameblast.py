@@ -1,46 +1,47 @@
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
+from unittest.mock import patch
 
 
 class TestFlameblast(CardTestCaseBase):
-    async def test_flameblast_smoke(self):
+    async def test_flameblast_deals_five_to_target(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Flameblast/model.py", "Flameblast")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
-        result = await env.play_card(card, env.p1)
+        target = env.put_creatures(env.p2, "Flameblast Target", 2, 5, 1)[0]
+        with patch("game.game_function_tool.random.choice", side_effect=lambda seq: seq[0]):
+            result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertNotEqual(env.card_zone(target), "battlefield")
 
-    async def test_flameblast_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_flameblast_can_target_player_for_five(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Flameblast/model.py", "Flameblast")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        life_before = env.p2.life
+        with patch(
+            "game.game_function_tool.random.choice",
+            side_effect=lambda seq: env.p2 if env.p2 in seq else seq[0],
+        ):
+            result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(env.p2.life, life_before - 5)
+
+    async def test_flameblast_controller_life_unchanged_when_burning_creature(self):
+        card_cls = load_card_class_from_path("pycards/sorcery/Flameblast/model.py", "Flameblast")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.put_creatures(env.p2, "Flameblast Target", 2, 5, 1)
+        ctrl_life = env.p1.life
+
+        with patch("game.game_function_tool.random.choice", side_effect=lambda seq: seq[0]):
+            result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.life, ctrl_life)

@@ -22,7 +22,7 @@ class Judgment_Day(Sorcery):
 
         self.type:str="Sorcery"
 
-        self.mana_cost:str="5WW"
+        self.mana_cost:str="3WW"
         self.color:str="gold"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
@@ -32,15 +32,13 @@ class Judgment_Day(Sorcery):
 
     @select_object("",1)
     async def card_ability(self,player:Player,opponent:Player,selected_object:tuple[Card]):
-        for creature in player.battlefield:
+        for creature in list(player.battlefield):
             await self.destroy_object(creature,"rgba(255, 215, 0, 0.9)","Missile_Hit")
-        for creature in opponent.battlefield:
+        for creature in list(opponent.battlefield):
             await self.destroy_object(creature,"rgba(255, 215, 0, 0.9)","Missile_Hit")
+        await player.room.check_death()
         for player_curr in [player,opponent]:
-            choose_list=[]
-            for card in  player_curr.graveyard:
-                if isinstance(card,Creature):
-                    choose_list.append(card)
+            choose_list=player_curr.get_cards_by_pos_type("graveyard",Creature)
             if choose_list:
                 creature=random.choice(choose_list)
                 player_curr.append_card(type(creature)(player_curr),"battlefield")

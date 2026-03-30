@@ -19,13 +19,15 @@ class Temporal_Distortion(Sorcery):
 
         self.type:str="Sorcery"
 
-        self.mana_cost:str="2UU"
+        self.mana_cost:str="3UU"
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
         self.content:str="Temporal Distortion allows you to take an extra turn after this one. Exile Temporal Distortion."
         self.image_path:str="cards/sorcery/Temporal Distortion/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
+        player.add_counter_dict("extra_turn",1)
+        self.flag_dict["exile"]=True
 
-
-        

@@ -21,7 +21,7 @@ class Celestial_Intervention(Instant):
 
         self.type:str="Instant"
 
-        self.mana_cost:str="2WW"
+        self.mana_cost:str="1WW"
         self.color:str="gold"
         self.type_card:str="Instant"
         self.rarity:str="Rare"

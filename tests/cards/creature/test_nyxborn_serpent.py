@@ -1,54 +1,49 @@
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
+from unittest.mock import patch
 
 
 class TestNyxborn_Serpent(CardTestCaseBase):
-    async def test_nyxborn_serpent_smoke(self):
+    async def test_nyxborn_serpent_taps_opponent_creature_on_etb(self):
         card_cls = load_card_class_from_path("pycards/creature/Nyxborn_Serpent/model.py", "Nyxborn_Serpent")
         env = self.make_env()
         card = card_cls(env.p1)
+        target = env.put_creatures(env.p2, "Tap Target", 2, 2, 1)[0]
 
-        before = env.snapshot()
+        # opponent_creatures has exactly one choice -> select index 0
+        env.script_selection(env.p1, [0])
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
+        self.assertTrue(result[0])
+        serpent = env.get_battlefield_creature(env.p1, "Nyxborn Serpent")
+        self.assert_state(serpent, {"zone": "battlefield", "state": (3, 4)})
+        self.assertTrue(target.get_flag("tap"))
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
-
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_nyxborn_serpent_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_nyxborn_serpent_taps_second_creature_when_two_opponents(self):
         card_cls = load_card_class_from_path("pycards/creature/Nyxborn_Serpent/model.py", "Nyxborn_Serpent")
         env = self.make_env()
         card = card_cls(env.p1)
+        first = env.put_creatures(env.p2, "First", 1, 1, 1)[0]
+        second = env.put_creatures(env.p2, "Second", 2, 2, 1)[0]
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
-
-        result = await env.play_card(card, env.p1)
+        with patch(
+            "game.game_function_tool.random.choice",
+            side_effect=lambda seq: second if second in seq else seq[0],
+        ):
+            result = await env.play_card(card, env.p1)
         await env.resolve_stack()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertFalse(first.get_flag("tap"))
+        self.assertTrue(second.get_flag("tap"))
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+    async def test_nyxborn_serpent_controller_life_unchanged_on_etb(self):
+        card_cls = load_card_class_from_path("pycards/creature/Nyxborn_Serpent/model.py", "Nyxborn_Serpent")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.put_creatures(env.p2, "Tap Target", 2, 2, 1)
+        env.script_selection(env.p1, [0])
+        life = env.p1.life
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.life, life)

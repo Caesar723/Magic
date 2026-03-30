@@ -2,45 +2,41 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestTemporal_Shift(CardTestCaseBase):
-    async def test_temporal_shift_smoke(self):
+    async def test_temporal_shift_adds_time_counter_and_freezes(self):
         card_cls = load_card_class_from_path("pycards/Instant/Temporal_Shift/model.py", "Temporal_Shift")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        c1 = env.put_creatures(env.p2, "Enemy A", 2, 4, 1)[0]
+        c2 = env.put_creatures(env.p2, "Enemy B", 2, 4, 1)[0]
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assert_state(env.p1, {"counters": {"time_counter": 1}})
+        self.assertTrue(c1.get_flag("frozen") or c2.get_flag("frozen") or c1.state[1] < 4 or c2.state[1] < 4)
 
-    async def test_temporal_shift_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_temporal_shift_with_no_enemy_creatures_still_adds_time_counter(self):
         card_cls = load_card_class_from_path("pycards/Instant/Temporal_Shift/model.py", "Temporal_Shift")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        env.p2.battlefield = []
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assert_state(env.p1, {"counters": {"time_counter": 1}})
+
+    async def test_temporal_shift_does_not_change_opponent_life(self):
+        card_cls = load_card_class_from_path("pycards/Instant/Temporal_Shift/model.py", "Temporal_Shift")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.put_creatures(env.p2, "Enemy", 2, 4, 1)
+        opp_before = env.p2.life
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertEqual(env.p2.life, opp_before)

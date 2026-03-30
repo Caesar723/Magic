@@ -40,7 +40,7 @@ class Ancient_Stonewood(Creature):
 
 
     async def when_hurt(self,card:"Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当受到伤害时 OK
-        super().when_hurt(card,value,player,opponent)
+        await super().when_hurt(card,value,player,opponent)
         if opponent.battlefield:
             card_opponent=random.choice(opponent.battlefield)
             await self.attact_to_object(card_opponent,value,"rgba(10, 243, 10, 0.9)","Missile_Hit")

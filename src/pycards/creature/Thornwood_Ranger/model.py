@@ -7,6 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.creature import Creature
 from game.game_function_tool import select_object
+from game.buffs import StateBuff
 
 
 class Thornwood_Ranger(Creature):
@@ -30,10 +31,21 @@ class Thornwood_Ranger(Creature):
         self.color:str="green"
         self.type_card:str="Human Warrior"
         self.rarity:str="Common"
-        self.content:str="Reach (This creature can block creatures with flying.)"
+        self.content:str="Reach. When Thornwood Ranger enters the battlefield, another target creature you control gets +1/+0 until end of turn."
         self.image_path:str="cards/creature/Thornwood Ranger/image.jpg"
 
         self.flag_dict["reach"]=True
+
+    @select_object("your_creatures",1)
+    async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ()):
+        if not selected_object:
+            return
+        target=selected_object[0]
+        if target is self:
+            return
+        buff=StateBuff(self,target,1,0)
+        buff.set_end_of_turn()
+        target.gain_buff(buff,self)
 
 
         

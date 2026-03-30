@@ -1,54 +1,68 @@
+from unittest.mock import patch
+
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestShadow_Stalker(CardTestCaseBase):
-    async def test_shadow_stalker_smoke(self):
+    async def test_shadow_stalker_has_hexproof(self):
         card_cls = load_card_class_from_path("pycards/creature/Shadow_Stalker/model.py", "Shadow_Stalker")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        stalker = env.get_battlefield_creature(env.p1, "Shadow Stalker")
+        self.assert_state(stalker, {"zone": "battlefield", "state": (3, 3), "flags": {"Hexproof": True}})
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_shadow_stalker_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_shadow_stalker_attack_forces_discard(self):
         card_cls = load_card_class_from_path("pycards/creature/Shadow_Stalker/model.py", "Shadow_Stalker")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        hand_before = len(env.p2.hand)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+
+        stalker = env.get_battlefield_creature(env.p1, "Shadow Stalker")
+        await env.simulate_combat(stalker)
+        self.assertEqual(len(env.p2.hand), hand_before - 1)
+
+    async def test_shadow_stalker_attack_skips_discard_when_opponent_hand_empty(self):
+        card_cls = load_card_class_from_path("pycards/creature/Shadow_Stalker/model.py", "Shadow_Stalker")
+        env = self.make_env()
+        card = card_cls(env.p1)
+
+        env.p2.hand.clear()
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+
+        stalker = env.get_battlefield_creature(env.p1, "Shadow Stalker")
+        await env.simulate_combat(stalker)
+        self.assertEqual(len(env.p2.hand), 0)
+
+    async def test_shadow_stalker_blocked_attack_still_forces_discard(self):
+        card_cls = load_card_class_from_path("pycards/creature/Shadow_Stalker/model.py", "Shadow_Stalker")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.put_creatures(env.p2, "Chunky Blocker", 1, 5, 1)
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
+        self.assertTrue(result[0])
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        stalker = env.get_battlefield_creature(env.p1, "Shadow Stalker")
+        blocker = env.p2.battlefield[0]
+        hand_before = len(env.p2.hand)
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
+        def _discard_first(seq):
+            return seq[0]
 
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
+        with patch("random.choice", side_effect=_discard_first):
+            await env.simulate_combat(stalker, blocker)
 
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        self.assertEqual(env.p2.life, 20)
+        self.assertEqual(len(env.p2.hand), hand_before - 1)

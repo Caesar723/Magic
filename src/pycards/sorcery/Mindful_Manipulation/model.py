@@ -7,6 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
+import random
 
 
 class Mindful_Manipulation(Sorcery):
@@ -23,9 +24,15 @@ class Mindful_Manipulation(Sorcery):
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Uncommon"
-        self.content:str="Draw two cards, then put one card from your hand on top of your library."
+        self.content:str="Draw two cards, then put one random card from your hand on top of your library."
         self.image_path:str="cards/sorcery/Mindful Manipulation/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
+        player.draw_card(2)
+        if not player.hand:
+            return
+        card=random.choice(player.hand)
+        player.remove_card(card,"hand")
+        player.library.insert(0,card)
 
-
-        

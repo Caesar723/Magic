@@ -28,9 +28,9 @@ class Divine_Reprisal(Instant):
         self.content:str="Destroy target attacking creature."
         self.image_path:str="cards/Instant/Divine Reprisal/image.jpg"
 
-    @select_object("opponent_attacking_creatures",1)
+    @select_object("opponent_creatures",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
-        if selected_object:
+        if selected_object and player.room.attacker==selected_object[0]:
             await self.destroy_object(selected_object[0], "rgba(255,0,0,0.5)", "Missile_Hit")
 
 

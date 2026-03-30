@@ -7,6 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
+import random
 
 
 class Treasure_Hunt(Sorcery):
@@ -25,24 +26,16 @@ class Treasure_Hunt(Sorcery):
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Common"
-        self.content:str="Reveal the top X cards of your library. Put all land cards revealed this way into your hand and the rest on the bottom of your library in any order."
+        self.content:str="Return a card from your graveyard to your hand."
         self.image_path:str="cards/sorcery/Treasure Hunt/image.jpg"
 
     @select_object("",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
-        from game.type_cards.land import Land
-        
-        revealed = []
-        for _ in range(min(5, len(player.library))):
-            if player.library:
-                card = player.library[0]
-                revealed.append(card)
-                player.remove_card(card, "library")
-                
-                if isinstance(card, Land):
-                    player.append_card(card, "hand")
-                else:
-                    player.append_card(card, "graveyard")
+        cards=random.sample(player.graveyard,1)
+        if cards:
+            card=cards[0]
+            player.remove_card(card,"graveyard")
+            player.append_card(type(card)(player),"hand")
 
 
 

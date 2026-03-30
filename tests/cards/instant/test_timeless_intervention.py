@@ -2,45 +2,42 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestTimeless_Intervention(CardTestCaseBase):
-    async def test_timeless_intervention_smoke(self):
+    async def test_timeless_intervention_exiles_then_returns_creatures(self):
         card_cls = load_card_class_from_path("pycards/Instant/Timeless_Intervention/model.py", "Timeless_Intervention")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        env.put_creatures(env.p1, "Self C", 2, 2, 1)
+        env.put_creatures(env.p2, "Enemy C", 2, 2, 1)
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
+        self.assertTrue(result[0])
+        self.assertGreaterEqual(len(env.p1.exile_area) + len(env.p2.exile_area), 2)
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        await env.trigger(card, "when_start_turn", env.p1, env.p2)
+        self.assertGreaterEqual(len(env.p1.battlefield) + len(env.p2.battlefield), 2)
 
-    async def test_timeless_intervention_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_timeless_intervention_empty_battlefields_sets_return_flag(self):
         card_cls = load_card_class_from_path("pycards/Instant/Timeless_Intervention/model.py", "Timeless_Intervention")
         env = self.make_env()
         card = card_cls(env.p1)
-
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
+        self.assertTrue(result[0])
+        self.assertTrue(card.get_flag("return_creature"))
+        await env.trigger(card, "when_start_turn", env.p1, env.p2)
+        self.assertFalse(card.get_flag("return_creature"))
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+    async def test_timeless_intervention_player_life_unchanged_on_resolve(self):
+        card_cls = load_card_class_from_path("pycards/Instant/Timeless_Intervention/model.py", "Timeless_Intervention")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.put_creatures(env.p1, "S", 2, 2, 1)
+        env.put_creatures(env.p2, "E", 2, 2, 1)
+        p1l, p2l = env.p1.life, env.p2.life
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.life, p1l)
+        self.assertEqual(env.p2.life, p2l)

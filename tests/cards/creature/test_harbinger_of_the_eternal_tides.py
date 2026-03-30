@@ -1,54 +1,51 @@
+from unittest.mock import patch
+
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestHarbinger_of_the_Eternal_Tides(CardTestCaseBase):
-    async def test_harbinger_of_the_eternal_tides_smoke(self):
+    async def test_harbinger_has_flash_and_taps_enemy_on_etb(self):
         card_cls = load_card_class_from_path("pycards/creature/Harbinger_of_the_Eternal_Tides/model.py", "Harbinger_of_the_Eternal_Tides")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        enemy = env.put_creatures(env.p2, "Enemy Target", 2, 2, 1)[0]
+        env.script_selection(env.p1, [0])
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        harbinger = env.get_battlefield_creature(env.p1, "Harbinger of the Eternal Tides")
+        self.assert_state(harbinger, {
+            "zone": "battlefield",
+            "state": (2, 4),
+            "flags": {"Flash": True},
+        })
+        self.assertTrue(enemy.get_flag("tap"))
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_harbinger_of_the_eternal_tides_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_harbinger_taps_second_enemy_when_random_targets_it(self):
         card_cls = load_card_class_from_path("pycards/creature/Harbinger_of_the_Eternal_Tides/model.py", "Harbinger_of_the_Eternal_Tides")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        first = env.put_creatures(env.p2, "Enemy A", 1, 1, 1)[0]
+        second = env.put_creatures(env.p2, "Enemy B", 2, 2, 1)[0]
 
+        with patch("game.game_function_tool.random.choice", side_effect=lambda s: s[1]):
+            result = await env.play_card(card, env.p1)
+            await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertFalse(first.get_flag("tap"))
+        self.assertTrue(second.get_flag("tap"))
+
+    async def test_harbinger_cannot_cast_when_opponent_has_no_creatures(self):
+        card_cls = load_card_class_from_path("pycards/creature/Harbinger_of_the_Eternal_Tides/model.py", "Harbinger_of_the_Eternal_Tides")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        self.assertFalse(env.p2.battlefield)
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
-
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        self.assertFalse(result[0])
+        self.assertIn(card, env.p1.hand)

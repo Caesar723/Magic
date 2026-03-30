@@ -25,9 +25,13 @@ class Flameblast(Sorcery):
         self.color:str="red"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Flameblast deals 5 damage to any target. If RRR was spent to cast Flameblast, it deals 7 damage instead."
+        self.content:str="Flameblast deals 5 damage to any target."
         self.image_path:str="cards/sorcery/Flameblast/image.jpg"
 
+    @select_object("all_roles",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        if selected_object:
+            await self.attact_to_object(selected_object[0], 5, "rgba(255,0,0,1)", "Missile_Hit")
 
 
         

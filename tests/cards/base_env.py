@@ -105,8 +105,14 @@ if not hasattr(buffs, "DoubleStrike"):
 
 from game.room import Room
 from game.player import Player
+from game.card import Card
 from game.type_cards.creature import Creature
 from game.type_action import actions
+
+if not hasattr(Card, "apply_runtime_balance"):
+    def _noop_apply_runtime_balance(self):
+        return None
+    Card.apply_runtime_balance = _noop_apply_runtime_balance
 
 
 class _DummyRoomServer:
@@ -237,6 +243,20 @@ class CardTestEnv:
         owner = player or card.player
         owner.action_store.start_record()
         owner.append_card(card, "battlefield")
+        owner.action_store.end_record()
+
+    def put_in_land_area(self, card, player: Player | None = None) -> None:
+        """
+        Move a land into `land_area` the way older land tests do manually:
+        strip from battlefield/hand, append to land_area (records wrapped).
+        """
+        owner = player or card.player
+        owner.action_store.start_record()
+        for zone in ("battlefield", "hand"):
+            if card in getattr(owner, zone):
+                owner.remove_card(card, zone)
+        if card not in owner.land_area:
+            owner.land_area.append(card)
         owner.action_store.end_record()
 
     def script_selection(self, player: Player, selections: list[Any]) -> None:

@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from game.card import Card
 
 from game.type_cards.creature import Creature
-from game.game_function_tool import select_object
+from game.game_function_tool import select_object, send_select_request
 
 
 class Mistweaver_Adept(Creature):
@@ -35,20 +35,25 @@ class Mistweaver_Adept(Creature):
 
     @select_object("",1)
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
-        
-        print(selected_object[0].selection_index)
-        if selected_object[0].selection_index==1:
-            cost={"colorless":2,"U":0,"W":0,"B":0,"R":0,"G":0}
-            result=player.check_can_use(cost)
-            print(result)
-            if result[0]:
-                await player.generate_and_consume_mana(result[1],cost,self)
+        if selected_object and selected_object[0].content != "Do nothing":
+            target = selected_object[0]
+            target.player.remove_card(target, "battlefield")
+            new_card = type(target)(target.player)
+            target.player.append_card(new_card, "hand")
+            await self.Scry(player, opponent, 2)
 
 
     async def selection_step(self, player: "Player" = None, opponent: "Player" = None,selection_random:bool=False):
         selection1=self.create_selection("scry 2-return target creature to its owner's hand",1)
         selection2=self.create_selection("Do nothing",2)
         card=await player.send_selection_cards([selection1,selection2],selection_random)
+        if card != "cancel" and card.selection_index == 1:
+            if player.battlefield or opponent.battlefield:
+                creature = await send_select_request(self, "all_creatures", 1, selection_random)
+                if creature != "cancel":
+                    return creature
+                return ["cancel"]
+            return [selection2]
         return [card]
 
 

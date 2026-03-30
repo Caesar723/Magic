@@ -7,7 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
-
+import random
 
 class Mystic_Reversal(Sorcery):
     
@@ -23,12 +23,18 @@ class Mystic_Reversal(Sorcery):
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Counter target spell unless its controller pays 3. If the spell is countered this way, exile it instead of putting it into its owner's graveyard."
+        self.content:str="Each player draws a card, then discards a card."
         self.image_path:str="cards/sorcery/Mystic Reversal/image.jpg"
 
     @select_object("",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
-        func, card = await self.undo_stack(player, opponent)
+        player.draw_card(1)
+        opponent.draw_card(1)
+        if player.hand:
+            player.discard(random.choice(player.hand))
+        if opponent.hand:
+            opponent.discard(random.choice(opponent.hand))
+        
 
 
 

@@ -26,6 +26,8 @@ class Ephemeral_Vision(Instant):
         self.content:str="Draw a card. Scry 2."
         self.image_path:str="cards/Instant/Ephemeral Vision/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
+        player.draw_card(1)
+        await self.Scry(player,opponent,2)
 
-
-        

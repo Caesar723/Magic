@@ -2,53 +2,35 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestSoul_Devourer(CardTestCaseBase):
-    async def test_soul_devourer_smoke(self):
+    async def test_soul_devourer_gains_stat_for_dead_creature_power(self):
         card_cls = load_card_class_from_path("pycards/creature/Soul_Devourer/model.py", "Soul_Devourer")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
-        result = await env.play_card(card, env.p1)
-        await env.resolve_stack()
-        after = env.snapshot()
+        env.put_on_battlefield(card, env.p1)
+        before = card.state
+        dead = env.create_creature(env.p2, "Dead 3 Power", 3, 1)
+        await env.trigger(card, "when_a_creature_die", dead, env.p1, env.p2)
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertEqual(card.state, (before[0] + 3, before[1] + 3))
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_soul_devourer_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_soul_devourer_no_growth_when_not_on_battlefield(self):
         card_cls = load_card_class_from_path("pycards/creature/Soul_Devourer/model.py", "Soul_Devourer")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        before = card.state
+        dead = env.create_creature(env.p2, "Dead 3 Power", 3, 1)
+        await env.trigger(card, "when_a_creature_die", dead, env.p1, env.p2)
 
-        result = await env.play_card(card, env.p1)
-        await env.resolve_stack()
+        self.assertEqual(card.state, before)
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
-
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+    async def test_soul_devourer_zero_power_death_adds_nothing(self):
+        card_cls = load_card_class_from_path("pycards/creature/Soul_Devourer/model.py", "Soul_Devourer")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.put_on_battlefield(card, env.p1)
+        before = card.state
+        dead = env.create_creature(env.p2, "Zero Power", 0, 1)
+        await env.trigger(card, "when_a_creature_die", dead, env.p1, env.p2)
+        self.assertEqual(card.state, before)

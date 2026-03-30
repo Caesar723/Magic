@@ -24,7 +24,7 @@ class Earthquake_Tremor(Sorcery):
 
         self.type:str="Sorcery"
 
-        self.mana_cost:str="6RR"
+        self.mana_cost:str="4RR"
         self.color:str="red"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
@@ -36,7 +36,6 @@ class Earthquake_Tremor(Sorcery):
         battlefield_opponent=list(opponent.battlefield)
         for i in range(3):
             if battlefield_opponent:
-                print(battlefield_opponent)
                 card_to_destroy=random.choice(battlefield_opponent)
                 player.action_store.start_record()
                 await self.destroy_object(card_to_destroy,"rgba(255,0,0,1)",'High_Missile')
@@ -44,9 +43,7 @@ class Earthquake_Tremor(Sorcery):
                 
                 element=Earthquake_Tremor_Elemental(player)
                 player.append_card(element,"battlefield")
-                print(player.battlefield)
                 player.action_store.end_record()
-        print(player.action_store.action_list)
             
 
 

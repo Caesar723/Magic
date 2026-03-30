@@ -2,45 +2,47 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestFalling_Stars(CardTestCaseBase):
-    async def test_falling_stars_smoke(self):
+    async def test_falling_stars_damages_all_and_creates_star_beast(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Falling_Stars/model.py", "Falling_Stars")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        weak_enemy = env.put_creatures(env.p2, "Enemy C", 2, 2, 1)[0]
+        strong_enemy = env.put_creatures(env.p2, "Enemy Boss", 8, 10, 1)[0]
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertNotEqual(env.card_zone(weak_enemy), "battlefield")
+        self.assertLess(strong_enemy.state[1], 10)
+        star_beasts = [c for c in env.p1.battlefield if c.name == "Star Beast"]
+        self.assertEqual(len(star_beasts), 1)
+        self.assert_state(star_beasts[0], {"state": (7, 7)})
 
-    async def test_falling_stars_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_falling_stars_no_enemy_creatures_still_summons_star_beast(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Falling_Stars/model.py", "Falling_Stars")
         env = self.make_env()
         card = card_cls(env.p1)
-
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        env.put_creatures(env.p1, "Ally", 1, 1, 1)
+        self.assertFalse(env.p2.battlefield)
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
+        self.assertTrue(result[0])
+        star_beasts = [c for c in env.p1.battlefield if c.name == "Star Beast"]
+        self.assertEqual(len(star_beasts), 1)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+    async def test_falling_stars_player_life_totals_unchanged(self):
+        card_cls = load_card_class_from_path("pycards/sorcery/Falling_Stars/model.py", "Falling_Stars")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.put_creatures(env.p2, "Enemy", 2, 2, 1)
+        env.put_creatures(env.p1, "Ally", 1, 1, 1)
+        p1_life = env.p1.life
+        p2_life = env.p2.life
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.life, p1_life)
+        self.assertEqual(env.p2.life, p2_life)

@@ -2,53 +2,38 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestRavaging_Ghoul(CardTestCaseBase):
-    async def test_ravaging_ghoul_smoke(self):
+    async def test_ravaging_ghoul_etb_deals_two_to_opponent(self):
         card_cls = load_card_class_from_path("pycards/creature/Ravaging_Ghoul/model.py", "Ravaging_Ghoul")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        before_life = env.p2.life
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
+        self.assertTrue(result[0])
+        self.assertEqual(env.p2.life, before_life - 2)
+        ghoul = env.get_battlefield_creature(env.p1, "Ravaging Ghoul")
+        self.assert_state(ghoul, {"zone": "battlefield", "state": (2, 2)})
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
-
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_ravaging_ghoul_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_ravaging_ghoul_does_not_hurt_owner(self):
         card_cls = load_card_class_from_path("pycards/creature/Ravaging_Ghoul/model.py", "Ravaging_Ghoul")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
-
+        owner_before = env.p1.life
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.life, owner_before)
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+    async def test_ravaging_ghoul_etb_does_not_damage_enemy_creatures(self):
+        card_cls = load_card_class_from_path("pycards/creature/Ravaging_Ghoul/model.py", "Ravaging_Ghoul")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.put_creatures(env.p2, "Standing", 3, 4, 1)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        standing = env.get_battlefield_creature(env.p2, "Standing")
+        self.assertEqual(standing.state, (3, 4))

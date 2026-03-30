@@ -2,53 +2,57 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestRadiant_Angel(CardTestCaseBase):
-    async def test_radiant_angel_smoke(self):
+    async def test_radiant_angel_enters_with_flying_lifelink(self):
         card_cls = load_card_class_from_path("pycards/creature/Radiant_Angel/model.py", "Radiant_Angel")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        angel = env.get_battlefield_creature(env.p1, "Radiant Angel")
+        self.assert_state(angel, {
+            "zone": "battlefield",
+            "state": (4, 4),
+            "flags": {"flying": True, "lifelink": True},
+        })
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
+    async def test_radiant_angel_damage_taps_black_creatures_and_lifelinks(self):
+        card_cls = load_card_class_from_path("pycards/creature/Radiant_Angel/model.py", "Radiant_Angel")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.p1.life = 10
 
-    async def test_radiant_angel_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+        black_creature = env.put_creatures(env.p2, "Black Unit", 2, 2, 1)[0]
+        black_creature.color = "black"
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+
+        angel = env.get_battlefield_creature(env.p1, "Radiant Angel")
+        await env.simulate_combat(angel)
+
+        self.assertEqual(env.p1.life, 14)
+        self.assertTrue(black_creature.get_flag("tap"))
+
+    async def test_radiant_angel_damage_does_not_tap_non_black_creatures(self):
         card_cls = load_card_class_from_path("pycards/creature/Radiant_Angel/model.py", "Radiant_Angel")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        black_creature = env.put_creatures(env.p2, "Black Unit", 2, 2, 1)[0]
+        black_creature.color = "black"
+        green_creature = env.put_creatures(env.p2, "Green Unit", 3, 3, 1)[0]
+        green_creature.color = "green"
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
+        self.assertTrue(result[0])
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        angel = env.get_battlefield_creature(env.p1, "Radiant Angel")
+        await env.simulate_combat(angel)
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        self.assertTrue(black_creature.get_flag("tap"))
+        self.assertFalse(green_creature.get_flag("tap"))

@@ -1,46 +1,47 @@
+from unittest.mock import patch
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestVeil_of_Serenity(CardTestCaseBase):
-    async def test_veil_of_serenity_smoke(self):
+    async def test_veil_of_serenity_exiles_target_creature(self):
         card_cls = load_card_class_from_path("pycards/Instant/Veil_of_Serenity/model.py", "Veil_of_Serenity")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
-        result = await env.play_card(card, env.p1)
+        target = env.put_creatures(env.p2, "Exile Me", 2, 2, 1)[0]
+        with patch("game.game_function_tool.random.choice", side_effect=lambda seq: seq[0]):
+            result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(env.card_zone(target), "exile_area")
 
-    async def test_veil_of_serenity_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_veil_of_serenity_controller_life_unchanged(self):
+        card_cls = load_card_class_from_path("pycards/Instant/Veil_of_Serenity/model.py", "Veil_of_Serenity")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.put_creatures(env.p2, "Exile Me", 2, 2, 1)
+        ctrl_life = env.p1.life
+
+        with patch("game.game_function_tool.random.choice", side_effect=lambda seq: seq[0]):
+            result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.life, ctrl_life)
+
+    async def test_veil_of_serenity_exiles_friendly_creature_when_selected(self):
         card_cls = load_card_class_from_path("pycards/Instant/Veil_of_Serenity/model.py", "Veil_of_Serenity")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        target = env.put_creatures(env.p1, "Friendly Exile", 2, 2, 1)[0]
+        with patch(
+            "game.game_function_tool.random.choice",
+            side_effect=lambda seq: target if target in seq else seq[0],
+        ):
+            result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(env.card_zone(target), "exile_area")

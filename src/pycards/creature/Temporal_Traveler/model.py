@@ -27,7 +27,7 @@ class Temporal_Traveler(Creature):
         self.type_creature:str="Creature - Wizard"
         self.type:str="Creature"
 
-        self.mana_cost:str="4UU"
+        self.mana_cost:str="3UU"
         self.color:str="blue"
         self.type_card:str="Creature - Wizard"
         self.rarity:str="Rare"

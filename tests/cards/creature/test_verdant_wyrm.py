@@ -1,54 +1,44 @@
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
+from pycards.land.Forest.model import Forest
 
 
 class TestVerdant_Wyrm(CardTestCaseBase):
-    async def test_verdant_wyrm_smoke(self):
+    async def test_verdant_wyrm_has_trample_and_fetches_land(self):
         card_cls = load_card_class_from_path("pycards/creature/Verdant_Wyrm/model.py", "Verdant_Wyrm")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        land = Forest(env.p1)
+        env.p1.library = [land]
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        wyrm = env.get_battlefield_creature(env.p1, "Verdant Wyrm")
+        self.assert_state(wyrm, {"zone": "battlefield", "state": (4, 4), "flags": {"Trample": True}})
+        self.assertEqual(len(env.p1.library), 0)
+        self.assertEqual(len(env.p1.land_area), 1)
+        self.assertTrue(env.p1.land_area[0].get_flag("tap"))
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_verdant_wyrm_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_verdant_wyrm_empty_library_no_land(self):
         card_cls = load_card_class_from_path("pycards/creature/Verdant_Wyrm/model.py", "Verdant_Wyrm")
         env = self.make_env()
         card = card_cls(env.p1)
-
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
-
+        env.p1.library = []
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.land_area), 0)
+        env.get_battlefield_creature(env.p1, "Verdant Wyrm")
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
-
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+    async def test_verdant_wyrm_opponent_life_unchanged_when_fetching_land(self):
+        card_cls = load_card_class_from_path("pycards/creature/Verdant_Wyrm/model.py", "Verdant_Wyrm")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.p1.library = [Forest(env.p1)]
+        opp = env.p2.life
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertEqual(env.p2.life, opp)

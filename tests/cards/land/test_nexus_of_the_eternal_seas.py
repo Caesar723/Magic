@@ -2,45 +2,61 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestNexus_of_the_Eternal_Seas(CardTestCaseBase):
-    async def test_nexus_of_the_eternal_seas_smoke(self):
+    async def test_nexus_of_the_eternal_seas_plays_to_land_area(self):
         card_cls = load_card_class_from_path("pycards/land/Nexus_of_the_Eternal_Seas/model.py", "Nexus_of_the_Eternal_Seas")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        lands_before = len(env.p1.land_area)
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.land_area), lands_before + 1)
+        self.assertEqual(env.card_zone(card), "land_area")
 
-    async def test_nexus_of_the_eternal_seas_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_nexus_of_the_eternal_seas_when_clicked_generates_expected_mana(self):
         card_cls = load_card_class_from_path("pycards/land/Nexus_of_the_Eternal_Seas/model.py", "Nexus_of_the_Eternal_Seas")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
+        env.put_on_battlefield(card, env.p1)
+        env.p1.action_store.start_record()
+        env.p1.remove_card(card, "battlefield")
+        env.p1.land_area.append(card)
+        env.p1.action_store.end_record()
 
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        mana_before = dict(env.p1.mana)
+        expected = card.generate_mana()
+        result = await env.trigger(card, "when_clicked", env.p1, env.p2)
+
+        self.assertTrue(result)
+        self.assertTrue(card.get_flag("tap"))
+        for key, value in expected.items():
+            self.assertEqual(env.p1.mana[key], mana_before[key] + value)
+
+    async def test_nexus_of_the_eternal_seas_second_play_adds_another_land(self):
+        card_cls = load_card_class_from_path("pycards/land/Nexus_of_the_Eternal_Seas/model.py", "Nexus_of_the_Eternal_Seas")
+        env = self.make_env()
+        l1, l2 = card_cls(env.p1), card_cls(env.p1)
+        await env.play_card(l1, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
+        lands_mid = len(env.p1.land_area)
+        await env.play_card(l2, env.p1)
+        await env.resolve_stack()
+        self.assertEqual(len(env.p1.land_area), lands_mid + 1)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+    async def test_nexus_of_the_eternal_seas_when_clicked_while_tapped_does_nothing(self):
+        card_cls = load_card_class_from_path("pycards/land/Nexus_of_the_Eternal_Seas/model.py", "Nexus_of_the_Eternal_Seas")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.put_on_battlefield(card, env.p1)
+        env.p1.action_store.start_record()
+        env.p1.remove_card(card, "battlefield")
+        env.p1.land_area.append(card)
+        env.p1.action_store.end_record()
+        await env.trigger(card, "when_clicked", env.p1, env.p2)
+        mana_after_first = dict(env.p1.mana)
+        second = await env.trigger(card, "when_clicked", env.p1, env.p2)
+        self.assertFalse(second)
+        self.assertEqual(dict(env.p1.mana), mana_after_first)

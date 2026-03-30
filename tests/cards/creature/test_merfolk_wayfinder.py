@@ -1,54 +1,40 @@
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
+from unittest.mock import AsyncMock
 
 
 class TestMerfolk_Wayfinder(CardTestCaseBase):
-    async def test_merfolk_wayfinder_smoke(self):
+    async def test_merfolk_wayfinder_etb_scry_does_not_change_library_count(self):
         card_cls = load_card_class_from_path("pycards/creature/Merfolk_Wayfinder/model.py", "Merfolk_Wayfinder")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        before = len(env.p1.library)
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        wayfinder = env.get_battlefield_creature(env.p1, "Merfolk Wayfinder")
+        self.assert_state(wayfinder, {"zone": "battlefield", "state": (1, 1)})
+        self.assertEqual(len(env.p1.library), before)
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_merfolk_wayfinder_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_merfolk_wayfinder_calls_scry_with_current_value(self):
         card_cls = load_card_class_from_path("pycards/creature/Merfolk_Wayfinder/model.py", "Merfolk_Wayfinder")
         env = self.make_env()
         card = card_cls(env.p1)
-
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        card.Scry = AsyncMock(return_value=None)
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        card.Scry.assert_awaited_once_with(env.p1, env.p2, 5)
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+    async def test_merfolk_wayfinder_etb_does_not_touch_opponent_library(self):
+        card_cls = load_card_class_from_path("pycards/creature/Merfolk_Wayfinder/model.py", "Merfolk_Wayfinder")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        opp_lib_before = len(env.p2.library)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p2.library), opp_lib_before)

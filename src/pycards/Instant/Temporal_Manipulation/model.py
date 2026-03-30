@@ -19,13 +19,16 @@ class Temporal_Manipulation(Instant):
 
         self.type:str="Instant"
 
-        self.mana_cost:str="3U"
+        self.mana_cost:str="4U"
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Mythic Rare"
         self.content:str="Take an extra turn after this one."
         self.image_path:str="cards/Instant/Temporal Manipulation/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        player.add_counter_dict("extra_turn", 1)
 
 
         

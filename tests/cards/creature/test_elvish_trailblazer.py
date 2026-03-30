@@ -2,53 +2,60 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestElvish_Trailblazer(CardTestCaseBase):
-    async def test_elvish_trailblazer_smoke(self):
+    async def test_elvish_trailblazer_etb_tutors_land_to_hand(self):
         card_cls = load_card_class_from_path("pycards/creature/Elvish_Trailblazer/model.py", "Elvish_Trailblazer")
+        forest_cls = load_card_class_from_path("pycards/land/Forest/model.py", "Forest")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
-        result = await env.play_card(card, env.p1)
-        await env.resolve_stack()
-        after = env.snapshot()
-
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
-
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_elvish_trailblazer_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
-        card_cls = load_card_class_from_path("pycards/creature/Elvish_Trailblazer/model.py", "Elvish_Trailblazer")
-        env = self.make_env()
-        card = card_cls(env.p1)
-
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        land = forest_cls(env.p1)
+        env.p1.library = [land]
+        env.script_selection(env.p1, [0])
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        trailblazer = env.get_battlefield_creature(env.p1, "Elvish Trailblazer")
+        self.assert_state(trailblazer, {
+            "zone": "battlefield",
+            "state": (2, 2),
+            "flags": {"reach": True},
+        })
+        self.assertEqual(len(env.p1.library), 0)
+        self.assertTrue(any(c.name == "Forest" for c in env.p1.hand))
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
+    async def test_elvish_trailblazer_no_land_in_library_skips_tutor(self):
+        card_cls = load_card_class_from_path("pycards/creature/Elvish_Trailblazer/model.py", "Elvish_Trailblazer")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        filler = env.create_creature(env.p1, "Nonland", 1, 1)
+        env.p1.library = [filler]
 
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
 
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.library, [filler])
+        env.get_battlefield_creature(env.p1, "Elvish Trailblazer")
+
+    async def test_elvish_trailblazer_etb_can_tutor_second_basic_when_two_in_library(self):
+        card_cls = load_card_class_from_path("pycards/creature/Elvish_Trailblazer/model.py", "Elvish_Trailblazer")
+        forest_cls = load_card_class_from_path("pycards/land/Forest/model.py", "Forest")
+        island_cls = load_card_class_from_path("pycards/land/Island/model.py", "Island")
+        env = self.make_env()
+        card = card_cls(env.p1)
+
+        first = forest_cls(env.p1)
+        second = island_cls(env.p1)
+        env.p1.library = [first, second]
+        env.script_selection(env.p1, [1])
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        hand_names = [c.name for c in env.p1.hand]
+        self.assertIn("Island", hand_names)
+        self.assertEqual(len(env.p1.library), 1)
+        self.assertEqual(env.p1.library[0].name, "Forest")

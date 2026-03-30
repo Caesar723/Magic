@@ -39,8 +39,8 @@ class Divine_Reckoning(Sorcery):
                 await self.destroy_object(creature, "rgba(255,0,0,0.5)", "Missile_Hit")
                 destroyed_count[owner] += 1
         
-        await player.gains_life(self,destroyed_count[player])
-        await opponent.gains_life(self,destroyed_count[opponent])
+        await self.cure_to_object(player, destroyed_count[player], "rgba(0,255,0,1)", "Cure")
+        await self.cure_to_object(opponent, destroyed_count[opponent], "rgba(0,255,0,1)", "Cure")
 
 
 

@@ -29,12 +29,13 @@ class Time_Reversal(Instant_Undo):
         self.content:str="Undo all spells and effects from your opponent."
         self.image_path:str="cards/Instant/Time Reversal/image.jpg"
 
-        self.undo_range="Sorcery|Instant"
+        self.undo_range="all"
 
     
     @select_object("",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
-        async def empty_func():pass
+        async def empty_func():
+            return None
         for i in range(len(self.stack)):
             if self.stack[i][1].player==opponent and \
             (isinstance(self.stack[i][1],Sorcery) or isinstance(self.stack[i][1],Instant)):

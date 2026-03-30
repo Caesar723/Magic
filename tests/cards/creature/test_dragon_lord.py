@@ -2,53 +2,53 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestDragon_Lord(CardTestCaseBase):
-    async def test_dragon_lord_smoke(self):
+    async def test_dragon_lord_has_flying_and_creates_two_tokens_on_player_damage(self):
         card_cls = load_card_class_from_path("pycards/creature/Dragon_Lord/model.py", "Dragon_Lord")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
+        self.assertTrue(result[0])
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        dragon = env.get_battlefield_creature(env.p1, "Dragon Lord")
+        self.assert_state(dragon, {"zone": "battlefield", "state": (6, 6), "flags": {"flying": True}})
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
+        before_count = len(env.p1.battlefield)
+        await env.trigger(dragon, "when_harm_is_done", env.p2, 2, env.p1, env.p2)
+        self.assertEqual(len(env.p1.battlefield), before_count + 2)
 
-    async def test_dragon_lord_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+        tokens = env.p1.battlefield[-2:]
+        for token in tokens:
+            self.assertEqual(token.state, (4, 4))
+            self.assertEqual(token.name, "Dragon Lord")
+
+    async def test_dragon_lord_damage_to_enemy_creature_still_summons_tokens(self):
         card_cls = load_card_class_from_path("pycards/creature/Dragon_Lord/model.py", "Dragon_Lord")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+
+        dragon = env.get_battlefield_creature(env.p1, "Dragon Lord")
+        blocker = env.put_creatures(env.p2, "Blocker", 1, 10, 1)[0]
+        before = len(env.p1.battlefield)
+        await env.trigger(dragon, "when_harm_is_done", blocker, 3, env.p1, env.p2)
+        self.assertEqual(len(env.p1.battlefield), before + 2)
+
+    async def test_dragon_lord_damage_to_controller_creature_does_not_create_tokens(self):
+        card_cls = load_card_class_from_path("pycards/creature/Dragon_Lord/model.py", "Dragon_Lord")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        ally = env.put_creatures(env.p1, "Friendly Pawn", 1, 1, 1)[0]
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
+        self.assertTrue(result[0])
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
-
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        dragon = env.get_battlefield_creature(env.p1, "Dragon Lord")
+        before = len(env.p1.battlefield)
+        await env.trigger(dragon, "when_harm_is_done", ally, 2, env.p1, env.p2)
+        self.assertEqual(len(env.p1.battlefield), before)

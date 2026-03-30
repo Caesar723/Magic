@@ -26,6 +26,9 @@ class Time_Warp(Instant):
         self.content:str="Time Warp allows you to take an extra turn after this one. You skip the untap step of that turn."
         self.image_path:str="cards/Instant/Time Warp/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
+        player.add_counter_dict("extra_turn", 1)
 
 
         

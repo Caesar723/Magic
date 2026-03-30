@@ -2,53 +2,37 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestNight_Stalker__(CardTestCaseBase):
-    async def test_night_stalker___smoke(self):
+    async def test_night_stalker_has_menace_flag(self):
         card_cls = load_card_class_from_path("pycards/creature/Night_Stalker__/model.py", "Night_Stalker__")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        stalker = env.get_battlefield_creature(env.p1, "Night Stalker")
+        self.assert_state(stalker, {"zone": "battlefield", "state": (2, 1), "flags": {"Menace": True}})
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_night_stalker___custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_night_stalker_does_not_have_unrelated_keywords(self):
         card_cls = load_card_class_from_path("pycards/creature/Night_Stalker__/model.py", "Night_Stalker__")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
-
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        stalker = env.get_battlefield_creature(env.p1, "Night Stalker")
+        self.assertFalse(stalker.get_flag("flying"))
+        self.assertFalse(stalker.get_flag("lifelink"))
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+    async def test_night_stalker_etb_does_not_change_opponent_life(self):
+        card_cls = load_card_class_from_path("pycards/creature/Night_Stalker__/model.py", "Night_Stalker__")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        opp_before = env.p2.life
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertEqual(env.p2.life, opp_before)

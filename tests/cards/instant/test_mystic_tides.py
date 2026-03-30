@@ -2,45 +2,55 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestMystic_Tides(CardTestCaseBase):
-    async def test_mystic_tides_smoke(self):
+    async def test_mystic_tides_counters_creature_spell_when_unpaid(self):
         card_cls = load_card_class_from_path("pycards/Instant/Mystic_Tides/model.py", "Mystic_Tides")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        stack_creature = env.put_creatures(env.p2, "Stack C", 3, 3, 1)[0]
+
+        async def _noop():
+            return None
+
+        env.room.stack.append((_noop, stack_creature))
+        env.p2.mana = {"colorless": 0, "U": 0, "W": 0, "B": 0, "R": 0, "G": 0}
+        env.room.flag_dict["bullet_time"] = True
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(env.card_zone(stack_creature), "graveyard")
 
-    async def test_mystic_tides_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_mystic_tides_opponent_pays_two_creature_not_countered(self):
         card_cls = load_card_class_from_path("pycards/Instant/Mystic_Tides/model.py", "Mystic_Tides")
         env = self.make_env()
         card = card_cls(env.p1)
-
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        stack_creature = env.put_creatures(env.p2, "Stack C", 3, 3, 1)[0]
+        async def _noop():
+            return None
+        env.room.stack.append((_noop, stack_creature))
+        env.p2.mana = {"colorless": 2, "U": 0, "W": 0, "B": 0, "R": 0, "G": 0}
+        env.room.flag_dict["bullet_time"] = True
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
+        self.assertTrue(result[0])
+        self.assertEqual(env.card_zone(stack_creature), "battlefield")
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+    async def test_mystic_tides_counter_branch_does_not_change_caster_life(self):
+        card_cls = load_card_class_from_path("pycards/Instant/Mystic_Tides/model.py", "Mystic_Tides")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        stack_creature = env.put_creatures(env.p2, "Stack C", 3, 3, 1)[0]
+
+        async def _noop():
+            return None
+
+        env.room.stack.append((_noop, stack_creature))
+        env.p2.mana = {"colorless": 0, "U": 0, "W": 0, "B": 0, "R": 0, "G": 0}
+        env.room.flag_dict["bullet_time"] = True
+        life_before = env.p1.life
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.life, life_before)

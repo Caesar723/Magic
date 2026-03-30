@@ -26,6 +26,20 @@ class Temporal_Reversal(Instant):
         self.content:str="Return target nonland permanent to its owner's hand. You may untap up to two lands."
         self.image_path:str="cards/Instant/Temporal Reversal/image.jpg"
 
+    @select_object("all_roles",1)
+    async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
+        if selected_object:
+            target=selected_object[0]
+            if hasattr(target,"type") and target.type!="Land":
+                owner=target.player
+                if target in owner.battlefield:
+                    owner.remove_card(target,"battlefield")
+                    owner.append_card(type(target)(owner),"hand")
+        untapped=0
+        for land in player.land_area:
+            if land.get_flag("tap"):
+                land.untap()
+                untapped+=1
+                if untapped>=2:
+                    break
 
-
-        

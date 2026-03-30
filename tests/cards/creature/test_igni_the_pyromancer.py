@@ -2,53 +2,41 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestIgni_the_Pyromancer(CardTestCaseBase):
-    async def test_igni_the_pyromancer_smoke(self):
+    async def test_igni_base_state(self):
         card_cls = load_card_class_from_path("pycards/creature/Igni_the_Pyromancer/model.py", "Igni_the_Pyromancer")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        igni = env.get_battlefield_creature(env.p1, "Igni the Pyromancer")
+        self.assert_state(igni, {"zone": "battlefield", "state": (2, 2)})
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_igni_the_pyromancer_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_igni_damage_trigger_with_empty_graveyard_is_safe(self):
         card_cls = load_card_class_from_path("pycards/creature/Igni_the_Pyromancer/model.py", "Igni_the_Pyromancer")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        env.put_on_battlefield(card, env.p1)
+        env.p1.graveyard = []
+        hand_before = len(env.p1.hand)
 
-        result = await env.play_card(card, env.p1)
-        await env.resolve_stack()
+        await env.trigger(card, "when_harm_is_done", env.p2, 1, env.p1, env.p2)
+        self.assertEqual(len(env.p1.hand), hand_before)
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+    async def test_igni_damage_to_creature_does_not_cast_from_graveyard(self):
+        card_cls = load_card_class_from_path("pycards/creature/Igni_the_Pyromancer/model.py", "Igni_the_Pyromancer")
+        env = self.make_env()
+        card = card_cls(env.p1)
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
+        foe = env.put_creatures(env.p2, "Foe", 3, 3, 1)[0]
+        env.put_on_battlefield(card, env.p1)
+        instant_cls = load_card_class_from_path("pycards/Instant/Aquatic_Evasion/model.py", "Aquatic_Evasion")
+        env.p1.graveyard.append(instant_cls(env.p1))
+        hand_before = len(env.p1.hand)
 
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
+        await env.trigger(card, "when_harm_is_done", foe, 1, env.p1, env.p2)
 
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        self.assertEqual(len(env.p1.hand), hand_before)

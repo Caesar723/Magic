@@ -1,6 +1,7 @@
 
 from __future__ import annotations
 from typing import TYPE_CHECKING
+import random
 if TYPE_CHECKING:
     from game.player import Player
     from game.card import Card
@@ -21,11 +22,11 @@ class Celestial_Rebirth(Instant):
 
         self.type:str="Instant"
 
-        self.mana_cost:str="2WWW"
+        self.mana_cost:str="1WWW"
         self.color:str="gold"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Return target creature card from your graveyard to the battlefield. It gains indestructible until end of turn. Exile Celestial Rebirth."
+        self.content:str="Return a creature card from your graveyard to the battlefield. It gains indestructible until end of turn. Exile Celestial Rebirth."
         self.image_path:str="cards/Instant/Celestial Rebirth/image.jpg"
 
     @select_object("",1)
@@ -35,9 +36,9 @@ class Celestial_Rebirth(Instant):
         
         creatures = player.get_cards_by_pos_type("graveyard", (Creature,))
         if creatures:
-            creature = await player.send_selection_cards(creatures, selection_random=True)
+            creature:Creature=random.choice(creatures)
             player.remove_card(creature, "graveyard")
-            player.append_card(creature, "battlefield")
+            player.append_card(type(creature)(player), "battlefield")
             
             buff = Indestructible(self, creature)
             buff.set_end_of_turn()

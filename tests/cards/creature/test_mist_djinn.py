@@ -2,53 +2,49 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestMist_Djinn(CardTestCaseBase):
-    async def test_mist_djinn_smoke(self):
+    async def test_mist_djinn_base_state_and_defend_hook_callable(self):
         card_cls = load_card_class_from_path("pycards/creature/Mist_Djinn/model.py", "Mist_Djinn")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
+        self.assertTrue(result[0])
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        djinn = env.get_battlefield_creature(env.p1, "Mist Djinn")
+        self.assert_state(djinn, {"zone": "battlefield", "state": (4, 6)})
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
+        attacker = env.put_creatures(env.p2, "Attacker", 2, 2, 1)[0]
+        hook_result = await env.trigger(djinn, "when_finish_defend", attacker, env.p1, env.p2)
+        self.assertIsNone(hook_result)
 
-    async def test_mist_djinn_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_mist_djinn_second_defend_hook_still_noop(self):
         card_cls = load_card_class_from_path("pycards/creature/Mist_Djinn/model.py", "Mist_Djinn")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+
+        djinn = env.get_battlefield_creature(env.p1, "Mist Djinn")
+        a1 = env.put_creatures(env.p2, "Attacker One", 1, 1, 1)[0]
+        a2 = env.put_creatures(env.p2, "Attacker Two", 1, 1, 1)[0]
+        r1 = await env.trigger(djinn, "when_finish_defend", a1, env.p1, env.p2)
+        r2 = await env.trigger(djinn, "when_finish_defend", a2, env.p1, env.p2)
+        self.assertIsNone(r1)
+        self.assertIsNone(r2)
+
+    async def test_mist_djinn_unblocked_combat_deals_four_damage(self):
+        card_cls = load_card_class_from_path("pycards/creature/Mist_Djinn/model.py", "Mist_Djinn")
+        env = self.make_env()
+        card = card_cls(env.p1)
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
+        self.assertTrue(result[0])
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
-
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        djinn = env.get_battlefield_creature(env.p1, "Mist Djinn")
+        before = env.p2.life
+        await env.simulate_combat(djinn)
+        self.assertEqual(env.p2.life, before - 4)

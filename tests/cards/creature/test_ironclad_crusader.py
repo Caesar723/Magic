@@ -1,54 +1,47 @@
+from unittest.mock import patch
+
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestIronclad_Crusader(CardTestCaseBase):
-    async def test_ironclad_crusader_smoke(self):
+    async def test_ironclad_crusader_etb_taps_enemy_creature(self):
         card_cls = load_card_class_from_path("pycards/creature/Ironclad_Crusader/model.py", "Ironclad_Crusader")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        enemy = env.put_creatures(env.p2, "Enemy Target", 2, 2, 1)[0]
+        env.script_selection(env.p1, [0])
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        crusader = env.get_battlefield_creature(env.p1, "Ironclad Crusader")
+        self.assert_state(crusader, {"zone": "battlefield", "state": (2, 2)})
+        self.assertTrue(enemy.get_flag("tap"))
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_ironclad_crusader_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_ironclad_crusader_taps_second_enemy_when_random_picks_it(self):
         card_cls = load_card_class_from_path("pycards/creature/Ironclad_Crusader/model.py", "Ironclad_Crusader")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        a = env.put_creatures(env.p2, "Enemy A", 1, 1, 1)[0]
+        b = env.put_creatures(env.p2, "Enemy B", 2, 2, 1)[0]
 
+        with patch("game.game_function_tool.random.choice", side_effect=lambda s: s[1]):
+            result = await env.play_card(card, env.p1)
+            await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertFalse(a.get_flag("tap"))
+        self.assertTrue(b.get_flag("tap"))
+
+    async def test_ironclad_crusader_fails_play_without_opponent_creature_target(self):
+        card_cls = load_card_class_from_path("pycards/creature/Ironclad_Crusader/model.py", "Ironclad_Crusader")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.p2.battlefield.clear()
         result = await env.play_card(card, env.p1)
-        await env.resolve_stack()
-
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
-
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        self.assertFalse(result[0])
+        self.assertIn(card, env.p1.hand)
+        self.assertEqual(len(env.p1.battlefield), 0)

@@ -7,6 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
+import random
 
 
 class Flamestrike_Surge__(Sorcery):
@@ -23,18 +24,18 @@ class Flamestrike_Surge__(Sorcery):
         self.color:str="red"
         self.type_card:str="Sorcery"
         self.rarity:str="Uncommon"
-        self.content:str="Flamestrike Surge deals 3 damage to any target and you may discard a card. If you do, draw a card."
+        self.content:str="Flamestrike Surge deals 3 damage to any target and randomly discard a card and draw a card."
         self.image_path:str="cards/sorcery/Flamestrike Surge/image.jpg"
 
-    @select_object("opponent_permanents",1)
+    @select_object("all_roles",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         if selected_object:
-            await selected_object[0].take_damage(3, self, player, opponent)
+            await self.attact_to_object(selected_object[0], 3, "rgba(255,0,0,1)", "Missile_Hit")
         
         if player.hand:
-            card = await player.send_selection_cards(player.hand, selection_random=True)
+            card = random.choice(player.hand)
             player.discard(card)
-            await player.draw_cards(1)
+            player.draw_card(1)
 
 
 

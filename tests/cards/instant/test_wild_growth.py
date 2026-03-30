@@ -1,46 +1,48 @@
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
+from pycards.creature.Night_Stalker__.model import Night_Stalker__
+from pycards.land.Forest.model import Forest
 
 
 class TestWild_Growth(CardTestCaseBase):
-    async def test_wild_growth_smoke(self):
+    async def test_wild_growth_fetches_tapped_land(self):
         card_cls = load_card_class_from_path("pycards/Instant/Wild_Growth/model.py", "Wild_Growth")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        env.p1.library = [Forest(env.p1)]
+        lands_before = len(env.p1.land_area)
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.land_area), lands_before + 1)
+        self.assertTrue(env.p1.land_area[-1].get_flag("tap"))
 
-    async def test_wild_growth_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_wild_growth_no_land_in_library_does_nothing(self):
         card_cls = load_card_class_from_path("pycards/Instant/Wild_Growth/model.py", "Wild_Growth")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
+        env.p1.library = [Night_Stalker__(env.p1)]
+        lands_before = len(env.p1.land_area)
+        lib_before = len(env.p1.library)
 
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.land_area), lands_before)
+        self.assertEqual(len(env.p1.library), lib_before)
+
+    async def test_wild_growth_opponent_life_unchanged_when_fetching(self):
+        card_cls = load_card_class_from_path("pycards/Instant/Wild_Growth/model.py", "Wild_Growth")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.p1.library = [Forest(env.p1)]
+        opp_before = env.p2.life
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertEqual(env.p2.life, opp_before)

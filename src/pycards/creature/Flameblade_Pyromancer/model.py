@@ -50,7 +50,6 @@ class Flameblade_Pyromancer(Creature):
         selection1=self.create_selection("Discard a card",1)
         selection2=self.create_selection("Do nothing",2)
         card=await player.send_selection_cards([selection1,selection2],selection_random)
-        print(card)
         if card!="cancel" and card.selection_index==1 :
             
             discard_list=list(player.hand)

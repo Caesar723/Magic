@@ -2,45 +2,35 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestTime_Rift_Convergence(CardTestCaseBase):
-    async def test_time_rift_convergence_smoke(self):
+    async def test_time_rift_convergence_adds_extra_turn_counter(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Time_Rift_Convergence/model.py", "Time_Rift_Convergence")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assert_state(env.p1, {"counters": {"extra_turn": 1}})
+        self.assertTrue(card.flag_dict.get("exile", False))
 
-    async def test_time_rift_convergence_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_time_rift_convergence_stacks_extra_turn_counter(self):
+        card_cls = load_card_class_from_path("pycards/sorcery/Time_Rift_Convergence/model.py", "Time_Rift_Convergence")
+        env = self.make_env()
+        env.p1.add_counter_dict("extra_turn", 1)
+        card = card_cls(env.p1)
+
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assert_state(env.p1, {"counters": {"extra_turn": 2}})
+
+    async def test_time_rift_convergence_opponent_extra_turn_unchanged(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Time_Rift_Convergence/model.py", "Time_Rift_Convergence")
         env = self.make_env()
         card = card_cls(env.p1)
-
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
-
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(env.p2.get_counter_from_dict("extra_turn"), 0)

@@ -21,22 +21,23 @@ class Call_of_the_Ancient_Ones(Sorcery):
 
         self.type:str="Sorcery"
 
-        self.mana_cost:str="3BB"
+        self.mana_cost:str="2BB"
         self.color:str="black"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Call of the Ancient Ones allows you to return target creature card from a graveyard to the battlefield under your control. That creature gains haste until end of turn and must be sacrificed at the beginning of the next end step."
+        self.content:str="Call of the Ancient Ones allows you to return random creature card from a graveyard to the battlefield under your control. That creature gains haste until end of turn and must be sacrificed at the beginning of the next end step."
         self.image_path:str="cards/sorcery/Call of the Ancient Ones/image.jpg"
 
     @select_object("",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         from game.type_cards.creature import Creature
+        import random
         
         all_graveyards = player.graveyard + opponent.graveyard
         creatures = [c for c in all_graveyards if isinstance(c, Creature)]
         
         if creatures:
-            creature = await player.send_selection_cards(creatures, selection_random=True)
+            creature = random.choice(creatures)
             if creature in player.graveyard:
                 player.remove_card(creature, "graveyard")
             else:

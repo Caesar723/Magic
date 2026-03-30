@@ -24,7 +24,7 @@ class Torrent_Elemental(Creature):
         self.type_creature:str="Elemental"
         self.type:str="Creature"
 
-        self.mana_cost:str="1U"
+        self.mana_cost:str="3U"
         self.color:str="blue"
         self.type_card:str="Elemental"
         self.rarity:str="Uncommon"

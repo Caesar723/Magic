@@ -36,7 +36,7 @@ class Mystic_Rupture(Instant):
                 owner = perm.player
                 if perm in owner.battlefield:
                     owner.remove_card(perm, "battlefield")
-                    owner.append_card(perm, "hand")
+                    owner.append_card(type(perm)(owner), "hand")
 
 
 

@@ -27,3 +27,6 @@ src/user_cache/Sorcery/
 checkpoints/*
 !checkpoints/.gitkeep
 src/game/game_records
+
+.pytest_cache/
+.vscode/

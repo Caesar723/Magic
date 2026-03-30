@@ -39,5 +39,5 @@ class Flames_of_Fury(Instant):
             player.action_store.end_record()
 
             if isinstance(selected_object[0],Creature) and await selected_object[0].check_dead():
-                selected_object[0].flag_dict["exile"]
+                await self.exile_object(selected_object[0], "rgba(243, 0, 0, 0.9)", "Missile_Hit")
         

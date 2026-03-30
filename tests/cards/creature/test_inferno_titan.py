@@ -1,54 +1,46 @@
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
+from unittest.mock import patch
 
 
 class TestInferno_Titan(CardTestCaseBase):
-    async def test_inferno_titan_smoke(self):
+    async def test_inferno_titan_etb_deals_four_when_no_enemy_creatures(self):
         card_cls = load_card_class_from_path("pycards/creature/Inferno_Titan/model.py", "Inferno_Titan")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        titan = env.get_battlefield_creature(env.p1, "Inferno Titan")
+        self.assert_state(titan, {"zone": "battlefield", "state": (6, 6)})
+        self.assertEqual(env.p2.life, 16)
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_inferno_titan_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_inferno_titan_can_ping_enemy_creature(self):
         card_cls = load_card_class_from_path("pycards/creature/Inferno_Titan/model.py", "Inferno_Titan")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        target = env.put_creatures(env.p2, "Titan Target", 2, 2, 1)[0]
+        before_life = target.state[1]
+        with patch(
+            "pycards.creature.Inferno_Titan.model.random.choice",
+            side_effect=lambda seq: target if target in seq else seq[0],
+        ):
+            result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertTrue(target.state[1] < before_life or env.p2.life < 20)
+
+    async def test_inferno_titan_controller_life_unchanged_on_etb(self):
+        card_cls = load_card_class_from_path("pycards/creature/Inferno_Titan/model.py", "Inferno_Titan")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.p1.life = 7
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
-
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.life, 7)

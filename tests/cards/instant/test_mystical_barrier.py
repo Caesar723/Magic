@@ -1,46 +1,66 @@
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
+from pycards.land.Forest.model import Forest
 
 
 class TestMystical_Barrier(CardTestCaseBase):
-    async def test_mystical_barrier_smoke(self):
+    async def test_mystical_barrier_counters_and_draws(self):
         card_cls = load_card_class_from_path("pycards/Instant/Mystical_Barrier/model.py", "Mystical_Barrier")
+        spell_cls = load_card_class_from_path("pycards/Instant/Arcane_Insight/model.py", "Arcane_Insight")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        async def _noop():
+            return None
+
+        env.room.stack.append((_noop, spell_cls(env.p2)))
+        env.room.flag_dict["bullet_time"] = True
+        env.p1.library = [Forest(env.p1)]
+        hand_before = len(env.p1.hand)
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.hand), hand_before + 1)
 
-    async def test_mystical_barrier_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_mystical_barrier_empty_library_skips_draw_after_counter(self):
         card_cls = load_card_class_from_path("pycards/Instant/Mystical_Barrier/model.py", "Mystical_Barrier")
+        spell_cls = load_card_class_from_path("pycards/Instant/Arcane_Insight/model.py", "Arcane_Insight")
         env = self.make_env()
         card = card_cls(env.p1)
+        env.p1.library.clear()
+        env.p1.hand.clear()
+        env.put_in_hand(card, env.p1)
+        hand_before = len(env.p1.hand)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
+        async def _noop():
+            return None
 
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        env.room.stack.append((_noop, spell_cls(env.p2)))
+        env.room.flag_dict["bullet_time"] = True
+
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.hand), hand_before - 1)
+        self.assertEqual(len(env.p1.library), 0)
+
+    async def test_mystical_barrier_opponent_life_unchanged(self):
+        card_cls = load_card_class_from_path("pycards/Instant/Mystical_Barrier/model.py", "Mystical_Barrier")
+        spell_cls = load_card_class_from_path("pycards/Instant/Arcane_Insight/model.py", "Arcane_Insight")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        opp_life = env.p2.life
+
+        async def _noop():
+            return None
+
+        env.room.stack.append((_noop, spell_cls(env.p2)))
+        env.room.flag_dict["bullet_time"] = True
+        env.p1.library = [Forest(env.p1)]
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+
+        self.assertTrue(result[0])
+        self.assertEqual(env.p2.life, opp_life)

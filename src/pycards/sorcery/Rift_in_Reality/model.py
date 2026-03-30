@@ -21,18 +21,31 @@ class Rift_in_Reality(Sorcery):
 
         self.type:str="Sorcery"
 
-        self.mana_cost:str="2UU"
+        self.mana_cost:str="1U"
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Rift in Reality allows you to exile target permanent. At the beginning of the next end step, return the exiled card to the battlefield under its owner's control with a sleight of hand counter on it. If it doesn't have sleight of hand counter on it, it's owner draws a card."
+        self.content:str="Rift in Reality allows you to exile target creature. Return it to the battlefield under its owner's control at the beginning of the next end step.When it returns, its owner draws a card."
         self.image_path:str="cards/sorcery/Rift in Reality/image.jpg"
 
-    @select_object("opponent_permanents",1)
+        self.exiled_creature=None
+
+    @select_object("opponent_creatures",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         if selected_object:
             target = selected_object[0]
             await self.exile_object(target, "rgba(239, 228, 83, 0.8)", "Missile_Hit")
+            self.exiled_creature=target
+
+    async def when_start_turn(self, player: "Player" = None, opponent: "Player" = None):
+        if self.exiled_creature is not None:
+            new_creature=type(self.exiled_creature)(self.exiled_creature.player)
+            self.exiled_creature.player.append_card(new_creature,"battlefield")
+            self.exiled_creature.player.draw_card(1)
+            self.exiled_creature=None
+            player.remove_card_from_dict("start_turn",self)
+        return await super().when_start_turn(player, opponent)
+
 
 
 

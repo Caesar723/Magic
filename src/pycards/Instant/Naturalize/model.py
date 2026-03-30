@@ -19,13 +19,18 @@ class Naturalize(Instant):
 
         self.type:str="Instant"
 
-        self.mana_cost:str="1G"
+        self.mana_cost:str="3G"
         self.color:str="green"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
-        self.content:str="Destroy target artifact or enchantment."
+        self.content:str="Destroy target creature."
         self.image_path:str="cards/Instant/Naturalize/image.jpg"
 
+    @select_object("all_creatures",1)
+    async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
+        if not selected_object:
+            return
+        target=selected_object[0]
+        if hasattr(target,"type") and target.type=="Creature":
+            await self.destroy_object(target,"rgba(144, 238, 144, 0.8)","Missile_Hit")
 
-
-        

@@ -1,46 +1,47 @@
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
+from pycards.land.Forest.model import Forest
 
 
 class TestAquatic_Evasion(CardTestCaseBase):
-    async def test_aquatic_evasion_smoke(self):
+    async def test_aquatic_evasion_grants_hexproof_and_draws(self):
         card_cls = load_card_class_from_path("pycards/Instant/Aquatic_Evasion/model.py", "Aquatic_Evasion")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        creature = env.put_creatures(env.p1, "Self C", 2, 2, 1)[0]
+        env.p1.library = [Forest(env.p1)]
+        hand_before = len(env.p1.hand)
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.hand), hand_before + 1)
+        self.assertTrue(creature.get_flag("Hexproof"))
 
-    async def test_aquatic_evasion_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_aquatic_evasion_empty_library_still_grants_hexproof(self):
         card_cls = load_card_class_from_path("pycards/Instant/Aquatic_Evasion/model.py", "Aquatic_Evasion")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        creature = env.put_creatures(env.p1, "Solo", 1, 1, 1)[0]
+        env.p1.library = []
+        hand_before = len(env.p1.hand)
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.hand), hand_before)
+        self.assertTrue(creature.get_flag("Hexproof"))
+
+    async def test_aquatic_evasion_does_not_grant_hexproof_to_opponent_creatures(self):
+        card_cls = load_card_class_from_path("pycards/Instant/Aquatic_Evasion/model.py", "Aquatic_Evasion")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        ours = env.put_creatures(env.p1, "Ours", 2, 2, 1)[0]
+        theirs = env.put_creatures(env.p2, "Theirs", 2, 2, 1)[0]
+        env.p1.library = [Forest(env.p1)]
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertTrue(ours.get_flag("Hexproof"))
+        self.assertFalse(theirs.get_flag("Hexproof"))

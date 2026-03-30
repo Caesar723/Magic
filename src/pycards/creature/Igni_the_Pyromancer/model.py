@@ -36,7 +36,6 @@ class Igni_the_Pyromancer(Creature):
     async def when_harm_is_done(self,card:Union["Creature","Player"],value:int,player: "Player" = None, opponent: "Player" = None):#当造成伤害时 OK
         if isinstance(card,type(player)):
             cards=player.get_cards_by_pos_type("graveyard",(Instant,Sorcery))
-            print(cards)
             if cards:
                 card:"Instant|Sorcery"=await player.send_selection_cards(cards,selection_random=True)
                 await (await card.card_ability(player,opponent,selected_object=(card),selection_random=True))()

@@ -26,7 +26,7 @@ class Merfolk_Wayfinder(Creature):
         self.type_creature:str="Merfolk Creature"
         self.type:str="Creature"
 
-        self.mana_cost:str="U"
+        self.mana_cost:str="2U"
         self.color:str="blue"
         self.type_card:str="Merfolk Creature"
         self.rarity:str="Common"
@@ -35,6 +35,6 @@ class Merfolk_Wayfinder(Creature):
 
     @select_object("",1)
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
-        await self.Scry(player,opponent,5)
+        await self.Scry(player,opponent,1)
 
         

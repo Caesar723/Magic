@@ -7,7 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
-
+import random
 
 class Chaotic_Eruption(Sorcery):
     
@@ -25,13 +25,18 @@ class Chaotic_Eruption(Sorcery):
         self.color:str="red"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Destroy target land. For each land destroyed this way, its controller may discard a card. If they don't, create a 3/3 Elemental token."
+        self.content:str="Destroy target land. For each land destroyed this way, its controller randomly discard a card."
         self.image_path:str="cards/sorcery/Chaotic Eruption/image.jpg"
 
     @select_object("opponent_lands",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         if selected_object:
-            await self.destroy_object(selected_object[0], "rgba(255,0,0,0.5)", "Missile_Hit")
+            target = selected_object[0]
+            if target in opponent.land_area:
+                await self.destroy_land(target, "rgba(255,0,0,1)", "Missile_Hit")
+                if opponent.hand:
+                    cards_to_discard=random.choice(opponent.hand)
+                    opponent.discard(cards_to_discard)
 
 
 

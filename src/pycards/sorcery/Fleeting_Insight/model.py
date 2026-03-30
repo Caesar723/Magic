@@ -7,6 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.sorcery import Sorcery
 from game.game_function_tool import select_object
+import random
 
 
 class Fleeting_Insight(Sorcery):
@@ -23,9 +24,13 @@ class Fleeting_Insight(Sorcery):
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Common"
-        self.content:str="Draw a card, then discard a card."
+        self.content:str="Draw a card, then randomly discard a card."
         self.image_path:str="cards/sorcery/Fleeting Insight/image.jpg"
 
+    @select_object("",1)
+    async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
+        player.draw_card(1)
+        if player.hand:
+            card=random.choice(player.hand)
+            player.discard(card)
 
-
-        

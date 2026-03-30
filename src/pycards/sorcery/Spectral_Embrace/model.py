@@ -21,7 +21,7 @@ class Spectral_Embrace(Sorcery):
 
         self.type:str="Sorcery"
 
-        self.mana_cost:str="2WW"
+        self.mana_cost:str="1WW"
         self.color:str="gold"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"

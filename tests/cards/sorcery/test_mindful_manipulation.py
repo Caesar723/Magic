@@ -1,46 +1,46 @@
 from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
+from pycards.land.Forest.model import Forest
+from pycards.land.Plains.model import Plains
 
 
 class TestMindful_Manipulation(CardTestCaseBase):
-    async def test_mindful_manipulation_smoke(self):
+    async def test_mindful_manipulation_draw_two_put_one_back(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Mindful_Manipulation/model.py", "Mindful_Manipulation")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        env.p1.library = [Forest(env.p1), Plains(env.p1)]
+        hand_before = len(env.p1.hand)
+        lib_before = len(env.p1.library)
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.hand), hand_before + 1)
+        self.assertEqual(len(env.p1.library), lib_before - 1)
+        self.assertEqual(env.p2.life, 20)
 
-    async def test_mindful_manipulation_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_mindful_manipulation_puts_one_card_back_on_library(self):
         card_cls = load_card_class_from_path("pycards/sorcery/Mindful_Manipulation/model.py", "Mindful_Manipulation")
         env = self.make_env()
         card = card_cls(env.p1)
+        env.p1.library = [Forest(env.p1), Plains(env.p1), Forest(env.p1)]
+        lib_before = len(env.p1.library)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.library), lib_before - 1)
+
+    async def test_mindful_manipulation_does_not_draw_from_opponent_library(self):
+        card_cls = load_card_class_from_path("pycards/sorcery/Mindful_Manipulation/model.py", "Mindful_Manipulation")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        env.p1.library = [Forest(env.p1), Plains(env.p1)]
+        opp_lib_before = len(env.p2.library)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p2.library), opp_lib_before)

@@ -2,45 +2,40 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestSacred_Reinforcement(CardTestCaseBase):
-    async def test_sacred_reinforcement_smoke(self):
+    async def test_sacred_reinforcement_taps_two_enemy_creatures_and_buffs(self):
         card_cls = load_card_class_from_path("pycards/Instant/Sacred_Reinforcement/model.py", "Sacred_Reinforcement")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        e1 = env.put_creatures(env.p2, "Enemy A", 2, 2, 1)[0]
+        e2 = env.put_creatures(env.p2, "Enemy B", 2, 2, 1)[0]
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertTrue(e1.get_flag("tap") or e2.get_flag("tap"))
+        self.assertTrue(e1.state[0] >= 3 or e2.state[0] >= 3)
 
-    async def test_sacred_reinforcement_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_sacred_reinforcement_single_target_when_only_one_enemy(self):
         card_cls = load_card_class_from_path("pycards/Instant/Sacred_Reinforcement/model.py", "Sacred_Reinforcement")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
-
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        e1 = env.put_creatures(env.p2, "Enemy Solo", 2, 2, 1)[0]
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertTrue(e1.get_flag("tap"))
+        self.assertGreaterEqual(e1.state[0], 3)
+
+    async def test_sacred_reinforcement_does_not_tap_friendly_creatures(self):
+        card_cls = load_card_class_from_path("pycards/Instant/Sacred_Reinforcement/model.py", "Sacred_Reinforcement")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        ally = env.put_creatures(env.p1, "Ally", 2, 2, 1)[0]
+        env.put_creatures(env.p2, "Enemy", 2, 2, 1)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertFalse(ally.get_flag("tap"))

@@ -33,11 +33,15 @@ class Arcane_Reflection(Instant):
         from game.type_cards.instant import Instant
         from game.type_cards.sorcery import Sorcery
         
-        cards = player.get_cards_by_pos_type("graveyard", (Instant, Sorcery))
+        cards = [
+            c
+            for c in player.get_cards_by_pos_type("graveyard", (Instant, Sorcery))
+            if c is not self
+        ]
         if cards:
             card = await player.send_selection_cards(cards, selection_random=True)
             player.remove_card(card, "graveyard")
-            player.append_card(card, "hand")
+            player.append_card(type(card)(player), "hand")
 
 
 

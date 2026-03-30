@@ -16,15 +16,15 @@ class Nyxborn_Serpent(Creature):
         super().__init__(player)
 
         self.name:str="Nyxborn Serpent"
-        self.live:int=3
+        self.live:int=4
         self.power:int=3
-        self.actual_live:int=3
+        self.actual_live:int=4
         self.actual_power:int=3
 
         self.type_creature:str="Enchantment Creature - Serpent"
         self.type:str="Creature"
 
-        self.mana_cost:str="4U"
+        self.mana_cost:str="3U"
         self.color:str="blue"
         self.type_card:str="Enchantment Creature - Serpent"
         self.rarity:str="Uncommon"

@@ -2,45 +2,59 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestRogue_s_Trickery(CardTestCaseBase):
-    async def test_rogue_s_trickery_smoke(self):
+    async def test_rogue_s_trickery_returns_countered_spell_copy_to_hand(self):
         card_cls = load_card_class_from_path("pycards/Instant/Rogue_s_Trickery/model.py", "Rogue_s_Trickery")
+        target_cls = load_card_class_from_path("pycards/Instant/Arcane_Insight/model.py", "Arcane_Insight")
         env = self.make_env()
         card = card_cls(env.p1)
+        target = target_cls(env.p2)
 
-        before = env.snapshot()
+        async def _noop():
+            return None
+
+        env.room.stack.append((_noop, target))
+        hand_before = len(env.p1.hand)
+        env.room.flag_dict["bullet_time"] = True
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        # basic run assertions
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.hand), hand_before + 1)
+        self.assertEqual(env.p1.hand[-1].name, target.name)
 
-    async def test_rogue_s_trickery_custom_scenario_template(self):
-        """Edit this test to set exact expected before/after state."""
+    async def test_rogue_s_trickery_returns_countered_creature_copy(self):
+        creature_cls = load_card_class_from_path("pycards/creature/Night_Stalker__/model.py", "Night_Stalker__")
         card_cls = load_card_class_from_path("pycards/Instant/Rogue_s_Trickery/model.py", "Rogue_s_Trickery")
         env = self.make_env()
         card = card_cls(env.p1)
+        stack_creature = creature_cls(env.p2)
+        env.p2.battlefield.append(stack_creature)
 
-        # 1) Setup custom scene before using card
-        # Example:
-        # env.p1.life = 10
-        # env.put_in_hand(card, env.p1)
-        before = env.snapshot()
+        async def _noop():
+            return None
 
-        # 2) Trigger card usage / effect
-        await env.play_card(card, env.p1)
+        env.room.stack.append((_noop, stack_creature))
+        hand_before = len(env.p1.hand)
+        env.room.flag_dict["bullet_time"] = True
+        result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        # Optional: simulate turns
-        # await env.advance_turns(2)
 
-        # 3) Assert expected state after effect
-        after = env.snapshot()
-        expected_after = {
-            # "p1": {"life": 20},
-            # "p2": {"life": 18},
-        }
-        self.assert_partial_state(after, expected_after)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(len(env.p1.hand), hand_before + 1)
+        self.assertEqual(env.p1.hand[-1].name, "Night Stalker")
+
+    async def test_rogue_s_trickery_controller_life_unchanged_on_spell_counter(self):
+        card_cls = load_card_class_from_path("pycards/Instant/Rogue_s_Trickery/model.py", "Rogue_s_Trickery")
+        target_cls = load_card_class_from_path("pycards/Instant/Arcane_Insight/model.py", "Arcane_Insight")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        target = target_cls(env.p2)
+        async def _noop():
+            return None
+        env.room.stack.append((_noop, target))
+        env.room.flag_dict["bullet_time"] = True
+        life = env.p1.life
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        self.assertEqual(env.p1.life, life)

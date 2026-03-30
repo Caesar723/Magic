@@ -2,53 +2,67 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestElite_Squire(CardTestCaseBase):
-    async def test_elite_squire_smoke(self):
+    async def test_elite_squire_enters_with_vigilance(self):
         card_cls = load_card_class_from_path("pycards/creature/Elite_Squire/model.py", "Elite_Squire")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        squire = env.get_battlefield_creature(env.p1, "Elite Squire")
+        self.assert_state(squire, {
+            "zone": "battlefield",
+            "state": (2, 2),
+            "flags": {"Vigilance": True},
+        })
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_elite_squire_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_elite_squire_vigilance_keeps_it_untapped_after_attack(self):
         card_cls = load_card_class_from_path("pycards/creature/Elite_Squire/model.py", "Elite_Squire")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+
+        squire = env.get_battlefield_creature(env.p1, "Elite Squire")
+        await env.simulate_combat(squire)
+        self.assertFalse(squire.get_flag("tap"))
+        self.assertEqual(env.p2.life, 18)
+
+    async def test_elite_squire_blocked_does_not_reduce_opponent_life(self):
+        card_cls = load_card_class_from_path("pycards/creature/Elite_Squire/model.py", "Elite_Squire")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        defender = env.put_creatures(env.p2, "Wall", 1, 4, 1)[0]
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
+        self.assertTrue(result[0])
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        squire = env.get_battlefield_creature(env.p1, "Elite Squire")
+        life_before = env.p2.life
+        await env.simulate_combat(squire, defender)
+        self.assertEqual(env.p2.life, life_before)
+        self.assertFalse(squire.get_flag("tap"))
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
+    async def test_elite_squire_blocks_opponent_attacker_preserves_controller_life(self):
+        card_cls = load_card_class_from_path("pycards/creature/Elite_Squire/model.py", "Elite_Squire")
+        env = self.make_env()
+        raider = env.put_creatures(env.p2, "Raider", 1, 1, 1)[0]
+        card = card_cls(env.p1)
 
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
 
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+        squire = env.get_battlefield_creature(env.p1, "Elite Squire")
+        life_before = env.p1.life
+        await env.simulate_combat(raider, squire)
+        await env.room.check_death()
+
+        self.assertEqual(env.p1.life, life_before)
+        self.assertEqual(env.card_zone(raider), "graveyard")
+        self.assert_state(squire, {"zone": "battlefield", "state": (2, 1)})

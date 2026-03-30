@@ -2,53 +2,43 @@ from tests.cards.base_env import CardTestCaseBase, load_card_class_from_path
 
 
 class TestNighthaunt_Assassin(CardTestCaseBase):
-    async def test_nighthaunt_assassin_smoke(self):
+    async def test_nighthaunt_assassin_etb_destroys_low_cost_enemy_creature(self):
         card_cls = load_card_class_from_path("pycards/creature/Nighthaunt_Assassin/model.py", "Nighthaunt_Assassin")
         env = self.make_env()
         card = card_cls(env.p1)
 
-        before = env.snapshot()
+        low = env.put_creatures(env.p2, "Low CMC", 2, 2, 1)[0]
+
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
-        after = env.snapshot()
 
-        self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 2)
-        self.assertIsInstance(before, dict)
-        self.assertIsInstance(after, dict)
+        self.assertTrue(result[0])
+        assassin = env.get_battlefield_creature(env.p1, "Nighthaunt Assassin")
+        self.assert_state(assassin, {"zone": "battlefield", "state": (2, 1)})
+        self.assertIn(env.card_zone(low), {"graveyard", "exile_area"})
 
-        if result[0]:
-            played_card = env.find_card_by_name(env.p1, card.name)
-            self.assertIsNotNone(played_card)
-            self.assert_state(played_card, {"owner": "p1"})
-
-    async def test_nighthaunt_assassin_custom_scenario_template(self):
-        """Richer template: play card, optional combat, and core assertions."""
+    async def test_nighthaunt_assassin_etb_skips_when_only_high_cmc_enemies(self):
         card_cls = load_card_class_from_path("pycards/creature/Nighthaunt_Assassin/model.py", "Nighthaunt_Assassin")
         env = self.make_env()
         card = card_cls(env.p1)
-
-        defenders = env.put_creatures(env.p2, "Test Defender", 2, 2, 2)
-        before = env.snapshot()
+        expensive = env.create_creature(env.p2, "High CMC", 4, 4)
+        expensive.mana_cost = "6"
+        env.put_on_battlefield(expensive, env.p2)
 
         result = await env.play_card(card, env.p1)
         await env.resolve_stack()
 
-        self.assertTrue(isinstance(result, tuple) and len(result) == 2)
-        self.assertIsInstance(before, dict)
+        self.assertTrue(result[0])
+        self.assertEqual(env.card_zone(expensive), "battlefield")
+        self.assertEqual(expensive.state, (4, 4))
 
-        if not result[0]:
-            self.skipTest(f"Card play failed in template path: {result[1]}")
-
-        played_card = env.find_card_by_name(env.p1, card.name)
-        self.assertIsNotNone(played_card)
-
-        if env.card_zone(played_card) == "battlefield":
-            before_combat = env.snapshot()
-            await env.simulate_combat(played_card, defenders[0])
-            after = env.snapshot()
-            self.assertLessEqual(after["p2"]["life"], before_combat["p2"]["life"])
-            self.assertIn(env.card_zone(played_card), {"battlefield", "graveyard", "exile_area"})
-            self.assertIn(env.card_zone(defenders[0]), {"battlefield", "graveyard", "exile_area"})
-        else:
-            self.assertIn(env.card_zone(played_card), {"graveyard", "exile_area", "hand"})
+    async def test_nighthaunt_assassin_etb_no_op_when_opponent_board_empty(self):
+        card_cls = load_card_class_from_path("pycards/creature/Nighthaunt_Assassin/model.py", "Nighthaunt_Assassin")
+        env = self.make_env()
+        card = card_cls(env.p1)
+        self.assertFalse(env.p2.battlefield)
+        result = await env.play_card(card, env.p1)
+        await env.resolve_stack()
+        self.assertTrue(result[0])
+        assassin = env.get_battlefield_creature(env.p1, "Nighthaunt Assassin")
+        self.assertEqual(env.card_zone(assassin), "battlefield")

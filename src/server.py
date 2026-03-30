@@ -352,6 +352,29 @@ async def delete_studio_room(username: str = Depends(get_current_user(database))
     if type(username)==RedirectResponse:
         return username
     return room_server.delete_studio_room(username)
+
+@app.get("/testing_area")
+async def testing_area_page(request: Request, username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        return username
+    return templates.TemplateResponse(
+        "webpages/testing_area/testing.html",
+        {"request": request, "data": room_server.get_players_name(username)},
+    )
+
+@app.post("/matching_testing_area")
+async def matching_testing_area(username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        return username
+    client_detail = ("", username)
+    await room_server.create_new_testing_room(client_detail)
+    return {"opponent": "Agent1", "self": username}
+
+@app.post("/delete_testing_room")
+async def delete_testing_room(username: str = Depends(get_current_user(database))):
+    if type(username)==RedirectResponse:
+        return username
+    return room_server.delete_testing_room(username)
 # @app.post("/players") 
 # async def matching_delete(username: str = Depends(get_current_user(database))):
 #     if type(username)==RedirectResponse:
