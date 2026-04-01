@@ -70,6 +70,7 @@ class Agent_Train(Agent_Player):
         # if len(self.agent.reward)>=1024:
         #     print("____________________update agent____________________")
         #     self.update()
+        
             
 
 

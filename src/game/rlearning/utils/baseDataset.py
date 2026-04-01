@@ -68,6 +68,24 @@ class BaseDataset(Dataset):
             if len(self.datas) > self.config.get("max_store", 1000):
                 self.pbar.close()
                 self.pbar=None
+
+    def store_round_data(self,datas):
+        for data in datas:
+            data_batch={
+                "state": data["state"],
+                "action": data["action"],
+                "reward": data["reward"],
+                "next_state": data["next_state"],
+                "done": data["done"],
+                "global_reward": data["global_reward"]
+            }
+            self.datas.append(data_batch)
+        if self.pbar is not None:
+            self.pbar.n = len(self.datas)
+            self.pbar.refresh()
+            if len(self.datas) > self.config.get("max_store", 1000):
+                self.pbar.close()
+                self.pbar=None
         
 
     def log_data(self,trainer,batch_extra):

@@ -4,7 +4,7 @@
 ###########################
 
 log_dir: "ppo/ppo_white_lstm_n02_v03"
-restore_step: -1
+restore_step: 0
 new_version: True
 reward_type: "reward_creature_base"
 sort_method: "score_tap"
@@ -23,7 +23,7 @@ max_store: 1024
 #------------------------------------
 dataset_class_name: "game.rlearning.datasets.ppo_agent_lstm.PPOAgentDataset"
 dataloader:
-  batch_size: 16
+  batch_size: 32
   num_workers: 0
 
 dataset_multiple: 10

@@ -233,6 +233,9 @@ class BaseTrainer:
         #     self.run()
         #     self.dataset.clear_data()
 
+    def store_round_data(self,datas):
+        self.dataset.store_round_data(datas)
+
     def update(self):
         if self.dataset.is_full():
             self.store_embedding_to_tensorboard()
@@ -293,6 +296,8 @@ class BaseTrainer:
 
 
     def restore_checkpoint(self, restore_step):
+        if restore_step == 0:
+            return
 
         if restore_step == -1:
             cpg = read_symbol_link(f"{self.logdir}/ckpt/g_last")

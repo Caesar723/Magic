@@ -151,7 +151,7 @@ class Base_Agent_Room(Room):
             sub_action=(action-22)%33
             sub_content=self.num2subaction(agent,sub_action)
             #print(sub_content)
-            print(sub_content)
+            #print(sub_content)
             agent.set_select_content(sub_content)
             #print(sub_content)
         result=f"{name}|{type_act}|{content}"
