@@ -1,32 +1,16 @@
+import sys
 if __name__=="__main__":
-    import sys
+
     sys.path.append("/Users/xuanpeichen/Desktop/code/python/openai/src")
     
-   
-import inspect
-import traceback
-#from room_server import RoomServer
-import numpy as np
-import asyncio
+
 import random
+import asyncio
 import os
-from game.train_agent import Agent_Train 
-from game.room import Room
-from game.ppo_train import Agent_PPO
-from game.rlearning.module.ppo_agent import PPOTrainer
+
 from game.rlearning.utils.model import get_class_by_name
-
-from game.card import Card
-from game.type_cards.creature import Creature
-from game.type_cards.instant import Instant
-from game.type_cards.land import Land
-from game.type_cards.sorcery import Sorcery
 from game.rlearning.utils.file import read_yaml
-from game.base_agent_room import Base_Agent_Room
-from game.game_recorder import GameRecorder
-from game.rlearning.utils.agentSchedule import AgentSchedule
-from game.rlearning.trainingRoom.training_parallel_room import worker_process
-
+from initinal_file import ORGPATH
 from multiprocessing import Queue,Manager,Process
 from queue import Full, Empty
 
@@ -85,33 +69,36 @@ class Info_Communication:
 class Parallel_Env:
     
     
-    def __init__(self,num_worker:int,config_path:str,config_path_list:list):
-        self.num_worker=num_worker
-        self.config_path=config_path
-        self.config_path_list=config_path_list
-        self.config=read_yaml(config_path)
-        self.config_list=[read_yaml(config_path) for config_path in config_path_list]
-
-        trainer1=get_class_by_name(self.config["trainer"])
-        #trainer_list=[get_class_by_name(config["trainer"]) for config in self.config_list]
+    def __init__(self,config_path:str):
         
-        self.agent1=trainer1(self.config,self.config["restore_step"],name="main")
-        # self.agent_list={
-        #     config_path_list[i]:trainer(self.config_list[i],self.config_list[i]["restore_step"],name=f"agent{i+1}") 
-        #     for i,trainer in enumerate(trainer_list)
-        # }
+        self.env_config=read_yaml(config_path)
+        self.num_worker=self.env_config["num_worker"]
+        self.initinal_config(self.env_config)
         self.manager=Manager()
-        self.info_communication=Info_Communication(num_worker,self.manager)
+        self.info_communication=Info_Communication(self.num_worker,self.manager)
         self.info_communication.update_model(0,0)
-        for i in range(num_worker):
+        for i in range(self.num_worker):
             self.info_communication.update_model_opponent(
                 i,
                 random.choice(self.config_path_list),
                 0
             )
 
+    def initinal_config(self,config:dict):
+        self.room_class=get_class_by_name(config["room"])
+        agent_config=config["agent_config"]
+        opponent_configs=config["opponent_config"]
+        self.config_path=f"{ORGPATH}/{agent_config}"
+        self.config_path_list=[f"{ORGPATH}/{opponent_config}" for opponent_config in opponent_configs]
+        self.config=read_yaml(self.config_path)
+        self.config_list=[read_yaml(config_path) for config_path in self.config_path_list]
+
+        trainer1=get_class_by_name(self.config["trainer"])
+
+        self.agent1=trainer1(self.config,self.config["restore_step"],name="main")
+
     def start_worker(self):
-        self.worker_process=[Process(target=worker_process, args=(self.config_path, self.config_path_list, self.info_communication, i)) for i in range(self.num_worker)]
+        self.worker_process=[Process(target=worker_process, args=(self.config_path, self.config_path_list, self.info_communication, i,self.room_class)) for i in range(self.num_worker)]
         for i in range(self.num_worker):
             self.worker_process[i].start()
 
@@ -126,13 +113,46 @@ class Parallel_Env:
             if is_update:
                 self.info_communication.update_model(self.agent1.step,-1)
 
+async def run_parallel_room(
+    config_path:str,
+    config_path_list:list,
+    info_communication:"Info_Communication",
+    worker_id:int,
+    room_class:type):
+    
+    room=room_class(
+        config_path,
+        config_path_list,
+        info_communication,
+        worker_id
+    )
+    
+    await room.game_start()
+    await room.action_process_system()
+
+def worker_process(
+    config_path:str, 
+    config_path_list:list, 
+    info_communication:"Info_Communication", 
+    worker_id:int,
+    room_class:type):
+    # sys.stdout = open(os.devnull, 'w')
+    # sys.stderr = open(os.devnull, 'w')
+    asyncio.run(
+        run_parallel_room(
+            config_path,
+            config_path_list,
+            info_communication,
+            worker_id,
+            room_class
+        )
+    )
+
 
 if __name__=="__main__":
-    env=Parallel_Env(5,
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm3.yaml",
-        [
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm2.yaml",
-        ]
+
+    env=Parallel_Env(
+        config_path="/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/parallel/parallel_specific_v1.yaml",
     )
     env.start_worker()
     env.run()

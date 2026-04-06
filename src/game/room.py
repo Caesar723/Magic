@@ -12,6 +12,7 @@ if __name__=="__main__":
 import asyncio
 import random
 import time
+import traceback
 from typing import Union,TYPE_CHECKING
 if TYPE_CHECKING:
     from fastapi import WebSocket
@@ -33,6 +34,8 @@ from pycards.land.Plains.model import Plains
 from pycards.land.Forest.model import Forest
 from pycards.land.Island.model import Island
 import game.custom_print
+
+
 
 
 class Room:
@@ -491,7 +494,7 @@ class Room:
             print("message_process 停止")
             raise
         except Exception as e:
-            print(e)
+            traceback.print_exc()
             raise
 
     async def select_attacker(self,username:str,content:str):
@@ -812,7 +815,14 @@ class Room:
     #     while self.gamming:
     #         pass
             
-            
+    def get_cost_total(self,agent:"Player"):
+        player_mana=dict(agent.mana)
+        for land in agent.land_area:
+            if not land.get_flag("tap"):
+                mana=land.generate_mana()
+                for key in mana:
+                    player_mana[key]+=mana[key]
+        return player_mana
             
             
     

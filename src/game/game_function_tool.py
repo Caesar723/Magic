@@ -153,7 +153,7 @@ def random_select(player:'Player',type_selection:str):
 
     combined_list=[]
     for item in type_dict[type_selection]:
-        if isinstance(item,type(player)):
+        if isinstance(item,type(player)) or isinstance(item,type(oppo_player)):
             combined_list.append(item)
         else:
             combined_list+=item

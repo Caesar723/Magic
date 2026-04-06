@@ -271,6 +271,8 @@ class Card:
     
     async def Scry(self,player:'Player',opponent:'Player',times:int):
         length_library=len(player.library)
+        if not length_library:
+            return
         if times>length_library:
             cards=player.library[0:length_library]
         else:
@@ -278,7 +280,9 @@ class Card:
 
         selection_end=self.create_selection("End Selection",1)
         while cards:
+            print(cards)
             card=await player.send_selection_cards(cards+[selection_end])
+            print(card)
             if card=="cancel":
                 await player.send_text("end_select()")
                 for card_remove in cards:

@@ -33,7 +33,10 @@ class Phantasmal_Distortion(Instant):
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         
         if selected_object and player.battlefield:
-            target = random.choice([card for card in player.battlefield if card is not selected_object[0]])
+            candidates = [card for card in player.battlefield if card is not selected_object[0]]
+            if not candidates:
+                return
+            target = random.choice(candidates)
             source = selected_object[0]
             buff = Clone(self, source,target)
             buff.set_end_of_turn()

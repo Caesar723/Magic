@@ -2,5 +2,6 @@ agent_config: game/rlearning/config/white/ppo_lstm3.yaml
 opponent_config:
   - game/rlearning/config/white/ppo_lstm2.yaml
 
-room: "game.rlearning.trainingRoom.training_parallel_room.Multi_Agent_Parallel_Room"
-num_worker: 5
+num_worker: 1
+
+room: "game.rlearning.trainingRoom.training_parallel_specific_room.Multi_Agent_Parallel_Specific_Room"

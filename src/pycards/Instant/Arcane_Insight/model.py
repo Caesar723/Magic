@@ -7,6 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.instant import Instant
 from game.game_function_tool import select_object
+import random
 
 
 class Arcane_Insight(Instant):
@@ -23,7 +24,7 @@ class Arcane_Insight(Instant):
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
-        self.content:str="Draw two cards, then discard a card unless you discard an instant or sorcery card."
+        self.content:str="Draw two cards, then randomly discard a card unless you discard an instant or sorcery card."
         self.image_path:str="cards/Instant/Arcane Insight/image.jpg"
 
     @select_object("",1)
@@ -31,9 +32,8 @@ class Arcane_Insight(Instant):
         player.draw_card(2)
         if not player.hand:
             return
-        card=await player.send_selection_cards(player.hand,selection_random=True)
-        if card=="cancel":
-            return
+        card=random.choice(player.hand)
         if card.type not in ("Instant","Sorcery"):
-            player.discard(card)
+            return
+        player.discard(card)
 

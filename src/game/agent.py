@@ -99,7 +99,10 @@ class Agent_Player(Player):
         return 
     
 
-    async def send_selection_cards(self,selected_cards:list,selection_random:bool=False):
+    async def send_selection_cards(self,selected_cards:list,selection_random:bool=False,auto_select:bool=False):
+        print(auto_select,selection_random)
+        if auto_select:
+            return random.choice(selected_cards)
         async with self.selection_lock:
             # cards=','.join([card.text(self,False) for card in selected_cards])
             # await self.send_text(f"select(cards,parameters({cards}))")

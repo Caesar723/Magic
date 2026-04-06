@@ -35,7 +35,9 @@ class Celestial_Renewal(Sorcery):
         from game.type_cards.creature import Creature
         
         creatures = player.get_cards_by_pos_type("graveyard", (Creature,))
-        for creature in random.choice(creatures,2):
+        if not creatures or len(creatures)<2:
+            return
+        for creature in random.sample(creatures,2):
             player.remove_card(creature, "graveyard")
             new_creature=type(creature)(player)
             org_state=new_creature.state

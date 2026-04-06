@@ -342,7 +342,7 @@ class Player:
     async def beginning_phase(self):#开始阶段
         self.add_counter_dict("turn_count",1)
         self.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
-        self.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
+        #self.mana={"colorless":0,"U":9,"W":9,"B":9,"R":9,"G":9}
         self.action_store.add_action(actions.Change_Mana(self,self,self.get_manas()))
         self.return_to_org_max_land()
         self.untap_step()
@@ -516,7 +516,10 @@ class Player:
             card.when_discard(self,self.opponent)
 
 
-    async def send_selection_cards(self,selected_cards:list[Card],selection_random:bool=False):
+    async def send_selection_cards(self,selected_cards:list[Card],selection_random:bool=False,auto_select:bool=False):
+        print(auto_select,selection_random)
+        if auto_select:
+            return random.choice(selected_cards)
         async with self.selection_lock:
             cards=','.join([card.text(self,False) for card in selected_cards])
             await self.send_text(f"select(cards,parameters({cards}))")

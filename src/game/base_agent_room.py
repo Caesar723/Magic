@@ -677,7 +677,7 @@ class Base_Agent_Room(Room):
         instance_dict={
             Creature:"when_enter_battlefield",
             Instant:"card_ability",
-            Land:"when_enter_battlefield",
+            Land:"when_enter_landarea",
             Sorcery:"card_ability"
         }
 

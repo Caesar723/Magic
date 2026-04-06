@@ -7,6 +7,7 @@ if TYPE_CHECKING:
  
 from game.type_cards.instant import Instant
 from game.game_function_tool import select_object
+import random
 
 
 class Arcane_Reflection(Instant):
@@ -25,7 +26,7 @@ class Arcane_Reflection(Instant):
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Arcane Reflection allows you to return target instant or sorcery card from your graveyard to your hand."
+        self.content:str="Arcane Reflection allows return random instant or sorcery card from your graveyard to your hand."
         self.image_path:str="cards/Instant/Arcane Reflection/image.jpg"
 
     @select_object("",1)
@@ -39,7 +40,7 @@ class Arcane_Reflection(Instant):
             if c is not self
         ]
         if cards:
-            card = await player.send_selection_cards(cards, selection_random=True)
+            card = random.choice(cards)
             player.remove_card(card, "graveyard")
             player.append_card(type(card)(player), "hand")
 
