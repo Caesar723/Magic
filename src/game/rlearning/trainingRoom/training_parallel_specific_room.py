@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING
 from game.game_function_tool import get_dir_names,name_replace,ORGPATH
 import re
 if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_env import Info_Communication
+    from game.rlearning.communicate.training_parallel_specific_room import Info_Communication
 
 
 
@@ -41,8 +41,9 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
     CARDS_CACHE:dict[str,list[Card]]={}
 
-    def __init__(self, config_path:str, config_path_list:list, info_communication:"Info_Communication", worker_id:int):
-        super().__init__(config_path, config_path_list, info_communication, worker_id)
+    def __init__(self, env_config, info_communication:"Info_Communication", worker_id:int):
+        self.env_config=env_config
+        super().__init__(env_config, info_communication, worker_id)
         
         
         Agent_Train.send_selection_cards.__defaults__=(True,True)
@@ -481,7 +482,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
     def send_data_to_host(self,agent:Agent_Train):
 
 
-        self.info_communication.store_game_date(agent.agent.dataset.datas)
+        self.info_communication.store_game_data(agent.agent.dataset.datas)
         agent.agent.dataset.datas = []
     
         

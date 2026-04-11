@@ -11,27 +11,17 @@ import numpy as np
 import asyncio
 import random
 import os
-from multiprocessing import Process, Queue
 
 from game.train_agent import Agent_Train 
-from game.room import Room
-from game.ppo_train import Agent_PPO
-from game.rlearning.module.ppo_agent import PPOTrainer
 from game.rlearning.utils.model import get_class_by_name
-
-from game.card import Card
-from game.type_cards.creature import Creature
-from game.type_cards.instant import Instant
-from game.type_cards.land import Land
-from game.type_cards.sorcery import Sorcery
 from game.rlearning.utils.file import read_yaml
 from game.base_agent_room import Base_Agent_Room
 from game.game_recorder import GameRecorder
 from game.rlearning.utils.agentSchedule import AgentSchedule
-
+from initinal_file import ORGPATH
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_env import Info_Communication
+    from game.rlearning.communicate.training_parallel_room import Info_Communication
 
 
 
@@ -43,11 +33,13 @@ class Multi_Agent_Parallel_Room(Base_Agent_Room):
     """
 
     def __init__(self,
-    config_path:str,
-    config_path_list:list,
+    env_config,
     info_communication:"Info_Communication",
     worker_id:int,
     ) -> None:
+        self.env_config=env_config
+        config_path=f"{ORGPATH}/{env_config['agent_config']}"
+        config_path_list=[f"{ORGPATH}/{config_path}" for config_path in env_config["opponent_config"]]
         self.info_communication=info_communication
         self.worker_id=worker_id
         
@@ -373,7 +365,7 @@ class Multi_Agent_Parallel_Room(Base_Agent_Room):
     def send_data_to_host(self,agent:Agent_Train):
 
 
-        self.info_communication.store_game_date(agent.agent.dataset.datas)
+        self.info_communication.store_game_data(agent.agent.dataset.datas)
         agent.agent.dataset.datas = []
     
         
