@@ -16,14 +16,16 @@ class Info_Communication:
             self.update_model_opponent(i,random.choice(self.config_path_list),0)
 
     def store_game_data(self,data:list[dict]):
-        try:
-            self.data_queue.put(data, block=False)
-        except Full:
-            try:
-                self.data_queue.get(block=False)
-            except Empty:
-                pass
-            self.data_queue.put(data, block=False)
+        # for _ in range(3):
+        #     try:
+        #         self.data_queue.put(data, block=False)
+        #         return
+        #     except Full:
+        #         try:
+        #             self.data_queue.get(block=False)
+        #         except Empty:
+        #             pass
+        self.data_queue.put(data, block=True)
 
     def get_game_data(self):
         return self.data_queue.get()

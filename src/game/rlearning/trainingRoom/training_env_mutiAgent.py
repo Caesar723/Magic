@@ -132,7 +132,7 @@ class Multi_Agent_Room(Base_Agent_Room):
         }
         #print(self.reward_func)
         
-        self.player_2.agent.restore_checkpoint(AgentSchedule.get_restore_step(self.player_2))
+        self.player_2.agent.restore_checkpoint(AgentSchedule.get_restore_step(self.player_2.agent.logdir))
 
     # def get_random_restore_step(self,agent:Agent_Train):
     #     save_step=agent.agent.config["save_step"]

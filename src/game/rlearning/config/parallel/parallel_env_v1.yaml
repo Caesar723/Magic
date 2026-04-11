@@ -1,6 +1,6 @@
-agent_config: game/rlearning/config/agents/white/ppo_lstm3.yaml
+agent_config: game/rlearning/config/agents/white/ppo_lstm2.yaml
 opponent_config:
-  - game/rlearning/config/agents/white/ppo_lstm2.yaml
+  - game/rlearning/config/agents/white/ppo_lstm3.yaml
 
 
 env: "game.rlearning.parallel_env.training_parallel_env.Parallel_Env"

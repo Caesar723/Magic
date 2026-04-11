@@ -86,6 +86,7 @@ class Multi_Agent_Parallel_Room(Base_Agent_Room):
         agents_deck="Eternal Phoenix+Creature+4|Raging Firekin+Creature+4|Emberheart Salamander+Creature+4|Arcane Inferno+Instant+4|Pyroblast Surge+Instant+4|Fiery Blast+Instant+4|Inferno Titan+Creature+4|Flame Tinkerer+Creature+4|Mountain+Land+24"
 
         model_info= self.info_communication.get_model_info(self.worker_id)
+        print(model_info)
 
         players=[(agents_deck,"Agent1"),(agents_deck,"Agent2")]
         

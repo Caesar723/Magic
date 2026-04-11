@@ -13,8 +13,10 @@ from game.rlearning.utils.file import read_yaml
 from initinal_file import ORGPATH
 from torch.multiprocessing import Queue,Manager,Process
 from queue import Full, Empty
+from typing import TYPE_CHECKING
 
-
+if TYPE_CHECKING:
+    from game.rlearning.communicate.training_parallel_room import Info_Communication
 
 class BaseParallelEnv:
     
@@ -30,7 +32,7 @@ class BaseParallelEnv:
 
     def initinal_config(self,config:dict):
         
-        self.info_communication=get_class_by_name(self.env_config["info_communication"])(self.env_config,self.manager)
+        self.info_communication:"Info_Communication"=get_class_by_name(self.env_config["info_communication"])(self.env_config,self.manager)
 
         self.room_class=get_class_by_name(config["room"])
         agent_config=config["agent_config"]
@@ -45,6 +47,8 @@ class BaseParallelEnv:
         self.worker_process=[Process(target=worker_process, args=(self.env_config, self.info_communication, i,self.room_class)) for i in range(self.num_worker)]
         for i in range(self.num_worker):
             self.worker_process[i].start()
+
+        
 
     def run(self):
         pass

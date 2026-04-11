@@ -11,8 +11,8 @@ class AgentSchedule:
     
 
     @classmethod
-    def get_restore_step(cls,agent):
-        logdir=agent.agent.logdir
+    def get_restore_step(cls,logdir):
+        #logdir=agent.agent.logdir
         item=random.choices(cls.items, cls.probs, k=1)[0]
         #print(os.path.join(logdir, item))
         item_path=os.path.join(logdir, item)
@@ -26,7 +26,9 @@ class AgentSchedule:
                 random_restore=random.choice(paths)
                 #print(random_restore)
                 return random_restore
-        else:
+        elif os.path.exists(os.path.join(logdir,"ckpt")):
             paths=[path.split("_")[1].split(".")[0] for path in os.listdir(os.path.join(logdir,"ckpt")) if path.startswith("config")]
             random_restore=random.choice(paths)
             return random_restore
+        else:
+            return 0

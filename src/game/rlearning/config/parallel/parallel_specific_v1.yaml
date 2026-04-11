@@ -5,5 +5,5 @@ info_communication: "game.rlearning.communicate.training_parallel_specific_room.
 num_worker: 1
 
 
-env: "game.rlearning.parallel_env.training_parallel_env.Parallel_Env"
+env: "game.rlearning.parallel_env.training_parallel_specific_env.Parallel_Env"
 room: "game.rlearning.trainingRoom.training_parallel_specific_room.Multi_Agent_Parallel_Specific_Room"

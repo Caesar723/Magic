@@ -370,7 +370,7 @@ class Multi_Agent_Room(Base_Agent_Room):
             #print("finish")
             self.gamming=True
             await self.initinal_environmrnt()
-            self.player_2.agent.restore_checkpoint(AgentSchedule.get_restore_step(self.player_1))
+            self.player_2.agent.restore_checkpoint(AgentSchedule.get_restore_step(self.player_1.agent.logdir))
             
             
         #self.active_player.update()
