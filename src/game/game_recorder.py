@@ -103,8 +103,13 @@ class GameRecorder:
 
         if base_path=="":
             base_path=f"{ORGPATH}/game/game_records"
-        os.makedirs(f"{base_path}/{self_name}",exist_ok=True)
-        filename=f"{base_path}/{self_name}/{self_name}_{opponent_name}_{time_str}_{extra_info}.mgf"
+        if extra_info:
+            extra_info=extra_info.zfill(7)
+            filename=f"{base_path}/{self_name}/{extra_info}/{self_name}_{opponent_name}_{time_str}.mgf"
+            os.makedirs(f"{base_path}/{self_name}/{extra_info}",exist_ok=True)
+        else:
+            filename=f"{base_path}/{self_name}/{self_name}_{opponent_name}_{time_str}.mgf"
+            os.makedirs(f"{base_path}/{self_name}",exist_ok=True)
 
         async with aiofiles.open(filename, "wb") as f:
             await f.write(self.message_to_binary())

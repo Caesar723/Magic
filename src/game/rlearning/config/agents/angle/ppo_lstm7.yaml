@@ -4,7 +4,7 @@
 ###########################
 
 log_dir: "ppo/ppo_angle_lstm_n02_v06"
-restore_step: -1
+restore_step: 0
 new_version: True
 new_history: True
 history_attack: True

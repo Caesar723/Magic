@@ -1,6 +1,7 @@
-agent_config: game/rlearning/config/agents/white/ppo_lstm3.yaml
+agent_config: game/rlearning/config/agents/angle/ppo_lstm7.yaml
 opponent_config:
-  - game/rlearning/config/agents/white/ppo_lstm2.yaml
+  - game/rlearning/config/agents/white/ppo_lstm3.yaml
+
 info_communication: "game.rlearning.communicate.training_parallel_specific_room.Info_Communication"
 num_worker: 1
 

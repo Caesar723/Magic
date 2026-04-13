@@ -92,6 +92,7 @@ class Multi_Agent_Parallel_Room(Base_Agent_Room):
         
         self.player_1=Agent_Train(players[0][1],self,self.agent1)
         self.player_1.agent.pbar=None
+        
         agent_oppo=self.agent_list[model_info["config_opponent_path"]]
         self.player_2=Agent_Train(players[1][1],self,agent_oppo)
         
@@ -143,6 +144,7 @@ class Multi_Agent_Parallel_Room(Base_Agent_Room):
 
         
         if model_info["success_update"]:
+            self.update_flag[self.player_1.name]=True
             self.player_1.agent.restore_checkpoint(model_info["model_path"])
         if model_info["success_opponent_update"]:
             self.player_2.agent.restore_checkpoint(model_info["model_opponent_path"])
@@ -352,6 +354,7 @@ class Multi_Agent_Parallel_Room(Base_Agent_Room):
                 
             if agent==self.player_1:
                 self.send_data_to_host(agent)
+                
                     
             else:
                 self.send_data_to_host(oppo_agent)

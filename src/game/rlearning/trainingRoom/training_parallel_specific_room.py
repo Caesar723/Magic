@@ -149,7 +149,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         if name == "undo":
             print("get_cards_sample_by_name",name,number,is_except)
             result=[]
-            types=["Instant"]
+            types=["Instant","land","sorcery","creature"]
             subclass_dict={"Instant_Undo":"Instant"}
             class_dict={}
             for type in types:
@@ -363,7 +363,11 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
                 if not player.battlefield:
                     self.env_creature(player)
         elif "land" in select_range:
-            return None
+            return {
+                "card":card,
+                "type":0,
+                "action":None
+            }
 
 
         action=self.sample_action((22,22+33))
@@ -373,6 +377,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             "type":0,
             "action":action
         }
+        print(simulate_info)
 
         return simulate_info
     

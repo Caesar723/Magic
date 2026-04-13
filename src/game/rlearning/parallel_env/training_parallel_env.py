@@ -48,5 +48,8 @@ class Parallel_Env(BaseParallelEnv):
                     print(agent_path,restore_step)
                     self.info_communication.update_model_opponent(worker_id,agent_path,restore_step)
 
-
+            if self.agent1.agent.step >= self.agent1.agent.total_step:  
+                if self.agent1.agent.rank == 0:
+                    self.agent1.agent.save_checkpoint() 
+                return 
 

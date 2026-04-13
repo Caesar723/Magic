@@ -1,5 +1,7 @@
 from torch.multiprocessing import Queue
 from queue import Full, Empty
+from initinal_file import ORGPATH
+import random
 
 
 class Info_Communication:
@@ -8,6 +10,12 @@ class Info_Communication:
         self.num_worker = env_config["num_worker"]
         self.communication={key:manager.dict() for key in range(self.num_worker)}
         
+        self.config_path_list=[f"{ORGPATH}/{config_path}" for config_path in env_config["opponent_config"]]
+
+        self.update_model(0,0)
+        for i in range(self.num_worker):
+            self.update_model_opponent(i,random.choice(self.config_path_list),0)
+
     def store_game_data(self,data:list[dict]):
         # for _ in range(3):
         #     try:

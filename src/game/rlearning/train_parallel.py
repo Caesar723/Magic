@@ -19,7 +19,7 @@ def main(args):
 
 def get_args():
     parser=argparse.ArgumentParser()
-    parser.add_argument("--config",type=str,default=f"{ORGPATH}/game/rlearning/config/parallel/parallel_env_v1.yaml")
+    parser.add_argument("--config",type=str,default=f"{ORGPATH}/game/rlearning/config/parallel/parallel_specific_v1.yaml")
     return parser.parse_args()
 
 
