@@ -79,6 +79,10 @@ class PVE_Demo_Room(Base_Agent_Room):
             players[0][1]:GameRecorder(self.player_2,self,start_record=False)
         }
 
+        self.basic_func={
+            "Agent1":self.initinal_function(self.player_1.config),
+        }
+
 
 
 
@@ -87,9 +91,9 @@ class PVE_Demo_Room(Base_Agent_Room):
         #如果是攻击的action，给敌方agent发送动作请求，自己挂起再一次，直到地方action动作做好发送信息给自己，自己结束挂起，计算state
         # 获取state，done，计算reward
         #返回new state 和 reward 和 done
-        message:str=await self.num2action(agent,action)
+        message:str=await self.basic_func[agent.name]["num2action"](agent,action)
         print(message)
-        print(self.get_reward_attack(agent)["reward"])
+        print(self.basic_func[agent.name]["get_reward"](agent)["reward"])
 
         await self.message_receiver(message)
 
@@ -116,8 +120,10 @@ class PVE_Demo_Room(Base_Agent_Room):
     async def ask_agent_do_act(self):
         await asyncio.sleep(1)
         agent:Agent=self.player_1
-        state=self.get_new_state(agent)
-        mask=self.create_action_mask(agent)
+        state=self.basic_func[agent.name]["get_state"](agent)
+        mask=self.basic_func[agent.name]["create_action_mask"](agent)
+        print(mask)
+        print(state)
         state["mask"]=mask
         action=agent.choose_action(state,isTrain=False)
         # print(action)

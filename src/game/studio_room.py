@@ -65,6 +65,10 @@ class Studio_Room(PVE_Room):
             players[0][1]:GameRecorder(self.player_2,self),
             "Agent1":GameRecorder(self.player_1,self)
         }
+        self.basic_func={
+            "Agent1":self.initinal_function(self.player_1.config),
+            
+        }
         
 
     async def add_card(self,username:str,content:str):

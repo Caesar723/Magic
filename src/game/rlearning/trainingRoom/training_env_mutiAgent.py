@@ -126,9 +126,9 @@ class Multi_Agent_Room(Base_Agent_Room):
 
         
 
-        self.reward_func:dict[str,function]={
-            players[0][1]:self.reward_dict[self.config.get("reward_type","reward_balance")],
-            players[1][1]:self.reward_dict[self.config.get("reward_type","reward_balance")]
+        self.basic_func:dict[str,dict]={
+            players[0][1]:self.initinal_function(self.agent1.config),
+            players[1][1]:self.initinal_function(agent_oppo.config)
         }
         #print(self.reward_func)
         
@@ -156,11 +156,11 @@ class Multi_Agent_Room(Base_Agent_Room):
         # 获取state，done，计算reward
         #返回new state 和 reward 和 done
         org_state=str(self)
-        message:str=await self.num2action(agent,action)
+        message:str=await self.basic_func[agent.name]["num2action"](agent,action)
         username,type,content=message.split("|")
         #old_reward=self.get_reward_red(agent)
         #print(username,content,type)
-        old_rewards=self.reward_func[agent.name](agent)
+        old_rewards=self.basic_func[agent.name]["get_reward"](agent)
         info_index=len(self.game_recorder[agent.name].datas)
         old_reward=old_rewards["reward"]
 
@@ -180,8 +180,8 @@ class Multi_Agent_Room(Base_Agent_Room):
         if action>=2 and action <=11:
             
             agent_oppo:Agent_Train=agent.opponent
-            state=self.get_new_state(agent_oppo)
-            mask=self.create_action_mask(agent_oppo)
+            state=self.basic_func[agent_oppo.name]["get_state"](agent_oppo)
+            mask=self.basic_func[agent_oppo.name]["create_action_mask"](agent_oppo)
             state["mask"]=mask
             action_oppo= agent_oppo.choose_action(state,isTrain=True)
             #print(action)
@@ -213,7 +213,7 @@ class Multi_Agent_Room(Base_Agent_Room):
 
         async def next_state_function(info_index=info_index):
             
-            current_rewards=self.reward_func[agent.name](agent,selected_creature,attacker)
+            current_rewards=self.basic_func[agent.name]["get_reward"](agent,selected_creature,attacker)
             current_reward=current_rewards["reward"]
             # if action==0:
             #     new_reward=0
@@ -260,7 +260,7 @@ class Multi_Agent_Room(Base_Agent_Room):
             #print(message)
             await self.game_recorder[agent.name].store_game_reward(info_index,message,new_reward,old_rewards,current_rewards)
             
-            return self.get_new_state(agent),new_reward,done,current_reward
+            return self.basic_func[agent.name]["get_state"](agent),new_reward,done,current_reward
         return next_state_function
         
     
@@ -362,8 +362,8 @@ class Multi_Agent_Room(Base_Agent_Room):
 
             while self.gamming:
                 agent:Agent_Train=self.active_player
-                state=self.get_new_state(agent)
-                mask=self.create_action_mask(agent)
+                state=self.basic_func[agent.name]["get_state"](agent)
+                mask=self.basic_func[agent.name]["create_action_mask"](agent)
                 state["mask"]=mask
                 action=agent.choose_action(state,isTrain=True)
                 #print(action)

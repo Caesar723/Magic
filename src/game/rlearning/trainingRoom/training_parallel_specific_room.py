@@ -13,6 +13,7 @@ import random
 import os
 import time
 from multiprocessing import Process, Queue
+from functools import partial
 
 from game.train_agent import Agent_Train 
 from game.room import Room
@@ -49,6 +50,22 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         Agent_Train.send_selection_cards.__defaults__=(True,True)
         Agent_Train.send_selection_cards.__defaults__=(True,True)
 
+    def initinal_function(self,config:dict):
+        result={}
+        get_reward=get_class_by_name(config.get("reward_function","game.rlearning.rewards.win_base.get_reward"))
+        result["get_reward"]=partial(get_reward,self)
+
+        get_state=get_class_by_name(config.get("state_function","game.rlearning.states.single_deck.get_state"))
+        result["get_state"]=partial(get_state,self)
+
+
+        num2action=get_class_by_name(config.get("action_transform_function","game.rlearning.actions.single_deck.num2action"))
+        result["num2action"]=partial(num2action,self)
+
+        create_action_mask=get_class_by_name(config.get("action_mask_function","game.rlearning.actions.single_deck.create_action_mask"))
+        result["create_action_mask"]=partial(create_action_mask,self)
+
+        return result
     def change_environmrnt(self):
         self.action_store_list_cache=[]
 
@@ -321,7 +338,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
     def sample_action(self,action_range:tuple[int,int]):
         # 从 mask 里抽一个为 true index，但是有范围限制
         
-        actions_mask = self.create_action_mask_old(self.player_1)[0]
+        actions_mask = self.basic_func[self.player_1.name]["create_action_mask"](self.player_1)[0]
         print(actions_mask)
         min_index,max_index = action_range  # 设置你想要的最大index（不包含max_index本身）
         actions = [i for i in range(min_index, max_index) if actions_mask[i]]
@@ -447,7 +464,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
                 if action is None:
                     continue
                 agent:Agent_Train=self.player_1
-                state=self.get_new_state(agent)
+                state=self.basic_func[agent.name]["get_state"](agent)
 
                 #print(action)
                 reward_func=await self.process_action(agent,action)
@@ -498,98 +515,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         for player in [self.player_1,self.player_2]:
             await player.clear_pedding_store_task()
 
-    def get_new_state(self,agent:Agent_Train):
-        state_batch={}
 
-        basic_state=[]
-        oppo_agent=agent.opponent
-
-        self_life=max(0,min(20,int(agent.life)))
-        self_life_one_hot=np.zeros(21)
-        self_life_one_hot[self_life]=1
-        state_batch["self_life"]=self_life_one_hot
-
-        oppo_life=max(0,min(20,int(oppo_agent.life)))
-        oppo_life_one_hot=np.zeros(21)
-        oppo_life_one_hot[oppo_life]=1
-        state_batch["oppo_life"]=oppo_life_one_hot
-        max_mana=20
-        self_mana=[]
-        cost=self.get_cost_total(agent)
-        for color in ["U","R","G","W","B"]:
-            mana_cost=cost[color]
-            mana_cost=max(0,min(max_mana,int(mana_cost)))
-            # one_hot=np.zeros(max_mana)
-            # one_hot[mana_cost]=1
-            self_mana.append(mana_cost)
-        
-
-        state_batch["self_mana"]=self_mana
-
-        
-        card_types=[]
-        card_special_types=[]
-        card_costs=[]
-        card_atks=[]
-        card_hps=[]
-        card_has_attack=[]
-        card_has_defend=[]
-        card_mask=[]
-        
-        length_hand=len(agent.hand)
-        for hand_i in range(10):
-            if hand_i <length_hand:
-                card=agent.hand[hand_i]
-
-                
-
-                card_type,card_special_type=self.get_card_special_types(card)
-
-                card_types.append(card_type)
-                card_special_types.append(card_special_type)
-
-                card_manas=[]
-                for mana in list(card.calculate_cost().values()):
-                    mana=max(0,min(max_mana,int(mana)))
-                    # mana_one_hot=np.zeros(max_mana)
-                    # mana_one_hot[mana]=1
-                    card_manas.append(mana)
-                #card_manas=np.concatenate(card_manas, axis=0)
-                #print(card.calculate_cost().values())
-                card_costs.append(np.array(card_manas))
-
-                if card_type==1:
-                    attack,defend=card.state
-                    card_atks.append(attack)
-                    card_hps.append(defend)
-                    card_has_attack.append(1)
-                    card_has_defend.append(1)
-                else:
-                    card_atks.append(0)
-                    card_hps.append(0)
-                    card_has_attack.append(0)
-                    card_has_defend.append(0)
-
-                card_mask.append(1)
-            else:
-                
-                card_types.append(0)
-                card_special_types.append(np.zeros(20))
-                card_costs.append(np.zeros(6))
-                card_atks.append(0)
-                card_hps.append(0)
-                card_has_attack.append(0)
-                card_has_defend.append(0)
-                card_mask.append(0)
-
-
-
-        state_batch["self_board"]=self.get_creature_state_new_batch(agent,agent.battlefield)
-        state_batch["oppo_board"]=self.get_creature_state_new_batch(agent,oppo_agent.battlefield)
-
-        
-        state_batch["simulate_state"]=0#0:play,1:attack,2:defend
-        return state_batch
 
 
     async def process_action(self,agent:Agent_Train,action:int)->tuple:
@@ -598,12 +524,12 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         # 获取state，done，计算reward
         #返回new state 和 reward 和 done
         org_state=str(self)
-        message:str=await self.num2action_old(agent,action)
+        message:str=await self.basic_func[agent.name]["num2action"](agent,action)
         print(message)
         username,type,content=message.split("|")
         #old_reward=self.get_reward_red(agent)
         #print(username,content,type)
-        old_rewards=self.reward_func[agent.name](agent)
+        old_rewards=self.basic_func[agent.name]["get_reward"](agent)
         info_index=len(self.game_recorder[agent.name].datas)
         old_reward=old_rewards["reward"]
 
@@ -626,8 +552,8 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         if action>=2 and action <=11:
             
             agent_oppo:Agent_Train=agent.opponent
-            state=self.get_new_state(agent_oppo)
-            mask=self.create_action_mask_old(agent_oppo)
+            state=self.basic_func[agent_oppo.name]["get_state"](agent_oppo)
+            mask=self.basic_func[agent_oppo.name]["create_action_mask"](agent_oppo)
             state["mask"]=mask
             action_oppo= 1
             await self.process_action(agent_oppo,action_oppo)
@@ -649,7 +575,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
         async def next_state_function(info_index=info_index):
             
-            current_rewards=self.reward_func[agent.name](agent,selected_creature,attacker)
+            current_rewards=self.basic_func[agent.name]["get_reward"](agent,selected_creature,attacker)
             current_reward=current_rewards["reward"]
             # if action==0:
             #     new_reward=0
@@ -696,7 +622,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             #print(message)
             await self.game_recorder[agent.name].store_game_reward(info_index,message,new_reward,old_rewards,current_rewards)
             
-            return self.get_new_state(agent),new_reward,done,current_reward
+            return self.basic_func[agent.name]["get_state"](agent),new_reward,done,current_reward
         return next_state_function
 
 

@@ -3,11 +3,10 @@
 # Common
 ###########################
 
-log_dir: "ppo/ppo_white_lstm_n02_v02"
+log_dir: "specific/specific_n01_v01"
 restore_step: 0
-new_version: True
 #------------------------------------
-action_history_length: 10
+
 cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Creature+3|Ironclad Crusader+Creature+2|Sunlit Priestess+Creature+3|Apocalypse Riders+Sorcery+4|Call to Unity+Sorcery+4|Angelic Blessing+Sorcery+2|Righteous Conviction+Sorcery+2|Spectral Embrace+Sorcery+3|Celestial Convergence+Instant+1|Avenging Light+Instant+1|Plains+Land+15"
 
 #------------------------------------
@@ -16,10 +15,10 @@ cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Cre
 ###########################
 #  Train 
 ###########################
-seed: 1247
+seed: 1234
 max_store: 1024
 #------------------------------------
-dataset_class_name: "game.rlearning.datasets.ppo_agent_lstm.PPOAgentDataset"
+dataset_class_name: "game.rlearning.datasets.ppo_agent.PPOAgentDataset"
 dataloader:
   batch_size: 32
   num_workers: 0
@@ -28,28 +27,26 @@ dataset_multiple: 10
 
 
 #------------------------------------
-trainer: "game.rlearning.module.ppo_agent_lstm.PPOTrainer"
-reward_function: "game.rlearning.rewards.win_base.get_reward"
-state_function: "game.rlearning.states.single_deck.get_state"
-action_transform_function: "game.rlearning.actions.single_deck.num2action"
-action_mask_function: "game.rlearning.actions.single_deck.create_action_mask"
+trainer: "game.rlearning.module.ppo_agent.PPOTrainer"
 
+reward_function: "game.rlearning.rewards.win_base.get_reward"
+state_function: "game.rlearning.states.specific.get_state"
+action_transform_function: "game.rlearning.actions.index_base.num2action"
+action_mask_function: "game.rlearning.actions.index_base.create_action_mask"
 w_val_loss: 0.5
 w_act_loss: 0.5
-w_kl_loss: 0.25
-w_entropy_loss: 0.0
+
 
 ppo:
   gamma: 0.99
   lambd: 0.95
   clip_para: 0.2
-  clip_value_adv: 5.0
   
 
 
 
 optimizer:
-  learning_rate: 1.0e-6
+  learning_rate: 2.0e-4  
   betas: [0.8, 0.99]
   eps: 1.0e-9 
   grad_clip_thresh: 1.0
@@ -93,7 +90,6 @@ shared_card_cfg: &shared_card_cfg
   cont_hidden: 32
   card_embed_dim: 128
   
-  
 
 
 
@@ -118,9 +114,8 @@ model:
     max_mana: 20
 
   CardsHandEmbed:
-    class_name: 'game.rlearning.net.embed.HandEmbedNew'
+    class_name: 'game.rlearning.net.embed.HandEmbed'
     <<: *shared_card_cfg
-    card_hand_dim: 160
 
 
   CardsBoardEmbedSelf:
@@ -137,36 +132,19 @@ model:
     class_name: 'game.rlearning.net.embed.CardBoardEmbed'
     <<: *shared_card_cfg
 
-  ActionEmbed:
-    class_name: 'game.rlearning.net.embed.ActionEmbed'
-    action_dim: 1342
-    action_embed_dim: 128
-    is_g: False
-
-  Dense:
-    class_name: 'game.rlearning.net.baseNets.Dense'
-    d_in: 16
-    d_out: 560
-    is_g: False
-
-  HistoryEmbed:
-    class_name: 'game.rlearning.net.embed.HistoryEmbed'
-    history_dim: 61
-    history_embed_dim: 128
-    
-
   Actor:
     class_name: 'game.rlearning.net.ppo.Actor'
-    input_dim: 688
+    input_dim: 560
     hidden_dim: 512
-    output_dim: 1342
-    deep: 5
+    output_dim: 352
+    deep: 2
+
   Critic:
     class_name: 'game.rlearning.net.ppo.Critic'
-    input_dim: 688
+    input_dim: 560
     hidden_dim: 512
     output_dim: 1
-    deep: 5
+    deep: 2
   
 
     
