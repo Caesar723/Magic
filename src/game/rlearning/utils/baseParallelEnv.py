@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from game.rlearning.communicate.training_parallel_room import Info_Communication
-    from game.train_agent import Agent_Train
+    from game.rlearning.utils.baseAgent import BaseTrainer
 
 class BaseParallelEnv:
     
@@ -42,7 +42,7 @@ class BaseParallelEnv:
 
         trainer1=get_class_by_name(self.config["trainer"])
 
-        self.agent1:"Agent_Train"=trainer1(self.config,self.config["restore_step"],name="main")
+        self.agent1:"BaseTrainer"=trainer1(self.config,self.config["restore_step"],name="main")
 
     def start_worker(self):
         self.worker_process=[Process(target=worker_process, args=(self.env_config, self.info_communication, i,self.room_class)) for i in range(self.num_worker)]
