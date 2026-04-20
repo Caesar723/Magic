@@ -63,21 +63,20 @@ def num2subaction(room:"Base_Agent_Room",agent:"Agent",sub_action:int):
 
 
 """
-0:end turn
-1:end bullet time
-2-11:选择一个随从进行攻击(10) 
-12-21:选择一个随从进行阻挡(10)
+0: end turn
+1: end bullet time
+2-11: select a creature to attack with (10 choices)
+12-21: select a creature to block with (10 choices)
 
-22-1341
-有10张手牌 对于每一张牌(40 * 33)
-    player a card 不选择
-    
-    player a card 选择敌方随从0-9 总共10个随从
-    player a card 选择我方随从0-9 总共10个随从
+22-1341:
+There are 10 cards in hand. For each card (10 * 33 = 330):
+    play a card without selecting anything
 
-    player a card 选择敌方英雄
-    player a card 选择我方英雄
-    player a card 选择一个卡牌 (10)
+    play a card and select an opponent's creature (0-9, total 10)
+    play a card and select your own creature (0-9, total 10)
+    play a card and select the opponent's hero
+    play a card and select your own hero
+    play a card and select a card (10)
 """
 async def num2action(room:"Base_Agent_Room",agent:"Agent",action:int)->str:
     name=agent.name

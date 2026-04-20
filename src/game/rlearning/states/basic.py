@@ -13,22 +13,22 @@ if TYPE_CHECKING:
 
 
 """
-让状态归一
-1-我方英雄的血量/20
-1-敌方英雄的血量/20
-蓝色，红色，绿色，白色，黑色法力值（通过计算地牌来得出）/10
-卡牌(10):[编号，法力值]使用嵌入式（10*20）
-    # 定义嵌入层
-    # card_embedding = tf.keras.layers.Embedding(input_dim=100, output_dim=14)  # 卡牌编号的嵌入层
+State normalization:
+1 - Our hero's life / 20
+1 - Opponent hero's life / 20
+Blue, Red, Green, White, Black mana (calculated based on land cards) / 10
+Hand cards (10): [ID, mana cost], use embedding (10*20)
+    # Define embedding layer
+    # card_embedding = tf.keras.layers.Embedding(input_dim=100, output_dim=14)  # Card ID embedding layer
     (0,0,0,0,0,0)
     # hand_cards_embedded = tf.concat([
     #     card_embedding(hand_cards[:, 0]),
     #     mana_embedding(hand_cards[:, 1])
     # ], axis=-1)
-我方场地(10):[攻击力，生命值]/10 , [1,0]是否可以攻击和防御
-敌方场地(10):[攻击力，生命值]/10 , [1,0]是否可以攻击和防御
-时间状态[0,1]:本回合，敌方攻击
-攻击的随从[攻击力，生命值]/10
+Our battlefield (10): [attack, health] / 10, [1,0] whether it can attack or defend
+Opponent battlefield (10): [attack, health] / 10, [1,0] whether it can attack or defend
+Time state [0,1]: current turn, opponent attacking
+Attacking creature [attack, health] / 10
 """
 
 def get_state(room:"Base_Agent_Room",agent:"Agent"):

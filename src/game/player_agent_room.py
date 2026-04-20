@@ -163,7 +163,6 @@ class PVE_Room(Base_Agent_Room):
             await self.message_receiver("Agent1|end_bullet|")
             
         return result
-         
 
 
 

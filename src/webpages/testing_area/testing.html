@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-Hans">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -41,9 +41,9 @@
 </head>
 <body class="testing-body">
   <div class="testing-root">
-    <aside class="lab-drawer" id="labDrawer" data-open="false" aria-label="测试控制台">
+    <aside class="lab-drawer" id="labDrawer" data-open="false" aria-label="Testing Console">
       <div class="lab-rail">
-        <button type="button" class="lab-rail-btn" id="labRailBtn" aria-expanded="false" aria-controls="labPanelInner" title="展开 / 收起">
+        <button type="button" class="lab-rail-btn" id="labRailBtn" aria-expanded="false" aria-controls="labPanelInner" title="Expand / Collapse">
           <span class="lab-rail-icon" aria-hidden="true">◈</span>
           <span class="lab-rail-label">LAB</span>
         </button>
@@ -52,51 +52,51 @@
         <div class="lab-panel-scroll" id="labPanelInner">
           <header class="lab-header">
             <h1>Testing Lab</h1>
-            <p class="lab-sub">在对局中快速搭场景：补手牌、造生物、清场、补满法力。</p>
+            <p class="lab-sub">Quickly set up scenarios during a match: add cards to hand, create creatures, wipe board, refill mana.</p>
           </header>
 
           <section class="lab-section" aria-labelledby="sec-hand">
-            <h2 class="lab-section-title" id="sec-hand">加入卡牌</h2>
-            <p class="lab-mini-label" id="labDestLabel">目标区域</p>
+            <h2 class="lab-section-title" id="sec-hand">Add Card</h2>
+            <p class="lab-mini-label" id="labDestLabel">Destination</p>
             <div class="lab-seg lab-seg-three" role="group" aria-labelledby="labDestLabel">
-              <button type="button" class="lab-dest-btn" data-dest="hand" data-active="true">手牌</button>
-              <button type="button" class="lab-dest-btn" data-dest="library" data-active="false">牌库</button>
-              <button type="button" class="lab-dest-btn" data-dest="graveyard" data-active="false">墓地</button>
+              <button type="button" class="lab-dest-btn" data-dest="hand" data-active="true">Hand</button>
+              <button type="button" class="lab-dest-btn" data-dest="library" data-active="false">Library</button>
+              <button type="button" class="lab-dest-btn" data-dest="graveyard" data-active="false">Graveyard</button>
             </div>
             <div class="lab-type-strip" id="labTypeStrip"></div>
             <div class="lab-card-grid" id="labCardGrid"></div>
-            <p class="lab-hint">点选一张牌：加入 1 张到你当前角色所选区域（牌库加在牌库底侧）。</p>
+            <p class="lab-hint">Click a card to add one to your currently selected zone (library adds to the bottom).</p>
           </section>
 
           <section class="lab-section" aria-labelledby="sec-creature">
-            <h2 class="lab-section-title" id="sec-creature">生成生物</h2>
-            <div class="lab-seg" role="group" aria-label="站位">
-              <button type="button" class="lab-seg-self" data-side="self" data-active="true">我方场地</button>
-              <button type="button" class="lab-seg-oppo" data-side="oppo" data-active="false">敌方场地</button>
+            <h2 class="lab-section-title" id="sec-creature">Create Creature</h2>
+            <div class="lab-seg" role="group" aria-label="Position">
+              <button type="button" class="lab-seg-self" data-side="self" data-active="true">Your Field</button>
+              <button type="button" class="lab-seg-oppo" data-side="oppo" data-active="false">Opponent's Field</button>
             </div>
             <div class="lab-row">
               <div class="lab-field">
-                <label for="labPower">力量</label>
+                <label for="labPower">Power</label>
                 <input type="number" id="labPower" min="0" value="2" />
               </div>
               <div class="lab-field">
-                <label for="labTough">耐力</label>
+                <label for="labTough">Toughness</label>
                 <input type="number" id="labTough" min="1" value="2" />
               </div>
             </div>
             <div class="lab-keywords" id="labKeywords"></div>
-            <button type="button" class="lab-btn lab-btn-primary" id="labSpawnBtn">在场上生成</button>
+            <button type="button" class="lab-btn lab-btn-primary" id="labSpawnBtn">Create on Field</button>
           </section>
 
           <section class="lab-section" aria-labelledby="sec-global">
-            <h2 class="lab-section-title" id="sec-global">全局操作</h2>
-            <button type="button" class="lab-btn lab-btn-muted" id="labClearHandBtn">清空手牌（置入墓地）</button>
-            <button type="button" class="lab-btn lab-btn-muted" id="labResetLandCapBtn">重置下地次数上限</button>
-            <button type="button" class="lab-btn lab-btn-muted" id="labUntapAllBtn">全部横置重置（地 + 生物）</button>
-            <button type="button" class="lab-btn lab-btn-danger" id="labWipeBtn">消灭所有生物</button>
-            <button type="button" class="lab-btn lab-btn-muted" id="labManaSelfBtn">恢复我方法力</button>
-            <button type="button" class="lab-btn lab-btn-muted" id="labManaAllBtn">双方恢复法力</button>
-            <p class="lab-hint">法力恢复为测试用满值。清场会将场上生物置入墓地。清空手牌会把手牌移入墓地。</p>
+            <h2 class="lab-section-title" id="sec-global">Global Actions</h2>
+            <button type="button" class="lab-btn lab-btn-muted" id="labClearHandBtn">Clear Hand (move to Graveyard)</button>
+            <button type="button" class="lab-btn lab-btn-muted" id="labResetLandCapBtn">Reset Land Drop Limit</button>
+            <button type="button" class="lab-btn lab-btn-muted" id="labUntapAllBtn">Untap All (Lands + Creatures)</button>
+            <button type="button" class="lab-btn lab-btn-danger" id="labWipeBtn">Destroy All Creatures</button>
+            <button type="button" class="lab-btn lab-btn-muted" id="labManaSelfBtn">Refill Your Mana</button>
+            <button type="button" class="lab-btn lab-btn-muted" id="labManaAllBtn">Refill Both Sides' Mana</button>
+            <p class="lab-hint">Mana is restored to max for testing. Board wipe sends all creatures to graveyard. Clearing hand sends all cards in hand to graveyard.</p>
           </section>
         </div>
       </div>

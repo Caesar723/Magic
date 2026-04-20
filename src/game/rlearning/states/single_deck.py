@@ -13,60 +13,57 @@ if TYPE_CHECKING:
 
 
 """
-我方英雄血量长度 20
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0]#血量为 19
-敌方英雄血量长度 20
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0]#血量为 19
-法力值
-绿长度为 20 【1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】#0
-蓝长度为 20 【0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1】#20
-红长度为 20 【1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
-白长度为 20 【1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
-黑长度为 20 【1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
+Our hero's health, length 20:
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0] # Health is 19
 
-手牌长度 10:
-    对于每一张卡牌
-    编号 id 用 nn.embedding 嵌入
-    卡牌类型 4 用 nn.embedding 嵌入
-    特殊类型 长度 20
-    【战吼，亡语，reach，Trample，flying，haste，Flash，lifelink，summoning_sickness,padding】
+Opponent's hero health, length 20:
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0] # Health is 19
 
+Mana:
+Green, length 20: [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] # 0
+Blue, length 20:  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1] # 20
+Red, length 20:   [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+White, length 20: [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+Black, length 20: [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
-    合起来 长度 120
-    法力无长度 20:【0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
-    法力绿长度 20:【0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
-    法力蓝长度 20:【0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
-    法力红长度 20:【0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
-    法力白长度 20:【0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
-    法力黑长度 20:【0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
+Hand, length 10:
+    For each card:
+    Card ID for nn.embedding
+    Card type (4 types) for nn.embedding
+    Special types, length 20:
+    [battlecry, deathrattle, reach, trample, flying, haste, flash, lifelink, summoning_sickness, padding]
 
-    攻击和防御
-    【atk_n, hp_n】
-    【has_attack, has_defend】
+    Combined, total length 120
+    Colorless mana, length 20: [0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    Green mana, length 20:     [0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    Blue mana, length 20:      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    Red mana, length 20:       [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    White mana, length 20:     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    Black mana, length 20:     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
-    
-场地长度 10:
-    每一个随从
-    特殊类型 长度 20
-    【战吼，亡语，reach，Trample，flying，haste，Flash，lifelink，summoning_sickness,padding】
-    【atk_n, hp_n】
+    Attack and defense:
+    [atk_n, hp_n]
     [has_attack, has_defend]
 
-敌方场地长度 10:
-    每一个随从
-    特殊类型 长度 20
-    【战吼，亡语，reach，Trample，flying，haste，Flash，lifelink，summoning_sickness,padding】
-    【atk_n, hp_n】
+Battlefield, length 10:
+    For each creature:
+    Special types, length 20:
+    [battlecry, deathrattle, reach, trample, flying, haste, flash, lifelink, summoning_sickness, padding]
+    [atk_n, hp_n]
     [has_attack, has_defend]
 
-    
-进攻随从 embed
-攻击和防御
-【atk_n, hp_n】
+Opponent battlefield, length 10:
+    For each creature:
+    Special types, length 20:
+    [battlecry, deathrattle, reach, trample, flying, haste, flash, lifelink, summoning_sickness, padding]
+    [atk_n, hp_n]
+    [has_attack, has_defend]
+
+Attacking creature embedding:
+Attack and defense:
+[atk_n, hp_n]
 [has_attack, has_defend]
-战吼，亡语，reach，Trample，flying，haste，Flash，lifelink，summoning_sickness,padding】
-
-
+[battlecry, deathrattle, reach, trample, flying, haste, flash, lifelink, summoning_sickness, padding]
 """
 def get_state(room:"Base_Agent_Room",agent:"Agent"):
     state_batch={}

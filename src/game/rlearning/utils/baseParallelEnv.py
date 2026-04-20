@@ -74,8 +74,8 @@ def worker_process(
     info_communication, 
     worker_id:int,
     room_class:type):
-    # sys.stdout = open(os.devnull, 'w')
-    # sys.stderr = open(os.devnull, 'w')
+    sys.stdout = open(os.devnull, 'w')
+    sys.stderr = open(os.devnull, 'w')
     asyncio.run(
         run_parallel_room(
             env_config,
