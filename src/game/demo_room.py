@@ -9,7 +9,6 @@ import numpy as np
 import asyncio
 #from game.train_agent import Agent_Train_Red as Agent_Train
 from game.room import Room
-from game.ppo_train import Agent_PPO
 from game.player import Player
 from game.agent import Agent_Player as Agent
 import torch
@@ -32,7 +31,6 @@ class PVE_Demo_Room(Base_Agent_Room):
     """
 
     def __init__(self,players:list[tuple],room_server) -> None:
-        #self.agent1=Agent_PPO(251,352)
         
         super().__init__(players,room_server)
 
@@ -47,10 +45,10 @@ class PVE_Demo_Room(Base_Agent_Room):
 
     def choose_agent_config(self):
         agents=[
-            # f"{ORGPATH}/game/rlearning/weights/white/ppo_lstm2.yaml",
-            # f"{ORGPATH}/game/rlearning/weights/green/ppo_lstm3.yaml",
-            # f"{ORGPATH}/game/rlearning/weights/white2/ppo_lstm3.yaml",
-            f"{ORGPATH}/game/rlearning/weights/test/test.yaml",
+            f"{ORGPATH}/game/rlearning/weights/white/ppo_lstm2.yaml",
+            f"{ORGPATH}/game/rlearning/weights/green/ppo_lstm3.yaml",
+            f"{ORGPATH}/game/rlearning/weights/white2/ppo_lstm3.yaml",
+            # f"{ORGPATH}/game/rlearning/weights/test/test.yaml",
         ]
         return random.choice(agents)
 

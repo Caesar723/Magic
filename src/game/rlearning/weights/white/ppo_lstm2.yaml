@@ -11,6 +11,11 @@ action_history_length: 10
 cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Creature+3|Ironclad Crusader+Creature+2|Sunlit Priestess+Creature+3|Apocalypse Riders+Sorcery+4|Call to Unity+Sorcery+4|Angelic Blessing+Sorcery+2|Righteous Conviction+Sorcery+2|Spectral Embrace+Sorcery+3|Celestial Convergence+Instant+1|Avenging Light+Instant+1|Plains+Land+15"
 
 #------------------------------------
+trainer: "game.rlearning.module.ppo_agent_lstm.PPOTrainer"
+reward_function: "game.rlearning.rewards.win_base.get_reward"
+state_function: "game.rlearning.states.single_deck.get_state"
+action_transform_function: "game.rlearning.actions.single_deck.num2action"
+action_mask_function: "game.rlearning.actions.single_deck.create_action_mask"
 
 
 ###########################

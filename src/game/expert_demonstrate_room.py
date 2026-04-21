@@ -9,7 +9,6 @@ import numpy as np
 import asyncio
 #from game.train_agent import Agent_Train_Red as Agent_Train
 from game.room import Room
-from game.ppo_train import Agent_PPO
 from game.player import Player
 from game.agent import Agent_Player as Agent
 import torch

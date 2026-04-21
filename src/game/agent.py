@@ -7,7 +7,6 @@ from torch._inductor.config import batch_fusion
 if TYPE_CHECKING:
     from game.room import Room
 from game.type_action.actions import List_Action_Processor
-from game.ppo_train import Agent_PPO
 from game.player import Player
 from initinal_file import CARD_DICTION
 from game.game_function_tool import ORGPATH

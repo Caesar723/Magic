@@ -13,7 +13,6 @@ from functools import partial
 
 from game.agent import Agent_Player as Agent
 from game.room import Room
-from game.ppo_train import Agent_PPO
 from game.rlearning.module.ppo_agent import PPOTrainer
 from game.rlearning.utils.model import get_class_by_name
 

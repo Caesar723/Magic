@@ -31,7 +31,10 @@ dataset_multiple: 10
 
 #------------------------------------
 trainer: "game.rlearning.module.ppo_agent_lstm.PPOTrainer"
-
+reward_function: "game.rlearning.rewards.win_base.get_reward"
+state_function: "game.rlearning.states.single_deck.get_state"
+action_transform_function: "game.rlearning.actions.single_deck.num2action"
+action_mask_function: "game.rlearning.actions.single_deck.create_action_mask"
 w_val_loss: 0.5
 w_act_loss: 0.5
 w_kl_loss: 0.2

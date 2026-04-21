@@ -16,6 +16,11 @@ action_history_length: 15
 cards: "Thundering Behemoth+Creature+2|Verdant Titan+Creature+2|Verdant Wyrm+Creature+2|Thornroot Druid+Creature+2|Chronostrider+Creature+1|Essence Channeler+Creature+3|Sylvan Harmonist+Creature+3|Titan's Strength+Instant+2|Natural Growth+Sorcery+3|Awaken the Elemental+Sorcery+2|Forest's Embrace+Sorcery+1|Titan Giant+Creature+2|Verdant Surge+Instant+2|Forest+Land+13"
 
 #------------------------------------
+trainer: "game.rlearning.module.ppo_agent_lstm.PPOTrainer"
+reward_function: "game.rlearning.rewards.win_base.get_reward"
+state_function: "game.rlearning.states.single_deck.get_state"
+action_transform_function: "game.rlearning.actions.single_deck.num2action"
+action_mask_function: "game.rlearning.actions.single_deck.create_action_mask"
 
 
 ###########################

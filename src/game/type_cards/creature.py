@@ -114,6 +114,11 @@ class Creature(Card):
 
     def when_go_to_battlefield(self, player: "Player" = None, opponent: "Player" = None):#这个是每次进入场地的时候
         self.flag_dict["summoning_sickness"]=True
+        if self.get_flag("Double strike"):
+            self.set_counter_dict("attack_counter",2)
+        else:
+            self.set_counter_dict("attack_counter",1)
+            
     def end_summoning_sickness(self):
         self.flag_dict["summoning_sickness"]=False
 

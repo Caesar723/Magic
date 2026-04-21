@@ -17,7 +17,6 @@ from functools import partial
 
 from game.train_agent import Agent_Train 
 from game.room import Room
-from game.ppo_train import Agent_PPO
 from game.rlearning.module.ppo_agent import PPOTrainer
 from game.rlearning.utils.model import get_class_by_name
 from initinal_file import CARD_DICTION

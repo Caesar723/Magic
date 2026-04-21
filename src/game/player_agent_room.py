@@ -9,7 +9,6 @@ import numpy as np
 import asyncio
 #from game.train_agent import Agent_Train_Red as Agent_Train
 from game.room import Room
-from game.ppo_train import Agent_PPO
 from game.player import Player
 from game.agent import Agent_Player as Agent
 import torch
@@ -31,7 +30,6 @@ class PVE_Room(Base_Agent_Room):
     """
 
     def __init__(self,players:list[tuple],room_server) -> None:
-        #self.agent1=Agent_PPO(251,352)
         
         super().__init__(players,room_server)
 

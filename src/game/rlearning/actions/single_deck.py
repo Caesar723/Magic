@@ -69,7 +69,7 @@ def num2subaction(room:"Base_Agent_Room",agent:"Agent",sub_action:int):
 12-21: select a creature to block with (10 choices)
 
 22-1341:
-There are 10 cards in hand. For each card (10 * 33 = 330):
+There are 40 cards in Deck. For each card (40 * 33 = 1320):
     play a card without selecting anything
 
     play a card and select an opponent's creature (0-9, total 10)

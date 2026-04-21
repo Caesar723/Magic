@@ -11,7 +11,22 @@ if TYPE_CHECKING:
     from game.base_agent_room import Base_Agent_Room
     
 
+"""
+0: end turn
+1: end bullet time
+2-11: select a creature to attack with (10 choices)
+12-21: select a creature to block with (10 choices)
 
+22-1341:
+There are 10 cards in hand. For each card (10 * 33 = 330):
+    play a card without selecting anything
+
+    play a card and select an opponent's creature (0-9, total 10)
+    play a card and select your own creature (0-9, total 10)
+    play a card and select the opponent's hero
+    play a card and select your own hero
+    play a card and select a card (10)
+"""
 def select_stage(selects,index_range,start_index,mask):
     index=start_index
     for select_list,ind_range in zip(selects,index_range):

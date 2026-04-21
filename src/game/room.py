@@ -505,7 +505,7 @@ class Room:
 
         if not card:
             return (False,"no card")
-
+        print(card.get_flag("haste"),card.get_flag("summoning_sickness"),card.get_flag("tap"),card.get_counter_from_dict("attack_counter"))
         if player==self.active_player and not self.get_flag('attacker_defenders') and\
         (not card.get_flag("summoning_sickness") or card.get_flag("haste")) and\
         not card.get_flag("tap") and (card.get_counter_from_dict("attack_counter")>0):

@@ -13,6 +13,11 @@ action_history_length: 10
 cards: "Cataclysmic Inferno+Sorcery+4|Falling Stars+Sorcery+4|Thunderstrike+Sorcery+4|Arcane Inferno+Instant+4|Eternal Phoenix+Creature+4|Emberheart Salamander+Creature+4|Emberheart Berserker+Creature+4|Dragon Lord+Creature+4|Mountain+Land+21"
 
 #------------------------------------
+trainer: "game.rlearning.module.ppo_agent_lstm.PPOTrainer"
+reward_function: "game.rlearning.rewards.win_base.get_reward"
+state_function: "game.rlearning.states.single_deck.get_state"
+action_transform_function: "game.rlearning.actions.single_deck.num2action"
+action_mask_function: "game.rlearning.actions.single_deck.create_action_mask"
 
 
 ###########################
