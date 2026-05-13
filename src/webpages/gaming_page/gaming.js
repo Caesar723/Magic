@@ -61,6 +61,8 @@ class Game_Client{
         this.grayscale=0;
         this.blur_value=0;
         this._lastTableMouse = null;
+        /** Active touch `Touch.identifier` while a finger gesture owns the canvas; null for mouse-only. */
+        this._touchPointerId = null;
     }
     // async initinal_players(){
     //     console.log(await this.get_players_name())
@@ -568,241 +570,47 @@ class Game_Client{
 
             
         // });
-        this.main_canvas.addEventListener('mousedown', (event) => { 
-            const mouse_pos=this.get_mouse_pos(event,this.main_canvas)
-            const card=this.find_cards_by_mouse(mouse_pos)
-            const timer=this.find_timers_by_mouse(mouse_pos)
-            const button=this.find_button_by_mouse(mouse_pos)
-
-            const object=this.selectionPage.check_mouse_in_selection(mouse_pos)
-            if (object===undefined && this.selectionPage.in_selection){
-                this.resolveSelectInput("cancel_client")
-            }
-            else if (! (object===undefined)){
-                this.end_selection(object)
-            }
-            else if (! (card===undefined)){
-                //console.log(card)
-                const click_bool=this.judge_click(card)
-                const move_bool=this.judge_move(card)
-                this.card_hold=[card,click_bool,move_bool]
-                card.card_hold=[click_bool,move_bool]
-                
-            }
-            this.startTime = performance.now();
-
-            if (!(timer===undefined)){
-                this.end_time(timer)
-                if (this.music.start_flag){
-                    this.music.start_flag=false
-                    setTimeout(this.music.play_bgm.bind(this.music),4000)
-
-                }
-                
-                
-            }
-            if (!(button===undefined)){
-                button.click()
-            }
-            
-            
-            
-            
+        this.main_canvas.addEventListener("mousedown", (event) => {
+            this._canvasPointerDown(event);
         });
-        this.main_canvas.addEventListener('mousemove', (event) => {
-            this._lastTableMouse = this.get_mouse_pos(event, this.main_canvas);
-            if (this.card_hold[2]){
-                this.show_2d.delete_mouse_card()
-                const mouse_pos=this.get_mouse_pos(event,this.main_canvas)
-                //console.log(2)
-                if (this.card_hold[0] instanceof Card_Battle){
-                    //console.log(this.card_hold[0].position[2],this.card_hold[0].position_in_screen_z)
-                    //const next_pos=this.table.camera.similar_tri_reverse_2(...mouse_pos,this.card_hold[0].position[1],this.card_hold[0].position_in_screen_z);
-                    this.card_hold[0].moving_by_mouse(mouse_pos,this.table.camera)
-                    this.card_hold[0]._being_dragged = true
-                    
-                }
-                else if(this.card_hold[0] instanceof Card_Hand){
-                    this.card_hold[0].moving_by_mouse(mouse_pos,this.self_player.camera)
-                    this.card_hold[0]._being_dragged = true
-                    
-                }
-            }
-            else if(this.card_hold[0]===undefined){
-                const mouse_pos=this.get_mouse_pos(event,this.main_canvas)
-                const card=this.find_cards_by_mouse(mouse_pos)
-                const timer=this.find_timers_by_mouse(mouse_pos)
-                const action=this.action_bar.check_mouse(mouse_pos)
-                const button=this.find_button_by_mouse(mouse_pos)
-
-                const object=this.selectionPage.check_mouse_in_selection(mouse_pos)
-
-
-
-                if ( ((!(card===undefined)||!(timer===undefined )||!(button===undefined ))&&!this.selectionPage.in_selection) || (this.selectionPage.in_selection&&!(object===undefined)) ){
-                    this.main_canvas.style.cursor = 'pointer';
-                }
-                else{
-                    this.main_canvas.style.cursor = 'default';
-                }
-                //console.log(11)
-                if (card instanceof Card_Hand){
-                    
-                    for (let i in this.self_player.cards){
-                        if (this.self_player.cards[i]!=card){
-                            
-                            this.self_player.cards[i].start_moving("change_size_animation",[this.self_player.get_small_size()])
-                            
-                            this.self_player.cards[i].z_index=1;
-                            
-                        }
-                        
-                    }
-                    card.start_moving("change_size_animation",[this.self_player.get_enlarge_size()])
-                    card.z_index=2;
-                    
-                    //this.canvas_table.style.cursor = 'pointer';             
-                    //card.change_size_cache=this.self_player.get_enlarge_size()
-                }
-                else{
-                    for (let i in this.self_player.cards){
-                        if (this.self_player.cards[i]!=card){
-                            //console.log(this.self_player.get_small_size())
-                            this.self_player.cards[i].start_moving("change_size_animation",[this.self_player.get_small_size()])
-                            //console.log(this.self_player.cards[i].size)
-                            this.self_player.cards[i].z_index=1;
-                            
-                        }
-                        
-                    }
-
-                    
-                    if (card instanceof Card_Battle){
-                        console.log(card.card,card.position)
-                        this.show_2d.set_mouse_card(card.card,card.position)
-                    }
-                    else{
-                        this.show_2d.delete_mouse_card()
-                    }
-                    
-
-                    //this.canvas_table.style.cursor = 'default';
-                    
-                }
-
-                
-                if (timer===undefined){
-                    this.table.timmer_turn.mode="time"
-                    this.table.timmer_bullet.mode="time"
-                    
-                }
-                else{
-                    timer.mode="end"
-                }
-                
-                if (action){
-                    if (this.action_bar.action_showed && this.action_bar.action_showed !== action){
-                        if (typeof this.action_bar.action_showed.cleanup_action_preview === "function"){
-                            this.action_bar.action_showed.cleanup_action_preview();
-                        }
-                    }
-                    this.action_bar.card_mode="show"//show hide
-                    this.action_bar.action_showed=action
-                }
-                else{
-                    if (this.action_bar.action_showed && typeof this.action_bar.action_showed.cleanup_action_preview === "function"){
-                        this.action_bar.action_showed.cleanup_action_preview();
-                    }
-                    this.action_bar.card_mode="hide"//show hide
-                    this.action_bar.action_showed=undefined
-                }
-                
-
-            }
+        this.main_canvas.addEventListener("mousemove", (event) => {
+            this._canvasPointerMove(event);
         });
-        this.main_canvas.addEventListener('mouseup', (event) => {
-            if (this.action_bar) this.action_bar.dismissHistoryCardPreview();
-            if (!(this.card_hold[0]===undefined)){
-                
-                
-                if (this.card_hold[0] instanceof Card_Battle){
-                    this.card_hold[0]._being_dragged = false
-                    this.card_hold[0].angle_x=math.pi/2;;
-                    this.card_hold[0].angle_y=0;
-                    //this.card_hold[0].angle_z=0;
-                    if (performance.now()-this.startTime<0.15*1000){
-                        if (this.card_hold[1]){
-                            this.battle_click_activate(this.card_hold[0])
-                        }
-                    }
-                    else{
-                        if (this.card_hold[2]){
-                            this.battle_move_activate(this.card_hold[0])
-                        }
-                    }
-                    
-                    
-                    
+        this.main_canvas.addEventListener("mouseup", (event) => {
+            this._canvasPointerUp(event);
+        });
+        this.main_canvas.addEventListener("mouseleave", (event) => {
+            this._canvasPointerLeave(event);
+        });
 
-                    
-                }
-                else if(this.card_hold[0] instanceof Card_Hand){
-                    this.card_hold[0].angle_x=0;
-                    this.card_hold[0].angle_y=0;
-                    this.card_hold[0].angle_z=0;
-                    this.card_hold[0]._being_dragged = false
-                    if (performance.now()-this.startTime<0.15*1000){
-                        this.self_player.change_to_focus()
-                    }
-                    else{
-                        const mouse_pos=this.get_mouse_pos(event,this.main_canvas)
-                        this.hand_move_activate(this.card_hold[0],mouse_pos)
-                    }
-                    // if (this.card_hold[1]){
-                        
-                    // }
-                }
-                this.card_hold[0].card_hold=[false,false]
-                this.card_hold=[undefined,false,false]
+        const touchOpts = { passive: false };
+        this.main_canvas.addEventListener("touchstart", (e) => {
+            if (this._touchPointerId !== null) return;
+            this._touchPointerId = e.changedTouches[0].identifier;
+            this._canvasPointerDown(e);
+            e.preventDefault();
+        }, touchOpts);
+        this.main_canvas.addEventListener("touchmove", (e) => {
+            if (this._touchPointerId === null) return;
+            if (!this._getTouchByIdentifier(e.touches, this._touchPointerId)) return;
+            this._canvasPointerMove(e);
+            e.preventDefault();
+        }, touchOpts);
+        this.main_canvas.addEventListener("touchend", (e) => {
+            if (this._touchPointerId === null) return;
+            if (!this._getTouchByIdentifier(e.changedTouches, this._touchPointerId)) return;
+            this._canvasPointerUp(e);
+            this._touchPointerId = null;
+            e.preventDefault();
+        }, touchOpts);
+        this.main_canvas.addEventListener("touchcancel", (e) => {
+            if (this._touchPointerId !== null &&
+                this._getTouchByIdentifier(e.changedTouches, this._touchPointerId)) {
+                this._canvasPointerLeave(e);
+                this._touchPointerId = null;
+                e.preventDefault();
             }
-            else{
-                const mouse_pos=this.get_mouse_pos(event,this.main_canvas)
-                const timer=this.find_timers_by_mouse(mouse_pos)
-                if (performance.now()-this.startTime<0.15*1000 && (timer===undefined) ){
-                    this.self_player.change_to_ignore()
-                        
-                    //console.log("click")
-                }
-            }
-        });
-        this.main_canvas.addEventListener('mouseleave', (event) => {
-            if (!(this.card_hold[0]===undefined)){
-                
-                if (this.card_hold[0] instanceof Card_Battle){
-                    this.card_hold[0]._being_dragged = false
-                    this.card_hold[0].angle_x=math.pi/2;;
-                    this.card_hold[0].angle_y=0;
-                    //this.card_hold[0].angle_z=0;
-                    
-                }
-                else if(this.card_hold[0] instanceof Card_Hand){
-                    this.card_hold[0].angle_x=0;
-                    this.card_hold[0].angle_y=0;
-                    this.card_hold[0].angle_z=0;
-                    this.card_hold[0]._being_dragged = false;
-                }
-                this.card_hold[0].card_hold=[false,false]
-                this.card_hold=[undefined,false,false]
-            }
-            if (this.action_bar.card_mode === "show" && this.action_bar.action_showed){
-                if (typeof this.action_bar.action_showed.cleanup_action_preview === "function"){
-                    this.action_bar.action_showed.cleanup_action_preview();
-                }
-                this.action_bar.card_mode = "hide";
-                this.action_bar.action_showed = undefined;
-            }
-            this._lastTableMouse = null;
-        });
+        }, touchOpts);
 
         this.main_canvas.addEventListener('wheel', (event)=> {
             //console.log(event.deltaY);
@@ -821,6 +629,10 @@ class Game_Client{
 
         window.addEventListener("blur", () => {
             if (this.action_bar) this.action_bar.dismissHistoryCardPreview();
+            if (this._touchPointerId !== null) {
+                this._canvasPointerLeave({ type: "blur" });
+                this._touchPointerId = null;
+            }
         });
 
         
@@ -829,6 +641,226 @@ class Game_Client{
        
         
     }
+
+    _getTouchByIdentifier(touchList, id) {
+        if (!touchList || touchList.length === 0) return null;
+        for (let i = 0; i < touchList.length; i++) {
+            if (touchList[i].identifier === id) return touchList[i];
+        }
+        return null;
+    }
+
+    /** Screen-space client coordinates for mouse or tracked touch. */
+    _pointerClientPoint(event) {
+        const type = event.type;
+        if (type === "touchend" || type === "touchcancel") {
+            if (event.changedTouches && event.changedTouches.length > 0) {
+                const t = this._touchPointerId != null
+                    ? this._getTouchByIdentifier(event.changedTouches, this._touchPointerId)
+                    : event.changedTouches[0];
+                if (t) return [t.clientX, t.clientY];
+            }
+        }
+        if (event.touches && event.touches.length > 0) {
+            const t = this._touchPointerId != null
+                ? this._getTouchByIdentifier(event.touches, this._touchPointerId)
+                : event.touches[0];
+            if (t) return [t.clientX, t.clientY];
+        }
+        if (typeof event.clientX === "number") {
+            return [event.clientX, event.clientY];
+        }
+        return [0, 0];
+    }
+
+    _canvasPointerDown(event) {
+        const mouse_pos = this.get_mouse_pos(event, this.main_canvas);
+        const card = this.find_cards_by_mouse(mouse_pos);
+        const timer = this.find_timers_by_mouse(mouse_pos);
+        const button = this.find_button_by_mouse(mouse_pos);
+
+        const object = this.selectionPage.check_mouse_in_selection(mouse_pos);
+        if (object === undefined && this.selectionPage.in_selection) {
+            this.resolveSelectInput("cancel_client");
+        }
+        else if (!(object === undefined)) {
+            this.end_selection(object);
+        }
+        else if (!(card === undefined)) {
+            const click_bool = this.judge_click(card);
+            const move_bool = this.judge_move(card);
+            this.card_hold = [card, click_bool, move_bool];
+            card.card_hold = [click_bool, move_bool];
+        }
+        this.startTime = performance.now();
+
+        if (!(timer === undefined)) {
+            this.end_time(timer);
+            if (this.music.start_flag) {
+                this.music.start_flag = false;
+                setTimeout(this.music.play_bgm.bind(this.music), 4000);
+            }
+        }
+        if (!(button === undefined)) {
+            button.click();
+        }
+    }
+
+    _canvasPointerMove(event) {
+        if (this._touchPointerId !== null && event.touches) {
+            if (!this._getTouchByIdentifier(event.touches, this._touchPointerId)) return;
+        }
+        this._lastTableMouse = this.get_mouse_pos(event, this.main_canvas);
+        if (this.card_hold[2]) {
+            this.show_2d.delete_mouse_card();
+            const mouse_pos = this.get_mouse_pos(event, this.main_canvas);
+            if (this.card_hold[0] instanceof Card_Battle) {
+                this.card_hold[0].moving_by_mouse(mouse_pos, this.table.camera);
+                this.card_hold[0]._being_dragged = true;
+            }
+            else if (this.card_hold[0] instanceof Card_Hand) {
+                this.card_hold[0].moving_by_mouse(mouse_pos, this.self_player.camera);
+                this.card_hold[0]._being_dragged = true;
+            }
+        }
+        else if (this.card_hold[0] === undefined) {
+            const mouse_pos = this.get_mouse_pos(event, this.main_canvas);
+            const card = this.find_cards_by_mouse(mouse_pos);
+            const timer = this.find_timers_by_mouse(mouse_pos);
+            const action = this.action_bar.check_mouse(mouse_pos);
+            const button = this.find_button_by_mouse(mouse_pos);
+
+            const object = this.selectionPage.check_mouse_in_selection(mouse_pos);
+
+            if (((!(card === undefined) || !(timer === undefined) || !(button === undefined)) && !this.selectionPage.in_selection) || (this.selectionPage.in_selection && !(object === undefined))) {
+                this.main_canvas.style.cursor = "pointer";
+            }
+            else {
+                this.main_canvas.style.cursor = "default";
+            }
+            if (card instanceof Card_Hand) {
+                for (let i in this.self_player.cards) {
+                    if (this.self_player.cards[i] != card) {
+                        this.self_player.cards[i].start_moving("change_size_animation", [this.self_player.get_small_size()]);
+                        this.self_player.cards[i].z_index = 1;
+                    }
+                }
+                card.start_moving("change_size_animation", [this.self_player.get_enlarge_size()]);
+                card.z_index = 2;
+            }
+            else {
+                for (let i in this.self_player.cards) {
+                    if (this.self_player.cards[i] != card) {
+                        this.self_player.cards[i].start_moving("change_size_animation", [this.self_player.get_small_size()]);
+                        this.self_player.cards[i].z_index = 1;
+                    }
+                }
+
+                if (card instanceof Card_Battle) {
+                    console.log(card.card, card.position);
+                    this.show_2d.set_mouse_card(card.card, card.position);
+                }
+                else {
+                    this.show_2d.delete_mouse_card();
+                }
+            }
+
+            if (timer === undefined) {
+                this.table.timmer_turn.mode = "time";
+                this.table.timmer_bullet.mode = "time";
+            }
+            else {
+                timer.mode = "end";
+            }
+
+            if (action) {
+                if (this.action_bar.action_showed && this.action_bar.action_showed !== action) {
+                    if (typeof this.action_bar.action_showed.cleanup_action_preview === "function") {
+                        this.action_bar.action_showed.cleanup_action_preview();
+                    }
+                }
+                this.action_bar.card_mode = "show";
+                this.action_bar.action_showed = action;
+            }
+            else {
+                if (this.action_bar.action_showed && typeof this.action_bar.action_showed.cleanup_action_preview === "function") {
+                    this.action_bar.action_showed.cleanup_action_preview();
+                }
+                this.action_bar.card_mode = "hide";
+                this.action_bar.action_showed = undefined;
+            }
+        }
+    }
+
+    _canvasPointerUp(event) {
+        if (this.action_bar) this.action_bar.dismissHistoryCardPreview();
+        if (!(this.card_hold[0] === undefined)) {
+            if (this.card_hold[0] instanceof Card_Battle) {
+                this.card_hold[0]._being_dragged = false;
+                this.card_hold[0].angle_x = math.pi / 2;
+                this.card_hold[0].angle_y = 0;
+                if (performance.now() - this.startTime < 0.15 * 1000) {
+                    if (this.card_hold[1]) {
+                        this.battle_click_activate(this.card_hold[0]);
+                    }
+                }
+                else {
+                    if (this.card_hold[2]) {
+                        this.battle_move_activate(this.card_hold[0]);
+                    }
+                }
+            }
+            else if (this.card_hold[0] instanceof Card_Hand) {
+                this.card_hold[0].angle_x = 0;
+                this.card_hold[0].angle_y = 0;
+                this.card_hold[0].angle_z = 0;
+                this.card_hold[0]._being_dragged = false;
+                if (performance.now() - this.startTime < 0.15 * 1000) {
+                    this.self_player.change_to_focus();
+                }
+                else {
+                    const mouse_pos = this.get_mouse_pos(event, this.main_canvas);
+                    this.hand_move_activate(this.card_hold[0], mouse_pos);
+                }
+            }
+            this.card_hold[0].card_hold = [false, false];
+            this.card_hold = [undefined, false, false];
+        }
+        else {
+            const mouse_pos = this.get_mouse_pos(event, this.main_canvas);
+            const timer = this.find_timers_by_mouse(mouse_pos);
+            if (performance.now() - this.startTime < 0.15 * 1000 && (timer === undefined)) {
+                this.self_player.change_to_ignore();
+            }
+        }
+    }
+
+    _canvasPointerLeave(event) {
+        if (!(this.card_hold[0] === undefined)) {
+            if (this.card_hold[0] instanceof Card_Battle) {
+                this.card_hold[0]._being_dragged = false;
+                this.card_hold[0].angle_x = math.pi / 2;
+                this.card_hold[0].angle_y = 0;
+            }
+            else if (this.card_hold[0] instanceof Card_Hand) {
+                this.card_hold[0].angle_x = 0;
+                this.card_hold[0].angle_y = 0;
+                this.card_hold[0].angle_z = 0;
+                this.card_hold[0]._being_dragged = false;
+            }
+            this.card_hold[0].card_hold = [false, false];
+            this.card_hold = [undefined, false, false];
+        }
+        if (this.action_bar.card_mode === "show" && this.action_bar.action_showed) {
+            if (typeof this.action_bar.action_showed.cleanup_action_preview === "function") {
+                this.action_bar.action_showed.cleanup_action_preview();
+            }
+            this.action_bar.card_mode = "hide";
+            this.action_bar.action_showed = undefined;
+        }
+        this._lastTableMouse = null;
+    }
+
     find_cards_by_mouse(mouse_pos){//会检查你点到是哪一张牌
         const cards_hand_self=this.self_player.cards//先检查hand的，从右往左
         const cards_hand_oppo=this.oppo_player.cards//
@@ -873,12 +905,12 @@ class Game_Client{
         
         return this.buttons.find_button_by_mouse(mouse_pos)
     }
-    get_mouse_pos(event,canvas){
-        var rect = canvas.getBoundingClientRect();
-        // 计算鼠标相对于canvas的位置
-        var mouseX = (event.clientX - rect.left)*canvas.width/rect.width;
-        var mouseY = (event.clientY - rect.top)*canvas.height/rect.height;
-        return [mouseX,mouseY]
+    get_mouse_pos(event, canvas) {
+        const pt = this._pointerClientPoint(event);
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = (pt[0] - rect.left) * canvas.width / rect.width;
+        const mouseY = (pt[1] - rect.top) * canvas.height / rect.height;
+        return [mouseX, mouseY];
     }
 
     judge_move(card){

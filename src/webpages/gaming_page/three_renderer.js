@@ -23,9 +23,10 @@ class ThreeStage {
 
         this.renderer = new THREE.WebGLRenderer({
             canvas: displayCanvas,
-            antialias: true,
+            antialias: false,
             alpha: false,
             preserveDrawingBuffer: false,
+            powerPreference: "high-performance",
         });
         // Lock pixel ratio to 1: the existing mouse handling reads
         // `canvas.width` to derive logical pixel coordinates, so changing
@@ -134,13 +135,27 @@ class ThreeStage {
         this.overlayTexture.needsUpdate = true;
         this.renderer.clear(true, true, true);
         this.renderer.render(this.scene3d, this.camera3d);
-        this.renderer.clearDepth();
-        this.renderer.render(this.sceneVfx, this.camera3d);
+
+        // VFX pass: skip when no visible sprites (avoids clearDepth + full pass
+        // every frame after the particle pool was ever allocated).
+        let vfxDraw = false;
+        const vfxKids = this.sceneVfx.children;
+        for (let i = 0; i < vfxKids.length; i++) {
+            if (vfxKids[i].visible) {
+                vfxDraw = true;
+                break;
+            }
+        }
+        if (vfxDraw) {
+            this.renderer.clearDepth();
+            this.renderer.render(this.sceneVfx, this.camera3d);
+        }
         // Aux scenes (e.g. each player's hand) layer on top of the table
         // with their own perspective camera. Depth is cleared between
         // scenes so a card in the hand is never occluded by the desktop
         // even if their world coordinates would otherwise overlap.
         for (const aux of this._auxScenes) {
+            if (aux.scene.children.length === 0) continue;
             this._syncOneCamera(aux.threeCamera, aux.origCamera);
             this.renderer.clearDepth();
             this.renderer.render(aux.scene, aux.threeCamera);

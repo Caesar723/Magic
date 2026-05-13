@@ -12,4 +12,5 @@ body, html {
   height: auto !important;
   width: auto !important;
   aspect-ratio: 1470 / 742 !important;
+  touch-action: none;
 }
