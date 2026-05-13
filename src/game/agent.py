@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from torch._inductor.config import batch_fusion
 if TYPE_CHECKING:
     from game.room import Room
+    from game.rlearning.utils.baseAgent import BaseTrainer
 from game.type_action.actions import List_Action_Processor
 from game.player import Player
 from initinal_file import CARD_DICTION
@@ -30,7 +31,7 @@ class Agent_Player(Player):
 
         
         #model_class=get_class_by_name(self.config["trainer"])
-        self.agent=get_model(self.config)
+        self.agent:"BaseTrainer"=get_model(self.config)
         self.select_content:str=f'{name}|cancel'
                 
     def choose_action(self,state,isTrain=False):
@@ -67,8 +68,8 @@ class Agent_Player(Player):
     def get_action_history(self):
         return list(self.action_history)
 
-    def clean_action_history(self):
-        self.action_history=[0]
+    # def clean_action_history(self):
+    #     self.action_history=[0]
     
     def get_flag(self,flag_name:str):
         if flag_name=="game_over":
