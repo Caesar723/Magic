@@ -12,25 +12,17 @@ const client = new Game_Client();
 let lastTime = 0;
 function main(time){
 
-  const deltaTime = (time - lastTime) / 1000;
-  
+  if (time === undefined) time = performance.now();
+  const deltaTime = lastTime ? (time - lastTime) / 1000 : 0.0167;
   lastTime = time;
 
   TIME_INTERVAL=(2/0.0167)*deltaTime
-  
-  //await client.init();
-  //while (true){
-  client.ctx_table.clearRect(0, 0, client.canvas_table.width, client.canvas_table.height);
-  //client.main_ctx.clearRect(0, 0, client.main_canvas.width, client.main_canvas.height);
-  //console.time('update');
+
+  client.table.stage.clearOverlay();
   client.update()
-  //console.timeEnd('update');
-  //console.time('game');
   client.draw()
-  //console.timeEnd('game');
-  
-  
-  
+  client.table.stage.render();
+
   requestAnimationFrame(main);
 }
 

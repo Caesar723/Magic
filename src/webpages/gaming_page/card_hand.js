@@ -478,70 +478,74 @@ class Card_Hand extends Card{
         return true
     }
 
+    // Hand cards live in the owner's private camera space (Self/Opponent
+    // each use their own `Camera([0,0,-50])`, independent of the shared
+    // table camera). We give each player camera its own Three scene + Three
+    // PerspectiveCamera (an "aux scene"), so hand cards render as real
+    // Three meshes, perspective and all, while staying anchored to the
+    // screen the way the original 2D renderer did.
+    _ensureHandThreeCard(camera){
+        if (this._three_card_initialized) return;
+        if (!window.THREE_STAGE) return;
+        const front = this.dynamic_canvas && this.dynamic_canvas[0];
+        if (!(front instanceof HTMLCanvasElement) && !(front instanceof HTMLImageElement)) return;
+        // Wait until the canvas has dimensions (filled in by the async
+        // card-frame generator). See the matching check on Card.
+        if (front instanceof HTMLCanvasElement && (front.width === 0 || front.height === 0)) return;
+        const aux = window.THREE_STAGE.getOrCreateAuxScene(camera);
+        this._three_card = new CardPlane(
+            window.THREE_STAGE,
+            this._half_width,
+            this._half_height,
+            front,
+            this.back_img,
+            {
+                parent: aux.scene,
+                // Each aux scene clears depth before drawing, so no
+                // polygon offset is needed against the table.
+                polygonOffsetFactor: 0,
+                polygonOffsetUnits: 0,
+            }
+        );
+        this._three_card_initialized = true;
+    }
+
     draw(camera,ctx,canvas){
         const new_points_pos=[];
-        
-        if (this.check_surface(camera)){
-            this.final_image=this.dynamic_canvas[0];
-        }
-        else{
-            this.final_image=this.back_img;
-        }
-        //ctx.beginPath();
         const cx = canvas.width / 2;
-        const cy = canvas.height / 2;       
+        const cy = canvas.height / 2;
         for (let index_plane=0; index_plane<4;index_plane++){
             const x_start=this.arr_poses[index_plane][0]
             const y_start=this.arr_poses[index_plane][1]
             const z_start=this.arr_poses[index_plane][2]
-
             const end_x=cx + camera.similar_tri(x_start,z_start)
             const end_y=cy + camera.similar_tri(y_start,z_start)
             new_points_pos.push([end_x, end_y])
         }
-        
-        const COL=4;
-        const ROW=4;
-
         this.position_in_screen=new_points_pos;
+
         if (this.player instanceof Self && this.check_weather_can_used() && (this.player.my_turn || this instanceof Instant_Hand || get_dict(this.flag_dict,"Flash"))){
             this.draw_blur_ring(ctx)
             this.draw_blur_ring(ctx)
-            //this.draw_blur_ring(ctx)
         }
 
-        let col_left_up=this.average_p(new_points_pos[2],new_points_pos[3],COL-0,COL);
-        let col_right_up=this.average_p(new_points_pos[1],new_points_pos[0],COL-0,COL);
-        
-        for (let col=0;col<COL;col++){
-            let col_left_down=this.average_p(new_points_pos[2],new_points_pos[3],COL-col-1,COL);
-            let col_right_down=this.average_p(new_points_pos[1],new_points_pos[0],COL-col-1,COL);
-
-            
-            
-            for (let row=0;row<ROW;row++){
-                const new_points_pos_1=[
-                    this.average_p(col_left_down,col_right_down,ROW-row-1,ROW),
-                    this.average_p(col_left_up,col_right_up,ROW-row-1,ROW),
-                    this.average_p(col_left_up,col_right_up,ROW-row,ROW), 
-                    this.average_p(col_left_down,col_right_down,ROW-row,ROW), 
-                ]
-                this.draw_half_img_1(new_points_pos_1,[row*this.image.width/ROW,col*this.image.height/COL],ctx);
-                this.draw_half_img_2(new_points_pos_1,[row*this.image.width/ROW,col*this.image.height/COL],ctx);
+        this._ensureHandThreeCard(camera);
+        if (this._three_card){
+            if (this._three_needs_upload){
+                this._three_card.markFrontDirty();
+                this._three_needs_upload = false;
             }
-            col_left_up=col_left_down;
-            col_right_up=col_right_down;
+            // Show the card front when the plane normal opposes the
+            // camera's forward vector (matches original `check_surface`).
+            this._three_card.setFace(!this.check_surface(camera));
+            this._three_card.setTransform(
+                this.position,
+                this.angle_x,
+                this.angle_y,
+                this.angle_z,
+                this.size
+            );
         }
-        
-        
-        // if (this.check_weather_can_used()){
-        //     this.draw_blur_ring(ctx)
-        // }
-        // super.draw(camera,ctx,canvas)
-        
-        
-
-        
     }
     draw_blur_ring(ctx){
         ctx.save()
@@ -635,53 +639,54 @@ class Card_Hand_Oppo extends Card{
 
         
     }
+    // Opponent hand cards never reveal their face. The `CardPlane` is
+    // single-sided/DoubleSide and we only ever use the back image as its
+    // active texture, so no back-texture allocation is needed.
+    _ensureHandThreeCard(camera){
+        if (this._three_card_initialized) return;
+        if (!window.THREE_STAGE) return;
+        const back = this.back_img;
+        if (!(back instanceof HTMLImageElement)) return;
+        const aux = window.THREE_STAGE.getOrCreateAuxScene(camera);
+        this._three_card = new CardPlane(
+            window.THREE_STAGE,
+            this._half_width,
+            this._half_height,
+            back,
+            null,
+            {
+                parent: aux.scene,
+                polygonOffsetFactor: 0,
+                polygonOffsetUnits: 0,
+            }
+        );
+        this._three_card_initialized = true;
+    }
+
     draw(camera,ctx,canvas){
-        
         const new_points_pos=[];
-        
-        
-        this.final_image=this.back_img;
-        
-        //ctx.beginPath();
         const cx = canvas.width / 2;
-        const cy = canvas.height / 2;       
+        const cy = canvas.height / 2;
         for (let index_plane=0; index_plane<4;index_plane++){
             const x_start=this.arr_poses[index_plane][0]
             const y_start=this.arr_poses[index_plane][1]
             const z_start=this.arr_poses[index_plane][2]
-
             const end_x=cx + camera.similar_tri(x_start,z_start)
             const end_y=cy + camera.similar_tri(y_start,z_start)
             new_points_pos.push([end_x, end_y])
         }
-        //ctx.closePath();
-        const COL=4;
-        const ROW=4;
-
-        let col_left_up=this.average_p(new_points_pos[2],new_points_pos[3],COL-0,COL);
-        let col_right_up=this.average_p(new_points_pos[1],new_points_pos[0],COL-0,COL);
-        
-        for (let col=0;col<COL;col++){
-            let col_left_down=this.average_p(new_points_pos[2],new_points_pos[3],COL-col-1,COL);
-            let col_right_down=this.average_p(new_points_pos[1],new_points_pos[0],COL-col-1,COL);
-
-            
-            
-            for (let row=0;row<ROW;row++){
-                const new_points_pos_1=[
-                    this.average_p(col_left_down,col_right_down,ROW-row-1,ROW),
-                    this.average_p(col_left_up,col_right_up,ROW-row-1,ROW),
-                    this.average_p(col_left_up,col_right_up,ROW-row,ROW), 
-                    this.average_p(col_left_down,col_right_down,ROW-row,ROW), 
-                ]
-                this.draw_half_img_1(new_points_pos_1,[row*this.final_image.width/ROW,col*this.final_image.height/COL],ctx);
-                this.draw_half_img_2(new_points_pos_1,[row*this.final_image.width/ROW,col*this.final_image.height/COL],ctx);
-                ///console.log(this.final_image.width,this.final_image.height)
-            }
-            col_left_up=col_left_down;
-            col_right_up=col_right_down;
-        }
         this.position_in_screen=new_points_pos;
+
+        this._ensureHandThreeCard(camera);
+        if (this._three_card){
+            this._three_card.setTransform(
+                this.position,
+                this.angle_x,
+                this.angle_y,
+                this.angle_z,
+                this.size
+            );
+        }
     }
     change_size(size){
         this.size=size

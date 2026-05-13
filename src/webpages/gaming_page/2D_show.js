@@ -31,7 +31,10 @@ class Show_2D{
 
     draw_showed_card(){
         if (!(this.showed_card===undefined)){
-            this.showed_card.draw(this.camera,this.ctx,this.canvas)
+            // Show_2D renders into the UI overlay 2D canvas (its own private
+            // Camera), bypassing the shared Three.js scene.
+            const drawer = this.showed_card.draw_legacy_2d || this.showed_card.draw;
+            drawer.call(this.showed_card, this.camera, this.ctx, this.canvas);
         }
     }
 
@@ -68,7 +71,8 @@ class Show_2D{
     }
     draw_mouse_card(){
         if (!(this.mouse_card===undefined)){
-            this.mouse_card.draw(this.camera,this.ctx,this.canvas)
+            const drawer = this.mouse_card.draw_legacy_2d || this.mouse_card.draw;
+            drawer.call(this.mouse_card, this.camera, this.ctx, this.canvas);
             for (let buff_index in this.mouse_card.buff_list){
                 console.log( [this.mouse_card.position_in_screen[1][1],this.mouse_card.position_in_screen[3][1]+buff_index*50])
                 const position=[

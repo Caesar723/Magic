@@ -77,6 +77,9 @@ class Opponent extends Player{
             this.cards[card_i].update()
 
         }
+        for (const c of this.hand_delete){
+            if (c && typeof c.dispose_three === "function") c.dispose_three();
+        }
         this.cards= this.cards.filter(item => !(this.hand_delete.includes(item)))
         this.hand_delete=[]
         //this.sort_cards()
@@ -215,6 +218,9 @@ class Self extends Player{
         this.arrange_cards()
         for (let card_i in this.cards){
             this.cards[card_i].update()
+        }
+        for (const c of this.hand_delete){
+            if (c && typeof c.dispose_three === "function") c.dispose_three();
         }
         //console.log(this.cards)
         this.cards= this.cards.filter(item => !(this.hand_delete.includes(item)))

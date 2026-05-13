@@ -4,12 +4,32 @@
 class Table{
     constructor(client){
         this.client=client
-        this.canvas = document.getElementById("myCanvas");//new OffscreenCanvas(200, 200);
-        this.canvas.width = 1470;
-        this.canvas.height = 742;
+        this.display_canvas = document.getElementById("myCanvas");
+        this.display_canvas.width = 1470;
+        this.display_canvas.height = 742;
 
-        //this.canvas =this.canvas.transferControlToOffscreen();
-        this.ctx = this.canvas.getContext("2d");
+        this.camera=new Camera([0,-60,-7*0.7])
+        this.camera.angle_y=1.34
+        this.camera.angle_x=0
+
+        // Three.js stage owns the WebGL context on the display canvas. The
+        // overlay 2D canvas is used by every UI element that previously drew
+        // directly onto myCanvas.
+        if (typeof ThreeStage === "undefined") {
+            const msg = "ThreeStage is not loaded. Check that <script src=\"webpages/gaming_page/three_renderer.js\"> is in gaming.html and that the file responded 200 in the Network tab. Also try a hard refresh (Cmd+Shift+R).";
+            console.error(msg);
+            throw new Error(msg);
+        }
+        if (typeof THREE === "undefined") {
+            const msg = "Three.js library not loaded. Check the cdnjs <script> tag in gaming.html (network connectivity / CSP).";
+            console.error(msg);
+            throw new Error(msg);
+        }
+        this.stage = new ThreeStage(this.display_canvas, 1470, 742, this.camera);
+        window.THREE_STAGE = this.stage;
+        this.canvas = this.stage.overlayCanvas;
+        this.ctx = this.stage.overlayCtx;
+
         this.time_interval=0.02//每隔0.02秒进行一次刷新
         this.table_graph=new Table_graph(2,1,1,[0,0,0],20,"webpages/image_source/game/background.jpg");
         this.deck_self_graph=new Deck_battle(4,2,5.62,[-28.5,-20-3,-15],0.5,"webpages/image_source/card/back.png")
@@ -18,11 +38,6 @@ class Table{
         this.timmer_bullet=new Timmer(10,[-34,-22,0],4,'bullet')
         this.special_effects=new SpecialEffects()
         this.deck_oppo_graph.angle_y=Math.PI
-        // this.camera=new Camera([0,-30,-7*0.7])
-        // this.camera.angle_y=1.34
-        this.camera=new Camera([0,-60,-7*0.7])
-        this.camera.angle_y=1.34
-        this.camera.angle_x=0
 
         this.card_frame=new Card_frame()
         this.opponent_battlefield=[]

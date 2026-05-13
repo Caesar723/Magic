@@ -265,9 +265,9 @@ class Selection_Page{
     }
     draw(){
         if (this.selection_mode=="cards" && this.in_selection){
-            //console.log(this.sort_cards(),this.selection_list)
             for (let card of this.sort_cards()){
-                card.draw(this.camera,this.ctx,this.canvas)
+                const drawer = card.draw_legacy_2d || card.draw;
+                drawer.call(card, this.camera, this.ctx, this.canvas);
             }
         }
     }

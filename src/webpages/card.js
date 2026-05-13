@@ -66,7 +66,62 @@ class Card{
         this.draw_card_flag=false;
         this.move_enlarge_card_flag=false
         this.position_in_screen=[[0,0],[0,0],[0,0],[0,0]]
-        
+
+        // half-extents of the card plane in local (unscaled) space
+        this._half_width = width;
+        this._half_height = height;
+        this._three_card = null;
+        this._three_card_initialized = false;
+
+        // Performance: the dynamic canvas (background + mana cost) is
+        // expensive to draw and is identical every frame for a static card.
+        // Bake it once when the underlying base image (dynamic_canvas[2])
+        // becomes available, then never again until something explicitly
+        // marks it dirty. `_three_needs_upload` is consumed by draw() to
+        // decide whether to push the canvas to the GPU on this frame.
+        this._canvas_baked = false;
+        this._canvas_dirty = true;
+        this._three_needs_upload = false;
+        this._last_visual_sig = null;
+    }
+
+    // Mark the front canvas (and therefore the Three texture) as needing a
+    // rebuild on the next frame. Call this whenever code mutates anything
+    // that affects what the card face looks like (e.g. mana cost change).
+    mark_visual_dirty(){
+        this._canvas_dirty = true;
+    }
+
+    _ensureThreeCard(opts){
+        if (this._three_card_initialized) return;
+        if (!window.THREE_STAGE) return;
+        const front = this.dynamic_canvas && this.dynamic_canvas[0];
+        if (!(front instanceof HTMLCanvasElement) && !(front instanceof HTMLImageElement)) return;
+        // Wait until the underlying canvas has actually been sized by the
+        // async card-frame generator. Creating a CanvasTexture from a 0x0
+        // canvas yields an empty GL texture and the mesh stays blank even
+        // after we later mark it dirty on some drivers.
+        if (front instanceof HTMLCanvasElement && (front.width === 0 || front.height === 0)) return;
+        this._three_card = new CardPlane(
+            window.THREE_STAGE,
+            this._half_width,
+            this._half_height,
+            front,
+            this.back_img,
+            opts || {}
+        );
+        this._three_card_initialized = true;
+    }
+
+    // Releases the Three plane (front/back textures, geometry, materials)
+    // and removes it from whichever Three scene it was added to. Call when
+    // the card is permanently leaving the game (e.g. hand_delete).
+    dispose_three(){
+        if (this._three_card){
+            try { this._three_card.dispose(); } catch (e) {}
+            this._three_card = null;
+        }
+        this._three_card_initialized = false;
     }
     initinal_dynamic_space(){
         const canvas=document.createElement('canvas');
@@ -92,23 +147,39 @@ class Card{
     }
 
     get_position_points(){
-        const xy_rotate=math.multiply(rotateX(this.angle_x),rotateY(this.angle_y));
-        const xyz_rotate=math.multiply(xy_rotate,rotateZ(this.angle_z));
-        
-        const pos_rotate=math.multiply(xyz_rotate,this.get_org_position(this.size));
-        
-        const final_points=[]
-        for (let col = 0; col <= this.corners.length-1; col++){
-            const final_point=[]
-            for (let row = 0; row <= 2; row++){
-                
-                final_point.push(pos_rotate.get([row,col])+this.position[row]);
-            }
-            final_points.push(final_point);
-            
+        // Hand-rolled equivalent of `R = Rx(ax) * Ry(ay) * Rz(az)` followed
+        // by `R * (corner * size) + position`, replacing four `math.matrix`
+        // multiplications per card per frame. Same result as the legacy
+        // mathjs version but ~10x faster, which matters because every card
+        // calls this every frame.
+        const ax = this.angle_x, ay = this.angle_y, az = this.angle_z;
+        const cx = Math.cos(ax), sx = Math.sin(ax);
+        const cy = Math.cos(ay), sy = Math.sin(ay);
+        const cz = Math.cos(az), sz = Math.sin(az);
+        // Rx*Ry
+        const m00 = cy,        m01 = 0,    m02 = sy;
+        const m10 = sx * sy,   m11 = cx,   m12 = -sx * cy;
+        const m20 = -cx * sy,  m21 = sx,   m22 = cx * cy;
+        // (Rx*Ry)*Rz
+        const r00 = m00 * cz + m01 * sz, r01 = -m00 * sz + m01 * cz, r02 = m02;
+        const r10 = m10 * cz + m11 * sz, r11 = -m10 * sz + m11 * cz, r12 = m12;
+        const r20 = m20 * cz + m21 * sz, r21 = -m20 * sz + m21 * cz, r22 = m22;
+
+        const s = this.size;
+        const px = this.position[0], py = this.position[1], pz = this.position[2];
+        const corners = this.corners;
+        const final_points = [];
+        for (let i = 0; i < corners.length; i++){
+            const lx = corners[i][0] * s;
+            const ly = corners[i][1] * s;
+            const lz = corners[i][2] * s;
+            final_points.push([
+                r00 * lx + r01 * ly + r02 * lz + px,
+                r10 * lx + r11 * ly + r12 * lz + py,
+                r20 * lx + r21 * ly + r22 * lz + pz,
+            ]);
         }
         return final_points;
-
     }
     check_surface(camera){//true: forward false: backward
         const vectorA=this.normal_vector()
@@ -145,13 +216,37 @@ class Card{
     }
 
 
+    // Subclasses (e.g. Creature_Hand) override these two to layer extra
+    // content on top of the baked card face (life/damage text, etc.).
+    //   - get_visual_signature() must change whenever the visual changes
+    //     so the cache knows to re-bake.
+    //   - draw_extra_overlay(ctx) is called AFTER the background+fee bake
+    //     so the overlay actually ends up on top of the card.
+    get_visual_signature(){ return ""; }
+    draw_extra_overlay(ctx){ /* no-op for plain cards */ }
+
     update(){
-        this.dynamic_canvas[1].clearRect(0, 0, this.dynamic_canvas[0].width, this.dynamic_canvas[0].height);
-        this.dynamic_canvas[1].drawImage(this.dynamic_canvas[2],0,0,this.dynamic_canvas[2].width,this.dynamic_canvas[2].height);
-        
-        this.create_fee(this.dynamic_canvas[1],this.color_fee,...Array.from({length: 6}, (_, i) => this.images_fee[i]));
-        
-        this.arr_poses=this.get_position_points();
+        // Bake the front canvas (background + mana cost + subclass overlay)
+        // only when something actually changed. Without this every card
+        // spent ~1ms/frame redrawing identical pixels, and the GPU was
+        // re-uploading a ~500x800 texture per card per frame even though
+        // the image hadn't changed.
+        const sig = this.get_visual_signature();
+        if (!this._canvas_baked || this._canvas_dirty || sig !== this._last_visual_sig){
+            const base = this.dynamic_canvas[2];
+            if (base instanceof HTMLCanvasElement && base.width > 0 && base.height > 0){
+                this.dynamic_canvas[1].clearRect(0, 0, this.dynamic_canvas[0].width, this.dynamic_canvas[0].height);
+                this.dynamic_canvas[1].drawImage(base, 0, 0, base.width, base.height);
+                this.create_fee(this.dynamic_canvas[1], this.color_fee, ...Array.from({length: 6}, (_, i) => this.images_fee[i]));
+                this.draw_extra_overlay(this.dynamic_canvas[1]);
+                this._canvas_baked = true;
+                this._canvas_dirty = false;
+                this._last_visual_sig = sig;
+                this._three_needs_upload = true;
+            }
+        }
+
+        this.arr_poses = this.get_position_points();
 
         if (this.draw_card_flag){
             this.draw_card_animation()
@@ -159,8 +254,6 @@ class Card{
         if (this.move_enlarge_card_flag){
             this.card_move_enlarge_animation()
         }
-        
-        
     }
 
 
@@ -224,18 +317,58 @@ class Card{
         ctx.restore();
     }
     draw(camera,ctx,canvas){
-        
+        // Update hit-test rectangle (kept identical to the original 2D
+        // projection so all existing mouse code keeps working).
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
         const new_points_pos=[];
-        
+        for (let index_plane=0; index_plane<4;index_plane++){
+            const x_start=this.arr_poses[index_plane][0]
+            const y_start=this.arr_poses[index_plane][1]
+            const z_start=this.arr_poses[index_plane][2]
+            const end_x=cx + camera.similar_tri(x_start,z_start)
+            const end_y=cy + camera.similar_tri(y_start,z_start)
+            new_points_pos.push([end_x, end_y])
+        }
+        this.position_in_screen=new_points_pos;
+
+        this._ensureThreeCard();
+        if (this._three_card){
+            // Only push the front canvas to the GPU on frames where the
+            // canvas actually changed (set by `update()` after baking).
+            if (this._three_needs_upload){
+                this._three_card.markFrontDirty();
+                this._three_needs_upload = false;
+            }
+            // Original project decides front-vs-back by dotting the plane
+            // normal against the camera's "forward" vector; mirror that so
+            // the card shows its back during the draw-card flip animation.
+            this._three_card.setFace(!this.check_surface(camera));
+            this._three_card.setTransform(
+                this.position,
+                this.angle_x,
+                this.angle_y,
+                this.angle_z,
+                this.size
+            );
+        }
+    }
+
+    // Legacy 2D rasterised perspective draw, kept exclusively for UI overlay
+    // contexts (Show_2D mouse-hover preview, Selection_Page card carousel).
+    // These contexts use their own private Camera and must not pollute the
+    // shared Three.js scene.
+    draw_legacy_2d(camera,ctx,canvas){
+        const new_points_pos=[];
+
         if (this.check_surface(camera)){
             this.final_image=this.dynamic_canvas[0];
         }
         else{
             this.final_image=this.back_img;
         }
-        //ctx.beginPath();
         const cx = canvas.width / 2;
-        const cy = canvas.height / 2;       
+        const cy = canvas.height / 2;
         for (let index_plane=0; index_plane<4;index_plane++){
             const x_start=this.arr_poses[index_plane][0]
             const y_start=this.arr_poses[index_plane][1]
@@ -245,25 +378,21 @@ class Card{
             const end_y=cy + camera.similar_tri(y_start,z_start)
             new_points_pos.push([end_x, end_y])
         }
-        //ctx.closePath();
         const COL=4;
         const ROW=4;
 
         let col_left_up=this.average_p(new_points_pos[2],new_points_pos[3],COL-0,COL);
         let col_right_up=this.average_p(new_points_pos[1],new_points_pos[0],COL-0,COL);
-        
+
         for (let col=0;col<COL;col++){
             let col_left_down=this.average_p(new_points_pos[2],new_points_pos[3],COL-col-1,COL);
             let col_right_down=this.average_p(new_points_pos[1],new_points_pos[0],COL-col-1,COL);
-
-            
-            
             for (let row=0;row<ROW;row++){
                 const new_points_pos_1=[
                     this.average_p(col_left_down,col_right_down,ROW-row-1,ROW),
                     this.average_p(col_left_up,col_right_up,ROW-row-1,ROW),
-                    this.average_p(col_left_up,col_right_up,ROW-row,ROW), 
-                    this.average_p(col_left_down,col_right_down,ROW-row,ROW), 
+                    this.average_p(col_left_up,col_right_up,ROW-row,ROW),
+                    this.average_p(col_left_down,col_right_down,ROW-row,ROW),
                 ]
                 this.draw_half_img_1(new_points_pos_1,[row*this.image.width/ROW,col*this.image.height/COL],ctx);
                 this.draw_half_img_2(new_points_pos_1,[row*this.image.width/ROW,col*this.image.height/COL],ctx);
@@ -272,7 +401,6 @@ class Card{
             col_right_up=col_right_down;
         }
         this.position_in_screen=new_points_pos;
-        
     }
     average_p(p_1,p_2,n,t){
         const x=p_2[0]+n*(p_1[0]-p_2[0])/t

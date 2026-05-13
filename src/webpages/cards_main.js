@@ -12,11 +12,17 @@ class Creature extends Card {
 
     
     update(){
+        // Life/damage is drawn from `draw_extra_overlay` inside super.update
+        // so it lands on top of the freshly baked card face exactly when
+        // the canvas is being re-baked. Calling print_life_damage here
+        // would stack new text on top of the cached canvas every frame.
         super.update();
+    }
+    get_visual_signature(){
+        return this.Damage + "/" + this.Life;
+    }
+    draw_extra_overlay(ctx){
         this.print_life_damage();
-        
-
-        
     }
     print_life_damage(){
         this.create_blank_space(

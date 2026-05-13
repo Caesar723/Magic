@@ -25,6 +25,29 @@ class Ring_Record{
 
         this.moving=false
         this.interval=2
+
+        this._three_plane=null;
+        this._three_initialized=false;
+    }
+    _ensureThreePlane(){
+        if (this._three_initialized) return;
+        if (!window.THREE_STAGE) return;
+        this._three_plane = new TexturedPlane(window.THREE_STAGE, this.canvas, {
+            width: 2,
+            height: 2,
+            side: THREE.DoubleSide,
+            transparent: true,
+            depthWrite: false,
+            renderOrder: 5,
+            // Pull life rings / timers in front of the table top so they
+            // never z-fight with it.
+            polygonOffsetFactor: -2,
+            polygonOffsetUnits: -4,
+        });
+        // Re-orient PlaneGeometry from XY (normal +z) to XZ (normal +y) so
+        // it matches the original ring corners which lie in the XZ plane.
+        this._three_plane.geometry.rotateX(-Math.PI/2);
+        this._three_initialized = true;
     }
 
     animate_set(val,current_val){
@@ -187,57 +210,21 @@ class Ring_Record{
         ctx.restore();
     }
     draw(camera,ctx,canvas){
-        
-        const new_points_pos=[];
+        const [screen, zs] = window.project_quad_to_screen(this.arr_poses, camera, canvas.width, canvas.height);
+        this.position_in_screen = screen;
+        this.position_in_screen_z = (zs[0] + zs[2]) / 2;
 
-        const new_points_z=[]
-        
-        
-        this.final_image=this.canvas;
-        
-        //ctx.beginPath();
-        const cx = canvas.width / 2;
-        const cy = canvas.height / 2;       
-        for (let index_plane=0; index_plane<4;index_plane++){
-            const x_start=this.arr_poses[index_plane][0]
-            const y_start=this.arr_poses[index_plane][1]
-            const z_start=this.arr_poses[index_plane][2]
-
-            const end_x=cx + camera.similar_tri_2(x_start,z_start)
-            const end_y=cy + camera.similar_tri_2(y_start,z_start)
-            new_points_pos.push([end_x, end_y])
-            new_points_z.push(z_start)
+        this._ensureThreePlane();
+        if (this._three_plane){
+            this._three_plane.markDirty();
+            this._three_plane.setTransform(
+                this.position,
+                this.angle_x,
+                this.angle_y,
+                this.angle_z,
+                this.size, this.size, this.size
+            );
         }
-        //ctx.closePath();
-        const COL=4;
-        const ROW=4;
-
-        let col_left_up=this.average_p(new_points_pos[2],new_points_pos[3],COL-0,COL);
-        let col_right_up=this.average_p(new_points_pos[1],new_points_pos[0],COL-0,COL);
-        
-        for (let col=0;col<COL;col++){
-            let col_left_down=this.average_p(new_points_pos[2],new_points_pos[3],COL-col-1,COL);
-            let col_right_down=this.average_p(new_points_pos[1],new_points_pos[0],COL-col-1,COL);
-
-            
-            
-            for (let row=0;row<ROW;row++){
-                const new_points_pos_1=[
-                    this.average_p(col_left_down,col_right_down,ROW-row-1,ROW),
-                    this.average_p(col_left_up,col_right_up,ROW-row-1,ROW),
-                    this.average_p(col_left_up,col_right_up,ROW-row,ROW), 
-                    this.average_p(col_left_down,col_right_down,ROW-row,ROW), 
-                ]
-                
-                this.draw_half_img_1(new_points_pos_1,[row*this.canvas.width/ROW,col*this.canvas.height/COL],ctx);
-                this.draw_half_img_2(new_points_pos_1,[row*this.canvas.width/ROW,col*this.canvas.height/COL],ctx);
-                //this.draw_half_img_1(new_points_pos_1,[row*this.canvas.width/ROW,col*this.canvas.height/COL],ctx);
-            }
-            col_left_up=col_left_down;
-            col_right_up=col_right_down;
-        }
-        this.position_in_screen=new_points_pos;
-        this.position_in_screen_z=(new_points_z[0]+new_points_z[2])/2
     }
     average_p(p_1,p_2,n,t){
         const x=p_2[0]+n*(p_1[0]-p_2[0])/t

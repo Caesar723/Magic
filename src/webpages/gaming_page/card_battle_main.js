@@ -23,14 +23,22 @@ class Creature_Battle extends Card_Battle {
 
     
     update(camera){
+        // The life/damage overlay is now drawn from inside super.update()
+        // through the `draw_extra_overlay` hook, only when the canvas is
+        // actually being re-baked. Calling print_life_damage() here would
+        // double-stack on top of the cached canvas every frame.
         super.update(camera);
-        this.print_life_damage();
 
         this.check_flying()
         this.flying_motion()
-        
-
-        
+    }
+    // Force the cached battle canvas to re-bake when Damage / Life change
+    // (or when the base signature changes for activated/frozen).
+    get_visual_signature(){
+        return super.get_visual_signature() + ":" + this.Damage + "/" + this.Life;
+    }
+    draw_extra_overlay(ctx){
+        this.print_life_damage();
     }
     print_life_damage(){
         this.create_blank_space(

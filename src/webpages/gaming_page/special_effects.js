@@ -13,6 +13,17 @@ class SpecialEffects{
             'Arrow':Arrow,
             'High_Missile':High_Missile
         }
+
+        this._sprite_pool=[];
+    }
+    _ensureSpriteCount(n){
+        if (!window.THREE_STAGE) return;
+        while (this._sprite_pool.length < n){
+            this._sprite_pool.push(new ParticleSprite(window.THREE_STAGE));
+        }
+        for (let i = n; i < this._sprite_pool.length; i++){
+            this._sprite_pool[i].sprite.visible = false;
+        }
     }
 
     create_missile(object_hold,attacked_obj,color,type,final_state){
@@ -83,44 +94,39 @@ class SpecialEffects{
         
     }
     draw(camera,ctx,canvas){
-        const new_points_pos=[];
+        // Each frame, sync the 3D sprite pool to current particles. Round
+        // particles become Three.js Sprites at their world position; arrows
+        // (which need a polyline trail) keep their 2D drawing on the
+        // overlay canvas - that keeps their look identical to before.
+        let sprite_index = 0;
+        this._ensureSpriteCount(this.particles.length);
 
-        const new_points_z=[]
-        
-        
-        this.final_image=this.canvas;
-        
-        //ctx.beginPath();
-        const cx = canvas.width / 2;
-        const cy = canvas.height / 2;  
-
-        for (let index in this.arr_poses){
-            const x_start=this.arr_poses[index][0]
-            const y_start=this.arr_poses[index][1]
-            const z_start=this.arr_poses[index][2]
-
-            const end_x=cx + camera.similar_tri_2(x_start,z_start)
-            const end_y=cy + camera.similar_tri_2(y_start,z_start)
-            new_points_pos.push([end_x, end_y])
-            new_points_z.push(z_start)
-        }
-        //console.log(new_points_pos)
-        for (let i_real in new_points_pos){
-            //console.log(this.particles,i_real)
-            if (this.particles[i_real] instanceof Arrow || this.particles[i_real] instanceof Arrow_side){
-                this.particles[i_real].draw(new_points_pos[i_real],ctx,canvas,camera)
+        for (let i_real in this.particles){
+            const part = this.particles[i_real];
+            if (part instanceof Arrow || part instanceof Arrow_side){
+                // Project particle world pos to screen for the legacy 2D arrow renderer.
+                const idx = parseInt(i_real, 10);
+                const arr = this.arr_poses[idx];
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2;
+                const screen_pos = [
+                    cx + camera.similar_tri_2(arr[0], arr[2]),
+                    cy + camera.similar_tri_2(arr[1], arr[2]),
+                ];
+                part.draw(screen_pos, ctx, canvas, camera);
+                continue;
             }
-            else{
-                const radius=this.calculate_radius(this.particles[i_real].radius,camera,this.particles[i_real].position)
-                this.draw_ball(new_points_pos[i_real][0], new_points_pos[i_real][1],this.particles[i_real].color,radius,ctx)
-            }
-            
+            const sprite = this._sprite_pool[sprite_index++];
+            if (!sprite) continue;
+            sprite.sprite.visible = true;
+            sprite.setColor(part.color);
+            // Particle radius is in world units; sprite scale is also in world units.
+            sprite.setTransform(part.position, part.radius * 2);
         }
-        
-
-
-
-
+        // Hide unused pool entries.
+        for (let i = sprite_index; i < this._sprite_pool.length; i++){
+            this._sprite_pool[i].sprite.visible = false;
+        }
     }
     draw_ball(x,y,color,radius,ctx){
         ctx.beginPath();

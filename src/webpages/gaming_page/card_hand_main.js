@@ -13,12 +13,18 @@ class Creature_Hand extends Card_Hand {
 
     
     update(){
-        //console.log(this.player)
+        // The life/damage overlay is now drawn from inside super.update()
+        // through the `draw_extra_overlay` hook, only when the canvas is
+        // actually being re-baked. Calling print_life_damage() here would
+        // double-stack on top of the cached canvas every frame.
         super.update();
+    }
+    // Force a re-bake whenever Damage / Life changes.
+    get_visual_signature(){
+        return this.Damage + "/" + this.Life;
+    }
+    draw_extra_overlay(ctx){
         this.print_life_damage();
-        
-
-        
     }
     print_life_damage(){
         this.create_blank_space(

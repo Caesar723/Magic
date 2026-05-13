@@ -24,8 +24,38 @@ class Table_graph extends Block{
         ];
         this.points=this.get_org_position(size);
 
-        
+        this._WIDTH=WIDTH;
+        this._HEIGHT=HEIGHT;
+        this._LENGTH=LENGTH;
+        this._three_plane=null;
+        this._three_initialized=false;
+    }
 
+    _ensureThreePlane(){
+        if (this._three_initialized) return;
+        if (typeof window.THREE_STAGE === "undefined" || !window.THREE_STAGE) return;
+        if (!this.image.complete || this.image.naturalWidth === 0){
+            this.image.addEventListener("load", () => {
+                this._three_initialized = false;
+                this._ensureThreePlane();
+            }, { once: true });
+            return;
+        }
+        // Top surface plane: lies in the y = -HEIGHT plane (the "table top"
+        // in the y-down world), spans 2*WIDTH * 2*LENGTH. We push the table
+        // slightly back in depth so cards / life rings / timers (which sit
+        // on the same y as the table top) don't z-fight.
+        this._three_plane = new TexturedPlane(window.THREE_STAGE, this.image, {
+            width: this._WIDTH * 2,
+            height: this._LENGTH * 2,
+            side: THREE.DoubleSide,
+            transparent: false,
+            depthWrite: true,
+            renderOrder: -10,
+            polygonOffsetFactor: 2,
+            polygonOffsetUnits: 4,
+        });
+        this._three_initialized = true;
     }
     get_org_position(size){
         const arr_x=[];
@@ -109,18 +139,19 @@ class Table_graph extends Block{
         return this.surface.position_in_screen;
     }
     draw(camera,canvas,ctx){
-        this.planes.sort(function(a,b){
-            const b_mid=b.mid_point();
-            const a_mid=a.mid_point()
-            
-            const b_dis=Math.sqrt((camera.position[0]-b_mid[0])**2 + (camera.position[1]+b_mid[1])**2+ (camera.position[2]-b_mid[2])**2) 
-            const a_dis=Math.sqrt((camera.position[0]-a_mid[0])**2 + (camera.position[1]+a_mid[1])**2+ (camera.position[2]-a_mid[2])**2) 
-            
-            return b_dis-a_dis;
-        })
-        
-        for (const plane_index in this.planes){
-            this.planes[plane_index].draw(camera,canvas,ctx);
+        this._ensureThreePlane();
+        if (this._three_plane){
+            // Position the table-top plane at world (position[0], position[1] - HEIGHT*size, position[2]).
+            // PlaneGeometry lies in the XY plane; rotate -90 deg around X so
+            // it lies in the XZ plane (y is normal axis), then it spans
+            // x in [-WIDTH*size, WIDTH*size] and z in [-LENGTH*size, LENGTH*size].
+            const sz = this.size;
+            const pos = [
+                this.position[0],
+                this.position[1] - this._HEIGHT * sz,
+                this.position[2],
+            ];
+            this._three_plane.setTransform(pos, -Math.PI/2, 0, 0, sz, sz, sz);
         }
     }
     get_matrix_position(matrixA){
@@ -325,6 +356,8 @@ class Deck_battle extends Table_graph{
         super(WIDTH,HEIGHT,LENGTH,position, size,img_path)
         this.height=HEIGHT
         this.number_of_cards=70
+        this._three_box=null;
+        this._three_box_initialized=false;
     }
     set_height_position(){
         this.height=this.number_of_cards*2/70
@@ -361,25 +394,41 @@ class Deck_battle extends Table_graph{
         this.set_height_position()
         this.change_height(this.height)
     }
-    draw(camera,canvas,ctx){
-        //console.log(this.number_of_cards!=0)
-        if (this.number_of_cards!=0){
-            
-            this.planes.sort(function(a,b){
-                const b_mid=b.mid_point();
-                const a_mid=a.mid_point()
-                
-                const b_dis=Math.sqrt((camera.position[0]-b_mid[0])**2 + (camera.position[1]+b_mid[1])**2+ (camera.position[2]-b_mid[2])**2) 
-                const a_dis=Math.sqrt((camera.position[0]-a_mid[0])**2 + (camera.position[1]+a_mid[1])**2+ (camera.position[2]-a_mid[2])**2) 
-                
-                return b_dis-a_dis;
-            })
-            
-            for (const plane_index in this.planes){
-                this.planes[plane_index].draw(camera,canvas,ctx);
-            }
+    _ensureDeckBox(){
+        if (this._three_box_initialized) return;
+        if (!window.THREE_STAGE) return;
+        if (!this.image.complete || this.image.naturalWidth === 0){
+            this.image.addEventListener("load", () => {
+                this._three_box_initialized = false;
+                this._ensureDeckBox();
+            }, { once: true });
+            return;
         }
-        
+        const tex = makeImageTexture(this.image);
+        const sideMat = new THREE.MeshBasicMaterial({ color: 0x222222, side: THREE.DoubleSide });
+        const topMat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, depthWrite: true });
+        const geo = new THREE.BoxGeometry(1, 1, 1);
+        // Box geometry materials order: +x, -x, +y, -y, +z, -z. Apply card art on top (-y in y-down world).
+        const mats = [sideMat, sideMat, sideMat, topMat, sideMat, sideMat];
+        const mesh = new THREE.Mesh(geo, mats);
+        mesh.renderOrder = -5;
+        window.THREE_STAGE.add(mesh);
+        this._three_box = { mesh, geo, sideMat, topMat, tex };
+        this._three_box_initialized = true;
+    }
+    draw(camera,canvas,ctx){
+        this._ensureDeckBox();
+        if (!this._three_box) return;
+        const visible = this.number_of_cards != 0;
+        this._three_box.mesh.visible = visible;
+        if (!visible) return;
+        const sz = this.size;
+        const sx = this._WIDTH * 2 * sz;
+        const sy = this.height * 2 * sz;
+        const sz_ = this._LENGTH * 2 * sz;
+        this._three_box.mesh.position.set(this.position[0], this.position[1], this.position[2]);
+        this._three_box.mesh.rotation.set(this.angle_x || 0, this.angle_y || 0, this.angle_z || 0, "XYZ");
+        this._three_box.mesh.scale.set(sx, sy, sz_);
     }
 }
 
