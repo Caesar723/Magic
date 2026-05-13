@@ -39,6 +39,10 @@ class ThreeStage {
         this.renderer.autoClear = false;
 
         this.scene3d = new THREE.Scene();
+        // World-space VFX (magic missile discs, etc.): drawn after the main
+        // battlefield scene with a cleared depth buffer so they are never
+        // occluded by card depth writes, regardless of renderOrder ties.
+        this.sceneVfx = new THREE.Scene();
         const fovY = 2 * Math.atan((height / 2) / 900) * 180 / Math.PI;
         this.camera3d = new THREE.PerspectiveCamera(fovY, width / height, 0.1, 100000);
 
@@ -130,6 +134,8 @@ class ThreeStage {
         this.overlayTexture.needsUpdate = true;
         this.renderer.clear(true, true, true);
         this.renderer.render(this.scene3d, this.camera3d);
+        this.renderer.clearDepth();
+        this.renderer.render(this.sceneVfx, this.camera3d);
         // Aux scenes (e.g. each player's hand) layer on top of the table
         // with their own perspective camera. Depth is cleared between
         // scenes so a card in the hand is never occluded by the desktop
@@ -145,6 +151,9 @@ class ThreeStage {
 
     add(obj) { this.scene3d.add(obj); }
     remove(obj) { this.scene3d.remove(obj); }
+
+    addVfx(obj) { this.sceneVfx.add(obj); }
+    removeVfx(obj) { this.sceneVfx.remove(obj); }
 }
 
 window.THREE_STAGE = null;
@@ -270,6 +279,14 @@ class CardPlane {
         this.material.needsUpdate = true;
     }
 
+    // Stacked lands: push each copy slightly in depth buffer without huge world-Z.
+    setPolygonOffset(factor, units) {
+        this.material.polygonOffset = true;
+        this.material.polygonOffsetFactor = factor;
+        this.material.polygonOffsetUnits = units;
+        this.material.needsUpdate = true;
+    }
+
     // Switch which texture is shown. true => card back. false => card front.
     // Cheap (no-op) when state is unchanged. Swapping `material.map` does
     // not require `material.needsUpdate` because the shader signature is
@@ -361,6 +378,13 @@ class TexturedPlane {
     }
 }
 
+// Battlefield `CardPlane` uses renderOrder up to ~4000 when dragging; magic
+// missile / particle discs must paint above all table cards in the same scene.
+const EFFECT_PARTICLE_RENDER_ORDER_BASE = 12000;
+if (typeof window !== "undefined") {
+    window.EFFECT_PARTICLE_RENDER_ORDER_BASE = EFFECT_PARTICLE_RENDER_ORDER_BASE;
+}
+
 // A small soft-disc sprite, used for magic missile particles.
 class ParticleSprite {
     constructor(stage) {
@@ -373,9 +397,9 @@ class ParticleSprite {
             depthTest: false,
         });
         this.sprite = new THREE.Sprite(this.material);
-        // Above battlefield card planes (renderOrder 0 / polygon offset).
-        this.sprite.renderOrder = 2500;
-        stage.add(this.sprite);
+        this.sprite.renderOrder = EFFECT_PARTICLE_RENDER_ORDER_BASE;
+        if (typeof stage.addVfx === "function") stage.addVfx(this.sprite);
+        else stage.add(this.sprite);
     }
 
     static getSharedTexture() {
@@ -417,7 +441,8 @@ class ParticleSprite {
     }
 
     dispose() {
-        this.stage.remove(this.sprite);
+        if (typeof this.stage.removeVfx === "function") this.stage.removeVfx(this.sprite);
+        else this.stage.remove(this.sprite);
         this.material.dispose();
     }
 }

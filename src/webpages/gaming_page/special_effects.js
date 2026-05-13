@@ -119,6 +119,7 @@ class SpecialEffects{
             const sprite = this._sprite_pool[sprite_index++];
             if (!sprite) continue;
             sprite.sprite.visible = true;
+            sprite.sprite.renderOrder = (window.EFFECT_PARTICLE_RENDER_ORDER_BASE || 12000) + sprite_index - 1;
             sprite.setColor(part.color);
             // Particle radius is in world units; sprite scale is also in world units.
             sprite.setTransform(part.position, part.radius * 2);

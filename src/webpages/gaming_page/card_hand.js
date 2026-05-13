@@ -1,4 +1,7 @@
 class Card_Hand extends Card{
+    // Halo quad & texture both use this factor (>1). Smaller = tighter ring.
+    static get HALO_OUTSET_SCALE(){ return 1.13; }
+
     constructor(width,height,position,size,dynamic_canvas,color_fee,name,id,player){
         super(width,height,position,size,dynamic_canvas,color_fee,name)
         
@@ -533,8 +536,9 @@ class Card_Hand extends Card{
     // rim of glow remains visible around the edges.
     _ensureHandHalo(){
         if (this._three_halo || !this._three_card) return;
-        const halo_w = this._half_width * 2 * 1.22;
-        const halo_h = this._half_height * 2 * 1.22;
+        const s = Card_Hand.HALO_OUTSET_SCALE;
+        const halo_w = this._half_width * 2 * s;
+        const halo_h = this._half_height * 2 * s;
         const tex = Card_Hand._createHandHaloTexture();
         const mat = new THREE.MeshBasicMaterial({
             map: tex,
@@ -546,8 +550,8 @@ class Card_Hand extends Card{
         });
         const geo = new THREE.PlaneGeometry(halo_w, halo_h);
         const mesh = new THREE.Mesh(geo, mat);
-        // Behind the card plane (see comment above). Slightly larger quad
-        // so the glow reads as a ring outside the card silhouette.
+        // Behind the card plane (see comment above). Quad is
+        // `HALO_OUTSET_SCALE`× card size so a soft ring sits just outside the silhouette.
         mesh.position.set(0, 0, -0.12);
         mesh.renderOrder = -2;
         this._three_card.mesh.renderOrder = 0;
@@ -573,7 +577,7 @@ class Card_Hand extends Card{
         const g = canvas.getContext("2d");
         g.clearRect(0, 0, W, H);
 
-        const scale = 1.22;
+        const scale = Card_Hand.HALO_OUTSET_SCALE;
         const cardW = W / scale;
         const cardH = H / scale;
         const mx = (W - cardW) / 2;
@@ -607,33 +611,33 @@ class Card_Hand extends Card{
         og.lineCap = "round";
         traceOutline(og, 0);
         og.strokeStyle = palette.strokeInner;
-        og.lineWidth = 4;
+        og.lineWidth = 3.5;
         og.shadowColor = palette.shadowInner;
-        og.shadowBlur = 30;
+        og.shadowBlur = 24;
         og.shadowOffsetX = 0;
         og.shadowOffsetY = 0;
         og.stroke();
 
-        og.shadowBlur = 52;
-        og.lineWidth = 2.2;
+        og.shadowBlur = 40;
+        og.lineWidth = 2;
         og.strokeStyle = palette.strokeMid;
         og.stroke();
 
         g.save();
-        g.filter = "blur(11px)";
+        g.filter = "blur(8px)";
         g.globalAlpha = 0.9;
         g.drawImage(off, 0, 0);
         g.restore();
 
         g.save();
-        g.filter = "blur(4px)";
+        g.filter = "blur(3px)";
         g.globalAlpha = 0.45;
         g.drawImage(off, 0, 0);
         g.restore();
 
         traceOutline(g, 0);
         g.strokeStyle = palette.rim;
-        g.lineWidth = 1.4;
+        g.lineWidth = 1.25;
         g.shadowBlur = 0;
         g.stroke();
 

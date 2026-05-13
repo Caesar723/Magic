@@ -130,19 +130,20 @@ class Table{
         const gap=1.5
         const dis_between=card_len*size*2*gap
 
-
-        const small_distance = 0.22;
+        // Stacked lands: modest X/Z nudge, z_index for 2D sort; `_landStackIndex`
+        // drives Three.js polygonOffset in `Card_Battle.draw` (no per-frame Y drift).
+        const stackShiftX = 0.2;
+        const stackShiftZ = 0.38;
         for (let gi = 0; gi < grouped_items.length; gi++){
             const group = grouped_items[gi];
             for (let offset = 0; offset < group.length; offset++){
                 const card = group[offset];
-                // Higher `offset` = later in stack → larger z_index and world Z
-                // so draw order and depth both paint the top land last (visible).
-                card.z_index = 100 + offset;
+                card._landStackIndex = offset;
+                card.z_index = 100 + offset * 4;
                 const position = [
-                    (start_point + dis_between * gi + small_distance * offset) * unit,
+                    (start_point + dis_between * gi + stackShiftX * offset) * unit,
                     card.accurate_position[1],
-                    (-14 + offset * small_distance * 1.6) * unit,
+                    (-14 + offset * stackShiftZ) * unit,
                 ];
                 card.accurate_position = position;
                 card.start_moving("move_to", [position]);

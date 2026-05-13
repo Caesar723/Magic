@@ -134,8 +134,9 @@ class Card_Battle{
             this._half_height,
             BATTLE_SELECT_HALO_PALETTE
         );
-        const halo_w = this._half_width * 2 * 1.22;
-        const halo_h = this._half_height * 2 * 1.22;
+        const s = Card_Hand.HALO_OUTSET_SCALE;
+        const halo_w = this._half_width * 2 * s;
+        const halo_h = this._half_height * 2 * s;
         const mat = new THREE.MeshBasicMaterial({
             map: tex,
             transparent: true,
@@ -420,14 +421,25 @@ class Card_Battle{
                 this.angle_z,
                 this.size
             );
-            let ro = 10 + Math.min(500, (this.z_index || 0));
+            let ro = 10 + Math.min(550, (this.z_index || 0));
             if (this._being_dragged) ro = 4000;
             this._three_card.setRenderOrder(ro);
             this._ensureBattleHalo();
             this._updateBattleSelectHalo();
             if (this._three_halo) this._three_halo.mesh.renderOrder = ro - 1;
+
+            if (this.type === "Land") {
+                const si = Math.max(0, Math.floor(this._landStackIndex || 0));
+                this._three_card.setPolygonOffset(-1 - si * 2.5, -1 - si * 2.5);
+            } else {
+                this._three_card.setPolygonOffset(-1, -1);
+            }
             if (this._being_dragged){
                 this._three_card.setDepthReadWrite(false, false);
+            } else if (this.type === "Land") {
+                // Transparent stacked lands: still depth-test vs table, but do not
+                // write depth so copies do not fight in the buffer.
+                this._three_card.setDepthReadWrite(true, false);
             } else {
                 this._three_card.setDepthReadWrite(true, true);
             }
