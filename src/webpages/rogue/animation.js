@@ -130,10 +130,10 @@ class Animation{//action
         ctx.arcTo(x, y, x + radius, y, radius);
         
     }
-    check_mouse(mouse_pos,index){
-        
-        const y=20+index*(this.height+20)
-        const x=80-70
+    check_mouse(mouse_pos,index,bar_x){
+        const bx = bar_x === undefined ? 0 : bar_x
+        const y=20+Number(index)*(this.height+20)
+        const x=bx+80-70
         //console.log(mouse_pos,x,y)
         if (x<mouse_pos[0] && mouse_pos[0]<x+this.width && y<mouse_pos[1] && mouse_pos[1]<y+this.height){
             return true
@@ -152,9 +152,10 @@ class Animation{//action
             this.new_ring_hold.update(this.player.camera)
         }
         else{
-            this.object_hold.position[0]=-20
-            
-            this.object_hold.update()
+            if (this.object_hold_new){
+                this.object_hold_new.position[0]=-20
+                this.object_hold_new.update()
+            }
         }
         
     }
@@ -194,6 +195,17 @@ class Animation{//action
     finished(){
         return true
     }
+
+    cleanup_action_preview(){
+        const d = (o) => {
+            if (o && typeof o.dispose_three === "function") o.dispose_three();
+        };
+        d(this.object_hold_new);
+        d(this.new_card);
+        d(this.new_ring);
+        d(this.new_ring_hold);
+    }
+
     static check_battle(card){//如果card是hand，检查有没有battle，没有就建一个
         if (card instanceof Card_Battle || card instanceof Card_Hand_Oppo){
             return card

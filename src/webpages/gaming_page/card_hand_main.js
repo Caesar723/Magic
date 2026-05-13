@@ -108,20 +108,35 @@ class Creature_Hand extends Card_Hand {
     change_state(Damage,Life){
         this.Damage=Damage
         this.Life=Life
+        // The hand card's visible damage/life text lives on the baked
+        // dynamic_canvas. Explicitly mark dirty so the next `update()`
+        // re-bakes — relying on the visual-signature change alone has
+        // proven flaky in practice (e.g. when the signature happens to
+        // collide, or when nothing else triggers an update first).
+        this.mark_visual_dirty()
         if (this.battle){
             this.battle.Damage=Damage
             this.battle.Life=Life
+            if (typeof this.battle.mark_visual_dirty === "function"){
+                this.battle.mark_visual_dirty()
+            }
         }
     }
     append_buff(buff){
         this.buff_list.push(buff)
-        
-        
+        this.mark_visual_dirty()
+        if (this.battle && typeof this.battle.mark_visual_dirty === "function"){
+            this.battle.mark_visual_dirty()
+        }
     }
     remove_buff(buff){
         this.buff_list=this.buff_list.filter(item => item.id !== buff.id);
+        this.mark_visual_dirty()
         if (this.battle){
             this.battle.buff_list=this.buff_list
+            if (typeof this.battle.mark_visual_dirty === "function"){
+                this.battle.mark_visual_dirty()
+            }
         }
         
     }

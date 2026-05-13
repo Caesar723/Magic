@@ -321,6 +321,25 @@ class Message_Processor{
         const self_player=this.client.self_player
         const oppo_player=this.client.oppo_player
 
+        // Dispose any existing Three.js resources for cards/battles that
+        // are about to be replaced. Without this, stale `CardPlane`s
+        // remain in their aux/main scenes and keep rendering at their
+        // last position — visible as ghost card backs / floating cards.
+        const dispose_arr = (arr) => {
+            if (!arr) return;
+            for (const item of arr){
+                if (item && typeof item.dispose_three === "function"){
+                    try { item.dispose_three(); } catch (e) {}
+                }
+            }
+        };
+        dispose_arr(self_player.cards);
+        dispose_arr(oppo_player.cards);
+        dispose_arr(this.client.table.self_battlefield);
+        dispose_arr(this.client.table.opponent_battlefield);
+        dispose_arr(this.client.table.self_landfield);
+        dispose_arr(this.client.table.opponent_landfield);
+
         self_player.cards=[]
         for (let card of self_hand){
             self_player.cards.push(Animation.check_hand(card,false))

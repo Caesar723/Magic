@@ -160,6 +160,10 @@ function makeCanvasTexture(canvasOrImage, flipY) {
     if (THREE.sRGBEncoding) {
         tex.encoding = THREE.sRGBEncoding;
     }
+    // Some WebGL drivers skip the first upload unless this is set after the
+    // canvas already has pixels; keeps hand/table cards from randomly
+    // staying blank until something else touches the texture.
+    tex.needsUpdate = true;
     return tex;
 }
 
@@ -224,12 +228,17 @@ class CardPlane {
         }
 
         this.geometry = new THREE.PlaneGeometry(halfW * 2, halfH * 2);
+        // Hand aux scenes: multiple semi-transparent quads overlap. With the
+        // default depth buffer, later cards can clip a dragged / enlarged
+        // card along its silhouette. `handDepthMode` turns off depth writes
+        // (and tests) so draw order is controlled purely by `renderOrder`.
+        const handDepthMode = opts.handDepthMode === true;
         this.material = new THREE.MeshBasicMaterial({
             map: this.frontTexture,
             side: THREE.DoubleSide,
             transparent: true,
-            depthWrite: true,
-            depthTest: true,
+            depthWrite: handDepthMode ? false : true,
+            depthTest: handDepthMode ? false : true,
             polygonOffset: true,
             polygonOffsetFactor: opts.polygonOffsetFactor !== undefined ? opts.polygonOffsetFactor : -1,
             polygonOffsetUnits: opts.polygonOffsetUnits !== undefined ? opts.polygonOffsetUnits : -1,
@@ -251,6 +260,14 @@ class CardPlane {
     setRenderOrder(o) {
         this.group.renderOrder = o;
         this.mesh.renderOrder = o;
+    }
+
+    // Battlefield drag: table mesh still depth-tests against the card; turn
+    // off depth read/write so renderOrder alone keeps the card fully visible.
+    setDepthReadWrite(depthTest, depthWrite) {
+        this.material.depthTest = depthTest;
+        this.material.depthWrite = depthWrite;
+        this.material.needsUpdate = true;
     }
 
     // Switch which texture is shown. true => card back. false => card front.
@@ -353,9 +370,11 @@ class ParticleSprite {
             color: 0xffffff,
             transparent: true,
             depthWrite: false,
+            depthTest: false,
         });
         this.sprite = new THREE.Sprite(this.material);
-        this.sprite.renderOrder = 100;
+        // Above battlefield card planes (renderOrder 0 / polygon offset).
+        this.sprite.renderOrder = 2500;
         stage.add(this.sprite);
     }
 

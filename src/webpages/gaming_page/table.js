@@ -131,19 +131,22 @@ class Table{
         const dis_between=card_len*size*2*gap
 
 
-        const small_distance=0.2
-        for (let grouped_index in grouped_items){
-            for (let offset in grouped_items[grouped_index]){
-                const card=grouped_items[grouped_index][offset]
-                const position=[
-                    (start_point+dis_between*grouped_index+small_distance*offset)*unit,
+        const small_distance = 0.22;
+        for (let gi = 0; gi < grouped_items.length; gi++){
+            const group = grouped_items[gi];
+            for (let offset = 0; offset < group.length; offset++){
+                const card = group[offset];
+                // Higher `offset` = later in stack → larger z_index and world Z
+                // so draw order and depth both paint the top land last (visible).
+                card.z_index = 100 + offset;
+                const position = [
+                    (start_point + dis_between * gi + small_distance * offset) * unit,
                     card.accurate_position[1],
-                    (-13+offset*small_distance)*unit
-
-                ]
-                card.accurate_position=position
-                card.start_moving("move_to",[position])
-                card.change_size(size)
+                    (-14 + offset * small_distance * 1.6) * unit,
+                ];
+                card.accurate_position = position;
+                card.start_moving("move_to", [position]);
+                card.change_size(size);
             }
         }
     }
@@ -251,12 +254,12 @@ class Table{
         combinedArray.sort((a, b) =>{
             const positionDiff = b.position[1] - a.position[1];
             if (positionDiff !== 0) {
-                // 如果 position[1] 不相等，直接返回差值
                 return positionDiff;
-            } else {
-                // 如果 position[1] 相等，按照 z-index 排序
-                return a.z_index - b.z_index;
-            }});
+            }
+            const zd = (a.z_index || 0) - (b.z_index || 0);
+            if (zd !== 0) return zd;
+            return (a.position[2] || 0) - (b.position[2] || 0);
+        });
 
         for (let card_i in combinedArray){
             combinedArray[card_i].draw(this.camera,this.ctx,this.canvas)

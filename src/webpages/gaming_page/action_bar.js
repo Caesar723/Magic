@@ -39,6 +39,37 @@ class Action_Bar{
         
 
     }
+
+    dismissHistoryCardPreview(){
+        try {
+            if (this.action_showed && typeof this.action_showed.cleanup_action_preview === "function"){
+                this.action_showed.cleanup_action_preview();
+            }
+        } catch (e) {}
+        this.card_mode = "hide";
+        this.action_showed = undefined;
+    }
+
+    // Uses the same row hit boxes as `check_mouse` but does **not** toggle
+    // `mode`, so we can run it every frame from `Game_Client.draw` with the
+    // last known pointer — fixes preview cards sticking when the pointer
+    // leaves the list without firing another `mousemove` edge case.
+    syncHistoryPreviewIfPointerLeftRow(mouse_pos){
+        if (this.card_mode !== "show" || !this.action_showed || !mouse_pos) return;
+        let overRow = false;
+        if (mouse_pos[0] < (this.canvas.width + this.position[0] - 70)){
+            const len = this.actions.length;
+            const maxRows = len > 11 ? 11 : len;
+            for (let row = 0; row < maxRows; row++){
+                const index = len - row - 1;
+                if (this.actions[index].check_mouse(mouse_pos, row, this.position[0])){
+                    overRow = true;
+                    break;
+                }
+            }
+        }
+        if (!overRow) this.dismissHistoryCardPreview();
+    }
     set_image(){
         for (let i in this.actions){
             
@@ -83,7 +114,7 @@ class Action_Bar{
             }
 
 
-            if (this.card_mode=="show"){
+            if (this.card_mode==="show" && this.action_showed){
                 this.action_showed.update_cards()
             }
         }
@@ -91,6 +122,13 @@ class Action_Bar{
     draw(canvas,ctx,camera){
 
         ctx.drawImage(this.canvas,this.position[0]-70,0)
+
+        // When the whole bar is hidden (mouse moved away), `update()` no
+        // longer runs — but `card_mode` could still be "show", so
+        // `showed_action` would keep drawing preview meshes every frame.
+        if (this.mode === "hide" && this.card_mode === "show" && this.action_showed){
+            this.dismissHistoryCardPreview();
+        }
 
         //console.log(this.showed_action)
         this.showed_action(ctx,canvas,camera)
@@ -146,15 +184,17 @@ class Action_Bar{
         }
         else{
             this.mode="hide"//show hide
+            this.dismissHistoryCardPreview();
         }
         
         if (mouse_pos[0]<(this.canvas.width+this.position[0]-70)){
             
             console.log(this.mode)
             const len=this.actions.length
-            for (let i in this.actions){
-                const index=len-i-1
-                const result=this.actions[index].check_mouse(mouse_pos,i)
+            const maxRows=len>11 ? 11 : len
+            for (let row=0;row<maxRows;row++){
+                const index=len-row-1
+                const result=this.actions[index].check_mouse(mouse_pos,row,this.position[0])
                 if (result){
                     return this.actions[index]
                 }
@@ -188,7 +228,7 @@ class Action_Bar{
     }
 
     showed_action(ctx,canvas,camera){
-        if (this.card_mode=="show"){
+        if (this.card_mode=="show" && this.action_showed){
             this.action_showed.draw_action(ctx,canvas,camera)
         }
     }

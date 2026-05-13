@@ -38,6 +38,8 @@ class Card_Hand extends Card{
 
         this.z_index=1;
 
+        this._being_dragged = false;
+
         //this.battle
         this.used=false
 
@@ -492,6 +494,14 @@ class Card_Hand extends Card{
         // Wait until the canvas has dimensions (filled in by the async
         // card-frame generator). See the matching check on Card.
         if (front instanceof HTMLCanvasElement && (front.width === 0 || front.height === 0)) return;
+        // Defer creating the GPU texture until the front canvas has actually
+        // been baked at least once by Card.update(). Creating the
+        // CanvasTexture earlier — when the canvas is sized but still blank —
+        // sometimes results in the GPU caching an empty texture and the
+        // hand card stays invisible after a refresh, even though we later
+        // call markFrontDirty(). Waiting for the first bake guarantees the
+        // initial upload has the real card art.
+        if (!this._canvas_baked) return;
         const aux = window.THREE_STAGE.getOrCreateAuxScene(camera);
         this._three_card = new CardPlane(
             window.THREE_STAGE,
@@ -505,9 +515,157 @@ class Card_Hand extends Card{
                 // polygon offset is needed against the table.
                 polygonOffsetFactor: 0,
                 polygonOffsetUnits: 0,
+                handDepthMode: true,
             }
         );
         this._three_card_initialized = true;
+        // First GPU upload must happen after the canvas has real pixels; some
+        // drivers ignore the implicit first upload from `CanvasTexture`.
+        this._three_card.markFrontDirty();
+        this._three_needs_upload = false;
+        this._ensureHandHalo();
+    }
+
+    // One soft green glow quad per card, parented to the same group as the
+    // card mesh so it moves/rotates with the card. Placed on local **-Z**
+    // (behind the card plane whose normal is +Z toward the hand camera),
+    // drawn first (renderOrder) so the card face paints on top and only a
+    // rim of glow remains visible around the edges.
+    _ensureHandHalo(){
+        if (this._three_halo || !this._three_card) return;
+        const halo_w = this._half_width * 2 * 1.22;
+        const halo_h = this._half_height * 2 * 1.22;
+        const tex = Card_Hand._createHandHaloTexture();
+        const mat = new THREE.MeshBasicMaterial({
+            map: tex,
+            transparent: true,
+            depthTest: false,
+            depthWrite: false,
+            side: THREE.DoubleSide,
+            blending: THREE.AdditiveBlending,
+        });
+        const geo = new THREE.PlaneGeometry(halo_w, halo_h);
+        const mesh = new THREE.Mesh(geo, mat);
+        // Behind the card plane (see comment above). Slightly larger quad
+        // so the glow reads as a ring outside the card silhouette.
+        mesh.position.set(0, 0, -0.12);
+        mesh.renderOrder = -2;
+        this._three_card.mesh.renderOrder = 0;
+
+        const g = this._three_card.group;
+        const cardMesh = this._three_card.mesh;
+        g.remove(cardMesh);
+        g.add(mesh);
+        g.add(cardMesh);
+
+        this._three_halo = { mesh, mat, geo, tex };
+        this._three_halo.mesh.visible = false;
+    }
+
+    // Shared by hand (green) and battlefield selection (blue): same blur
+    // passes and mesh layout, only `palette` / aspect change.
+    static _createSilhouetteHaloTexture(aspectW, aspectDen, palette){
+        const W = 256;
+        const H = Math.round((W * aspectDen) / aspectW);
+        const canvas = document.createElement("canvas");
+        canvas.width = W;
+        canvas.height = H;
+        const g = canvas.getContext("2d");
+        g.clearRect(0, 0, W, H);
+
+        const scale = 1.22;
+        const cardW = W / scale;
+        const cardH = H / scale;
+        const mx = (W - cardW) / 2;
+        const my = (H - cardH) / 2;
+        const cornerR = Math.min(cardW, cardH) * 0.065;
+
+        const traceOutline = (ctx, inset) => {
+            const x = mx + inset;
+            const y = my + inset;
+            const w = cardW - 2 * inset;
+            const h = cardH - 2 * inset;
+            const r = Math.max(0, Math.min(cornerR, w / 2 - 0.5, h / 2 - 0.5));
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        };
+
+        const off = document.createElement("canvas");
+        off.width = W;
+        off.height = H;
+        const og = off.getContext("2d");
+        og.lineJoin = "round";
+        og.lineCap = "round";
+        traceOutline(og, 0);
+        og.strokeStyle = palette.strokeInner;
+        og.lineWidth = 4;
+        og.shadowColor = palette.shadowInner;
+        og.shadowBlur = 30;
+        og.shadowOffsetX = 0;
+        og.shadowOffsetY = 0;
+        og.stroke();
+
+        og.shadowBlur = 52;
+        og.lineWidth = 2.2;
+        og.strokeStyle = palette.strokeMid;
+        og.stroke();
+
+        g.save();
+        g.filter = "blur(11px)";
+        g.globalAlpha = 0.9;
+        g.drawImage(off, 0, 0);
+        g.restore();
+
+        g.save();
+        g.filter = "blur(4px)";
+        g.globalAlpha = 0.45;
+        g.drawImage(off, 0, 0);
+        g.restore();
+
+        traceOutline(g, 0);
+        g.strokeStyle = palette.rim;
+        g.lineWidth = 1.4;
+        g.shadowBlur = 0;
+        g.stroke();
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.minFilter = THREE.LinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        tex.generateMipmaps = false;
+        tex.flipY = true;
+        if (THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
+        tex.needsUpdate = true;
+        return tex;
+    }
+
+    static _createHandHaloTexture(){
+        return Card_Hand._createSilhouetteHaloTexture(4, 5.62, {
+            strokeInner: "rgba(100, 210, 95, 1)",
+            shadowInner: "rgba(83, 158, 78, 0.98)",
+            strokeMid: "rgba(140, 230, 125, 0.55)",
+            rim: "rgba(210, 255, 200, 0.38)",
+        });
+    }
+
+    _updateHaloVisibility(camera){
+        if (!this._three_halo) return;
+        const usable =
+            (this.player instanceof Self) &&
+            this.check_weather_can_used() &&
+            (this.player.my_turn || this instanceof Instant_Hand || get_dict(this.flag_dict, "Flash"));
+        // Only show the playable glow when the card front faces the camera
+        // (same moment the front texture is shown).
+        const frontTowardCamera = this.check_surface(camera);
+        this._three_halo.mesh.visible = !!(usable && frontTowardCamera);
     }
 
     draw(camera,ctx,canvas){
@@ -523,11 +681,6 @@ class Card_Hand extends Card{
             new_points_pos.push([end_x, end_y])
         }
         this.position_in_screen=new_points_pos;
-
-        if (this.player instanceof Self && this.check_weather_can_used() && (this.player.my_turn || this instanceof Instant_Hand || get_dict(this.flag_dict,"Flash"))){
-            this.draw_blur_ring(ctx)
-            this.draw_blur_ring(ctx)
-        }
 
         this._ensureHandThreeCard(camera);
         if (this._three_card){
@@ -545,8 +698,25 @@ class Card_Hand extends Card{
                 this.angle_z,
                 this.size
             );
+            this._applyHandDrawOrder();
+            this._updateHaloVisibility(camera);
         }
     }
+
+    // Fan order + hover + drag: higher `renderOrder` paints on top because
+    // `handDepthMode` disables depth tests among hand quads.
+    _applyHandDrawOrder(){
+        if (!this._three_card || !this.player || !this.player.cards) return;
+        const hand = this.player.cards;
+        const si = hand.indexOf(this);
+        const base = si < 0 ? 0 : si * 6;
+        let ro = base + (this.z_index || 0) * 120;
+        if ((this.z_index || 0) > 1) ro += 800;
+        if (this._being_dragged) ro += 4000;
+        this._three_card.setRenderOrder(ro);
+        if (this._three_halo) this._three_halo.mesh.renderOrder = ro - 1;
+    }
+
     draw_blur_ring(ctx){
         ctx.save()
         
@@ -594,6 +764,20 @@ class Card_Hand extends Card{
     remove_buff(buff){
         this.buff_list=this.buff_list.filter(item => item.id !== buff.id);
         
+    }
+
+    dispose_three(){
+        if (this._three_halo){
+            try {
+                const m = this._three_halo.mesh;
+                if (m && m.parent) m.parent.remove(m);
+                this._three_halo.geo.dispose();
+                this._three_halo.mat.dispose();
+                if (this._three_halo.tex) this._three_halo.tex.dispose();
+            } catch (e) {}
+            this._three_halo = null;
+        }
+        super.dispose_three();
     }
 }
 
@@ -647,6 +831,10 @@ class Card_Hand_Oppo extends Card{
         if (!window.THREE_STAGE) return;
         const back = this.back_img;
         if (!(back instanceof HTMLImageElement)) return;
+        // Wait until the back image is actually decoded. Creating the
+        // texture earlier sometimes caches an empty GPU texture and the
+        // opponent's hand stays blank on refresh.
+        if (!back.complete || back.naturalWidth === 0) return;
         const aux = window.THREE_STAGE.getOrCreateAuxScene(camera);
         this._three_card = new CardPlane(
             window.THREE_STAGE,
@@ -658,9 +846,11 @@ class Card_Hand_Oppo extends Card{
                 parent: aux.scene,
                 polygonOffsetFactor: 0,
                 polygonOffsetUnits: 0,
+                handDepthMode: true,
             }
         );
         this._three_card_initialized = true;
+        this._three_card.markFrontDirty();
     }
 
     draw(camera,ctx,canvas){
@@ -686,6 +876,11 @@ class Card_Hand_Oppo extends Card{
                 this.angle_z,
                 this.size
             );
+            if (this.player && this.player.cards){
+                const si = this.player.cards.indexOf(this);
+                const ro = (si < 0 ? 0 : si * 6) + ((this.z_index || 0) * 120);
+                this._three_card.setRenderOrder(ro);
+            }
         }
     }
     change_size(size){

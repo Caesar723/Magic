@@ -61,6 +61,7 @@ class Game_Client{
 
         this.grayscale=0;
         this.blur_value=0;
+        this._lastTableMouse = null;
     }
     // async initinal_players(){
     //     console.log(await this.get_players_name())
@@ -187,6 +188,9 @@ class Game_Client{
         if (this.action_bar.mode=="show"){
             this.blur_effect(this.grayscale,this.blur_value)
         }
+        if (this._lastTableMouse){
+            this.action_bar.syncHistoryPreviewIfPointerLeftRow(this._lastTableMouse);
+        }
         this.action_bar.draw(this.canvas_table,this.ctx_table,this.self_player.camera)
         this.show_2d.draw()
         this.buttons.draw(this.canvas_table,this.ctx_table)
@@ -290,7 +294,7 @@ class Game_Client{
             
         });
         this.main_canvas.addEventListener('mousemove', (event) => {
-            
+            this._lastTableMouse = this.get_mouse_pos(event, this.main_canvas);
             if (this.card_hold[2]){
                 this.show_2d.delete_mouse_card()
                 const mouse_pos=this.get_mouse_pos(event,this.main_canvas)
@@ -299,10 +303,12 @@ class Game_Client{
                     //console.log(this.card_hold[0].position[2],this.card_hold[0].position_in_screen_z)
                     //const next_pos=this.table.camera.similar_tri_reverse_2(...mouse_pos,this.card_hold[0].position[1],this.card_hold[0].position_in_screen_z);
                     this.card_hold[0].moving_by_mouse(mouse_pos,this.table.camera)
+                    this.card_hold[0]._being_dragged = true
                     
                 }
                 else if(this.card_hold[0] instanceof Card_Hand){
                     this.card_hold[0].moving_by_mouse(mouse_pos,this.self_player.camera)
+                    this.card_hold[0]._being_dragged = true
                     
                 }
             }
@@ -379,10 +385,18 @@ class Game_Client{
                 }
                 
                 if (action){
+                    if (this.action_bar.action_showed && this.action_bar.action_showed !== action){
+                        if (typeof this.action_bar.action_showed.cleanup_action_preview === "function"){
+                            this.action_bar.action_showed.cleanup_action_preview();
+                        }
+                    }
                     this.action_bar.card_mode="show"//show hide
                     this.action_bar.action_showed=action
                 }
                 else{
+                    if (this.action_bar.action_showed && typeof this.action_bar.action_showed.cleanup_action_preview === "function"){
+                        this.action_bar.action_showed.cleanup_action_preview();
+                    }
                     this.action_bar.card_mode="hide"//show hide
                     this.action_bar.action_showed=undefined
                 }
@@ -391,10 +405,12 @@ class Game_Client{
             }
         });
         this.main_canvas.addEventListener('mouseup', (event) => {
+            if (this.action_bar) this.action_bar.dismissHistoryCardPreview();
             if (!(this.card_hold[0]===undefined)){
                 
                 
                 if (this.card_hold[0] instanceof Card_Battle){
+                    this.card_hold[0]._being_dragged = false
                     this.card_hold[0].angle_x=math.pi/2;;
                     this.card_hold[0].angle_y=0;
                     //this.card_hold[0].angle_z=0;
@@ -418,6 +434,7 @@ class Game_Client{
                     this.card_hold[0].angle_x=0;
                     this.card_hold[0].angle_y=0;
                     this.card_hold[0].angle_z=0;
+                    this.card_hold[0]._being_dragged = false
                     if (performance.now()-this.startTime<0.15*1000){
                         this.self_player.change_to_focus()
                     }
@@ -446,6 +463,7 @@ class Game_Client{
             if (!(this.card_hold[0]===undefined)){
                 
                 if (this.card_hold[0] instanceof Card_Battle){
+                    this.card_hold[0]._being_dragged = false
                     this.card_hold[0].angle_x=math.pi/2;;
                     this.card_hold[0].angle_y=0;
                     //this.card_hold[0].angle_z=0;
@@ -455,10 +473,19 @@ class Game_Client{
                     this.card_hold[0].angle_x=0;
                     this.card_hold[0].angle_y=0;
                     this.card_hold[0].angle_z=0;
+                    this.card_hold[0]._being_dragged = false;
                 }
                 this.card_hold[0].card_hold=[false,false]
                 this.card_hold=[undefined,false,false]
             }
+            if (this.action_bar.card_mode === "show" && this.action_bar.action_showed){
+                if (typeof this.action_bar.action_showed.cleanup_action_preview === "function"){
+                    this.action_bar.action_showed.cleanup_action_preview();
+                }
+                this.action_bar.card_mode = "hide";
+                this.action_bar.action_showed = undefined;
+            }
+            this._lastTableMouse = null;
         });
 
         this.main_canvas.addEventListener('wheel', (event)=> {
@@ -474,6 +501,10 @@ class Game_Client{
             this.selectionPage.rotate_cards(event.deltaX)
            
             event.preventDefault();
+        });
+
+        window.addEventListener("blur", () => {
+            if (this.action_bar) this.action_bar.dismissHistoryCardPreview();
         });
 
         

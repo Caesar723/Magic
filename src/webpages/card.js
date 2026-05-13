@@ -102,6 +102,12 @@ class Card{
         // canvas yields an empty GL texture and the mesh stays blank even
         // after we later mark it dirty on some drivers.
         if (front instanceof HTMLCanvasElement && (front.width === 0 || front.height === 0)) return;
+        // Same rule as Card_Hand: never bind a CanvasTexture until the first
+        // successful bake (base art + fee + overlay). Otherwise the GPU can
+        // cache an all-transparent upload and the card never appears.
+        if (front instanceof HTMLCanvasElement && !this._canvas_baked) return;
+        const baseArt = this.dynamic_canvas && this.dynamic_canvas[2];
+        if (front instanceof HTMLCanvasElement && baseArt instanceof HTMLCanvasElement && !baseArt.__cardFrameArtReady) return;
         this._three_card = new CardPlane(
             window.THREE_STAGE,
             this._half_width,
@@ -111,6 +117,7 @@ class Card{
             opts || {}
         );
         this._three_card_initialized = true;
+        this._three_card.markFrontDirty();
     }
 
     // Releases the Three plane (front/back textures, geometry, materials)
@@ -231,10 +238,22 @@ class Card{
         // spent ~1ms/frame redrawing identical pixels, and the GPU was
         // re-uploading a ~500x800 texture per card per frame even though
         // the image hadn't changed.
+        //
+        // IMPORTANT: `generate_card` returns canvases before `Promise.all`
+        // finishes. A new canvas defaults to 300×150 in browsers, so
+        // `base.width > 0` was TRUE while the card art was still empty.
+        // That baked a blank face, set `_canvas_baked`, and the Three
+        // `CanvasTexture` stayed empty forever — the intermittent "sometimes
+        // no card" bug. Only bake after `Card_frame` sets `__cardFrameArtReady`
+        // on the static art canvas (see `Card_frame.generate_card` below).
+        const base = this.dynamic_canvas && this.dynamic_canvas[2];
+        if (base instanceof HTMLCanvasElement && base.width > 0 && base.height > 0 && !base.__cardFrameArtReady) {
+            this._canvas_baked = false;
+        }
+
         const sig = this.get_visual_signature();
         if (!this._canvas_baked || this._canvas_dirty || sig !== this._last_visual_sig){
-            const base = this.dynamic_canvas[2];
-            if (base instanceof HTMLCanvasElement && base.width > 0 && base.height > 0){
+            if (base instanceof HTMLCanvasElement && base.width > 0 && base.height > 0 && base.__cardFrameArtReady){
                 this.dynamic_canvas[1].clearRect(0, 0, this.dynamic_canvas[0].width, this.dynamic_canvas[0].height);
                 this.dynamic_canvas[1].drawImage(base, 0, 0, base.width, base.height);
                 this.create_fee(this.dynamic_canvas[1], this.color_fee, ...Array.from({length: 6}, (_, i) => this.images_fee[i]));
@@ -243,6 +262,9 @@ class Card{
                 this._canvas_dirty = false;
                 this._last_visual_sig = sig;
                 this._three_needs_upload = true;
+                // If the Three mesh was created on a previous frame, push the
+                // new pixels immediately (don't rely only on the draw() path).
+                if (this._three_card) this._three_card.markFrontDirty();
             }
         }
 
@@ -632,6 +654,7 @@ class Card_frame{
 
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
+        canvas.__cardFrameArtReady = false;
 
         const canvas_dynamic = document.createElement('canvas');
         const ctx_dynamic = canvas_dynamic.getContext('2d');
@@ -640,6 +663,7 @@ class Card_frame{
         const ctx_orginal_image = canvas_orginal_image.getContext('2d');
 
         const canvas_battle=document.createElement('canvas');
+        canvas_battle.__battleArtReady = false;
         
         const ctx_canvas_battle = canvas_battle.getContext('2d');
         
@@ -704,11 +728,18 @@ class Card_frame{
 
             
             this.create_canvas_battle(canvas_battle,ctx_canvas_battle,images[0],name,images[1])
+            canvas_battle.__battleArtReady = true;
 
             //this.create_fee(ctx,color_fee,...Array.from({length: 6}, (_, i) => images[3+i]));
+
+            // `Card.update` must not bake until this runs; otherwise the first
+            // bake can lock onto the browser default 300×150 blank canvas.
+            canvas.__cardFrameArtReady = true;
             
         }).catch(error => {
             console.error('Image loading failed:', error);
+            canvas.__cardFrameArtReady = false;
+            canvas_battle.__battleArtReady = false;
         });
         
         

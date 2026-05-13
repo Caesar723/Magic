@@ -60,8 +60,14 @@ class Opponent extends Player{
     constructor(name,canvas,ctx){
         super(name,canvas,ctx);
 
-        const card=new Card_Hand_Oppo(4,5.62,[0,0,0],0.7,1122334455,this)
-        this.cards=[card];
+        // Start with no cards. Real hand cards arrive via `initinal_all`
+        // from the server. Pre-seeding a placeholder card here used to
+        // leave a stray `CardPlane` at world (0,0,0) in the opponent's
+        // aux scene — visible as a card back floating in the centre of
+        // the screen even after the real cards loaded — because
+        // `initinal_all` replaces `this.cards` without disposing the old
+        // entries.
+        this.cards=[];
         this.hand_delete=[]
         this.type_name='opponent'
 
@@ -128,9 +134,6 @@ class Self extends Player{
     constructor(name,canvas,ctx){
         super(name,canvas,ctx);
 
-        const canvas_dynamic=this.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
-        const card=new Creature_Hand(4,5.62,[0,0,0],1.5,canvas_dynamic,"3U",20,20,20,20,"Caesar",1122334455,this)
-        
         this.type_name='self'
         this.cards=[];
         this.hand_delete=[]

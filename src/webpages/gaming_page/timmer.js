@@ -258,6 +258,15 @@ class Ring_Record{
         )
 
     }
+
+    // Tear down the Three mesh (e.g. action-bar history preview copies).
+    dispose_three(){
+        if (this._three_plane){
+            try { this._three_plane.dispose(); } catch (e) {}
+            this._three_plane = null;
+            this._three_initialized = false;
+        }
+    }
     create_function_x(mouse_pos,position1,position2){// for x=... position1(lower x) x-...
         const k=(position2[0]-position1[0])/(position2[1]-position1[1]);
         const b=position1[0]-k*position1[1];

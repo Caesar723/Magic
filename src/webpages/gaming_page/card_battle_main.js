@@ -120,6 +120,17 @@ class Creature_Battle extends Card_Battle {
         const [power,life]=changed_state
         this.Life=life
         this.Damage=power
+        // Mirror the new state onto the matching hand card so previews
+        // (action bar, 2D show) and any later rebakes see the right numbers,
+        // and force both sides' cached bake to refresh.
+        if (this.card){
+            this.card.Damage=power
+            this.card.Life=life
+            if (typeof this.card.mark_visual_dirty === "function"){
+                this.card.mark_visual_dirty()
+            }
+        }
+        this.mark_visual_dirty()
 
         this.mode="none"
         
@@ -210,8 +221,12 @@ class Creature_Battle extends Card_Battle {
     change_state(Damage,Life){
         this.Damage=Damage
         this.Life=Life
+        this.mark_visual_dirty()
         this.card.Damage=Damage
         this.card.Life=Life
+        if (typeof this.card.mark_visual_dirty === "function"){
+            this.card.mark_visual_dirty()
+        }
     }
 
 }

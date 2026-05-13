@@ -1,5 +1,15 @@
 
 
+// Same halo pipeline as hand cards (`Card_Hand._ensureHandHalo`), blue tones
+// for selection. `Card_Hand._createSilhouetteHaloTexture` lives in
+// `card_hand.js`, which loads after this file — only used at first draw.
+const BATTLE_SELECT_HALO_PALETTE = {
+    strokeInner: "rgba(120, 190, 255, 1)",
+    shadowInner: "rgba(70, 110, 220, 0.98)",
+    strokeMid: "rgba(155, 205, 255, 0.55)",
+    rim: "rgba(225, 238, 255, 0.42)",
+};
+
 class Card_Battle{
     constructor(width,height,position,size,card,player,table){//player:self,opponent
         card.battle=this
@@ -70,6 +80,8 @@ class Card_Battle{
 
         this.select_flag=false
 
+        this._being_dragged = false;
+
         this.buff_list=card.buff_list
         this.flag_dict=card.flag_dict
         this.counter_dict=card.counter_dict
@@ -79,7 +91,7 @@ class Card_Battle{
         this._three_card = null;
         this._three_card_initialized = false;
         this._three_shadow = null;
-        this._three_select_ring = null;
+        this._three_halo = null;
 
         // Performance: only re-bake the battle canvas (and re-upload the
         // texture) when something visual actually changes. The CSS filter
@@ -92,6 +104,8 @@ class Card_Battle{
     _ensureThreeCard(){
         if (this._three_card_initialized) return;
         if (!window.THREE_STAGE) return;
+        const img = this.image;
+        if (img instanceof HTMLCanvasElement && img.__battleArtReady === false) return;
         // Lying-flat battle cards never reveal their back, and the table
         // camera may end up on either side of the plane normal depending on
         // perspective. Use a single double-sided mesh so the front-face
@@ -104,10 +118,85 @@ class Card_Battle{
             this.back_img,
             { flat: true }
         );
-        this._three_card.setRenderOrder(1);
         this._three_shadow = new ShadowQuad(window.THREE_STAGE);
         this._three_initialized = true;
         this._three_card_initialized = true;
+        this._ensureBattleHalo();
+    }
+
+    // Selection ring: same layout as `Card_Hand._ensureHandHalo` (texture
+    // from `Card_Hand._createSilhouetteHaloTexture`), blue palette.
+    _ensureBattleHalo(){
+        if (this._three_halo || !this._three_card) return;
+        if (typeof Card_Hand === "undefined" || !Card_Hand._createSilhouetteHaloTexture) return;
+        const tex = Card_Hand._createSilhouetteHaloTexture(
+            this._half_width,
+            this._half_height,
+            BATTLE_SELECT_HALO_PALETTE
+        );
+        const halo_w = this._half_width * 2 * 1.22;
+        const halo_h = this._half_height * 2 * 1.22;
+        const mat = new THREE.MeshBasicMaterial({
+            map: tex,
+            transparent: true,
+            depthTest: false,
+            depthWrite: false,
+            side: THREE.DoubleSide,
+            blending: THREE.AdditiveBlending,
+        });
+        const geo = new THREE.PlaneGeometry(halo_w, halo_h);
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(0, 0, -0.12);
+        mesh.renderOrder = -2;
+        this._three_card.mesh.renderOrder = 0;
+
+        const g = this._three_card.group;
+        const cardMesh = this._three_card.mesh;
+        g.remove(cardMesh);
+        g.add(mesh);
+        g.add(cardMesh);
+
+        this._three_halo = { mesh, mat, geo, tex };
+        this._three_halo.mesh.visible = false;
+    }
+
+    _updateBattleSelectHalo(){
+        if (!this._three_halo) return;
+        this._three_halo.mesh.visible = !!this.select_flag;
+    }
+
+    // Mark the cached battle canvas as needing a rebuild. Call from
+    // anything that mutates Damage / Life / buff state, so the next
+    // `update()` re-bakes even if the cached signature happened to match
+    // (defensive belt-and-suspenders with the signature comparison).
+    mark_visual_dirty(){
+        this._battle_baked = false;
+    }
+
+    // Release Three.js resources owned by this battle card (mesh, shadow).
+    // Called when the card permanently leaves the field, or when
+    // `initinal_all` replaces the whole battlefield array.
+    dispose_three(){
+        if (this._three_card){
+            try { this._three_card.dispose(); } catch (e) {}
+            this._three_card = null;
+        }
+        if (this._three_shadow){
+            try { this._three_shadow.dispose(); } catch (e) {}
+            this._three_shadow = null;
+        }
+        if (this._three_halo){
+            try {
+                const m = this._three_halo.mesh;
+                if (m && m.parent) m.parent.remove(m);
+                this._three_halo.geo.dispose();
+                this._three_halo.mat.dispose();
+                if (this._three_halo.tex) this._three_halo.tex.dispose();
+            } catch (e) {}
+            this._three_halo = null;
+        }
+        this._three_card_initialized = false;
+        this._three_initialized = false;
     }
     get_org_position(size){
         const arr_x=[];
@@ -284,9 +373,13 @@ class Card_Battle{
         // dynamic content (life/damage). Skipping the redundant
         // clearRect+drawImage saves substantial CPU + GPU upload bandwidth
         // when many cards are on the field.
-        if (this.image && this.image.width > 0){
+        const img = this.image;
+        if (img instanceof HTMLCanvasElement && img.width > 0 && img.height > 0){
+            if (img.__battleArtReady === false) {
+                this._battle_baked = false;
+            }
             const sig = this.get_visual_signature();
-            if (!this._battle_baked || this._battle_buff_sig !== sig){
+            if (img.__battleArtReady !== false && (!this._battle_baked || this._battle_buff_sig !== sig)){
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 this.ctx.save();
                 let filter = '';
@@ -301,6 +394,7 @@ class Card_Battle{
                 this._battle_baked = true;
                 this._battle_buff_sig = sig;
                 this._three_needs_upload = true;
+                if (this._three_card) this._three_card.markFrontDirty();
             }
         }
 
@@ -312,11 +406,6 @@ class Card_Battle{
         const [screenQuad, zs] = window.project_quad_to_screen(this.arr_poses, camera, canvas.width, canvas.height);
         this.position_in_screen = screenQuad;
         this.position_in_screen_z = (zs[0] + zs[2]) / 2;
-
-        if (this.select_flag){
-            this.draw_blur_ring(ctx)
-            this.draw_blur_ring(ctx)
-        }
 
         this._ensureThreeCard();
         if (this._three_card){
@@ -331,6 +420,17 @@ class Card_Battle{
                 this.angle_z,
                 this.size
             );
+            let ro = 10 + Math.min(500, (this.z_index || 0));
+            if (this._being_dragged) ro = 4000;
+            this._three_card.setRenderOrder(ro);
+            this._ensureBattleHalo();
+            this._updateBattleSelectHalo();
+            if (this._three_halo) this._three_halo.mesh.renderOrder = ro - 1;
+            if (this._being_dragged){
+                this._three_card.setDepthReadWrite(false, false);
+            } else {
+                this._three_card.setDepthReadWrite(true, true);
+            }
         }
     }
     average_p(p_1,p_2,n,t){
@@ -781,56 +881,16 @@ class Card_Battle{
         this.position[2]=next_pos[2]
     }
 
-    draw_blur_ring(ctx){
-        ctx.save()
-        
-        
-        ctx.beginPath();
-            
-        ctx.moveTo(this.position_in_screen[0][0], this.position_in_screen[0][1]);
-        ctx.lineTo(this.position_in_screen[1][0], this.position_in_screen[1][1]);
-        
-        ctx.lineTo(this.position_in_screen[2][0], this.position_in_screen[2][1]);
-        
-        ctx.lineTo(this.position_in_screen[3][0], this.position_in_screen[3][1]);
-        
-        ctx.lineTo(this.position_in_screen[0][0], this.position_in_screen[0][1]);
-        
-        
-        
-        ctx.closePath();
-        ctx.strokeStyle = 'rgba(126,163,255)';
-        ctx.shadowColor = 'rgba(126,163,255)'; // 半透明的蓝色光晕
-        ctx.fillStyle = 'rgba(126,163,255)';
-        ctx.lineCap = 'round';
-        ctx.shadowBlur = 20;
-        // 设置阴影的偏移量
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
-        ctx.lineWidth = 1;
-        ctx.fill(); // 描绘边框
-        //ctx.stroke()
-        ctx.restore()
-        //ctx.restore()
-        //ctx.stroke(); // 描绘边框
-
-        // ctx.shadowColor = 'transparent';
-        // ctx.shadowBlur = 0;
-        // ctx.shadowOffsetX = 0;
-        // ctx.shadowOffsetY = 0;
-        
-            
-
-    }
-
     append_buff(buff){
         this.buff_list.push(buff)
+        this.mark_visual_dirty()
         //this.card.buff_list.push(buff)
         //console.log(this.buff_list,this.card.buff_list)
     }
     remove_buff(buff){
         this.buff_list=this.buff_list.filter(item => item.id !== buff.id);
         this.card.buff_list=this.buff_list
+        this.mark_visual_dirty()
     }
 
 
