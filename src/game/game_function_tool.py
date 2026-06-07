@@ -10,7 +10,9 @@ from typing import TYPE_CHECKING
 import asyncio
 import random
 
-
+if __name__=="__main__":
+    import sys
+    sys.path.append("/Users/xuanpeichen/Desktop/code/python/openai/src")
 from game.type_action import actions
 
 if TYPE_CHECKING:
@@ -262,6 +264,47 @@ def get_cards_diction():
     
     return result_dict
 
+def get_cards_simulation_diction():
+    from game.card_simulation import Card_Simulation
+    import pycards
+    import re
+
+    #pattern = r'__(?=\w+$)'
+    
+    types=["creature","Instant","land","sorcery"]
+    class_dict={}
+
+    for type in types:
+        directory_path=f"{ORGPATH}/cards/{type}"
+        for name in get_dir_names(directory_path):
+
+            class_name=name_replace(name)
+
+            class_dict[class_name]=name
+    result_dict={}
+    for subclass in Card_Simulation.__subclasses__():
+        try:
+            
+            class_name = re.sub(r'__$', '', subclass.card_cls.__name__)
+
+            base_name=base_class_name(subclass.card_cls)
+            if base_name is None:
+                print(subclass.card_cls.__name__,"is not a subclass of Card")
+                continue
+            result_dict[f"{class_dict[class_name]}_{base_name}"]=subclass
+        except KeyError as e:
+            #print(class_name)
+            print(subclass.__name__,"token")
+
+    return result_dict
+
+def base_class_name(card_cls):
+    from game.card import Card
+    for subclass in Card.__subclasses__():
+        if issubclass(card_cls,subclass):
+            return subclass.__name__
+    return None
+
 def name_replace(name:str):
     replace_list=('~!@#$%^&*()+`-={}|[]\\:";\'<>?,./ ')
     for char in replace_list:
@@ -286,4 +329,4 @@ def reset_instance_methods(instance):
 
 if __name__=="__main__":
 
-    pass
+    print(get_cards_simulation_diction())

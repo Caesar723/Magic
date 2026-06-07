@@ -19,7 +19,7 @@ from game.train_agent import Agent_Train
 from game.room import Room
 from game.rlearning.module.ppo_agent import PPOTrainer
 from game.rlearning.utils.model import get_class_by_name
-from initinal_file import CARD_DICTION
+from initinal_file import CARD_DICTION,CARD_SIMULATION_DICTION
 from game.card import Card
 from game.type_cards.creature import Creature
 from game.type_cards.instant import Instant
@@ -34,7 +34,7 @@ import re
 if TYPE_CHECKING:
     from game.rlearning.communicate.training_parallel_specific_room import Info_Communication
 
-
+    from game.card_simulation import Card_Simulation
 
 
 class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
@@ -65,63 +65,16 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         result["create_action_mask"]=partial(create_action_mask,self)
 
         return result
+
     def change_environmrnt(self):
         self.action_store_list_cache=[]
-
-        simulate=[
-            (self.simulate_play,"play"),
-            (self.simulate_creature_attack,"attack"),
-            (self.simulate_creature_defend,"defend"),
-        ]
-        
-        graveyard=[
-            self.env_initinal_graveyard
-        ]
-        hand=[
-            self.env_initinal_hand
-        ]
-        library=[
-            self.env_initinal_library
-        ]
-        battlefield_self=[
-            (self.env_creature,["play","attack","defend"]),
-            (self.env_no_creature,["play","attack","defend"]),
-            (self.env_one_creature,["play","attack","defend"]),
-        ]
-        battlefield_oppo=[
-            (self.env_creature,["play","attack","defend"]),
-            (self.env_no_creature,["play","attack"]),
-            (self.env_one_creature,["play","attack","defend"]),
-        ]
-        life_self=[
-            (self.env_life_low,["play","attack","defend"]),
-            (self.env_life_middle,["play","attack","defend"]),
-            (self.env_life_high,["play","attack","defend"]),
-        ]
-        life_oppo=[
-            (self.env_life_low,["play","attack","defend"]),
-            (self.env_life_middle,["play","attack","defend"]),
-            (self.env_life_high,["play","attack","defend"]),
-        ]
-        mana=[
-            self.env_high_mana,
-        ]
         self.clear_environmrnt()
+        print(self)
 
-        simulate_func,simulate_type=random.choice(simulate)
-
-        random.choice(graveyard)(self.player_1)
-        random.choice(hand)(self.player_1)
-        random.choice(library)(self.player_1)
-        self.get_filtered_func(battlefield_self,simulate_type)(self.player_1)
-        self.get_filtered_func(battlefield_oppo,simulate_type)(self.player_2)
-        self.get_filtered_func(life_self,simulate_type)(self.player_1)
-        self.get_filtered_func(life_oppo,simulate_type)(self.player_2)
-        random.choice(mana)(self.player_1)
-
-        simulate_info=simulate_func()
-        
-
+        card_simulation_cls=self.get_card_simulation()
+        card_simulation:"Card_Simulation"=card_simulation_cls(self.player_1,self)
+        print(card_simulation)
+        simulate_info=card_simulation.get_candidates_simulation()
 
         for recorder_key in self.game_recorder:
             recorder=self.game_recorder[recorder_key]
@@ -205,13 +158,16 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         result=random.sample(result,number)
         return result
 
+    def get_card_simulation(self):
+        return random.choice(list(CARD_SIMULATION_DICTION.values()))
 
-    def env_initinal_library(self,player):
+
+    def env_initinal_library(self,player,parameters:dict={}):
         cards=["Plains_Land","Island_Land","Swamp_Land","Mountain_Land","Forest_Land"]
-        creature_cards=self.get_cards_sample_by_name("creature",2)
-        instant_cards=self.get_cards_sample_by_name("instant",2)
-        sorcery_cards=self.get_cards_sample_by_name("sorcery",2)
-        land_cards=self.get_cards_sample_by_name("land",2)
+        creature_cards=self.get_cards_sample_by_name("creature",parameters.get("creature_number",0))
+        instant_cards=self.get_cards_sample_by_name("instant",parameters.get("instant_number",0))
+        sorcery_cards=self.get_cards_sample_by_name("sorcery",parameters.get("sorcery_number",0))
+        land_cards=self.get_cards_sample_by_name("land",parameters.get("land_number",0))
         player.library=[
             CARD_DICTION[key](player)
             for key in creature_cards+instant_cards+sorcery_cards+land_cards+cards
@@ -219,12 +175,12 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         random.shuffle(player.library)
 
     
-    def env_initinal_graveyard(self,player):
+    def env_initinal_graveyard(self,player,parameters:dict={}):
         cards=["Plains_Land","Island_Land","Swamp_Land","Mountain_Land","Forest_Land"]
-        creature_cards=self.get_cards_sample_by_name("creature",2)
-        instant_cards=self.get_cards_sample_by_name("instant",2)
-        sorcery_cards=self.get_cards_sample_by_name("sorcery",2)
-        land_cards=self.get_cards_sample_by_name("land",2)
+        creature_cards=self.get_cards_sample_by_name("creature",parameters.get("creature_number",0))
+        instant_cards=self.get_cards_sample_by_name("instant",parameters.get("instant_number",0))
+        sorcery_cards=self.get_cards_sample_by_name("sorcery",parameters.get("sorcery_number",0))
+        land_cards=self.get_cards_sample_by_name("land",parameters.get("land_number",0))
         player.graveyard=[
             CARD_DICTION[key](player)
             for key in creature_cards+instant_cards+sorcery_cards+land_cards+cards
@@ -311,21 +267,24 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
 
 
-    def env_no_mana(self,player):
+    def env_mana(self,player,mana_range:dict[str,tuple[int,int]],least_mana:dict[str,tuple[int,int]]={}):
         player.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
-    def env_low_mana(self,player):
-        player.mana={"colorless":1,"U":1,"W":1,"B":1,"R":1,"G":1}
         for key in player.mana:
-            player.mana[key]+=random.randint(0,2)
-    def env_middle_mana(self,player):
-        player.mana={"colorless":2,"U":2,"W":2,"B":2,"R":2,"G":2}
-        for key in player.mana:
-            player.mana[key]+=random.randint(0,3)
-        
-    def env_high_mana(self,player):
-        player.mana={"colorless":3,"U":3,"W":3,"B":3,"R":3,"G":3}
-        for key in player.mana:
-            player.mana[key]+=random.randint(0,5)
+            mana_range_min,mana_range_max=mana_range.get(key,(0,0))
+            player.mana[key]=random.randint(mana_range_min,mana_range_max)+player.mana[key]
+        colored_keys = ["U", "W", "B", "R", "G"]
+        for key in colored_keys:
+            need = least_mana.get(key, 0)
+            if player.mana[key] < need:
+                player.mana[key] = need
+        colorless_need = least_mana.get("colorless", 0)
+        colored_reserved = sum(least_mana.get(k, 0) for k in colored_keys)
+        total_mana = sum(player.mana.values())
+        deficit = colorless_need - (total_mana - colored_reserved)
+        if deficit > 0:
+            all_keys = ["colorless"] + colored_keys
+            for _ in range(deficit):
+                player.mana[random.choice(all_keys)] += 1
 
     def choose_card(self,constraint:dict):
         if constraint.get("battlefield",None):
@@ -348,11 +307,11 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
         
     
-    def simulate_play(self):
-        card_name=self.choose_card({"hand":True})
-        card=CARD_DICTION[card_name](self.player_1)
+    def simulate_play(self,card:Card):
+        
         card.flag_dict["tap"]=False
-        self.player_1.hand=[card]
+        self.player_1.hand.append(card)
+        card_index=len(self.player_1.hand)-1
         self.active_player=self.player_1
         self.non_active_player=self.player_2
 
@@ -386,7 +345,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             }
 
 
-        action=self.sample_action((22,22+33))
+        action=self.sample_action((22+card_index*33,22+card_index*33+33))
 
         simulate_info={
             "card":card,
@@ -396,11 +355,12 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         print(simulate_info)
 
         return simulate_info
+
+    def simulate_play_undo(self,card:Card):
+        pass
     
 
-    def simulate_creature_attack(self):
-        card_name=self.choose_card({"battlefield":True})
-        card=CARD_DICTION[card_name](self.player_1)
+    def simulate_creature_attack(self,card:Card):
         self.player_1.battlefield.append(card)
         
         card_index=len(self.player_1.battlefield)-1
@@ -426,10 +386,9 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
         return simulate_info
 
-    def simulate_creature_defend(self):
+    def simulate_creature_defend(self,card:Card):
         self._elapsed_time=time.perf_counter()
-        card_name=self.choose_card({"battlefield":True})
-        card=CARD_DICTION[card_name](self.player_1)
+        
         card.flag_dict["tap"]=False
         self.player_1.battlefield.append(card)
         card_index=len(self.player_1.battlefield)-1
@@ -453,6 +412,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
     async def action_process_system(self):#这个会等待，直到收到send_actioin_request发送的请求
         repeat_train=True
         while repeat_train:
+            print(self)
             
 
             for i in range(256):
@@ -467,9 +427,9 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
                 #print(action)
                 reward_func=await self.process_action(agent,action)
-                print(self)
+                # print(self)
 
-                print("\n\n\n\n\n")
+                # print("\n\n\n\n\n")
                 #asyncio.create_task(agent.store_data(state,action,reward_func))
                 
                 #print(self)

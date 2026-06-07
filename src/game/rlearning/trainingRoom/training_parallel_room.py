@@ -51,7 +51,6 @@ class Multi_Agent_Parallel_Room(Base_Agent_Room):
         trainer1=get_class_by_name(self.config["trainer"])
         trainer1.pbar=None
         trainer_list=[get_class_by_name(config["trainer"]) for config in self.config_list]
-        
         self.agent1=trainer1(self.config,self.config["restore_step"],name="main")
         self.agent_list={
             config_path_list[i]:trainer(self.config_list[i],self.config_list[i]["restore_step"],name=f"agent{i+1}") 
