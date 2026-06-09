@@ -359,8 +359,12 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
     def simulate_play(self,card:Card):
         
         card.flag_dict["tap"]=False
-        self.player_1.hand.append(card)
-        card_index=len(self.player_1.hand)-1
+        if self.player_1.hand and len(self.player_1.hand)!=1:
+            card_index=min(9,random.randint(0,len(self.player_1.hand)-1))
+            self.player_1.hand[card_index]=card
+        else:
+            self.player_1.hand.append(card)
+            card_index=len(self.player_1.hand)-1
         self.active_player=self.player_1
         self.non_active_player=self.player_2
 

@@ -50,7 +50,11 @@ class Card_Simulation:
                 methods.append(method)
         return methods
 
-    def basic_initinal(self,parameters:dict={}):
+    def basic_initinal(self,parameters:dict={
+        "graveyard":{"creature_number":(0,10),"instant_number":(0,10),"sorcery_number":(0,10),"land_number":(0,10)},
+        "hand":{"creature_number":(0,2),"instant_number":(0,2),"sorcery_number":(0,2),"land_number":(0,2)},
+        "library":{"creature_number":(0,10),"instant_number":(0,10),"sorcery_number":(0,10),"land_number":(0,10)},
+    }):
         self.room.env_initinal_graveyard(self.player,parameters.get("graveyard",{}))
         self.room.env_initinal_hand(self.player,parameters.get("hand",{}))
         self.room.env_initinal_library(self.player,parameters.get("library",{}))
