@@ -18,9 +18,11 @@ from functools import partial
 from game.train_agent import Agent_Train 
 from game.room import Room
 from game.rlearning.module.ppo_agent import PPOTrainer
+from game.base_agent_room import Base_Agent_Room
 from game.rlearning.utils.model import get_class_by_name
 from initinal_file import CARD_DICTION,CARD_SIMULATION_DICTION
 from game.card import Card
+from game.rlearning.utils.file import read_yaml
 from game.type_cards.creature import Creature
 from game.type_cards.instant import Instant
 from game.type_cards.land import Land
@@ -43,7 +45,31 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
     def __init__(self, env_config, info_communication:"Info_Communication", worker_id:int):
         self.env_config=env_config
-        super().__init__(env_config, info_communication, worker_id)
+        config_path=f"{ORGPATH}/{env_config['agent_config']}"
+        config_path_list=[f"{ORGPATH}/{config_path}" for config_path in env_config["opponent_config"]]
+        self.info_communication=info_communication
+        self.worker_id=worker_id
+        
+        self.config_path=config_path
+        self.config_path_list=config_path_list
+        self.config=read_yaml(config_path)
+        self.config_list=[read_yaml(config_path) for config_path in config_path_list]
+
+        trainer1=get_class_by_name("game.rlearning.utils.baseAgent.EmptyTrainer")
+        trainer1.pbar=None
+        trainer_list=[get_class_by_name("game.rlearning.utils.baseAgent.EmptyTrainer") for config in self.config_list]
+        self.agent1=trainer1(self.config,self.config["restore_step"],name="main")
+        self.agent_list={
+            config_path_list[i]:trainer(self.config_list[i],self.config_list[i]["restore_step"],name=f"agent{i+1}") 
+            for i,trainer in enumerate(trainer_list)
+        }
+
+        Base_Agent_Room.__init__(self,None,None)
+        self.action_process_condition=asyncio.Condition()#等待直到agent_cache不是空
+        self.agent_cache=[]
+        #store current player which is in his turn
+        self.active_player:Agent_Train#进行操作的玩家
+        self.non_active_player:Agent_Train
         
         
         Agent_Train.send_selection_cards.__defaults__=(True,True)
@@ -69,12 +95,14 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
     def change_environmrnt(self):
         self.action_store_list_cache=[]
         self.clear_environmrnt()
-        print(self)
+        
 
         card_simulation_cls=self.get_card_simulation()
         card_simulation:"Card_Simulation"=card_simulation_cls(self.player_1,self)
-        print(card_simulation)
-        simulate_info=card_simulation.get_candidates_simulation()
+        
+        candidates=card_simulation.get_candidates_simulation()
+
+        simulate_info=random.choice(candidates)()
 
         for recorder_key in self.game_recorder:
             recorder=self.game_recorder[recorder_key]
@@ -164,10 +192,14 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
     def env_initinal_library(self,player,parameters:dict={}):
         cards=["Plains_Land","Island_Land","Swamp_Land","Mountain_Land","Forest_Land"]
-        creature_cards=self.get_cards_sample_by_name("creature",parameters.get("creature_number",0))
-        instant_cards=self.get_cards_sample_by_name("instant",parameters.get("instant_number",0))
-        sorcery_cards=self.get_cards_sample_by_name("sorcery",parameters.get("sorcery_number",0))
-        land_cards=self.get_cards_sample_by_name("land",parameters.get("land_number",0))
+        creature_number=parameters.get("creature_number",(0,0))
+        instant_number=parameters.get("instant_number",(0,0))
+        sorcery_number=parameters.get("sorcery_number",(0,0))
+        land_number=parameters.get("land_number",(0,0))
+        creature_cards=self.get_cards_sample_by_name("creature",random.randint(creature_number[0],creature_number[1]))
+        instant_cards=self.get_cards_sample_by_name("instant",random.randint(instant_number[0],instant_number[1]))
+        sorcery_cards=self.get_cards_sample_by_name("sorcery",random.randint(sorcery_number[0],sorcery_number[1]))
+        land_cards=self.get_cards_sample_by_name("land",random.randint(land_number[0],land_number[1]))
         player.library=[
             CARD_DICTION[key](player)
             for key in creature_cards+instant_cards+sorcery_cards+land_cards+cards
@@ -177,18 +209,35 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
     
     def env_initinal_graveyard(self,player,parameters:dict={}):
         cards=["Plains_Land","Island_Land","Swamp_Land","Mountain_Land","Forest_Land"]
-        creature_cards=self.get_cards_sample_by_name("creature",parameters.get("creature_number",0))
-        instant_cards=self.get_cards_sample_by_name("instant",parameters.get("instant_number",0))
-        sorcery_cards=self.get_cards_sample_by_name("sorcery",parameters.get("sorcery_number",0))
-        land_cards=self.get_cards_sample_by_name("land",parameters.get("land_number",0))
+        creature_number=parameters.get("creature_number",(0,0))
+        instant_number=parameters.get("instant_number",(0,0))
+        sorcery_number=parameters.get("sorcery_number",(0,0))
+        land_number=parameters.get("land_number",(0,0))
+        creature_cards=self.get_cards_sample_by_name("creature",random.randint(creature_number[0],creature_number[1]))
+        instant_cards=self.get_cards_sample_by_name("instant",random.randint(instant_number[0],instant_number[1]))
+        sorcery_cards=self.get_cards_sample_by_name("sorcery",random.randint(sorcery_number[0],sorcery_number[1]))
+        land_cards=self.get_cards_sample_by_name("land",random.randint(land_number[0],land_number[1]))
         player.graveyard=[
             CARD_DICTION[key](player)
             for key in creature_cards+instant_cards+sorcery_cards+land_cards+cards
         ]
         random.shuffle(player.graveyard)
 
-    def env_initinal_hand(self,player):
-        return 
+    def env_initinal_hand(self,player,parameters:dict={}):
+        creature_number=parameters.get("creature_number",(0,0))
+        instant_number=parameters.get("instant_number",(0,0))
+        sorcery_number=parameters.get("sorcery_number",(0,0))
+        land_number=parameters.get("land_number",(0,0))
+        creature_cards=self.get_cards_sample_by_name("creature",random.randint(creature_number[0],creature_number[1]))
+        instant_cards=self.get_cards_sample_by_name("instant",random.randint(instant_number[0],instant_number[1]))
+        sorcery_cards=self.get_cards_sample_by_name("sorcery",random.randint(sorcery_number[0],sorcery_number[1]))
+        land_cards=self.get_cards_sample_by_name("land",random.randint(land_number[0],land_number[1]))
+
+        player.hand=[
+            CARD_DICTION[key](player)
+            for key in creature_cards+instant_cards+sorcery_cards+land_cards
+        ]
+        random.shuffle(player.hand)
         
 
     def env_life_low(self,player):
@@ -425,9 +474,9 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
                 agent:Agent_Train=self.player_1
                 state=self.basic_func[agent.name]["get_state"](agent)
 
-                #print(action)
+                print(action)
                 reward_func=await self.process_action(agent,action)
-                # print(self)
+                print(self)
 
                 # print("\n\n\n\n\n")
                 #asyncio.create_task(agent.store_data(state,action,reward_func))

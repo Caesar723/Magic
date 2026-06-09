@@ -585,3 +585,12 @@ class BaseTrainer:
 
 
 
+class EmptyTrainer(BaseTrainer):
+    def __init__(self, config,restore_step, rank=0, n_gpus=1,name="main"):
+        self.config = config
+        self.n_gpus = n_gpus 
+        self.rank = rank 
+        self.name=name
+        self._init_dataset()
+
+    

@@ -11,7 +11,7 @@ class Aetherweaver_Simulation(Card_Simulation):
     
     @simulate
     def simulate_when_enter_battlefield(self):
-        self.basic_initinal()
+        self.basic_initinal({"library":{"creature_number":(0,10),"instant_number":(0,10),"sorcery_number":(0,10),"land_number":(0,10)}})
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)

@@ -48,12 +48,12 @@ class Card_Simulation:
 
             if getattr(func, "_is_simulate", False):
                 methods.append(method)
-        return random.choice(methods)()
+        return methods
 
-    def basic_initinal(self):
-        self.room.env_initinal_graveyard(self.player)
-        self.room.env_initinal_hand(self.player)
-        self.room.env_initinal_library(self.player)
+    def basic_initinal(self,parameters:dict={}):
+        self.room.env_initinal_graveyard(self.player,parameters.get("graveyard",{}))
+        self.room.env_initinal_hand(self.player,parameters.get("hand",{}))
+        self.room.env_initinal_library(self.player,parameters.get("library",{}))
 
     def random_env_creature(self):
         return random.choice(

@@ -37,6 +37,7 @@ class Aetherweaver(Creature):
     @select_object("",1)
     async def when_enter_battlefield(self,player:"Player",opponent:"Player",selected_object:tuple['Card']=()):
         cards=player.get_cards_by_pos_type("library",(Instant,Sorcery))
+        print(cards)
         if len(cards)>=3:
             cards_selection=cards[0:3]
         elif cards:
