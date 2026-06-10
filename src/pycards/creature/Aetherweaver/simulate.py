@@ -8,6 +8,28 @@ from pycards.creature.Aetherweaver.model import Aetherweaver
 
 @bind_card(Aetherweaver)
 class Aetherweaver_Simulation(Card_Simulation):
+
+    similar_descriptions:list[str]=[
+        "When [CARD_NAME] enters the battlefield, examine the top three cards of your library. You may reveal an instant or sorcery card from among them and put it into your hand. Put the remaining cards on the bottom of your library in any order.",
+
+        "When [CARD_NAME] enters the battlefield, look at the top three cards of your deck. You may choose an instant or sorcery card among them and add it to your hand. Put the rest on the bottom of your library in any order.",
+
+        "Whenever [CARD_NAME] enters the battlefield, inspect the top three cards of your library. You may put an instant or sorcery card from among those cards into your hand. Place the remaining cards on the bottom of your library in any order.",
+
+        "When [CARD_NAME] enters play, look through the top three cards of your library. You may take an instant or sorcery card from among them into your hand. Put the rest beneath your library in any order.",
+
+        "As [CARD_NAME] enters the battlefield, view the top three cards of your library. You may select an instant or sorcery card from among them and put it into your hand. Put the remaining cards on the bottom of your deck in any order.",
+
+        "When [CARD_NAME] enters the battlefield, reveal the top three cards of your library. You may put an instant or sorcery card revealed this way into your hand. Put the other cards on the bottom of your library in any order.",
+
+        "When [CARD_NAME] enters the battlefield, check the top three cards of your library. You may place an instant or sorcery card from among them into your hand. Put the remaining cards on the bottom of your library in any order.",
+
+        "When [CARD_NAME] enters the battlefield, search through the top three cards of your library. You may choose an instant or sorcery card among them and put it into your hand. Put the rest on the bottom of your library in any order.",
+
+        "When [CARD_NAME] enters the battlefield, peek at the top three cards of your library. You may take an instant or sorcery card from among those cards into your hand. Put the remaining cards on the bottom of your library in any order.",
+
+        "When [CARD_NAME] enters the battlefield, look at the top three cards of your library. You may reveal and put an instant or sorcery card from among them into your hand. Put the remaining cards on the bottom of your library in any order."
+    ]
     
     @simulate
     def simulate_when_enter_battlefield(self):

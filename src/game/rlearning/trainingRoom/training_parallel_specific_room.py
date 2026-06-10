@@ -99,10 +99,13 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
         card_simulation_cls=self.get_card_simulation()
         card_simulation:"Card_Simulation"=card_simulation_cls(self.player_1,self)
+
+        similar_description=card_simulation.get_similar_description()
         
         candidates=card_simulation.get_candidates_simulation()
 
         simulate_info=random.choice(candidates)()
+        simulate_info["similar_description"]=similar_description
 
         for recorder_key in self.game_recorder:
             recorder=self.game_recorder[recorder_key]
@@ -477,8 +480,10 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
                     continue
                 agent:Agent_Train=self.player_1
                 state=self.basic_func[agent.name]["get_state"](agent)
+                state["card_used"]=self.get_card_used_info(simulate_info)
 
                 print(action)
+                print(state)
                 reward_func=await self.process_action(agent,action)
                 print(self)
 
@@ -512,6 +517,37 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             
             
         #self.active_player.update()
+
+    def get_card_used_info(self,simulate_info:dict):
+        card=simulate_info["card"]
+        similar_description=simulate_info["similar_description"]
+        card_type,card_special_type=self.get_card_special_types(card)
+        max_mana=20
+        card_manas=[]
+        for mana in list(card.calculate_cost().values()):
+            mana=max(0,min(max_mana,int(mana)))
+            # mana_one_hot=np.zeros(max_mana)
+            # mana_one_hot[mana]=1
+            card_manas.append(mana)
+        if card_type==1:
+            has_state=1
+            attack,defend=card.state
+            
+        else:
+            has_state=0
+            attack=defend=0
+
+
+        return {
+            "description":card.content,
+            "similar_description":similar_description,
+            "special_type":card_special_type,
+            "mana_cost":np.array(card_manas),
+            "attack":attack,
+            "defend":defend,
+            "has_state":has_state,
+            "card_type":card_type,
+        }
 
     def send_data_to_host(self,agent:Agent_Train):
 

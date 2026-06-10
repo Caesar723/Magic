@@ -13,65 +13,122 @@ if TYPE_CHECKING:
 
 
 """
-我方英雄血量长度 20
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0]#血量为 19
-敌方英雄血量长度 20
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0]#血量为 19
-法力值
-绿长度为 20 【1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】#0
-蓝长度为 20 【0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1】#20
-红长度为 20 【1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
-白长度为 20 【1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
-黑长度为 20 【1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
 
-手牌长度 10:
-    对于每一张卡牌
-    编号 id 用 nn.embedding 嵌入
-    卡牌类型 4 用 nn.embedding 嵌入
-    特殊类型 长度 20
-    【战吼，亡语，reach，Trample，flying，haste，Flash，lifelink，summoning_sickness,padding】
+state = {
+
+    # ================= Hero =================
+
+    "self_life": (21,),  # 我方英雄血量 one-hot [0,20]
+    # example: hp=19 -> [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0]
+
+    "oppo_life": (21,),  # 敌方英雄血量 one-hot [0,20]
+    # example: hp=19 -> [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0]
 
 
-    合起来 长度 120
-    法力无长度 20:【0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
-    法力绿长度 20:【0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
-    法力蓝长度 20:【0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
-    法力红长度 20:【0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
-    法力白长度 20:【0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
-    法力黑长度 20:【0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0】
+    # ================= Mana =================
 
-    攻击和防御
-    【atk_n, hp_n】
-    【has_attack, has_defend】
-
-    
-场地长度 10:
-    每一个随从
-    特殊类型 长度 20
-    【战吼，亡语，reach，Trample，flying，haste，Flash，lifelink，summoning_sickness,padding】
-    【atk_n, hp_n】
-    [has_attack, has_defend]
-
-敌方场地长度 10:
-    每一个随从
-    特殊类型 长度 20
-    【战吼，亡语，reach，Trample，flying，haste，Flash，lifelink，summoning_sickness,padding】
-    【atk_n, hp_n】
-    [has_attack, has_defend]
-
-    
-进攻随从 embed
-攻击和防御
-【atk_n, hp_n】
-[has_attack, has_defend]
-战吼，亡语，reach，Trample，flying，haste，Flash，lifelink，summoning_sickness,padding】
+    "self_mana": [green, blue, red, white, black],
+    # 五色法力，均使用 21-dim one-hot
+    # example:
+    # green=0 -> [1,0,0,...]
+    # blue=20 -> [0,0,...,1]
 
 
+    # ================= Action =================
+
+    "action_history": [],  # 历史动作序列
+    # example: [0]
+
+
+    # ================= Hand =================
+
+    "card_hand": {
+
+        "card_types": (10,),             # 卡牌类型(nn.embedding)
+        # example: [4,4,1,2,2,0,0,0,0,0]
+
+        "card_special_types": (10,20),  # 特殊能力 multi-hot
+        # example: [1,0,0,0,0,0,0,0,1,0,...]
+        # => battlecry + summoning_sickness
+
+        "card_costs": (10,6),
+        # [colorless, green, blue, red, white, black]
+        # 每个费用使用 21-dim one-hot
+        # example: [5,1,0,0,0,0]
+        # => colorless=5, green=1
+
+        "card_atks": (10,),        # atk
+        # example: [0,0,2,0,0,0,0,0,0,0]
+
+        "card_hps": (10,),         # hp
+        # example: [0,0,3,0,0,0,0,0,0,0]
+
+        "card_has_attack": (10,),  # 是否可攻击 (0/1)
+        # example: [0,0,1,0,0,0,0,0,0,0]
+
+        "card_has_defend": (10,),  # 是否可防御 (0/1)
+        # example: [0,0,1,0,0,0,0,0,0,0]
+
+        "card_mask": (10,),        # 是否存在卡牌 (1=存在,0=padding)
+        # example: [1,1,1,1,1,0,0,0,0,0]
+    },
+
+
+    # ================= Self Board =================
+
+    "self_board": {
+
+        "card_special_types": (10,20),  # 特殊能力 multi-hot
+
+        "card_atks": (10,),             # atk
+        # example: [2,4,0,0,0,0,0,0,0,0]
+
+        "card_hps": (10,),              # hp
+
+        "card_has_attack": (10,),       # 是否可攻击 (0/1)
+
+        "card_has_defend": (10,),       # 是否可防御 (0/1)
+
+        "card_mask": (10,)              # 是否存在随从
+    },
+
+
+    # ================= Opponent Board =================
+
+    "oppo_board": {  # 与 self_board 完全一致
+
+        "card_special_types": (10,20),
+        "card_atks": (10,),
+        "card_hps": (10,),
+        "card_has_attack": (10,),
+        "card_has_defend": (10,),
+        "card_mask": (10,)
+    },
+
+
+    # ================= Card Used =================
+
+    "card_used": {
+
+        "description": str,  # 卡牌描述文本
+        # example: "When enters battlefield..."
+
+        "special_type": (20,),  # 特殊能力 multi-hot
+
+        "mana_cost": (6,),
+        # [colorless, green, blue, red, white, black]
+        # example: [2,1,0,0,0,0]
+
+        "attack": int,     # example: 2
+        "defend": int,     # example: 3
+        "has_state": int,  # 是否存在该卡 (0/1)
+        "card_type": int   # 使用 card_type enum
+    }
+}
 """
 def get_state(room:"Base_Agent_Room",agent:"Agent"):
     state_batch={}
 
-    basic_state=[]
     oppo_agent=agent.opponent
 
     self_life=max(0,min(20,int(agent.life)))
@@ -101,7 +158,19 @@ def get_state(room:"Base_Agent_Room",agent:"Agent"):
         
     state_batch["action_history"]=agent.get_action_history()
 
-    
+    state_batch["card_hand"]=get_cards_state(room,agent,agent.hand,10)
+
+    state_batch["card_library"]=get_cards_state(room,agent,agent.library,40)
+
+    state_batch["card_graveyard"]=get_cards_state(room,agent,agent.graveyard,40)
+
+    state_batch["self_board"]=get_creature_state_batch(room,agent,agent.battlefield)
+    state_batch["oppo_board"]=get_creature_state_batch(room,agent,oppo_agent.battlefield)
+
+    return state_batch
+
+
+def get_cards_state(room:"Base_Agent_Room",agent:"Agent",cards:list["Card"],max_length:int=10):
     card_types=[]
     card_special_types=[]
     card_costs=[]
@@ -110,11 +179,11 @@ def get_state(room:"Base_Agent_Room",agent:"Agent"):
     card_has_attack=[]
     card_has_defend=[]
     card_mask=[]
-    
-    length_hand=len(agent.hand)
-    for hand_i in range(10):
+    max_mana=20
+    length_hand=len(cards)
+    for hand_i in range(max_length):
         if hand_i <length_hand:
-            card=agent.hand[hand_i]
+            card=cards[hand_i]
 
             
 
@@ -156,37 +225,16 @@ def get_state(room:"Base_Agent_Room",agent:"Agent"):
             card_has_attack.append(0)
             card_has_defend.append(0)
             card_mask.append(0)
-
-
-    state_batch["card_hand"]={}
-    
-    state_batch["card_hand"]["card_types"]=np.array(card_types)
-    state_batch["card_hand"]["card_special_types"]=np.array(card_special_types)
-    state_batch["card_hand"]["card_costs"]=np.array(card_costs)
-    state_batch["card_hand"]["card_atks"]=np.array(card_atks)
-    state_batch["card_hand"]["card_hps"]=np.array(card_hps)
-    state_batch["card_hand"]["card_has_attack"]=np.array(card_has_attack)
-    state_batch["card_hand"]["card_has_defend"]=np.array(card_has_defend)
-    state_batch["card_hand"]["card_mask"]=np.array(card_mask)
-
-    state_batch["self_board"]=get_creature_state_batch(room,agent,agent.battlefield)
-    state_batch["oppo_board"]=get_creature_state_batch(room,agent,oppo_agent.battlefield)
-
-    
-    if room.get_flag("attacker_defenders"):
-        state_batch["attacker"]=get_creature_state(room,room.attacker)
-        
-    else:
-        state_batch["attacker"]={}
-        state_batch["attacker"]["card_special_types"]=[np.zeros(20)]
-        state_batch["attacker"]["card_atks"]=[0]
-        state_batch["attacker"]["card_hps"]=[0]
-        state_batch["attacker"]["card_has_attack"]=[0]
-        state_batch["attacker"]["card_has_defend"]=[0]
-
-    return state_batch
-
-
+    return {
+        "card_types":np.array(card_types),
+        "card_special_types":np.array(card_special_types),
+        "card_costs":np.array(card_costs),
+        "card_atks":np.array(card_atks),
+        "card_hps":np.array(card_hps),
+        "card_has_attack":np.array(card_has_attack),
+        "card_has_defend":np.array(card_has_defend),
+        "card_mask":np.array(card_mask)
+    }
 
 def get_creature_state(room:"Base_Agent_Room",creature:"Creature"):
     

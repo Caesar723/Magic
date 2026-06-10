@@ -23,7 +23,41 @@ def bind_card(card_cls):
     return decorator
 
 class Card_Simulation:
+    
     card:"Card"
+    similar_descriptions:list[str]=[]
+
+    ADJECTIVES = [
+    "Aether", "Void", "Rune", "Sky", "Ember",
+    "Mystic", "Storm", "Moonlit", "Iron", "Arcane",
+    "Ancient", "Crimson", "Golden", "Shadow",
+    "Celestial", "Wild", "Silent", "Burning",
+    "Frost", "Sacred", "Twilight", "Forgotten"
+    ]
+
+    NOUNS = [
+        "Sage", "Scholar", "Adept", "Archivist",
+        "Seeker", "Channeler", "Weaver", "Oracle",
+        "Scribe", "Wanderer", "Invoker", "Guardian",
+        "Prophet", "Mage", "Knight", "Spirit",
+        "Shaman", "Watcher", "Herald", "Warden",
+        "",
+        "",
+        "",
+    ]
+
+    SUFFIXES = [
+        "",
+        "",
+        "",
+        "of the Vale",
+        "of Twilight",
+        "of Embers",
+        "of Storms",
+        "of the Deep",
+        "of Ashes",
+        "of Eternity",
+    ]
 
     def __init__(self,player:"Player",room:"Multi_Agent_Parallel_Specific_Room"):
         self.player=player
@@ -32,7 +66,32 @@ class Card_Simulation:
             raise ValueError(f"{type(self).__name__} do not bind card_cls")
 
         self.card = self.card_cls(player)
-    
+
+    def random_card_name(self):
+        adj = random.choice(self.ADJECTIVES)
+        noun = random.choice(self.NOUNS)
+        suffix = random.choice(self.SUFFIXES)
+        if noun=="":
+            return f"{adj}"
+
+        if suffix:
+            return f"{adj} {noun} {suffix}"
+        return f"{adj} {noun}"
+
+
+    def get_similar_description(self):
+        if not self.similar_descriptions:
+            return self.card.content
+        description = random.choice(self.similar_descriptions)
+
+        description = description.replace(
+            "[CARD_NAME]",
+            self.random_card_name()
+        )
+
+        return description
+
+
     def get_card(self):
         return self.card
 
