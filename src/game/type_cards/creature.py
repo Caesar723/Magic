@@ -279,7 +279,7 @@ class Creature(Card):
         Flag_dict=f"str2json(string({json.dumps(flags_dict)}))"
         Counter_dict=f"str2json(string({json.dumps(self.counter_dict)}))"
         Player=self.player.text(player)
-        Id=id(self)
+        Id=self.card_id
         Name=self.name
         if show_hide and player.name!=self.player.name:
             return f"Opponent({Player},int({Id}))"
@@ -303,7 +303,7 @@ class Creature(Card):
     def __repr__(self):
         power,live=self.state
         
-        content=f"({self.name},{self.type},{power}/{live},{id(self)},{self.mana_cost})"
+        content=f"({self.name},{self.type},{power}/{live},{self.card_id},{self.mana_cost})"
         return content
 
 

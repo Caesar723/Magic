@@ -151,7 +151,7 @@ class Land(Card):
         Flag_dict=f"str2json(string({json.dumps(self.flag_dict)}))"
         Counter_dict=f"str2json(string({json.dumps(self.counter_dict)}))"
         Player=self.player.text(player)
-        Id=id(self)
+        Id=self.card_id
         if show_hide and player.name!=self.player.name:
             return f"Opponent({Player},int({Id}))"
         Name=self.name
@@ -175,6 +175,6 @@ class Land(Card):
 
 
     def __repr__(self):
-        content=f"({self.name},{self.type},{id(self)})"
+        content=f"({self.name},{self.type},{self.card_id})"
         return content
 

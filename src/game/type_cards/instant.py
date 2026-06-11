@@ -99,7 +99,7 @@ class Instant(Card):
         Flag_dict=f"str2json(string({json.dumps(self.flag_dict)}))"
         Counter_dict=f"str2json(string({json.dumps(self.counter_dict)}))"
         Player=self.player.text(player)
-        Id=id(self)
+        Id=self.card_id
         Name=self.name
         if show_hide and player.name!=self.player.name:
             return f"Opponent({Player},int({Id}))"
@@ -113,7 +113,7 @@ class Instant(Card):
         return f"Instant({Flag_dict},{Counter_dict},{Player},int({Id}),string({Name}),{Type},{Type_card},{Rarity},string({Content}),string({Image_Path}),{Fee},{buffs})"
 
     def __repr__(self):
-        content=f"({self.name},{self.type},{id(self)},{self.mana_cost})"
+        content=f"({self.name},{self.type},{self.card_id},{self.mana_cost})"
         return content
     
 class Instant_Undo(Instant):

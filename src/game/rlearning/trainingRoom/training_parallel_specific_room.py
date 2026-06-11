@@ -571,7 +571,6 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         #如果是攻击的action，给敌方agent发送动作请求，自己挂起再一次，直到地方action动作做好发送信息给自己，自己结束挂起，计算state
         # 获取state，done，计算reward
         #返回new state 和 reward 和 done
-        org_state=str(self)
         message:str=await self.basic_func[agent.name]["num2action"](agent,action)
         print(message)
         username,type,content=message.split("|")
@@ -587,8 +586,6 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         else:
             attacker=None
         if action>=2 and action <=21:
-            print(agent.battlefield)
-            print(content)
             
             selected_creature=agent.battlefield[int(content)]
         else:
@@ -596,7 +593,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         await self.message_process_dict[type](username,content)
         await self.check_death()
 
-        flag=False
+
         if action>=2 and action <=11:
             
             agent_oppo:Agent_Train=agent.opponent

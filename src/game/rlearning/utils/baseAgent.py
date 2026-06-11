@@ -591,6 +591,12 @@ class EmptyTrainer(BaseTrainer):
         self.n_gpus = n_gpus 
         self.rank = rank 
         self.name=name
+
+        self.logdir = f'{ORGPATH}/../{CHECKPOINT_ROOT_PATH}/{config["log_dir"]}'
+        print(self.logdir)
+        self.total_step = config["total_step"] 
+        self.step = 0 
+        self.epoch = 0 
         self._init_dataset()
 
     

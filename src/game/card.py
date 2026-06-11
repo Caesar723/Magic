@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 import re
 import random
 import inspect
+import uuid
 
 from game.game_function_tool import validate_all_methods,reset_instance_methods
 from game.type_action import actions
@@ -20,6 +21,7 @@ class Card:
     def __init__(self,player) -> None:
         self.player:"Player"=player
         self.name:str=""
+        self.card_id:int = uuid.uuid4().int % (10**12)
         self.flag_dict:dict={}
         """
         reach

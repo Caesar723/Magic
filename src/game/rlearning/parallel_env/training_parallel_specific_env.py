@@ -22,8 +22,9 @@ class Parallel_Env(BaseParallelEnv):
         while True:
             
             data=self.info_communication.get_game_data()
+            self.agent1.store_round_data(data)
             
-            print(data)
+            print(len(data))
             
             
 

@@ -205,6 +205,7 @@ class Animation{//action
             }
             else if (card.battle===undefined && card instanceof Creature_Hand){
                 if (card.player instanceof Self){
+                    console.log(card.player.table.self_battlefield)
                     for (let card_batt of  card.player.table.self_battlefield){
                         if (card_batt.id==card.id){
                             card.battle=card_batt
@@ -328,6 +329,7 @@ class Creature_Prepare_Attack extends Animation{
         this.name='Creature Prepare Attack'
     }
     set_animate(){
+        this.object_hold=Animation.check_hand(this.object_hold,true)
         this.object_hold.battle.mode="attack"
         this.object_hold.battle.moving_cache.push(["rotate_to_point",[this.player.oppo.player_life_ring.position]])
     }
