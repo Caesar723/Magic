@@ -40,7 +40,7 @@ class Ancient_Stonewood_Simulation(Card_Simulation):
 
         self.room.env_mana(
             self.player,
-            {"U":(2,7)},
+            {"G":(2,7)},
             least_mana={"colorless":4,"G":2}
         )
 

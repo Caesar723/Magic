@@ -78,4 +78,3 @@ class Celestial_Herald_Simulation(Card_Simulation):
 
         simulate_info=self.room.simulate_creature_defend(self.card)
         return simulate_info
-

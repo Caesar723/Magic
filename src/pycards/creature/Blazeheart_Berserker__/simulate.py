@@ -41,7 +41,7 @@ class Blazeheart_Berserker___Simulation(Card_Simulation):
         self.room.env_mana(
             self.player,
             {"R":(2,7)},
-            least_mana={"colorless":2,"R":2}
+            least_mana={"colorless":1,"R":2}
         )
 
         simulate_info=self.room.simulate_play(self.card)

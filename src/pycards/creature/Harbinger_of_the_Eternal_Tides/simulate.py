@@ -29,3 +29,52 @@ class Harbinger_of_the_Eternal_Tides_Simulation(Card_Simulation):
         "Flash. When [CARD_NAME] enters the battlefield, tap target opposing creature. It doesn't untap during its controller's next untap step.",
 
     ]
+    @simulate
+    def simulate_when_enter_battlefield(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(2,7)},
+            least_mana={"colorless":2,"U":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info
+
+    @simulate
+    def simulate_when_attack_opponent(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
+        )
+
+        simulate_info=self.room.simulate_creature_attack(self.card)
+        return simulate_info
+
+    @simulate
+    def simulate_when_defend_opponent(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
+        )
+
+        simulate_info=self.room.simulate_creature_defend(self.card)
+        return simulate_info
+

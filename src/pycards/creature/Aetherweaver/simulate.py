@@ -60,6 +60,7 @@ class Aetherweaver_Simulation(Card_Simulation):
             self.player,
             {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
         )
+
         simulate_info=self.room.simulate_creature_attack(self.card)
         return simulate_info
 

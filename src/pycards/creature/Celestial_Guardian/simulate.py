@@ -40,8 +40,8 @@ class Celestial_Guardian_Simulation(Card_Simulation):
 
         self.room.env_mana(
             self.player,
-            {},
-            least_mana={"colorless":12}
+            {"W":(1,7)},
+            least_mana={"colorless":3,"W":1}
         )
 
         simulate_info=self.room.simulate_play(self.card)
@@ -78,4 +78,3 @@ class Celestial_Guardian_Simulation(Card_Simulation):
 
         simulate_info=self.room.simulate_creature_defend(self.card)
         return simulate_info
-

@@ -29,3 +29,52 @@ class Kothar_the_Soul_Reaper_Simulation(Card_Simulation):
         "When [CARD_NAME] enters the battlefield, each opponent sacrifices a random creature. Whenever a creature dies, [CARD_NAME] receives a +1/+1 counter.",
 
     ]
+    @simulate
+    def simulate_when_enter_battlefield(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"B":(1,7)},
+            least_mana={"colorless":4,"B":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info
+
+    @simulate
+    def simulate_when_attack_opponent(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
+        )
+
+        simulate_info=self.room.simulate_creature_attack(self.card)
+        return simulate_info
+
+    @simulate
+    def simulate_when_defend_opponent(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
+        )
+
+        simulate_info=self.room.simulate_creature_defend(self.card)
+        return simulate_info
+
