@@ -46,8 +46,13 @@ class Base_Agent_Room(Room):
         result["get_state"]=partial(get_state,self)
 
 
-        num2action=get_class_by_name(config.get("action_transform_function","game.rlearning.actions.single_deck.num2action"))
+        action_transform_path=config.get("action_transform_function","game.rlearning.actions.single_deck.num2action")
+        num2action=get_class_by_name(action_transform_path)
         result["num2action"]=partial(num2action,self)
+
+        action2num_path=config.get("action_inverse_transform_function",action_transform_path.replace("num2action","action2num"))
+        action2num=get_class_by_name(action2num_path)
+        result["action2num"]=partial(action2num,self)
 
         create_action_mask=get_class_by_name(config.get("action_mask_function","game.rlearning.actions.single_deck.create_action_mask"))
         result["create_action_mask"]=partial(create_action_mask,self)
@@ -140,7 +145,7 @@ class Base_Agent_Room(Room):
         #used to store each counter like number of turns
         self.counter_dict:dict={}
 
-        self.stack:list[tuple]=[]
+        self.stack:list[dict]=[]
         self.attacker:Creature=None
         # for task in self.tasks:
         #     task.cancel()

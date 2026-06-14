@@ -73,7 +73,7 @@ class Room:
         self.non_active_player:Player
 
         #stack
-        self.stack:list[tuple]=[]#(preparend_function,card) 这个很重要 card 是英文需要检查card 的类型
+        self.stack:list[dict]=[]#{"prepared_function":...,"card":...,"message":...}
 
         #attacker
         self.attacker:Creature=None
@@ -349,7 +349,8 @@ class Room:
             self.flag_dict[key.format(un)]=False
         #print(self.stack)
         while self.stack and not self.flag_dict["bullet_time"]:
-            func,card=self.stack.pop()
+            stack_item=self.stack.pop()
+            func,card=stack_item["prepared_function"],stack_item["card"]
             self.action_processor.start_record()
             #print(func,card,self.attacker)
             self.action_processor.start_record()
@@ -550,7 +551,8 @@ class Room:
             async def prepared_function():
                 return "defender"
             #prepared_function=lambda: "defender"
-            await self.put_prepared_function_to_stack(prepared_function,card)
+            message=f"{username}|select_defender|{content}"
+            await self.put_prepared_function_to_stack(prepared_function,card,message=message)
             await card.when_become_defender(player,player.opponent)
             self.action_processor.end_record()
             return (True,"success")
@@ -587,15 +589,19 @@ class Room:
             for recorder_key in self.game_recorder:
                 recorder:GameRecorder=self.game_recorder[recorder_key]
                 await recorder.store_game_ini_message("play_card")
-            return await self.start_play_card(card,player)
+            return await self.start_play_card(card,player,hand_index=index)
         else:
             return (False,"You must do it in your turn")
         
-    async def start_play_card(self,card:"Card",player:Player):
+    async def start_play_card(self,card:"Card",player:Player,hand_index:int=None):
         result=await player.play_a_card(card)
         #print(result)
         if result[0]:
-            await self.put_prepared_function_to_stack(result[1],card)
+            if hand_index is None:
+                hand_index=next((i for i, hand_card in enumerate(player.hand) if hand_card is card), None)
+            message=f"{player.name}|play_card|{hand_index}"
+            select_content=player.stack_select_content or getattr(player,"select_content",None)
+            await self.put_prepared_function_to_stack(result[1],card,message=message,select_content=select_content)
         else:
             return result
     
@@ -743,8 +749,16 @@ class Room:
             await asyncio.sleep(0.5)
             await self.update_timer()
             
-    async def put_prepared_function_to_stack(self,prepared_function,card:Card,start_bullet_time:bool=True):
-        self.stack.append((prepared_function,card))
+    async def put_prepared_function_to_stack(self,prepared_function,card:Card,start_bullet_time:bool=True,message:str=None,select_content:str=None):
+        stack_item={"prepared_function":prepared_function,"card":card}
+        if select_content is None and card.player.stack_select_content:
+            select_content=card.player.stack_select_content
+        if message is not None:
+            if select_content:
+                stack_item["message"]=f"{message}||{select_content}"
+            else:
+                stack_item["message"]=message
+        self.stack.append(stack_item)
         if start_bullet_time:
             await self.start_bullet_time()
         
@@ -895,6 +909,9 @@ player2:{player2}
 
 Action_list:
     {self.action_store_list_cache}
+
+Stack:
+    {self.stack}
 #########################################################################################
         
 

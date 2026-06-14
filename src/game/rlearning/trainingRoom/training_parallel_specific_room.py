@@ -15,8 +15,10 @@ import time
 from multiprocessing import Process, Queue
 from functools import partial
 
+from game.type_action import actions
 from game.train_agent import Agent_Train 
 from game.room import Room
+
 from game.rlearning.module.ppo_agent import PPOTrainer
 from game.base_agent_room import Base_Agent_Room
 from game.rlearning.utils.model import get_class_by_name
@@ -35,7 +37,7 @@ from game.game_function_tool import get_dir_names,name_replace,ORGPATH
 import re
 if TYPE_CHECKING:
     from game.rlearning.communicate.training_parallel_specific_room import Info_Communication
-
+    from fastapi import WebSocket
     from game.card_simulation import Card_Simulation
 
 
@@ -84,8 +86,13 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         result["get_state"]=partial(get_state,self)
 
 
-        num2action=get_class_by_name(config.get("action_transform_function","game.rlearning.actions.single_deck.num2action"))
+        action_transform_path=config.get("action_transform_function","game.rlearning.actions.single_deck.num2action")
+        num2action=get_class_by_name(action_transform_path)
         result["num2action"]=partial(num2action,self)
+
+        action2num_path=config.get("action_inverse_transform_function",action_transform_path.replace("num2action","action2num"))
+        action2num=get_class_by_name(action2num_path)
+        result["action2num"]=partial(action2num,self)
 
         create_action_mask=get_class_by_name(config.get("action_mask_function","game.rlearning.actions.single_deck.create_action_mask"))
         result["create_action_mask"]=partial(create_action_mask,self)
@@ -125,6 +132,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         self.flag_dict:dict={}
         self.counter_dict:dict={}
         self.attacker:Creature=None
+        self.stack.clear()
         self.clear_player_environmrnt(self.player_1)
         self.clear_player_environmrnt(self.player_2)
 
@@ -338,6 +346,79 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             for _ in range(deficit):
                 player.mana[random.choice(all_keys)] += 1
 
+    def all_play_card_messages(self, player):
+        name = player.name
+        messages = []
+        # sub_action=0: 无目标
+        messages.append(f"{name}|play_card|0")
+        sort_fn = self.create_sort_function(player)
+        # sub_action 1-10: 敌方生物
+        oppo_sorted = sorted(enumerate(player.opponent.battlefield), key=lambda x: sort_fn(x[1]), reverse=True)
+        for rank in range(10):
+            if rank < len(oppo_sorted):
+                idx = oppo_sorted[rank][0]
+                sel = f"{name}|field|opponent_battlefield|{idx}"
+                messages.append(f"{name}|play_card|0||{sel}")
+        # sub_action 11-20: 我方生物
+        self_sorted = sorted(enumerate(player.battlefield), key=lambda x: sort_fn(x[1]), reverse=True)
+        for rank in range(10):
+            if rank < len(self_sorted):
+                idx = self_sorted[rank][0]
+                sel = f"{name}|field|self_battlefield|{idx}"
+                messages.append(f"{name}|play_card|0||{sel}")
+        # sub_action 21-22: 英雄
+        messages.append(f"{name}|play_card|0||{name}|field|oppo|")
+        messages.append(f"{name}|play_card|0||{name}|field|self|")
+        # sub_action 23-32: 选手牌
+        for card_idx in range(12, 22):
+            sel = f"{name}|cards|{card_idx}|"
+            messages.append(f"{name}|play_card|0||{sel}")
+        return messages
+
+    def env_stack_cards(self,player:"Player"):
+        self.stack.clear()
+        
+
+        state=random.randint(0,2)
+        if state==0:
+            first_card_key=self.get_cards_sample_by_name(random.choice(["creature","instant","sorcery","land"]),1)[0]
+            first_card=CARD_DICTION[first_card_key](player.opponent)
+            self.stack.append({
+                "card":first_card,
+                "prepared_function":lambda:None,
+                "message":random.choice(self.all_play_card_messages(first_card.player)),
+            })
+        elif state==1:
+            if random.random()<0.5 and player.battlefield:
+                creature=random.choice(player.battlefield)
+                index=player.battlefield.index(creature)
+                self.stack.append({
+                    "card":creature,
+                    "prepared_function":lambda:None,
+                    "message":f"{player.name}|select_defender|{index}",
+                })
+            elif player.opponent.battlefield:
+                creature=random.choice(player.opponent.battlefield)
+                index=player.opponent.battlefield.index(creature)
+                self.stack.append({
+                    "card":creature,
+                    "prepared_function":lambda:None,
+                    "message":f"{player.opponent.name}|select_defender|{index}",
+                })
+        
+        
+        rest=self.get_cards_sample_by_name("instant",random.randint(0,4))
+        cards=[CARD_DICTION[key](random.choice([player,player.opponent])) for key in rest]
+        
+        for card in cards:
+            self.stack.append({
+                "card":card,
+                "prepared_function":lambda:None,
+                "message":random.choice(self.all_play_card_messages(card.player)),
+            })
+
+
+
     def choose_card(self,constraint:dict):
         if constraint.get("battlefield",None):
             return self.get_cards_sample_by_name("creature",1)[0]
@@ -412,9 +493,59 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
         return simulate_info
 
-    def simulate_play_undo(self,card:Card):
-        pass
     
+    def simulate_play_in_stack(self,card:Card):
+        self.flag_dict["bullet_time"]=True
+
+        card.flag_dict["tap"]=False
+        if self.player_1.hand and len(self.player_1.hand)!=1:
+            card_index=min(9,random.randint(0,len(self.player_1.hand)-1))
+            self.player_1.hand[card_index]=card
+        else:
+            self.player_1.hand.append(card)
+            card_index=len(self.player_1.hand)-1
+        self.active_player=self.player_1
+        self.non_active_player=self.player_2
+
+        instance_dict={
+            Creature:"when_enter_battlefield",
+            Instant:"card_ability",
+            Land:"when_enter_landarea",
+            Sorcery:"card_ability"
+        }
+        select_dict={
+            'all_roles':[self.player_2,self.player_1],
+            'opponent_roles':[self.player_2], 
+            'your_roles':[self.player_1],
+            'all_creatures':[self.player_2,self.player_1],
+            'opponent_creatures':[self.player_2],
+            'your_creatures':[self.player_1],
+        }
+        
+        for cls in instance_dict:
+            if isinstance(card,cls):
+                select_range=getattr(card,instance_dict[cls]).select_range
+        if select_range in select_dict:
+            for player in select_dict[select_range]:
+                if not player.battlefield:
+                    self.env_creature(player)
+        elif "land" in select_range:
+            return {
+                "card":card,
+                "type":0,
+                "action":None
+            }
+
+        action=self.sample_action((22+card_index*33,22+card_index*33+33))
+
+        simulate_info={
+            "card":card,
+            "type":0,
+            "action":action
+        }
+        print(simulate_info)
+
+        return simulate_info
 
     def simulate_creature_attack(self,card:Card):
         self.player_1.battlefield.append(card)
@@ -483,7 +614,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
                 state["card_used"]=self.get_card_used_info(simulate_info)
 
                 print(action)
-                print(state)
+                
                 reward_func=await self.process_action(agent,action)
                 print(self)
 
@@ -600,7 +731,12 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             state=self.basic_func[agent_oppo.name]["get_state"](agent_oppo)
             mask=self.basic_func[agent_oppo.name]["create_action_mask"](agent_oppo)
             state["mask"]=mask
-            action_oppo= 1
+
+            min_index,max_index = (12,22)  # 设置你想要的最大index（不包含max_index本身）
+            actions = [i for i in range(min_index, max_index) if mask[0][i]]+[1]
+            if not actions:
+                return None
+            action_oppo = random.choice(actions)
             await self.process_action(agent_oppo,action_oppo)
 
             
@@ -670,6 +806,79 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             return self.basic_func[agent.name]["get_state"](agent),new_reward,done,current_reward
         return next_state_function
 
+    async def end_bullet_time(self):#bullet_time is 0
+        self.bullet_timer=0
+        self.flag_dict["bullet_time"]=False
+        await self.check_timer_change("timer_bullet",self.bullet_timer)
+        self.initinal_turn_timer+=time.perf_counter()-self._elapsed_time
+
+        for name_player in self.players_socket:
+            socket:"WebSocket"=self.players_socket[name_player]
+            #game_recorder:GameRecorder=self.game_recorder[name_player]
+            if socket!=None:
+                try:
+                    await socket.send_text("end_bullet()")
+                except Exception as e:
+                    print(e)
+                    pass
+                
+            #await game_recorder.store_game_message("end_bullet()")
+
+        key="{}_bullet_time_flag"
+        for un in self.players:#username
+            self.flag_dict[key.format(un)]=False
+        #print(self.stack)
+        if self.stack and not self.flag_dict["bullet_time"]:
+            stack_item=self.stack.pop()
+            func,card=stack_item["prepared_function"],stack_item["card"]
+            self.action_processor.start_record()
+            #print(func,card,self.attacker)
+            self.action_processor.start_record()
+            self.action_processor.add_action(actions.Play_Cards(card,card.player))
+            self.action_processor.end_record()
+            result=await func()
+            
+            self.action_processor.end_record()
+            if result=="defender" and isinstance(card,Creature) :
+
+                await card.check_dead()
+                await self.attacker.check_dead()
+
+                #if not card.get_flag("die") and not self.attacker.get_flag("die"):#如果是有Menace 就记数，有两个defender才会让attacker_defenders变false 
+                if not (card.get_flag("die") or self.attacker.get_flag("die") or card.get_flag("exile") or self.attacker.get_flag("exile"))  or self.attacker.get_flag("Menace"):
+                    max_defender_number=1 if not self.attacker.get_flag("Menace") else 2
+                    await self.start_attack(card)
+                    self.add_counter_dict("defender_number",1)
+                    if self.counter_dict["defender_number"]>=max_defender_number:
+                        self.flag_dict["attacker_defenders"]=False
+                        self.counter_dict["defender_number"]=0
+                    
+                    
+            
+
+        #self.stack 用pop()把每一个函数调用
+        if not self.flag_dict["bullet_time"]:
+            self.reset_bullet_timer()
+
+            if self.get_flag("attacker_defenders"):#如果attacker_defenders还是True 那attacker 就去攻击敌方英雄
+                
+                await self.attacker.check_dead()
+                
+                if not ( self.attacker.get_flag("die") or  self.attacker.get_flag("exile")) or self.attacker.get_flag("Menace"):
+                    await self.start_attack(self.non_active_player)
+                self.flag_dict["attacker_defenders"]=False
+                #print(self.flag_dict["attacker_defenders"])
+            await self.check_death()
+            #print(self.attacker)
+            if self.attacker and\
+                not self.attacker.get_flag("Vigilance") and\
+                self.attacker.get_counter_from_dict("attack_counter")<=0:
+
+                self.action_processor.start_record()
+                self.attacker.tap()
+                self.action_processor.end_record()
+            self.attacker=None
+            
 
 
 async def run_parallel_room(config_path:str,config_path_list:list,info_communication:"Info_Communication",worker_id:int):

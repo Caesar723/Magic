@@ -32,7 +32,7 @@ class Mystic_Tide(Instant_Undo):
         stack = player.room.stack
         if not stack:
             return
-        _func, card = stack[-1]
+        card = stack[-1]["card"]
         if card.player != opponent or card.type == "Land":
             return
         if not opponent.check_can_use({"colorless":3,"U":0,"W":0,"B":0,"R":0,"G":0})[0]:

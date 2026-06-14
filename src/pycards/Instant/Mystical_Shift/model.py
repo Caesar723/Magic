@@ -30,7 +30,7 @@ class Mystical_Shift(Instant_Undo):
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
         stack=player.room.stack
         if stack:
-            _func,card=stack[-1]
+            card=stack[-1]["card"]
             if card.player==opponent and card.type!="Land":
                 if not opponent.check_can_use({"colorless":3,"U":0,"W":0,"B":0,"R":0,"G":0})[0]:
                     await self.undo_stack(player, opponent)

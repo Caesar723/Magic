@@ -22,9 +22,14 @@ def bind_card(card_cls):
         return simulation_cls
     return decorator
 
+def test(simulation_cls):
+    simulation_cls._is_test = True
+    return simulation_cls
+
 class Card_Simulation:
     
     card:"Card"
+    _is_test:bool=False
     similar_descriptions:list[str]=[]
 
     ADJECTIVES = [

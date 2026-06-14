@@ -37,9 +37,10 @@ class Time_Reversal(Instant_Undo):
         async def empty_func():
             return None
         for i in range(len(self.stack)):
-            if self.stack[i][1].player==opponent and \
-            (isinstance(self.stack[i][1],Sorcery) or isinstance(self.stack[i][1],Instant)):
-                self.stack[i]=(empty_func,self.stack[i][1])
+            card=self.stack[i]["card"]
+            if card.player==opponent and \
+            (isinstance(card,Sorcery) or isinstance(card,Instant)):
+                self.stack[i]={"prepared_function":empty_func,"card":card}
 
 
 

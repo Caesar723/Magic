@@ -1,5 +1,6 @@
+import sys
 if __name__=="__main__":
-    import sys
+    
     sys.path.append("/Users/xuanpeichen/Desktop/code/python/openai/src")
     
    
@@ -8,43 +9,53 @@ import traceback
 #from room_server import RoomServer
 import numpy as np
 import asyncio
-from game.train_agent import Agent_Train
-from game.room import Room
-from game.rlearning.module.ppo_agent import PPOTrainer
-from game.rlearning.utils.model import get_class_by_name
+import random
+import os
 
-from game.card import Card
-from game.type_cards.creature import Creature
-from game.type_cards.instant import Instant
-from game.type_cards.land import Land
-from game.type_cards.sorcery import Sorcery
+from game.train_agent import Agent_Train 
+from game.rlearning.utils.model import get_class_by_name
 from game.rlearning.utils.file import read_yaml
 from game.base_agent_room import Base_Agent_Room
 from game.game_recorder import GameRecorder
+from game.rlearning.utils.agentSchedule import AgentSchedule
+from initinal_file import ORGPATH
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game.rlearning.communicate.training_parallel_room import Info_Communication
 
 
 
-
-
-class Multi_Agent_Room(Base_Agent_Room):
+class Multi_Agent_Parallel_Room(Base_Agent_Room):
     """
     当回合开始的时候，向那个活跃的agent发送做动作的请求
     做好一个动作之后把状态奖励等放入agent里
     直到agent 做出了 0:end turn的这个动作
     """
 
-    def __init__(self,config_path1:str,config_path2:str) -> None:
+    def __init__(self,
+    env_config,
+    info_communication:"Info_Communication",
+    worker_id:int,
+    ) -> None:
+        self.env_config=env_config
+        config_path=f"{ORGPATH}/{env_config['agent_config']}"
+        config_path_list=[f"{ORGPATH}/{config_path}" for config_path in env_config["opponent_config"]]
+        self.info_communication=info_communication
+        self.worker_id=worker_id
         
-        self.config_path1=config_path1
-        self.config_path2=config_path2
-        self.config1=read_yaml(config_path1)
-        self.config2=read_yaml(config_path2)
+        self.config_path=config_path
+        self.config_path_list=config_path_list
+        self.config=read_yaml(config_path)
+        self.config_list=[read_yaml(config_path) for config_path in config_path_list]
 
-        trainer1=get_class_by_name(self.config1["trainer"])
-        trainer2=get_class_by_name(self.config2["trainer"])
-        
-        self.agent1=trainer1(self.config1,self.config1["restore_step"],name="main")
-        self.agent2=trainer2(self.config2,self.config2["restore_step"],name="agent2")
+        trainer1=get_class_by_name(self.config["trainer"])
+        trainer1.pbar=None
+        trainer_list=[get_class_by_name(config["trainer"]) for config in self.config_list]
+        self.agent1=trainer1(self.config,self.config["restore_step"],name="main")
+        self.agent_list={
+            config_path_list[i]:trainer(self.config_list[i],self.config_list[i]["restore_step"],name=f"agent{i+1}") 
+            for i,trainer in enumerate(trainer_list)
+        }
         # self.agent1.load_pth(
         #     "/Users/xuanpeichen/Desktop/code/python/openai/model_complete_act.pth",
         #     "/Users/xuanpeichen/Desktop/code/python/openai/model_complete_val.pth"
@@ -53,10 +64,8 @@ class Multi_Agent_Room(Base_Agent_Room):
         #     "/Users/xuanpeichen/Desktop/code/python/openai/model_complete_act.pth",
         #     "/Users/xuanpeichen/Desktop/code/python/openai/model_complete_val.pth"
         # )
-        self.update_flag:dict[bool]={
-            "Agent1":False,
-            "Agent2":False
-        }
+
+        
 
         super().__init__(None,None)
 
@@ -67,21 +76,39 @@ class Multi_Agent_Room(Base_Agent_Room):
         self.active_player:Agent_Train#进行操作的玩家
         self.non_active_player:Agent_Train
 
-
+        
         
 
         
 
     def initinal_player(self,players:list[tuple],is_initinal:bool=True):
-        agents_deck=""
+        agents_deck="Eternal Phoenix+Creature+4|Raging Firekin+Creature+4|Emberheart Salamander+Creature+4|Arcane Inferno+Instant+4|Pyroblast Surge+Instant+4|Fiery Blast+Instant+4|Inferno Titan+Creature+4|Flame Tinkerer+Creature+4|Mountain+Land+24"
+
+        model_info= self.info_communication.get_model_info(self.worker_id)
+        print(model_info)
 
         players=[(agents_deck,"Agent1"),(agents_deck,"Agent2")]
         
-        self.player_1,self.player_2=Agent_Train(players[0][1],self,self.agent1),\
-                                    Agent_Train(players[1][1],self,self.agent2)
+        self.player_1=Agent_Train(players[0][1],self,self.agent1)
+        self.player_1.agent.pbar=None
+        
+        agent_oppo=self.agent_list[model_info["config_opponent_path"]]
+        self.player_2=Agent_Train(players[1][1],self,agent_oppo)
         
         self.player_1.set_opponent_player(self.player_2,self)
         self.player_2.set_opponent_player(self.player_1,self)
+
+        for treasure in self.agent1.config.get("treasures",[]):
+            class_treasure=get_class_by_name(treasure)
+            self.player_1.treasure.append(class_treasure())
+            
+        for treasure in agent_oppo.config.get("treasures",[]):
+            class_treasure=get_class_by_name(treasure)
+            self.player_2.treasure.append(class_treasure())
+
+        self.player_1.change_function_by_treasure()
+        self.player_2.change_function_by_treasure()
+
         self.players:dict[Agent_Train]={
             players[0][1]:self.player_1,
             players[1][1]:self.player_2
@@ -92,25 +119,49 @@ class Multi_Agent_Room(Base_Agent_Room):
             players[1][1]:None
         }
 
-
+        
+        #print(self.update_flag)
         if is_initinal:
+        
             self.update_flag:dict[bool]={
                 self.player_1.name:False,
                 self.player_2.name:False
             }
+            #print(record_flag)
             self.game_recorder:dict["GameRecorder"]={
                 players[0][1]:GameRecorder(self.player_1,self),
                 players[1][1]:GameRecorder(self.player_2,self)
             }
 
         
+
         self.basic_func:dict[str,dict]={
             players[0][1]:self.initinal_function(self.agent1.config),
-            players[1][1]:self.initinal_function(self.agent2.config)
+            players[1][1]:self.initinal_function(agent_oppo.config)
         }
+        #print(self.reward_func)
 
-    
         
+        if model_info["success_update"]:
+            self.update_flag[self.player_1.name]=True
+            self.player_1.agent.restore_checkpoint(model_info["model_path"])
+        if model_info["success_opponent_update"]:
+            self.player_2.agent.restore_checkpoint(model_info["model_opponent_path"])
+        #self.player_2.agent.restore_checkpoint(AgentSchedule.get_restore_step(self.player_2))
+
+    # def get_random_restore_step(self,agent:Agent_Train):
+    #     save_step=agent.agent.config["save_step"]
+    #     max_restore=max(int(agent.agent.max_step//save_step)-1,0)
+    #     random_restore=random.randint(0,max_restore)
+    #     return random_restore*save_step
+
+    def get_random_restore_step(self,agent:Agent_Train):
+        logdir=agent.agent.logdir
+        paths=[path.split("_")[1].split(".")[0] for path in os.listdir(os.path.join(logdir,"ckpt")) if path.startswith("config")]
+        random_restore=random.choice(paths)
+        return random_restore
+       
+
     
     
 
@@ -127,6 +178,12 @@ class Multi_Agent_Room(Base_Agent_Room):
         old_rewards=self.basic_func[agent.name]["get_reward"](agent)
         info_index=len(self.game_recorder[agent.name].datas)
         old_reward=old_rewards["reward"]
+
+        if action==1 or (action>=12 and action <=21):
+            attacker=self.attacker
+            
+        else:
+            attacker=None
         if action>=2 and action <=21:
             selected_creature=agent.battlefield[int(content)]
         else:
@@ -134,9 +191,9 @@ class Multi_Agent_Room(Base_Agent_Room):
         await self.message_process_dict[type](username,content)
         await self.check_death()
 
-
         flag=False
         if action>=2 and action <=11:
+            
             agent_oppo:Agent_Train=agent.opponent
             state=self.basic_func[agent_oppo.name]["get_state"](agent_oppo)
             mask=self.basic_func[agent_oppo.name]["create_action_mask"](agent_oppo)
@@ -145,14 +202,18 @@ class Multi_Agent_Room(Base_Agent_Room):
             #print(action)
             reward_func=await self.process_action(agent_oppo,action_oppo)
 
-            if action_oppo!=0:
-                await agent_oppo.store_data(state,action_oppo,reward_func)
-            else:
-                async def store_data_func():
-                    
-                    await agent_oppo.store_data(state,action_oppo,reward_func)
-                agent_oppo.add_pedding_store_task(store_data_func)
             
+            if agent_oppo==self.player_1 and np.sum(mask)!=1:
+                if action_oppo!=0:
+                    await agent_oppo.store_data(state,action_oppo,reward_func)
+                else:
+                    async def store_data_func():
+                        
+                        await agent_oppo.store_data(state,action_oppo,reward_func)
+                    agent_oppo.add_pedding_store_task(store_data_func)
+
+            
+        
         elif action!=0:
             await self.end_bullet_time()
         elif action==0:
@@ -166,25 +227,38 @@ class Multi_Agent_Room(Base_Agent_Room):
         #change_reward=new_reward-old_reward
 
         async def next_state_function(info_index=info_index):
-            current_rewards=self.basic_func[agent.name]["get_reward"](agent,selected_creature)
+            
+            current_rewards=self.basic_func[agent.name]["get_reward"](agent,selected_creature,attacker)
             current_reward=current_rewards["reward"]
             # if action==0:
             #     new_reward=0
             # else:
                 
             new_reward=current_reward-old_reward
+            new_reward/=5
             if action==0:
                 info_index=len(self.game_recorder[agent.name].datas)
                 new_reward/=50
+            
+
+            if self.config.get("long_sight",False):
+                if action>=2 and action <=11:
+                    new_reward=0
+                if action==0:
+                    new_reward=0
+                #new_reward*=5
+                
             new_reward=max(min(new_reward,0.3),-0.3)
             #await self.check_death()
             die_player=await self.check_player_die()
             
             done=False
+            
             if die_player and agent.life<=0:
                 
                 new_reward=-1
                 done=True
+
                 #if flag:
                 # print("lose",action,message,agent.life,org_state,self,self.gamming,new_reward)
                 # print("traceback.format_stack():")
@@ -198,11 +272,11 @@ class Multi_Agent_Room(Base_Agent_Room):
                 # print("".join(traceback.format_stack()))
             if action==1:
                 done=False
+            #print(message)
             await self.game_recorder[agent.name].store_game_reward(info_index,message,new_reward,old_rewards,current_rewards)
+            
             return self.basic_func[agent.name]["get_state"](agent),new_reward,done,current_reward
         return next_state_function
-        
-    
 
 
 
@@ -254,9 +328,7 @@ class Multi_Agent_Room(Base_Agent_Room):
                 mask=self.basic_func[agent.name]["create_action_mask"](agent)
                 state["mask"]=mask
                 action=agent.choose_action(state,isTrain=True)
-                # print(action)
-                # print(agent.hand)
-                # print(mask)
+                #print(action)
                 reward_func=await self.process_action(agent,action)
                 #asyncio.create_task(agent.store_data(state,action,reward_func))
                 
@@ -264,31 +336,27 @@ class Multi_Agent_Room(Base_Agent_Room):
                 oppo_agent:Agent_Train=agent.opponent
 
                 #print(agent.name,mask,action)
-
-                if action!=0:
-                    await agent.store_data(state,action,reward_func)
-                else:
-                    #print("store_data_func",action)
+                if agent==self.player_1:
                     
-                    async def store_data_func(agent=agent,state=state,action=action,reward_func=reward_func):
-                        #print("store_data_func",action,id(store_data_func),id(reward_func),id(state))
+                    if action!=0:
                         await agent.store_data(state,action,reward_func)
-                    #print("store_data_func",action,id(store_data_func),id(reward_func),id(state))
-                    agent.add_pedding_store_task(store_data_func)
-                
+                    else:
+                        #print("store_data_func",action)
+                        
+                        async def store_data_func(agent=agent,state=state,action=action,reward_func=reward_func):
+                            #print("store_data_func",action,id(store_data_func),id(reward_func),id(state))
+                            await agent.store_data(state,action,reward_func)
+                        #print("store_data_func",action,id(store_data_func),id(reward_func),id(state))
+                        agent.add_pedding_store_task(store_data_func)
+                    
                 await self.check_death()
-                #print(len(agent.agent.reward),len(oppo_agent.agent.reward))
-                # if len(agent.agent.reward)>=1024 and len(oppo_agent.agent.reward)>=1024:
-                #     print("____________________update agent____________________")
-                #     agent.update()
-                #     oppo_agent.update()
-                #     break
-                is_update=agent.update()
-                if is_update:
-                    self.update_flag[agent.name]=True
-                is_update=oppo_agent.update()
-                if is_update:
-                    self.update_flag[oppo_agent.name]=True
+                
+            if agent==self.player_1:
+                self.send_data_to_host(agent)
+                
+                    
+            else:
+                self.send_data_to_host(oppo_agent)
                 
             #print("finish")
             self.gamming=True
@@ -296,159 +364,42 @@ class Multi_Agent_Room(Base_Agent_Room):
             
             
         #self.active_player.update()
+
+    def send_data_to_host(self,agent:Agent_Train):
+
+
+        self.info_communication.store_game_data(agent.agent.dataset.datas)
+        agent.agent.dataset.datas = []
+    
         
 
     async def game_end(self,died_player:list[Agent_Train]):
         self.gamming=False
-        
+       
         for player in [self.player_1,self.player_2]:
             await player.clear_pedding_store_task()
-        
 
 
-
-        
-
-
-
-
-
-            
-
+async def run_parallel_room(config_path:str,config_path_list:list,info_communication:"Info_Communication",worker_id:int):
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-from game.buffs import StateBuff
-async def tasks(room):
-    await asyncio.sleep(6)
-    for name in room.players:
-        room.players[name].draw_card(2)
-        print("draw cards")
-        print(room.action_store_list_cache)
-    #asyncio.create_task(room.message_receiver("t|play_card|1"))
-async def main():
-    
-    room=Multi_Agent_Room(
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm3.yaml",
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm3.yaml"
+    room=Multi_Agent_Parallel_Room(
+        config_path,
+        config_path_list,
+        info_communication,
+        worker_id
     )
     
     await room.game_start()
     await room.action_process_system()
-    # print(room.get_new_state(room.player_1))
-    # print("\n\n".join([i.text(room.player_1) for i in room.player_1.hand]))
-    # room.active_player=room.players["Agent1"]
-    # room.non_active_player=room.players["Agent2"]
 
-    
-    # print(room.get_reward_red(room.active_player))
-    # mask=room.create_action_mask(room.active_player)
-    # state=room.get_state(room.active_player)
-    # print(mask)
-    # action=room.active_player.choose_action(*state,mask)
-    # print(action)
-
-    # #act=(await room.num2action(room.active_player,action))
-    # #print(act)
-
-    # print(await room.process_action(room.active_player,action))
-    
-    # room.agent1.choose_act(*state)
-    # room.agent1.store(state,10,1,state,0)
-    # room.agent1.store(state,10,1,state,0)
-    # room.agent1.train()
-    
-    # asyncio.create_task(room.message_receiver("Agent1|play_card|1"))
-    # await asyncio.sleep(6)
-    # print(room)
-    # print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
-    
-    # asyncio.create_task(room.message_receiver("Agent1|play_card|1"))
-    # await asyncio.sleep(6)
-    # asyncio.create_task(room.message_receiver("Agent1|play_card|1"))
-    
-    # await asyncio.sleep(6)
-    # asyncio.create_task(room.message_receiver("Agent1|activate_ability|land_area;0"))
-    # await asyncio.sleep(1)
-    # print(room)
-    # print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
-    
-    # await asyncio.sleep(2)
-    # asyncio.create_task(room.message_receiver("Agent1|play_card|0"))
-    # await asyncio.sleep(6)
-    # print(room)
-    # print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
-    
-    # await asyncio.sleep(2)
-    # asyncio.create_task(room.message_receiver("Agent1|end_step|"))
-    # await asyncio.sleep(2)
-    # asyncio.create_task(room.message_receiver("Agent2|play_card|1"))
-    # await asyncio.sleep(6)
-    # print(room)
-    # print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
-    
-    
-    # asyncio.create_task(room.message_receiver("Agent2|play_card|1"))
-    # await asyncio.sleep(6)
-    # asyncio.create_task(room.message_receiver("Agent2|play_card|1"))
-    
-    # await asyncio.sleep(6)
-    # print(room)
-    # print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
-    
-    # await asyncio.sleep(2)
-    # asyncio.create_task(room.message_receiver("Agent2|play_card|0"))
-    # await asyncio.sleep(6)
-    # print(room)
-    # print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
-    
-    # await asyncio.sleep(2)
-    
-    # await asyncio.sleep(5)
-    # card=room.active_player.battlefield[0]
-    # buff=StateBuff(card,2,2)
-    # card.gain_buff(buff)
-    # print(room)
-    # print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
-    
-    # #card.loss_buff(buff)
-    # #print(room)
-
-    # await asyncio.sleep(2)
-    # asyncio.create_task(room.message_receiver("Agent2|select_attacker|0"))
-    
-    # await asyncio.sleep(2)
-    # print(room)
-    # print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
-    
-    # asyncio.create_task(room.message_receiver("Agent1|select_defender|0"))
-    # await asyncio.sleep(6)
-    # print(room)
-    # print('\n\n'.join([action.text(room.player_1) for action in room.action_store_list_cache]))
-        
-if __name__=="__main__":
-    
-    
-    asyncio.run(main())
-    # print(np.zeros((3)))
-    # a=np.zeros((10))
-
-    # a[1:1]=True
-    # print(a)
+def worker_process(config_path:str, config_path_list:list, info_communication:"Info_Communication", worker_id:int):
+    sys.stdout = open(os.devnull, 'w')
+    sys.stderr = open(os.devnull, 'w')
+    asyncio.run(
+        run_parallel_room(
+            config_path,
+            config_path_list,
+            info_communication,
+            worker_id
+        )
+    )

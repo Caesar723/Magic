@@ -110,6 +110,7 @@ class Player:
         self.selection_lock = asyncio.Lock()
         self.socket_connected_flag=False
         self.selection_event=asyncio.Event()
+        self.stack_select_content:str=""
 
     async def game_start(self):
         pass
@@ -249,6 +250,7 @@ class Player:
         checked_result=card.check_can_use(self)
         #print(checked_result)
         if checked_result[0]:
+            self.stack_select_content=""
             self.action_store.start_record()#
             
             result=await card.when_use_this_card(self,self.opponent)
@@ -285,6 +287,8 @@ class Player:
     async def auto_play_card(self,card:Card,start_bullet_time:bool=True):# player 打出一张牌
         checked_result=card.check_can_use(self)
         if checked_result[0] or checked_result[1]=="not enough cost":
+            hand_index=next((i for i, hand_card in enumerate(self.hand) if hand_card is card), None)
+            self.stack_select_content=""
 
             self.action_store.start_record()
             result=await card.auto_play_this_card(self,self.opponent)
@@ -295,7 +299,9 @@ class Player:
             for card_when_play in self.get_cards_from_dict("when_play_a_card"):
                 if card_when_play!=card:
                     await card_when_play.when_play_a_card(card,self,self.opponent)
-            await self.room.put_prepared_function_to_stack(result,card,start_bullet_time)
+            message=f"{self.name}|play_card|{hand_index}"
+            select_content=self.stack_select_content or getattr(self,"select_content",None)
+            await self.room.put_prepared_function_to_stack(result,card,start_bullet_time,message=message,select_content=select_content)
             # if start_bullet_time:await self.room.start_bullet_time() 
 
             self.action_store.end_record()

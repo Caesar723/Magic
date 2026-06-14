@@ -31,7 +31,7 @@ class Ephemeral_Response(Instant_Undo):
         stack=player.room.stack
         if not stack:
             return
-        _func,card=stack[-1]
+        card=stack[-1]["card"]
         if card.player!=opponent or card.type=="Land":
             return
         total_mana=sum(opponent.mana.values())

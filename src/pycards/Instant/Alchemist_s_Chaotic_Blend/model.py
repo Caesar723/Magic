@@ -40,5 +40,5 @@ class Alchemist_s_Chaotic_Blend(Instant_Undo):
             new_func=await card_lib.card_ability(player,opponent,auto_select=True)
             if new_func=="cancel":
                 return 
-            self.stack.append((new_func,card_lib))
+            self.stack.append({"prepared_function":new_func,"card":card_lib})
         

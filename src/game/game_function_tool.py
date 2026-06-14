@@ -40,12 +40,14 @@ async def send_select_request(card:'Card',type:str,number:int,selection_random:b
         player=card.player
         objects=[]
         if type:
+            player.stack_select_content=""
             for i in range(number):
                 async with player.selection_lock:
                     if not auto_select:
                         await player.send_text(f"select({type})")
                         #print("select")
                         data =await player.receive_text()# ...|player;区域;index
+                        player.stack_select_content=data
                         #print("receive_text",data)
                         obj=get_object(data,room,type,card)
                         #print("get_object",obj)
@@ -282,15 +284,18 @@ def get_cards_simulation_diction():
 
             class_dict[class_name]=name
     result_dict={}
+    test_mode=False
     for subclass in Card_Simulation.__subclasses__():
         try:
             
             class_name = re.sub(r'__$', '', subclass.card_cls.__name__)
 
             base_name=base_class_name(subclass.card_cls)
-            if base_name is None:
-                print(subclass.card_cls.__name__,"is not a subclass of Card")
+            if base_name is None or (test_mode and not subclass._is_test):
                 continue
+            if subclass._is_test:
+                test_mode=True
+                result_dict={}
             result_dict[f"{class_dict[class_name]}_{base_name}"]=subclass
         except KeyError as e:
             #print(class_name)

@@ -51,6 +51,7 @@ class Agent_Train(Agent_Player):
         #         await self.condition_reward.wait()
                 #print("end",action,id(state))
         next_state,reward,done,global_reward=await reward_func()
+        print(next_state)
         
         #print(reward,action,done)
         #print(reward,next_state,done)

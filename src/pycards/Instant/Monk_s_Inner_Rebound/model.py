@@ -34,7 +34,7 @@ class Monk_s_Inner_Rebound(Instant_Undo):
         if (isinstance(card,Instant) and not isinstance(card,Instant_Undo)) or isinstance(card,Sorcery):
             new_card=type(card)(player)
             new_func=await new_card.card_ability(player,opponent,auto_select=True)
-            self.stack.append((new_func,new_card))
+            self.stack.append({"prepared_function":new_func,"card":new_card})
         
         
         

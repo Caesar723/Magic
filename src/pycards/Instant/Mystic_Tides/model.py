@@ -40,7 +40,7 @@ class Mystic_Tides(Instant_Undo):
         result,reason=super().check_can_use(player)
         if not result:
             return (result,reason)
-        if self.player.room.get_cost_total(player)<2:
+        if sum(self.player.room.get_cost_total(player).values())<2:
             return (False,"not enough mana")
         else:
             return (True,"")

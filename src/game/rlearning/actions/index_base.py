@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from game.type_cards.creature import Creature
-from game.type_cards.instant import Instant
+from game.type_cards.instant import Instant,Instant_Undo
 from game.type_cards.land import Land
 from game.type_cards.sorcery import Sorcery
 
@@ -12,20 +12,19 @@ if TYPE_CHECKING:
     
 
 """
+Gameplay action space (num2action / create_action_mask):
 0: end turn
 1: end bullet time
 2-11: select a creature to attack with (10 choices)
 12-21: select a creature to block with (10 choices)
+22-351: play card in hand slot * 33 sub-actions
 
-22-1341:
-There are 10 cards in hand. For each card (10 * 33 = 330):
-    play a card without selecting anything
-
-    play a card and select an opponent's creature (0-9, total 10)
-    play a card and select your own creature (0-9, total 10)
-    play a card and select the opponent's hero
-    play a card and select your own hero
-    play a card and select a card (10)
+Stack action encoding (action2num), 37 actions without index:
+0: end_step
+1: end_bullet
+2: select_attacker
+3: select_defender
+4-36: play_card sub-action (33 variants)
 """
 def select_stage(selects,index_range,start_index,mask):
     index=start_index
@@ -60,8 +59,15 @@ def mask_hand(room:"Base_Agent_Room",agent:"Agent",oppo_agent:"Agent",mask:np.nd
     #getattr(obj, 'my_attribute')
     card_counter=0
     for hand_card in agent.hand:
+        if room.get_flag("bullet_time"):
+            if not isinstance(hand_card,Instant) and not hand_card.get_flag("Flash"):
+                start_index+=33
+                card_counter+=1
+                continue
+        
         if card_counter>=9:
             break
+        print(hand_card,hand_card.check_can_use(agent))
         if hand_card.check_can_use(agent)[0]:
             select_range=''
             for cls in instance_dict:
@@ -89,6 +95,12 @@ def create_action_mask(room:"Base_Agent_Room",agent:"Agent"):
     (not room.attacker.get_flag("flying") or (creat.get_flag("flying") or creat.get_flag("reach"))):
                 mask[12+i]=True
         #if agent.battlefield: mask[12:len(agent.battlefield)+12]=True
+        if agent.hand:
+            mask_hand(room,agent,oppo_agent,mask)
+    elif room.get_flag("bullet_time"):
+        if agent.hand:
+            print(agent.hand)
+            mask_hand(room,agent,oppo_agent,mask)
     else:
         mask[0]=True
         for i,creat in enumerate(agent.battlefield):
@@ -136,6 +148,65 @@ def num2subaction(room:"Base_Agent_Room",agent:"Agent",sub_action:int):
         content=""
     result=f"{name}|{father_class}|{type_act}|{content}"
     return result
+
+
+def subaction2num(room:"Base_Agent_Room",agent:"Agent",sub_content:str)->int:
+    if not sub_content:
+        return 0
+    _,father_class,type_act,content,*_=sub_content.split("|")
+    sort_function=room.create_sort_function(agent)
+    if father_class=="field":
+        if not type_act:
+            return 0
+        if type_act=="opponent_battlefield":
+            opponent_battlefield_sorted=sorted(enumerate(agent.opponent.battlefield), key=lambda x: sort_function(x[1]), reverse=True)
+            selected_index=int(content)
+            for rank,(idx,_) in enumerate(opponent_battlefield_sorted):
+                if idx==selected_index:
+                    return rank+1
+            raise ValueError(f"opponent battlefield index {selected_index} not found")
+        if type_act=="self_battlefield":
+            self_battlefield_sorted=sorted(enumerate(agent.battlefield), key=lambda x: sort_function(x[1]), reverse=True)
+            selected_index=int(content)
+            for rank,(idx,_) in enumerate(self_battlefield_sorted):
+                if idx==selected_index:
+                    return rank+11
+            raise ValueError(f"self battlefield index {selected_index} not found")
+        if type_act=="oppo":
+            return 21
+        if type_act=="self":
+            return 22
+    elif father_class=="cards":
+        return int(type_act)+11
+    raise ValueError(f"unknown sub action content: {sub_content}")
+
+
+def _split_action_message(message:str)->tuple[str,str]:
+    if "||" in message:
+        message,select_content=message.split("||",1)
+        return message,select_content
+    return message,None
+
+
+def action2num(room:"Base_Agent_Room",agent:"Agent",message:str,select_content:str=None)->int:
+    message,merged_select_content=_split_action_message(message)
+    if select_content is None:
+        select_content=merged_select_content
+    _,type_act,_=message.split("|")
+    if type_act=="end_step":
+        return 0
+    if type_act=="end_bullet":
+        return 1
+    if type_act=="select_attacker":
+        return 2
+    if type_act=="select_defender":
+        return 3
+    if type_act=="play_card":
+        if select_content is None:
+            select_content=agent.select_content
+        sub_action=subaction2num(room,agent,select_content)
+        return 4+sub_action
+    raise ValueError(f"unknown action message: {message}")
 
 
 async def num2action(room:"Base_Agent_Room",agent:"Agent",action:int)->str:

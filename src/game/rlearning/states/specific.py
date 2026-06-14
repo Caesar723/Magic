@@ -2,6 +2,8 @@
 import numpy as np
 from typing import TYPE_CHECKING
 
+from game.rlearning.utils.model import get_class_by_name
+
 if TYPE_CHECKING:
     from game.base_agent_room import Base_Agent_Room
     from game.agent import Agent_Player as Agent
@@ -167,8 +169,39 @@ def get_state(room:"Base_Agent_Room",agent:"Agent"):
     state_batch["self_board"]=get_creature_state_batch(room,agent,agent.battlefield)
     state_batch["oppo_board"]=get_creature_state_batch(room,agent,oppo_agent.battlefield)
 
+    state_batch["stack"]=get_stack_state(room,agent,10)
     return state_batch
 
+
+def get_stack_state(room:"Base_Agent_Room",agent:"Agent",max_length:int=10):
+    stack=room.stack
+    action2num=room.basic_func[agent.name]["action2num"]
+
+    stack_cards=get_cards_state(room,agent,[stack_item["card"] for stack_item in stack],max_length)
+    stack_actions=[]
+    stack_players=[]
+    for stack_item in stack:
+        card=stack_item["card"]
+        message=stack_item.get("message")
+        if message:
+            try:
+                stack_actions.append(action2num(agent,message))
+            except (ValueError,KeyError,IndexError,TypeError):
+                stack_actions.append(0)
+        else:
+            stack_actions.append(0)
+        stack_players.append([1,0] if card.player==agent else [0,1])
+
+    while len(stack_actions)<max_length:
+        stack_actions.append(0)
+    while len(stack_players)<max_length:
+        stack_players.append([0,0])
+
+    return {
+        "stack_cards":stack_cards,
+        "player_one_hot":np.array(stack_players),
+        "action_number":np.array(stack_actions[:max_length]),
+    }
 
 def get_cards_state(room:"Base_Agent_Room",agent:"Agent",cards:list["Card"],max_length:int=10):
     card_types=[]
