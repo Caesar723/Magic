@@ -1,0 +1,23 @@
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
+    from game.player import Player
+
+from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from pycards.Instant.Warlock_s_Dark_Pact.model import Warlock_s_Dark_Pact
+
+@bind_card(Warlock_s_Dark_Pact)
+class Warlock_s_Dark_Pact_Simulation(Card_Simulation):
+
+    similar_descriptions:list[str]=[
+        "Counter target spell. Its controller loses life equal to its mana cost.",
+        "[CARD_NAME] counters target spell; its controller loses life equal to mana cost.",
+        "Counter a spell. Controller loses life equal to its mana cost.",
+        "With [CARD_NAME], counter target spell and drain life from controller equal to cost.",
+        "Counter target spell. Spell controller loses life equal to mana cost.",
+        "[CARD_NAME]: counter spell; life loss to controller equal to mana cost.",
+        "Counter a spell. Its controller loses life matching the spell's mana cost.",
+        "Counter target spell. Controller takes life loss equal to mana cost.",
+        "[CARD_NAME] counters and makes controller lose life equal to mana cost.",
+        "Counter spell; controller loses life equal to its mana cost.",
+    ]

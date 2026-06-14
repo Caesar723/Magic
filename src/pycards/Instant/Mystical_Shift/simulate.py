@@ -1,0 +1,23 @@
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
+    from game.player import Player
+
+from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from pycards.Instant.Mystical_Shift.model import Mystical_Shift
+
+@bind_card(Mystical_Shift)
+class Mystical_Shift_Simulation(Card_Simulation):
+
+    similar_descriptions:list[str]=[
+        "Counter target spell and draw a card unless its controller's mana pool is less than 3.",
+        "[CARD_NAME] counters target spell and draws a card unless controller has less than 3 mana.",
+        "Counter a spell and draw unless controller's mana pool is under 3.",
+        "With [CARD_NAME], counter and draw unless controller has fewer than 3 mana.",
+        "Counter target spell, draw a card unless controller's mana is below 3.",
+        "[CARD_NAME]: counter + draw unless mana pool <3.",
+        "Counter and draw unless controller has at least 3 mana.",
+        "Counter target spell. You draw unless controller's mana pool is less than 3.",
+        "[CARD_NAME] counters and draws unless controller can pay from 3+ mana pool.",
+        "Counter spell and draw a card unless controller's mana pool is under 3.",
+    ]
