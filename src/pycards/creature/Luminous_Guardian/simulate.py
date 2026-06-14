@@ -12,19 +12,19 @@ class Luminous_Guardian_Simulation(Card_Simulation):
     similar_descriptions:list[str]=[
         "Flying, Lifelink. When [CARD_NAME] enters the battlefield, you may exile target creature with power 3 or greater an opponent controls until [CARD_NAME] leaves the battlefield.",
 
-        "Flying, Lifelink. When [CARD_NAME] enters play, you may exile target creature with power 3 or greater an opponent controls until [CARD_NAME] leaves the battlefield.",
+        "Lifelink, Flying. When [CARD_NAME] enters play, you may exile target creature with power 3 or greater an opponent controls until [CARD_NAME] leaves the battlefield.",
 
         "Flying, Lifelink. As [CARD_NAME] enters the battlefield, you may exile target creature with power 3 or greater an opponent controls until [CARD_NAME] leaves the battlefield.",
 
-        "Flying, Lifelink. Upon entering the battlefield, [CARD_NAME] lets you exile target creature with power 3 or greater an opponent controls until [CARD_NAME] leaves the battlefield.",
+        "Lifelink, Flying. Upon entering the battlefield, [CARD_NAME] lets you exile target creature with power 3 or greater an opponent controls until [CARD_NAME] leaves the battlefield.",
 
         "Flying, Lifelink. When [CARD_NAME] arrives, you may exile target creature with power 3 or greater an opponent controls until [CARD_NAME] leaves the battlefield.",
 
-        "Flying, Lifelink. When [CARD_NAME] enters the battlefield, you may exile a target creature with power 3 or greater an opponent controls until [CARD_NAME] leaves the battlefield.",
+        "Lifelink, Flying. When [CARD_NAME] enters the battlefield, you may exile a target creature with power 3 or greater an opponent controls until [CARD_NAME] leaves the battlefield.",
 
         "Flying, Lifelink. When [CARD_NAME] enters the battlefield, you may exile target creature an opponent controls with power 3 or greater until [CARD_NAME] leaves the battlefield.",
 
-        "Flying, Lifelink. When [CARD_NAME] enters the battlefield, you may exile target creature with power 3+ an opponent controls until [CARD_NAME] leaves the battlefield.",
+        "Lifelink, Flying. When [CARD_NAME] enters the battlefield, you may exile target creature with power 3+ an opponent controls until [CARD_NAME] leaves the battlefield.",
 
         "Flying, Lifelink. When [CARD_NAME] enters the battlefield, you may exile target opposing creature with power 3 or greater until [CARD_NAME] leaves the battlefield.",
 

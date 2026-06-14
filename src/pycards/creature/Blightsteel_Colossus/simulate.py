@@ -12,20 +12,20 @@ class Blightsteel_Colossus_Simulation(Card_Simulation):
     similar_descriptions:list[str]=[
         "Trample, Infect, Indestructible.",
 
-        "Trample, Infect (damage to creatures is -1/-1 counters; damage to players is poison counters), Indestructible.",
+        "Infect, Indestructible, Trample (damage to creatures is -1/-1 counters; damage to players is poison counters).",
 
-        "Trample, Infect, Indestructible (can't be destroyed by damage or effects that say destroy).",
+        "Indestructible, Trample, Infect (can't be destroyed by damage or effects that say destroy).",
 
-        "Trample. Infect. Indestructible.",
+        "Infect. Trample. Indestructible.",
 
-        "Trample, Infect, and Indestructible.",
+        "Indestructible, Infect, and Trample.",
 
-        "Trample, Infect (this deals damage as -1/-1 counters to creatures and poison counters to players), Indestructible.",
+        "Infect, Trample (this deals damage as -1/-1 counters to creatures and poison counters to players), Indestructible.",
 
-        "Trample, Infect, Indestructible — this creature can't be destroyed by damage or destroy effects.",
+        "Trample, Indestructible, Infect — this creature can't be destroyed by damage or destroy effects.",
 
-        "Trample, Infect, Indestructible (immune to damage-based destruction and destroy effects).",
+        "Indestructible, Infect, Trample (immune to damage-based destruction and destroy effects).",
 
-        "Trample, Infect, Indestructible (this creature can't be destroyed by damage or destroy effects).",
+        "Infect, Indestructible, Trample (this creature can't be destroyed by damage or destroy effects).",
 
     ]

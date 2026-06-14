@@ -12,19 +12,19 @@ class Celestial_Guardian_Simulation(Card_Simulation):
     similar_descriptions:list[str]=[
         "Flying, Vigilance. When [CARD_NAME] enters the battlefield, you gain 2 life.",
 
-        "Flying, Vigilance. When [CARD_NAME] enters play, you gain 2 life.",
+        "Vigilance, Flying. When [CARD_NAME] enters play, you gain 2 life.",
 
         "Flying, Vigilance. As [CARD_NAME] enters the battlefield, you gain 2 life.",
 
-        "Flying, Vigilance. Upon entering the battlefield, [CARD_NAME] causes you to gain 2 life.",
+        "Vigilance, Flying. Upon entering the battlefield, [CARD_NAME] causes you to gain 2 life.",
 
         "Flying, Vigilance. When [CARD_NAME] arrives, you gain 2 life.",
 
-        "Flying, Vigilance. When [CARD_NAME] enters the battlefield, your life total increases by 2.",
+        "Vigilance, Flying. When [CARD_NAME] enters the battlefield, your life total increases by 2.",
 
         "Flying, Vigilance. When [CARD_NAME] enters the battlefield, you gain two life.",
 
-        "Flying, Vigilance. When [CARD_NAME] enters the battlefield, you restore 2 life.",
+        "Vigilance, Flying. When [CARD_NAME] enters the battlefield, you restore 2 life.",
 
         "Flying, Vigilance. When [CARD_NAME] enters the battlefield, gain 2 life.",
 

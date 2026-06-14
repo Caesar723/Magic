@@ -12,19 +12,19 @@ class Chronostrider_Simulation(Card_Simulation):
     similar_descriptions:list[str]=[
         "Flash, Haste. When [CARD_NAME] enters the battlefield, you may take an extra turn after this one.",
 
-        "Flash, Haste. When [CARD_NAME] enters play, you may take an extra turn after this one.",
+        "Haste, Flash. When [CARD_NAME] enters play, you may take an extra turn after this one.",
 
         "Flash, Haste. As [CARD_NAME] enters the battlefield, you may take an extra turn after this one.",
 
-        "Flash, Haste. Upon entering the battlefield, [CARD_NAME] lets you take an extra turn after this one.",
+        "Haste, Flash. Upon entering the battlefield, [CARD_NAME] lets you take an extra turn after this one.",
 
         "Flash, Haste. When [CARD_NAME] arrives, you may take an extra turn after this one.",
 
-        "Flash, Haste. When [CARD_NAME] enters the battlefield, you may gain an extra turn after this one.",
+        "Haste, Flash. When [CARD_NAME] enters the battlefield, you may gain an extra turn after this one.",
 
         "Flash, Haste. When [CARD_NAME] enters the battlefield, you may take another turn after this one ends.",
 
-        "Flash, Haste. When [CARD_NAME] enters the battlefield, you may take an additional turn after this one.",
+        "Haste, Flash. When [CARD_NAME] enters the battlefield, you may take an additional turn after this one.",
 
         "Flash, Haste. When [CARD_NAME] enters the battlefield, you may take an extra turn following this one.",
 

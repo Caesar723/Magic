@@ -12,19 +12,19 @@ class Spectral_Harbinger_Simulation(Card_Simulation):
     similar_descriptions:list[str]=[
         "Flying, Lifelink. When [CARD_NAME] enters the battlefield, you may exile a random creature card from a graveyard. If you do, you gain 2 life.",
 
-        "Flying, Lifelink. When [CARD_NAME] enters play, you may exile a random creature card from a graveyard. If you do, you gain 2 life.",
+        "Lifelink, Flying. When [CARD_NAME] enters play, you may exile a random creature card from a graveyard. If you do, you gain 2 life.",
 
         "Flying, Lifelink. As [CARD_NAME] enters the battlefield, you may exile a random creature card from a graveyard. If you do, you gain 2 life.",
 
-        "Flying, Lifelink. Upon entering the battlefield, [CARD_NAME] lets you exile a random creature card from a graveyard. If you do, you gain 2 life.",
+        "Lifelink, Flying. Upon entering the battlefield, [CARD_NAME] lets you exile a random creature card from a graveyard. If you do, you gain 2 life.",
 
         "Flying, Lifelink. When [CARD_NAME] arrives, you may exile a random creature card from a graveyard. If you do, you gain 2 life.",
 
-        "Flying, Lifelink. When [CARD_NAME] enters the battlefield, you may exile a random creature card from any graveyard. If you do, you gain 2 life.",
+        "Lifelink, Flying. When [CARD_NAME] enters the battlefield, you may exile a random creature card from any graveyard. If you do, you gain 2 life.",
 
         "Flying, Lifelink. When [CARD_NAME] enters the battlefield, you may exile a random creature from a graveyard. If you do, you gain 2 life.",
 
-        "Flying, Lifelink. When [CARD_NAME] enters the battlefield, you may exile a random creature card from a graveyard. If you do, gain 2 life.",
+        "Lifelink, Flying. When [CARD_NAME] enters the battlefield, you may exile a random creature card from a graveyard. If you do, gain 2 life.",
 
         "Flying, Lifelink. When [CARD_NAME] enters the battlefield, you may exile a random creature card from a graveyard. If you do, you gain two life.",
 

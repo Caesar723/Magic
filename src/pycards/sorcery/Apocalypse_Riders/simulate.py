@@ -12,21 +12,21 @@ class Apocalypse_Riders_Simulation(Card_Simulation):
     similar_descriptions:list[str]=[
         "Summon four 2/2 Knight creature tokens, each with a different ability (Trample, Haste, Lifelink, Flying).",
 
-        "[CARD_NAME] creates four 2/2 Knight creature tokens, each with a different keyword ability: Trample, Haste, Lifelink, and Flying.",
+        "[CARD_NAME] creates four 2/2 Knight creature tokens, each with a different keyword ability: Haste, Lifelink, Flying, and Trample.",
 
-        "Create four 2/2 Knight tokens. One has trample, one has haste, one has lifelink, and one has flying.",
+        "Create four 2/2 Knight tokens. One has flying, one has haste, one has lifelink, and one has trample.",
 
-        "[CARD_NAME] summons four 2/2 Knight creature tokens with distinct abilities: Trample, Haste, Lifelink, and Flying.",
+        "[CARD_NAME] summons four 2/2 Knight creature tokens with distinct abilities: Lifelink, Flying, Trample, and Haste.",
 
-        "Put four 2/2 Knight creature tokens onto the battlefield, each granted a different ability among Trample, Haste, Lifelink, and Flying.",
+        "Put four 2/2 Knight creature tokens onto the battlefield, each granted a different ability among Flying, Trample, Haste, and Lifelink.",
 
-        "[CARD_NAME] generates four 2/2 Knight creature tokens, each with one of Trample, Haste, Lifelink, or Flying.",
+        "[CARD_NAME] generates four 2/2 Knight creature tokens, each with one of Haste, Trample, Lifelink, or Flying.",
 
-        "Summon four Knight creature tokens that are 2/2, each with a unique ability: Trample, Haste, Lifelink, or Flying.",
+        "Summon four Knight creature tokens that are 2/2, each with a unique ability: Lifelink, Haste, Trample, or Flying.",
 
-        "[CARD_NAME] places four 2/2 Knight tokens into play, each bearing a different ability from Trample, Haste, Lifelink, and Flying.",
+        "[CARD_NAME] places four 2/2 Knight tokens into play, each bearing a different ability from Flying, Lifelink, Haste, and Trample.",
 
-        "Create four 2/2 Knight creature tokens. Each token has a different ability: Trample, Haste, Lifelink, or Flying.",
+        "Create four 2/2 Knight creature tokens. Each token has a different ability: Haste, Flying, Lifelink, or Trample.",
 
-        "[CARD_NAME] brings four 2/2 Knight creature tokens onto the battlefield, each with a separate ability among Trample, Haste, Lifelink, and Flying."
+        "[CARD_NAME] brings four 2/2 Knight creature tokens onto the battlefield, each with a separate ability among Lifelink, Trample, Flying, and Haste."
     ]

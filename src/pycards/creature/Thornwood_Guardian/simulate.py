@@ -12,20 +12,20 @@ class Thornwood_Guardian_Simulation(Card_Simulation):
     similar_descriptions:list[str]=[
         "Reach, Trample (This creature can block creatures with flying, and it can deal excess combat damage to the player or planeswalker it's attacking).",
 
-        "Reach, Trample.",
+        "Trample, Reach.",
 
-        "Reach, Trample (can block flyers and deal excess combat damage).",
+        "Trample, Reach (can block flyers and deal excess combat damage).",
 
         "Reach. Trample (blocks flying creatures and deals excess damage).",
 
-        "Reach, Trample (can block creatures with flying and deal excess combat damage).",
+        "Trample, Reach (can block creatures with flying and deal excess combat damage).",
 
         "Reach, Trample (blocks flying and deals excess damage to attacked player or planeswalker).",
 
-        "Reach, Trample (can block flying creatures; excess damage goes to the player or planeswalker).",
+        "Trample, Reach (can block flying creatures; excess damage goes to the player or planeswalker).",
 
         "Reach, Trample (can block flyers; deals excess combat damage to the player or planeswalker it's attacking).",
 
-        "Reach, Trample (can block creatures with flying and deal excess combat damage to the attacked player or planeswalker).",
+        "Trample, Reach (can block creatures with flying and deal excess combat damage to the attacked player or planeswalker).",
 
     ]

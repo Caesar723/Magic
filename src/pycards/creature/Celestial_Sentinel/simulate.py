@@ -12,19 +12,19 @@ class Celestial_Sentinel_Simulation(Card_Simulation):
     similar_descriptions:list[str]=[
         "Flying, Vigilance.",
 
-        "Flying and Vigilance.",
+        "Vigilance, Flying.",
 
         "Flying. Vigilance.",
 
-        "Flying, Vigilance (this creature doesn't tap when attacking).",
+        "Vigilance, Flying (this creature doesn't tap when attacking).",
 
         "Flying, Vigilance — can attack without tapping.",
 
-        "Flying, Vigilance (attacks without tapping).",
+        "Vigilance, Flying (attacks without tapping).",
 
         "Flying, Vigilance (doesn't tap to attack).",
 
-        "Flying, Vigilance (this doesn't tap when it attacks).",
+        "Vigilance, Flying (this doesn't tap when it attacks).",
 
         "Flying, Vigilance (untapped while attacking).",
 

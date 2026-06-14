@@ -29,6 +29,11 @@ from game.type_cards.creature import Creature
 from game.type_cards.instant import Instant
 from game.type_cards.land import Land
 from game.type_cards.sorcery import Sorcery
+from pycards.land.Mountain.model import Mountain
+from pycards.land.Plains.model import Plains
+from pycards.land.Island.model import Island
+from pycards.land.Swamp.model import Swamp
+from pycards.land.Forest.model import Forest
 from game.testing_room import Testing_Spawn_Creature
 from game.player import Player
 from game.rlearning.trainingRoom.training_parallel_room import Multi_Agent_Parallel_Room
@@ -327,24 +332,38 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
 
 
-    def env_mana(self,player,mana_range:dict[str,tuple[int,int]],least_mana:dict[str,tuple[int,int]]={}):
+    def env_mana(self,player:"Player",mana_range:dict[str,tuple[int,int]],least_mana:dict[str,tuple[int,int]]={}):
         player.mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
-        for key in player.mana:
+
+        class_dict={
+            "W":Plains,
+            "U":Island,
+            "B":Swamp,
+            "R":Mountain,
+            "G":Forest
+        }
+        temp_mana={"colorless":0,"U":0,"W":0,"B":0,"R":0,"G":0}
+        for key in temp_mana:
             mana_range_min,mana_range_max=mana_range.get(key,(0,0))
-            player.mana[key]=random.randint(mana_range_min,mana_range_max)+player.mana[key]
+            temp_mana[key]=random.randint(mana_range_min,mana_range_max)+temp_mana[key]
         colored_keys = ["U", "W", "B", "R", "G"]
         for key in colored_keys:
             need = least_mana.get(key, 0)
-            if player.mana[key] < need:
-                player.mana[key] = need
+            if temp_mana[key] < need:
+                temp_mana[key] = need
         colorless_need = least_mana.get("colorless", 0)
         colored_reserved = sum(least_mana.get(k, 0) for k in colored_keys)
-        total_mana = sum(player.mana.values())
+        total_mana = sum(temp_mana.values())
         deficit = colorless_need - (total_mana - colored_reserved)
         if deficit > 0:
             all_keys = ["colorless"] + colored_keys
             for _ in range(deficit):
-                player.mana[random.choice(all_keys)] += 1
+                temp_mana[random.choice(all_keys)] += 1
+        player.mana["colorless"]=temp_mana["colorless"]
+        for key in temp_mana:
+            if key!="colorless":
+                for _ in range(temp_mana[key]):
+                    player.land_area.append(class_dict[key](player))
 
     def all_play_card_messages(self, player):
         name = player.name
@@ -548,9 +567,12 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         return simulate_info
 
     def simulate_creature_attack(self,card:Card):
-        self.player_1.battlefield.append(card)
-        
-        card_index=len(self.player_1.battlefield)-1
+        if self.player_1.battlefield and len(self.player_1.battlefield)!=1:
+            card_index=min(9,random.randint(0,len(self.player_1.battlefield)-1))
+            self.player_1.battlefield[card_index]=card
+        else:
+            self.player_1.battlefield.append(card)
+            card_index=len(self.player_1.battlefield)-1
         if card.get_flag("Double strike"):
             card.set_counter_dict("attack_counter",2)
         else:
@@ -577,8 +599,12 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         self._elapsed_time=time.perf_counter()
         
         card.flag_dict["tap"]=False
-        self.player_1.battlefield.append(card)
-        card_index=len(self.player_1.battlefield)-1
+        if self.player_1.battlefield and len(self.player_1.battlefield)!=1:
+            card_index=min(9,random.randint(0,len(self.player_1.battlefield)-1))
+            self.player_1.battlefield[card_index]=card
+        else:
+            self.player_1.battlefield.append(card)
+            card_index=len(self.player_1.battlefield)-1
         card.flag_dict["summoning_sickness"]=False
         self.flag_dict["attacker_defenders"]=True
         opponent_card=random.choice(self.player_2.battlefield)

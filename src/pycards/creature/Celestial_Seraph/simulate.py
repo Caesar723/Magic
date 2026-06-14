@@ -12,19 +12,19 @@ class Celestial_Seraph_Simulation(Card_Simulation):
     similar_descriptions:list[str]=[
         "Flying, Lifelink. Whenever [CARD_NAME] attacks, you may exile a random nonland permanent an opponent controls until [CARD_NAME] leaves the battlefield.",
 
-        "Flying, Lifelink. When [CARD_NAME] attacks, you may exile a random nonland permanent an opponent controls until [CARD_NAME] leaves play.",
+        "Lifelink, Flying. When [CARD_NAME] attacks, you may exile a random nonland permanent an opponent controls until [CARD_NAME] leaves play.",
 
         "Flying, Lifelink. Each time [CARD_NAME] attacks, you may exile a random nonland permanent an opponent controls until [CARD_NAME] departs the battlefield.",
 
-        "Flying, Lifelink. Whenever [CARD_NAME] attacks, you may exile a random nonland permanent controlled by an opponent until [CARD_NAME] leaves the battlefield.",
+        "Lifelink, Flying. Whenever [CARD_NAME] attacks, you may exile a random nonland permanent controlled by an opponent until [CARD_NAME] leaves the battlefield.",
 
         "Flying, Lifelink. On attack, [CARD_NAME] may exile a random nonland permanent an opponent controls until it leaves the battlefield.",
 
-        "Flying, Lifelink. Whenever [CARD_NAME] attacks, you may exile a random nonland opposing permanent until [CARD_NAME] leaves the battlefield.",
+        "Lifelink, Flying. Whenever [CARD_NAME] attacks, you may exile a random nonland opposing permanent until [CARD_NAME] leaves the battlefield.",
 
         "Flying, Lifelink. When [CARD_NAME] attacks, you may exile a random nonland permanent an opponent controls for as long as [CARD_NAME] remains on the battlefield.",
 
-        "Flying, Lifelink. Whenever [CARD_NAME] attacks, you may exile a random nonland permanent an opponent controls until [CARD_NAME] is gone.",
+        "Lifelink, Flying. Whenever [CARD_NAME] attacks, you may exile a random nonland permanent an opponent controls until [CARD_NAME] is gone.",
 
         "Flying, Lifelink. Whenever [CARD_NAME] attacks, you may exile a random nonland permanent an opponent controls until [CARD_NAME] leaves the battlefield.",
 

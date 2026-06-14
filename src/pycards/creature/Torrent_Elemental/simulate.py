@@ -12,20 +12,20 @@ class Torrent_Elemental_Simulation(Card_Simulation):
     similar_descriptions:list[str]=[
         "Flash and Flying.",
 
-        "Flash, Flying.",
+        "Flying, Flash.",
 
-        "Flash. Flying.",
+        "Flying. Flash.",
 
-        "Flash (cast at instant speed) and Flying.",
+        "Flying (can't be blocked except by flying or reach) and Flash (cast at instant speed).",
 
-        "Flash (you may cast this any time you could cast an instant) and Flying.",
+        "Flying and Flash (you may cast this any time you could cast an instant).",
 
         "Flash and Flying (can be cast at instant speed and can't be blocked except by flying or reach).",
 
-        "Flash, Flying (instant-speed casting and evasion).",
+        "Flying, Flash (evasion and instant-speed casting).",
 
-        "Flash and Flying (castable as an instant; evasive).",
+        "Flying and Flash (evasive; castable as an instant).",
 
-        "Flash and Flying (may be cast at instant speed; has flying).",
+        "Flying, Flash (has flying; may be cast at instant speed).",
 
     ]

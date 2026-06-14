@@ -12,19 +12,19 @@ class Radiant_Angel_Simulation(Card_Simulation):
     similar_descriptions:list[str]=[
         "Flying, Lifelink. Whenever [CARD_NAME] deals damage, it illuminates all creatures with dark attributes, making them unable to attack or block this turn.",
 
-        "Flying, Lifelink. Whenever [CARD_NAME] deals damage, all dark-attribute creatures can't attack or block this turn.",
+        "Lifelink, Flying. Whenever [CARD_NAME] deals damage, all dark-attribute creatures can't attack or block this turn.",
 
         "Flying, Lifelink. When [CARD_NAME] deals damage, creatures with dark attributes can't attack or block this turn.",
 
-        "Flying, Lifelink. Each time [CARD_NAME] deals damage, dark-attribute creatures are unable to attack or block this turn.",
+        "Lifelink, Flying. Each time [CARD_NAME] deals damage, dark-attribute creatures are unable to attack or block this turn.",
 
         "Flying, Lifelink. Whenever [CARD_NAME] deals damage, it blinds dark creatures, preventing them from attacking or blocking this turn.",
 
-        "Flying, Lifelink. Whenever [CARD_NAME] deals damage, all creatures with dark attributes cannot attack or block this turn.",
+        "Lifelink, Flying. Whenever [CARD_NAME] deals damage, all creatures with dark attributes cannot attack or block this turn.",
 
         "Flying, Lifelink. On dealing damage, [CARD_NAME] renders dark-attribute creatures unable to attack or block this turn.",
 
-        "Flying, Lifelink. Whenever [CARD_NAME] deals damage, dark creatures can't attack or block for the rest of the turn.",
+        "Lifelink, Flying. Whenever [CARD_NAME] deals damage, dark creatures can't attack or block for the rest of the turn.",
 
         "Flying, Lifelink. Whenever [CARD_NAME] deals damage, it illuminates dark creatures, preventing them from attacking or blocking this turn.",
 

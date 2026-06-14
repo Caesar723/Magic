@@ -12,19 +12,19 @@ class Grove_Guardian_Simulation(Card_Simulation):
     similar_descriptions:list[str]=[
         "Reach, Hexproof (This creature can't be the target of spells or abilities your opponents control).",
 
-        "Reach, Hexproof.",
+        "Hexproof, Reach.",
 
-        "Reach, Hexproof (can't be targeted by opponents' spells or abilities).",
+        "Hexproof, Reach (can't be targeted by opponents' spells or abilities).",
 
-        "Reach. Hexproof (opponents can't target this with spells or abilities).",
+        "Hexproof. Reach (opponents can't target this with spells or abilities).",
 
         "Reach, Hexproof (this can't be the target of opposing spells or abilities).",
 
-        "Reach, Hexproof (immune to opposing targeting).",
+        "Hexproof, Reach (immune to opposing targeting).",
 
         "Reach, Hexproof (opponents cannot target this creature).",
 
-        "Reach, Hexproof (not targetable by opponent spells or abilities).",
+        "Hexproof, Reach (not targetable by opponent spells or abilities).",
 
         "Reach, Hexproof (your opponents can't target this).",
 

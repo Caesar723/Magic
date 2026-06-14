@@ -12,19 +12,19 @@ class Vorinclex__Apex_of_Mutation_Simulation(Card_Simulation):
     similar_descriptions:list[str]=[
         "Trample, Infect. Whenever you cast a spell, proliferate for three random permanents. Whenever an opponent proliferates, they must pay 2 life for each permanent.",
 
-        "Trample, Infect. Each time you cast a spell, proliferate for three random permanents. Whenever an opponent proliferates, they pay 2 life per permanent.",
+        "Infect, Trample. Each time you cast a spell, proliferate for three random permanents. Whenever an opponent proliferates, they pay 2 life per permanent.",
 
         "Trample, Infect. When you cast a spell, proliferate for three random permanents. When an opponent proliferates, they must pay 2 life for each permanent.",
 
-        "Trample, Infect. Whenever you cast a spell, proliferate three random permanents. Whenever an opponent proliferates, they must pay 2 life for each permanent.",
+        "Infect, Trample. Whenever you cast a spell, proliferate three random permanents. Whenever an opponent proliferates, they must pay 2 life for each permanent.",
 
         "Trample, Infect. On casting a spell, proliferate for three random permanents. On opponent proliferating, they must pay 2 life per permanent.",
 
-        "Trample, Infect. Whenever you cast a spell, proliferate for three random permanents. Whenever an opponent proliferates, they must pay two life for each permanent.",
+        "Infect, Trample. Whenever you cast a spell, proliferate for three random permanents. Whenever an opponent proliferates, they must pay two life for each permanent.",
 
         "Trample, Infect. Whenever you cast a spell, proliferate three random permanents. Whenever an opponent proliferates, they must pay 2 life for each permanent proliferated.",
 
-        "Trample, Infect. Whenever you cast a spell, proliferate for three random permanents. Whenever an opponent proliferates, they must pay 2 life for each permanent affected.",
+        "Infect, Trample. Whenever you cast a spell, proliferate for three random permanents. Whenever an opponent proliferates, they must pay 2 life for each permanent affected.",
 
         "Trample, Infect. Whenever you cast a spell, proliferate for three random permanents. Whenever an opponent proliferates, they must pay 2 life for each permanent.",
 
