@@ -162,7 +162,7 @@ class Indestructible(Buff):
     def __init__(self,card:"Card",selected_card:"Card") -> None:
         super().__init__(card,selected_card)
         self.card=card#这个buff是属于哪一张卡的
-        self.card_type:str="State"#这个buff是用在那个类型的
+        self.card_type:str="Indestructible"#这个buff是用在那个类型的
         self.content:str="indestructible"#描述buff
         self.buff_name=f"{card.name}"
 

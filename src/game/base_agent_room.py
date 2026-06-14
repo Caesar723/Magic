@@ -103,6 +103,12 @@ class Base_Agent_Room(Room):
 
         if not card.get_flag("tap") and not card.get_flag("summoning_sickness"):
             special_types[8]=1
+        for card_buff in card.buffs:
+            if card_buff.card_type=="Infect":
+                special_types[9]=1
+            elif card_buff.card_type=="Indestructible":
+                special_types[10]=1
+            
         return card_type,special_types
 
     def get_time_state(self):
