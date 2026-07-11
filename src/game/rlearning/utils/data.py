@@ -25,8 +25,7 @@ def batch_to_cuda(batch, rank):
             
             batch[k] = to_cuda(batch[k],rank)
         elif type( batch[k] ) is dict:
-            for kk in batch[k]:
-                batch[k][kk] = to_cuda(batch[k][kk],rank)
+            batch[k] = batch_to_cuda(batch[k],rank)
 
         
     return batch 

@@ -110,6 +110,7 @@ class Room:
         #start executing message_process
         self.tasks.append(asyncio.create_task(self.message_process()))
         self.tasks.append(asyncio.create_task(self.action_sender()))
+        self.task_timer=None
         self.task_close=asyncio.create_task(self.auto_close())
 
 
@@ -118,6 +119,9 @@ class Room:
         await self.room_server.settle_player(False,self.player_1)
         await self.room_server.settle_player(False,self.player_2)
         self.gamming=False
+        if self.task_timer:
+            self.task_timer.cancel()
+        self.task_timer=None
         for task in self.tasks:
             task.cancel()
         # 等待任务真正结束（捕获取消异常）
@@ -160,7 +164,7 @@ class Room:
         
         self.active_player:Player=player1
         self.non_active_player:Player=player2
-        self.tasks.append(asyncio.create_task(self.timer_task()))
+        self.task_timer=asyncio.create_task(self.timer_task())
 
         # self.flag_dict["bullet_time"]=False
         # self.flag_dict["attacker_defenders"]=False

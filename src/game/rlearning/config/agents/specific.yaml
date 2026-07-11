@@ -91,7 +91,10 @@ shared_card_cfg: &shared_card_cfg
   card_embed_dim: 128
   
 
-
+CLIPTokenizer:
+  context_length: 77
+  padding: "max_length"
+  
 
 model:
 

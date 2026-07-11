@@ -155,7 +155,11 @@ class Base_Agent_Room(Room):
         self.attacker:Creature=None
         # for task in self.tasks:
         #     task.cancel()
-        self.tasks=[]
+        # if self.tasks:
+        #     await asyncio.gather(*self.tasks, return_exceptions=True)
+        if self.task_timer:
+            self.task_timer.cancel()
+        self.task_timer=None
         self.initinal_player(None,is_initinal=False)
 
 

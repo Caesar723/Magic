@@ -37,9 +37,10 @@ class Dreamweaver_Archivist(Creature):
 
     @select_object("",1)
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
-        if selected_object and selected_object[0].selection_index==1:
-            random_card=random.choice(player.hand)
-            player.discard(random_card)
+        if selected_object and selected_object[0].selection_index==1 :
+            if player.hand:
+                random_card=random.choice(player.hand)
+                player.discard(random_card)
             player.draw_card(1)
             
 

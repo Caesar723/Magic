@@ -133,19 +133,16 @@ def get_state(room:"Base_Agent_Room",agent:"Agent"):
 
     oppo_agent=agent.opponent
 
-    self_life=max(0,min(20,int(agent.life)))
-    self_life_one_hot=np.zeros(21)
-    self_life_one_hot[self_life]=1
-    state_batch["self_life"]=self_life_one_hot
+    max_life=20
 
-    oppo_life=max(0,min(20,int(oppo_agent.life)))
-    oppo_life_one_hot=np.zeros(21)
-    oppo_life_one_hot[oppo_life]=1
-    state_batch["oppo_life"]=oppo_life_one_hot
-    max_mana=20
-
+    self_life=max(0,min(max_life,int(agent.life)))
     
+    state_batch["self_life"]=self_life/max_life
 
+    oppo_life=max(0,min(max_life,int(oppo_agent.life)))
+    state_batch["oppo_life"]=oppo_life/max_life
+
+    max_mana=20
     self_mana=[]
     cost=room.get_cost_total(agent)
     for color in ["U","R","G","W","B"]:
@@ -153,10 +150,10 @@ def get_state(room:"Base_Agent_Room",agent:"Agent"):
         mana_cost=max(0,min(max_mana,int(mana_cost)))
         # one_hot=np.zeros(max_mana)
         # one_hot[mana_cost]=1
-        self_mana.append(mana_cost)
+        self_mana.append(mana_cost/max_mana)
     
 
-    state_batch["self_mana"]=self_mana
+    state_batch["self_mana"]=np.array(self_mana)
         
     state_batch["action_history"]=agent.get_action_history()
 
@@ -209,10 +206,10 @@ def get_cards_state(room:"Base_Agent_Room",agent:"Agent",cards:list["Card"],max_
     card_costs=[]
     card_atks=[]
     card_hps=[]
-    card_has_attack=[]
-    card_has_defend=[]
+    card_has_state=[]
     card_mask=[]
     max_mana=20
+    max_state=20
     length_hand=len(cards)
     for hand_i in range(max_length):
         if hand_i <length_hand:
@@ -237,15 +234,15 @@ def get_cards_state(room:"Base_Agent_Room",agent:"Agent",cards:list["Card"],max_
 
             if card_type==1:
                 attack,defend=card.state
-                card_atks.append(attack)
-                card_hps.append(defend)
-                card_has_attack.append(1)
-                card_has_defend.append(1)
+                card_atks.append(attack/max_state)
+                card_hps.append(defend/max_state)
+                card_has_state.append(1)
+                
             else:
                 card_atks.append(0)
                 card_hps.append(0)
-                card_has_attack.append(0)
-                card_has_defend.append(0)
+                card_has_state.append(0)
+                
 
             card_mask.append(1)
         else:
@@ -255,8 +252,8 @@ def get_cards_state(room:"Base_Agent_Room",agent:"Agent",cards:list["Card"],max_
             card_costs.append(np.zeros(6))
             card_atks.append(0)
             card_hps.append(0)
-            card_has_attack.append(0)
-            card_has_defend.append(0)
+            card_has_state.append(0)
+            
             card_mask.append(0)
     return {
         "card_types":np.array(card_types),
@@ -264,22 +261,21 @@ def get_cards_state(room:"Base_Agent_Room",agent:"Agent",cards:list["Card"],max_
         "card_costs":np.array(card_costs),
         "card_atks":np.array(card_atks),
         "card_hps":np.array(card_hps),
-        "card_has_attack":np.array(card_has_attack),
-        "card_has_defend":np.array(card_has_defend),
+        "card_has_state":np.array(card_has_state),
         "card_mask":np.array(card_mask)
     }
 
 def get_creature_state(room:"Base_Agent_Room",creature:"Creature"):
     
     result={}
+    max_state=20
     _,card_special_type=room.get_card_special_types(creature)
     attack,defend=list(creature.state)
 
     result["card_special_types"]=[card_special_type]
-    result["card_atks"]=[attack]
-    result["card_hps"]=[defend]
-    result["card_has_attack"]=[1]
-    result["card_has_defend"]=[1]
+    result["card_atks"]=[attack/max_state]
+    result["card_hps"]=[defend/max_state]
+    result["card_has_state"]=[1]
     return result
 
 def get_creature_state_batch(room:"Base_Agent_Room",agent:"Agent",creatures:list["Creature"]):
@@ -288,8 +284,7 @@ def get_creature_state_batch(room:"Base_Agent_Room",agent:"Agent",creatures:list
     batch_result["card_special_types"]=[]
     batch_result["card_atks"]=[]
     batch_result["card_hps"]=[]
-    batch_result["card_has_attack"]=[]
-    batch_result["card_has_defend"]=[]
+    batch_result["card_has_state"]=[]
     batch_result["card_mask"]=[]
 
 
@@ -303,14 +298,12 @@ def get_creature_state_batch(room:"Base_Agent_Room",agent:"Agent",creatures:list
             batch_result["card_special_types"]+=result["card_special_types"]
             batch_result["card_atks"]+=result["card_atks"]
             batch_result["card_hps"]+=result["card_hps"]
-            batch_result["card_has_attack"]+=result["card_has_attack"]
-            batch_result["card_has_defend"]+=result["card_has_defend"]
+            batch_result["card_has_state"]+=result["card_has_state"]
             batch_result["card_mask"]+=[1]
         else:
             batch_result["card_special_types"]+=[np.zeros(20)]
             batch_result["card_atks"]+=[0]
             batch_result["card_hps"]+=[0]
-            batch_result["card_has_attack"]+=[0]
-            batch_result["card_has_defend"]+=[0]
+            batch_result["card_has_state"]+=[0]
             batch_result["card_mask"]+=[0]
     return batch_result

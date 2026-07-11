@@ -42,7 +42,10 @@ class Igni_the_Pyromancer(Creature):
                 card:"Instant|Sorcery"=random.choice(cards)
                 print(card)
                 prepared_function=await card.card_ability(player,opponent,selected_object=(card,),selection_random=True,auto_select=True)
-                await prepared_function()
+                if prepared_function!="cancel":
+                    await prepared_function()
+                print(prepared_function)
+                
         return result
 
         

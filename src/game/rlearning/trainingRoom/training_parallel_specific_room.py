@@ -105,7 +105,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         return result
 
     def change_environmrnt(self):
-        self.action_store_list_cache=[]
+        self.action_store_list_cache.clear()
         self.clear_environmrnt()
         
 
@@ -259,15 +259,15 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
     def env_life_low(self,player):
         life=random.randint(1,7)
         player.life=life
-        player.ini_life=life
+        
     def env_life_middle(self,player):
         life=random.randint(8,14)
         player.life=life
-        player.ini_life=life
+        
     def env_life_high(self,player):
         life=random.randint(15,20)
         player.life=life
-        player.ini_life=life
+        
 
     def get_creature_sample(self, weight: float):
         """
@@ -663,6 +663,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
                             await agent.store_data(state,action,reward_func)
                         #print("store_data_func",action,id(store_data_func),id(reward_func),id(state))
                         agent.add_pedding_store_task(store_data_func)
+                        print(len(agent.pedding_store_task))
                     
                 await self.check_death()
                 
@@ -680,15 +681,16 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         similar_description=simulate_info["similar_description"]
         card_type,card_special_type=self.get_card_special_types(card)
         max_mana=20
+        max_state=20
         card_manas=[]
         for mana in list(card.calculate_cost().values()):
             mana=max(0,min(max_mana,int(mana)))
             # mana_one_hot=np.zeros(max_mana)
             # mana_one_hot[mana]=1
-            card_manas.append(mana)
+            card_manas.append(mana/max_mana)
         if card_type==1:
             has_state=1
-            attack,defend=card.state
+            attack,defend=list(card.state)
             
         else:
             has_state=0
@@ -700,8 +702,8 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             "similar_description":similar_description,
             "special_type":card_special_type,
             "mana_cost":np.array(card_manas),
-            "attack":attack,
-            "defend":defend,
+            "attack":attack/max_state,
+            "defend":defend/max_state,
             "has_state":has_state,
             "card_type":card_type,
         }
