@@ -21,3 +21,22 @@ class Shadowstrike_Simulation(Card_Simulation):
         "Target tapped creature is destroyed. You may draw a card.",
         "[CARD_NAME] strikes tapped creatures; draw if one is destroyed.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+        for creature in self.player.battlefield+self.player.opponent.battlefield:
+            creature.flag_dict["tap"]=True
+
+        self.room.env_mana(
+            self.player,
+            {"B":(1,7)},
+            least_mana={"colorless":2,"B":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

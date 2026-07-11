@@ -30,3 +30,20 @@ class Naturalize_Simulation(Card_Simulation):
 
         "[CARD_NAME] destroys one target creature."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"G": (1, 7)},
+            least_mana={"colorless": 3, "G": 1},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

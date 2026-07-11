@@ -30,3 +30,19 @@ class Arcane_Haven_Simulation(Card_Simulation):
 
         "[CARD_NAME] enters the battlefield untapped and adds one colorless mana to your mana pool. You may tap [CARD_NAME] to add one mana of any color to your mana pool if your life total is above 10.",
     ]
+
+    @simulate
+    def simulate_above_ten_life(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        # Keep the life-gated mana mode enabled (15-20 life).
+        self.room.env_life_high(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
+        )
+
+        return self.room.simulate_play(self.card)

@@ -21,3 +21,20 @@ class Avenging_Light_Simulation(Card_Simulation):
         "Exile target nonland permanent. When it's a creature, you gain life equal to its power.",
         "Banish target nonland permanent. If it was a creature, gain life equal to its power.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W":(1,7)},
+            least_mana={"colorless":3,"W":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

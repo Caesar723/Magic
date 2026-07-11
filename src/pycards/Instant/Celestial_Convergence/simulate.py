@@ -21,3 +21,20 @@ class Celestial_Convergence_Simulation(Card_Simulation):
         "Exile target permanent. Controller gains life equal to mana value if that value is 3 or less.",
         "[CARD_NAME] exiles a permanent and grants life equal to mana value when that value is 3 or less.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W":(1,7)},
+            least_mana={"colorless":2,"W":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

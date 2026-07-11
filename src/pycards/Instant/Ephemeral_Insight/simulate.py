@@ -21,3 +21,20 @@ class Ephemeral_Insight_Simulation(Card_Simulation):
         "Scry 2 and draw a card. Return [CARD_NAME] to your hand.",
         "Scry 2, draw a card, then [CARD_NAME] returns to your hand.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(1,7)},
+            least_mana={"colorless":1,"U":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

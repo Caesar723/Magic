@@ -21,3 +21,24 @@ class Arcane_Reflection_Simulation(Card_Simulation):
         "Return random instant or sorcery from graveyard to hand.",
         "[CARD_NAME] recovers a random instant or sorcery from your graveyard into your hand.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_initinal_graveyard(
+            self.player,
+            {"instant_number":(1,10),"sorcery_number":(1,10)},
+        )
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(1,7)},
+            least_mana={"colorless":1,"U":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

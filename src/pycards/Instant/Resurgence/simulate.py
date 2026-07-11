@@ -21,3 +21,23 @@ class Resurgence_Simulation(Card_Simulation):
         "Your creatures gain double strike and lifelink. Return random creature (CMC ≤3) from graveyard.",
         "[CARD_NAME] empowers your creatures and reanimates a random cheap creature from graveyard.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_initinal_graveyard(self.player,{"creature_number":(1,10)})
+        grave_creatures=[card for card in self.player.graveyard if card.type=="Creature"]
+        grave_creatures[0].mana_cost="1"
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"R":(1,7),"W":(1,7)},
+            least_mana={"colorless":2,"R":1,"W":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

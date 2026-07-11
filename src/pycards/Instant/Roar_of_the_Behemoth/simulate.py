@@ -21,3 +21,20 @@ class Roar_of_the_Behemoth_Simulation(Card_Simulation):
         "All enemy creatures' power becomes 0 until end of turn.",
         "[CARD_NAME] roars, reducing all enemy creatures to 0 power this turn.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"G":(2,7)},
+            least_mana={"colorless":3,"G":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

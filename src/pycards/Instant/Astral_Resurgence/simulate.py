@@ -21,3 +21,24 @@ class Astral_Resurgence_Simulation(Card_Simulation):
         "Reanimate a creature from your graveyard. It gains lifelink until end of turn.",
         "Return a creature card from graveyard to battlefield; it has lifelink until end of turn.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_initinal_graveyard(
+            self.player,
+            {"creature_number":(1,10)},
+        )
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W":(2,7)},
+            least_mana={"colorless":1,"W":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

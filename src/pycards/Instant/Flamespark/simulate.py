@@ -21,3 +21,20 @@ class Flamespark_Simulation(Card_Simulation):
         "[CARD_NAME] deals 3 or 5 damage depending on whether you control a Mountain.",
         "Three damage to any target, five if you control a Mountain.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"R":(2,7)},
+            least_mana={"colorless":1,"R":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

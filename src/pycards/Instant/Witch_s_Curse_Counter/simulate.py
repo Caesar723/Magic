@@ -21,3 +21,21 @@ class Witch_s_Curse_Counter_Simulation(Card_Simulation):
         "[CARD_NAME] counters and curses opponent creatures with halved stats for three turns.",
         "Counter spell; controller's creatures suffer halved strength and stamina for three turns.",
     ]
+
+    @simulate
+    def simulate_card_stack(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"B":(1,7)},
+            least_mana={"colorless":2,"B":1}
+        )
+
+        self.room.env_stack_cards(self.player,self.card)
+        simulate_info=self.room.simulate_play_in_stack(self.card)
+        return simulate_info

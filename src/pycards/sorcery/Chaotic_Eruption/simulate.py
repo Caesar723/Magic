@@ -30,3 +30,23 @@ class Chaotic_Eruption_Simulation(Card_Simulation):
 
         "[CARD_NAME] destroys target land, and for each land destroyed this way, its controller randomly discards a card."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_initinal_hand(self.player.opponent, {"creature_number": (1, 2), "instant_number": (1, 2)})
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"R": (1, 7)},
+            least_mana={"colorless": 2, "R": 1},
+        )
+
+        self.room.env_mana(self.player.opponent, {"R": (1, 4)})
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

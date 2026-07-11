@@ -30,3 +30,20 @@ class Temporal_Distortion_Simulation(Card_Simulation):
 
         "You get an extra turn after this one. Exile [CARD_NAME]."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U": (2, 7)},
+            least_mana={"colorless": 3, "U": 2},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

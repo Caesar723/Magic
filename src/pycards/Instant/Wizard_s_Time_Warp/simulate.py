@@ -21,3 +21,25 @@ class Wizard_s_Time_Warp_Simulation(Card_Simulation):
         "[CARD_NAME] counters and forces a discard from the spell's controller.",
         "Counter spell; controller discards a card.",
     ]
+
+    @simulate
+    def simulate_card_stack(self):
+        self.basic_initinal()
+        self.room.env_initinal_hand(
+            self.player.opponent,
+            {"creature_number":(1,2),"land_number":(1,2)},
+        )
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(1,7)},
+            least_mana={"colorless":3,"U":1}
+        )
+
+        self.room.env_stack_cards(self.player,self.card)
+        simulate_info=self.room.simulate_play_in_stack(self.card)
+        return simulate_info

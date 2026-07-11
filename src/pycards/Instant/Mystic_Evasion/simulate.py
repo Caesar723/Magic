@@ -21,3 +21,21 @@ class Mystic_Evasion_Simulation(Card_Simulation):
         "With [CARD_NAME], bounce an attacker and draw a card.",
         "Return one attacking creature to its owner's hand. Draw a card.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.room.attacker=self.player.opponent.battlefield[0]
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(2,7)},
+            least_mana={"colorless":1,"U":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

@@ -30,3 +30,21 @@ class Divine_Intervention_Simulation(Card_Simulation):
 
         "[CARD_NAME] exiles all nonland permanents. For each permanent exiled this way, its controller may search their library for a basic land and put it onto the battlefield tapped."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_initinal_library(self.player.opponent, {"land_number": (2, 5)})
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W": (1, 7)},
+            least_mana={"colorless": 2, "W": 1},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

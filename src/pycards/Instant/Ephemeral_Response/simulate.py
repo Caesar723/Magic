@@ -36,6 +36,6 @@ class Ephemeral_Response_Simulation(Card_Simulation):
             least_mana={"colorless":2,"U":1}
         )
 
-        self.room.env_stack_cards(self.player)
+        self.room.env_stack_cards(self.player,self.card)
         simulate_info=self.room.simulate_play_in_stack(self.card)
         return simulate_info

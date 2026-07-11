@@ -26,6 +26,10 @@ class Alchemist_s_Chaotic_Blend_Simulation(Card_Simulation):
     @simulate
     def simulate_card_stack(self):
         self.basic_initinal()
+        self.room.env_initinal_library(
+            self.player,
+            {"instant_number":(1,10),"sorcery_number":(1,10)},
+        )
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)
@@ -37,6 +41,6 @@ class Alchemist_s_Chaotic_Blend_Simulation(Card_Simulation):
             least_mana={"colorless":3,"R":1}
         )
 
-        self.room.env_stack_cards(self.player)
+        self.room.env_stack_cards(self.player,self.card)
         simulate_info=self.room.simulate_play_in_stack(self.card)
         return simulate_info

@@ -21,3 +21,20 @@ class Wild_Growth_Simulation(Card_Simulation):
         "Basic land search, enter tapped, shuffle.",
         "[CARD_NAME] ramps with a tapped basic land from library.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"G":(1,7)},
+            least_mana={"colorless":1,"G":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

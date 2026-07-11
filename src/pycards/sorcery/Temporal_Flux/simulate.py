@@ -30,3 +30,20 @@ class Temporal_Flux_Simulation(Card_Simulation):
 
         "[CARD_NAME] taps all creatures your opponents control and prevents them from untapping during their next untap step."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U": (1, 7)},
+            least_mana={"colorless": 4, "U": 1},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

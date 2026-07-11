@@ -30,3 +30,23 @@ class Unleash_the_Elements_Simulation(Card_Simulation):
 
         "Deal 3 damage to each creature. Exile any creature dealt damage this way that would die this turn."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"R": (1, 7), "G": (1, 7)},
+            least_mana={"colorless": 1, "R": 1, "G": 1},
+        )
+
+        for creature in self.player.battlefield + self.player.opponent.battlefield:
+            creature.actual_live = min(creature.actual_live, 3)
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

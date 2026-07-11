@@ -30,3 +30,21 @@ class Arcane_Torrent_Simulation(Card_Simulation):
 
         "Search your library for a random sorcery card, reveal it, put it into your hand, and shuffle your library."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_initinal_library(self.player, {"sorcery_number": (2, 5)})
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U": (2, 7)},
+            least_mana={"colorless": 2, "U": 2},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

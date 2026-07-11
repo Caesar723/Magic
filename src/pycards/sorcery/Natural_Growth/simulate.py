@@ -30,3 +30,20 @@ class Natural_Growth_Simulation(Card_Simulation):
 
         "[CARD_NAME] gives a target creature +2/+2 until end of turn."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"G": (1, 7)},
+            least_mana={"colorless": 1, "G": 1},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

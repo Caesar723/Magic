@@ -21,3 +21,22 @@ class Verdant_Growth_Simulation(Card_Simulation):
         "Give +4/+4 until end of turn. Treefolk also trample.",
         "[CARD_NAME] grows a creature +4/+4 and grants Treefolk trample.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+        for creature in self.player.battlefield+self.player.opponent.battlefield:
+            creature.type_creature="Treefolk Creature"
+
+        self.room.env_mana(
+            self.player,
+            {"G":(1,7)},
+            least_mana={"colorless":1,"G":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

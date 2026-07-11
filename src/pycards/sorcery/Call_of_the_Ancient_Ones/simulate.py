@@ -30,3 +30,22 @@ class Call_of_the_Ancient_Ones_Simulation(Card_Simulation):
 
         "Return a random creature card from a graveyard to the battlefield under your control. That creature gains haste until end of turn. Sacrifice it at the beginning of the next end step."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_initinal_graveyard(self.player, {"creature_number": (2, 5)})
+        self.room.env_initinal_graveyard(self.player.opponent, {"creature_number": (1, 3)})
+        self.room.env_no_creature(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"B": (2, 7)},
+            least_mana={"colorless": 2, "B": 2},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

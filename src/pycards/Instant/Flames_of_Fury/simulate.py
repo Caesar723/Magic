@@ -21,3 +21,20 @@ class Flames_of_Fury_Simulation(Card_Simulation):
         "[CARD_NAME] deals 3 and exiles creatures that would die from the damage this turn.",
         "Three damage to any target; creatures killed this way are exiled instead.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"R":(1,7)},
+            least_mana={"colorless":1,"R":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

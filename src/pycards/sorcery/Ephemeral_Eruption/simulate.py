@@ -30,3 +30,23 @@ class Ephemeral_Eruption_Simulation(Card_Simulation):
 
         "Deal 4 damage to each creature. At the beginning of the next end step, return all creatures killed by [CARD_NAME] to the battlefield under their owner's control."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"R": (2, 7)},
+            least_mana={"colorless": 1, "R": 2},
+        )
+
+        for creature in self.player.battlefield + self.player.opponent.battlefield:
+            creature.actual_live = min(creature.actual_live, 4)
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

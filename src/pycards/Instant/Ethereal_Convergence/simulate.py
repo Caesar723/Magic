@@ -21,3 +21,21 @@ class Ethereal_Convergence_Simulation(Card_Simulation):
         "Return all creatures to owners' hands. Search library for a creature if you want.",
         "[CARD_NAME] returns all creatures to hand and may search your library for a creature card.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_initinal_library(self.player,{"creature_number":(1,10)})
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(2,7)},
+            least_mana={"colorless":3,"U":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

@@ -21,3 +21,20 @@ class Pyroblast_Surge_Simulation(Card_Simulation):
         "Three damage to creature or player, four if Mountain is untapped.",
         "Target creature or player takes 3 damage, or 4 with an untapped Mountain.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"R":(1,7)},
+            least_mana={"colorless":1,"R":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

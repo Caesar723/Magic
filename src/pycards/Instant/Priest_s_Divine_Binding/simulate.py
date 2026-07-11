@@ -21,3 +21,21 @@ class Priest_s_Divine_Binding_Simulation(Card_Simulation):
         "[CARD_NAME] counters creature spells and heals you for the creature's power.",
         "Counter target creature spell; gain life equal to its power.",
     ]
+
+    @simulate
+    def simulate_card_stack(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W":(1,7)},
+            least_mana={"colorless":2,"W":1}
+        )
+
+        self.room.env_stack_cards(self.player,self.card)
+        simulate_info=self.room.simulate_play_in_stack(self.card)
+        return simulate_info

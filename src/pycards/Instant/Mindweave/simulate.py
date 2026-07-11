@@ -21,3 +21,21 @@ class Mindweave_Simulation(Card_Simulation):
         "[CARD_NAME] counters unless 2 mana available; draw when countered this way.",
         "Counter unless controller's mana pool is less than 2. May draw if countered.",
     ]
+
+    @simulate
+    def simulate_card_stack(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(2,7)},
+            least_mana={"U":2}
+        )
+
+        self.room.env_stack_cards(self.player,self.card)
+        simulate_info=self.room.simulate_play_in_stack(self.card)
+        return simulate_info

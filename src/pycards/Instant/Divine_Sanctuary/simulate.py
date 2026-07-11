@@ -21,3 +21,20 @@ class Divine_Sanctuary_Simulation(Card_Simulation):
         "Immunity to all effects for you and your creatures until end of your turn.",
         "[CARD_NAME] makes you and your creatures immune to all effects this turn.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W":(2,7)},
+            least_mana={"colorless":4,"W":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

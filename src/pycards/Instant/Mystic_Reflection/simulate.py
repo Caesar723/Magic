@@ -21,3 +21,22 @@ class Mystic_Reflection_Simulation(Card_Simulation):
         "[CARD_NAME] makes a same-named creature a copy of your chosen creature until end of turn.",
         "Select a creature; another with the same name becomes a copy until end of turn.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+        shared_name=self.player.battlefield[0].name
+        self.player.opponent.battlefield[0].name=shared_name
+
+        self.room.env_mana(
+            self.player,
+            {"U":(2,7)},
+            least_mana={"colorless":1,"U":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

@@ -30,3 +30,20 @@ class Flames_of_Fury_Simulation(Card_Simulation):
 
         "[CARD_NAME] hits target creature or player for 3 damage, dealing 1 additional damage if you control a Mountain."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"R": (1, 7)},
+            least_mana={"colorless": 1, "R": 1},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

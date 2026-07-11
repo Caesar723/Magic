@@ -21,3 +21,20 @@ class Blaze_of_Fury_Simulation(Card_Simulation):
         "Deal 3 damage to any target. Creatures damaged this way become tapped.",
         "[CARD_NAME]: 3 damage to any target; tap creatures hit this way.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"R":(2,7)},
+            least_mana={"colorless":1,"R":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

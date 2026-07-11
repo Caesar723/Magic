@@ -30,3 +30,23 @@ class Thunderstrike_Simulation(Card_Simulation):
 
         "Choose one creature. Deal 8 damage to that creature. If it dies, [CARD_NAME] deals 8 damage to each opponent."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"R": (2, 7)},
+            least_mana={"colorless": 3, "R": 2},
+        )
+
+        for creature in self.player.battlefield + self.player.opponent.battlefield:
+            creature.actual_live = min(creature.actual_live, 8)
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

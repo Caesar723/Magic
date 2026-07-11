@@ -21,3 +21,20 @@ class Ephemeral_Bolt_Simulation(Card_Simulation):
         "[CARD_NAME] deals 1 to a creature or player; optional draw if the creature dies this turn.",
         "One damage to target creature or player. You may draw a card if that creature dies this turn.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"R":(1,7)},
+            least_mana={"colorless":1,"R":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

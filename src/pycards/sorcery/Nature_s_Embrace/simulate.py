@@ -30,3 +30,21 @@ class Nature_s_Embrace_Simulation(Card_Simulation):
 
         "[CARD_NAME] searches your library for a creature card, puts it onto the battlefield tapped with stats 4/4, then shuffles your library."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_initinal_library(self.player, {"creature_number": (3, 6)})
+        self.room.env_no_creature(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"G": (1, 7)},
+            least_mana={"colorless": 3, "G": 1},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

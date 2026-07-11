@@ -21,3 +21,20 @@ class Summoner_s_Respite_Simulation(Card_Simulation):
         "Prevent all combat damage. Gain 4 life. +1/+1 counter on your creatures.",
         "[CARD_NAME] fogs combat, grants 4 life, and puts +1/+1 on your creatures.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"G":(1,7),"W":(1,7)},
+            least_mana={"colorless":2,"G":1,"W":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

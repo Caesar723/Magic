@@ -21,3 +21,21 @@ class Druid_s_Natural_Fury_Simulation(Card_Simulation):
         "[CARD_NAME] counters target spell and summons a green Beast token sized to the spell's cost.",
         "Counter target spell. Then create a green Beast token with power and toughness equal to the spell's mana cost.",
     ]
+
+    @simulate
+    def simulate_card_stack(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"G":(1,7)},
+            least_mana={"colorless":3,"G":1}
+        )
+
+        self.room.env_stack_cards(self.player,self.card)
+        simulate_info=self.room.simulate_play_in_stack(self.card)
+        return simulate_info

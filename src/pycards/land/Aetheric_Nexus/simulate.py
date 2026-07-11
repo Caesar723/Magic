@@ -30,3 +30,19 @@ class Aetheric_Nexus_Simulation(Card_Simulation):
 
         "[CARD_NAME] enters the battlefield untapped and adds one colorless mana to your mana pool. You may tap [CARD_NAME] to add one mana of any color, but only if you control at least one creature.",
     ]
+
+    @simulate
+    def simulate_with_controlled_creature(self):
+        self.basic_initinal()
+        # Its conditional mana mode is available only while its controller has a creature.
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
+        )
+
+        return self.room.simulate_play(self.card)

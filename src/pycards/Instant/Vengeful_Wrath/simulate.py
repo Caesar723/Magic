@@ -21,3 +21,23 @@ class Vengeful_Wrath_Simulation(Card_Simulation):
         "Target creature destroyed. Random opponent creature takes damage equal to its power.",
         "[CARD_NAME] destroys a creature and vengefully damages a random opponent creature.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        if len(self.player.opponent.battlefield)==1:
+            creature=self.player.opponent.battlefield[0]
+            self.player.opponent.battlefield.append(type(creature)(self.player.opponent))
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"B":(2,7)},
+            least_mana={"colorless":3,"B":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

@@ -5,6 +5,7 @@ if TYPE_CHECKING:
 
 from game.card_simulation import bind_card,simulate,Card_Simulation,test
 from pycards.sorcery.Eldritch_Rebirth.model import Eldritch_Rebirth
+from pycards.creature.Elite_Squire.model import Elite_Squire
 
 @bind_card(Eldritch_Rebirth)
 class Eldritch_Rebirth_Simulation(Card_Simulation):
@@ -30,3 +31,22 @@ class Eldritch_Rebirth_Simulation(Card_Simulation):
 
         "Return each creature card with converted mana cost 3 or less from your graveyard to the battlefield. If [CARD_NAME] was cast from your graveyard, you may return each creature card with converted mana cost 4 or greater instead."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_initinal_graveyard(self.player, {"creature_number": (2, 5)})
+        self.player.graveyard.append(Elite_Squire(self.player))
+        self.room.env_no_creature(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"G": (2, 7)},
+            least_mana={"colorless": 2, "G": 2},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

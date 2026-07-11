@@ -21,3 +21,20 @@ class Divine_Intervention_Simulation(Card_Simulation):
         "Up to two creatures are protected from damage this turn. Gain life equal to total prevented damage.",
         "[CARD_NAME] prevents damage to up to two creatures and grants life equal to damage prevented.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W":(1,7)},
+            least_mana={"colorless":1,"W":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

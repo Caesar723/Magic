@@ -21,3 +21,24 @@ class Swift_Response_Simulation(Card_Simulation):
         "Target attacking or blocking creature with power 2 or less is destroyed.",
         "[CARD_NAME] removes attacking or blocking creatures with power 2 or less.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        for creature in self.player.opponent.battlefield:
+            creature.power=min(2,creature.power)
+            creature.actual_power=min(2,creature.actual_power)
+        self.room.attacker=self.player.opponent.battlefield[0]
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W":(2,7)},
+            least_mana={"colorless":1,"W":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

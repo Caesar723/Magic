@@ -21,3 +21,27 @@ class Necromancer_s_Soul_Seize_Simulation(Card_Simulation):
         "[CARD_NAME] counters creature spells and swaps library/graveyard cards of matching type.",
         "Counter creature spell; exile from library, return same-type card from graveyard to hand.",
     ]
+
+    @simulate
+    def simulate_card_stack(self):
+        self.basic_initinal()
+        zone_parameters={
+            "creature_number":(1,5),"instant_number":(1,5),
+            "sorcery_number":(1,5),"land_number":(1,5),
+        }
+        self.room.env_initinal_library(self.player,zone_parameters)
+        self.room.env_initinal_graveyard(self.player,zone_parameters)
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"B":(1,7)},
+            least_mana={"colorless":2,"B":1}
+        )
+
+        self.room.env_stack_cards(self.player,self.card)
+        simulate_info=self.room.simulate_play_in_stack(self.card)
+        return simulate_info

@@ -21,3 +21,22 @@ class Verdant_Surge_Simulation(Card_Simulation):
         "Your creature gets +2/+4. If Druid, also reach this turn.",
         "[CARD_NAME] surges your creature +2/+4 and grants Druids reach.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+        for creature in self.player.battlefield+self.player.opponent.battlefield:
+            creature.type_creature="Druid Creature"
+
+        self.room.env_mana(
+            self.player,
+            {"G":(2,7)},
+            least_mana={"colorless":1,"G":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

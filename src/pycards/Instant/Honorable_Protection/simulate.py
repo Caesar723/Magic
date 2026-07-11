@@ -21,3 +21,20 @@ class Honorable_Protection_Simulation(Card_Simulation):
         "Target your creature: indestructible this turn, +1/+1 if Knight.",
         "[CARD_NAME] makes your creature indestructible and buffs Knights with +1/+1.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W":(1,7)},
+            least_mana={"colorless":1,"W":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

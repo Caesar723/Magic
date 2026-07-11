@@ -30,3 +30,20 @@ class Sanctum_of_Eternal_Flames_Simulation(Card_Simulation):
 
         "[CARD_NAME] enters the battlefield tapped and adds one red mana to your mana pool. You may tap [CARD_NAME] and pay 2 mana to deal 2 damage to a random creature or player controlled by your opponent.",
     ]
+
+    @simulate
+    def simulate_with_damage_cost_and_target(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        # A creature makes the random target choice strategically distinct from face damage.
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
+            least_mana={"colorless": 2},
+        )
+
+        return self.room.simulate_play(self.card)

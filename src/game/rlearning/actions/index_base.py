@@ -17,14 +17,16 @@ Gameplay action space (num2action / create_action_mask):
 1: end bullet time
 2-11: select a creature to attack with (10 choices)
 12-21: select a creature to block with (10 choices)
-22-351: play card in hand slot * 33 sub-actions
+22-31: activate ability in hand slot * 10 sub-actions
+32-361: play card in hand slot * 33 sub-actions
 
 Stack action encoding (action2num), 37 actions without index:
 0: end_step
 1: end_bullet
 2: select_attacker
 3: select_defender
-4-36: play_card sub-action (33 variants)
+4: activate_ability
+5-37: play_card sub-action (33 variants)
 """
 def select_stage(selects,index_range,start_index,mask):
     index=start_index
@@ -38,7 +40,7 @@ def select_stage(selects,index_range,start_index,mask):
 
 
 def mask_hand(room:"Base_Agent_Room",agent:"Agent",oppo_agent:"Agent",mask:np.ndarray):
-    start_index=22
+    start_index=32
     instance_dict={
         Creature:"when_enter_battlefield",
         Instant:"card_ability",
@@ -86,7 +88,7 @@ def mask_hand(room:"Base_Agent_Room",agent:"Agent",oppo_agent:"Agent",mask:np.nd
 
 def create_action_mask(room:"Base_Agent_Room",agent:"Agent"):
     oppo_agent=agent.opponent
-    mask=np.zeros((352))
+    mask=np.zeros((362))
     if room.get_flag('attacker_defenders'):
         mask[1]=True
         for i,creat in enumerate(agent.battlefield):
@@ -109,6 +111,11 @@ def create_action_mask(room:"Base_Agent_Room",agent:"Agent"):
     not creat.get_flag("tap") and (creat.get_counter_from_dict("attack_counter")>0):
                 mask[2+i]=True
         #if agent.battlefield: mask[2:len(agent.battlefield)+2]=True
+        if agent.land_area:
+            for i,land in enumerate(agent.land_area):
+                if i>=10:break
+                if not land.get_flag("tap") :
+                    mask[22+i]=True
         if agent.hand:mask_hand(room,agent,oppo_agent,mask)
     #print(mask)
     return mask[np.newaxis, :]
@@ -201,11 +208,13 @@ def action2num(room:"Base_Agent_Room",agent:"Agent",message:str,select_content:s
         return 2
     if type_act=="select_defender":
         return 3
+    if type_act=="activate_ability":
+        return 4
     if type_act=="play_card":
         if select_content is None:
-            select_content=agent.select_content
-        sub_action=subaction2num(room,agent,select_content)
-        return 4+sub_action
+            select_content = agent.select_content
+        sub_action = subaction2num(room, agent, select_content)
+        return 5 + sub_action
     raise ValueError(f"unknown action message: {message}")
 
 
@@ -222,11 +231,14 @@ async def num2action(room:"Base_Agent_Room",agent:"Agent",action:int)->str:
     elif action>=12 and action<=21:
         type_act="select_defender"
         content=f'{action-12}'
+    elif action>=22 and action<=31:
+        type_act="activate_ability"
+        content=f'{action-22}'
     else:
         type_act="play_card"
-        index_card=(action-22)//33
+        index_card=(action-32)//33
         content=f"{index_card}"
-        sub_action=(action-22)%33
+        sub_action=(action-32)%33
         sub_content=num2subaction(room,agent,sub_action)
         agent.set_select_content(sub_content)
         #print(sub_content)

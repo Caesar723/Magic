@@ -21,3 +21,21 @@ class Warrior_s_Forced_Challenge_Simulation(Card_Simulation):
         "[CARD_NAME] counters creature spells and triggers a fight.",
         "Counter creature spell; another creature fights one you control.",
     ]
+
+    @simulate
+    def simulate_card_stack(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"R":(1,7)},
+            least_mana={"colorless":2,"R":1}
+        )
+
+        self.room.env_stack_cards(self.player,self.card)
+        simulate_info=self.room.simulate_play_in_stack(self.card)
+        return simulate_info

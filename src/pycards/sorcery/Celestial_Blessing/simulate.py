@@ -30,3 +30,24 @@ class Celestial_Blessing_Simulation(Card_Simulation):
 
         "[CARD_NAME] allows you to choose one creature you control and another nearby creature, giving them lifelink until end of turn."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W": (2, 7)},
+            least_mana={"colorless": 1, "W": 2},
+        )
+
+        if len(self.player.battlefield) < 2:
+            creature_type = type(self.player.battlefield[0])
+            self.player.battlefield.append(creature_type(self.player))
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

@@ -21,3 +21,21 @@ class Ethereal_Surge_Simulation(Card_Simulation):
         "Target spell is countered and returned to its owner's hand instead of going to graveyard.",
         "[CARD_NAME] counters a spell and sends it back to hand rather than the graveyard.",
     ]
+
+    @simulate
+    def simulate_card_stack(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(2,7)},
+            least_mana={"U":2}
+        )
+
+        self.room.env_stack_cards(self.player,self.card)
+        simulate_info=self.room.simulate_play_in_stack(self.card)
+        return simulate_info

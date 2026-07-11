@@ -30,3 +30,23 @@ class Chaos_Unleashed_Simulation(Card_Simulation):
 
         "Deal three damage to each creature and each player."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.room.env_life_high(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.room.env_life_high(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"B": (1, 7), "R": (1, 7)},
+            least_mana={"colorless": 1, "B": 1, "R": 1},
+        )
+
+        for creature in self.player.battlefield + self.player.opponent.battlefield:
+            creature.actual_live = min(creature.actual_live, 3)
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

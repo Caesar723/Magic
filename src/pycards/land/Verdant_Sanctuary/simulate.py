@@ -30,3 +30,20 @@ class Verdant_Sanctuary_Simulation(Card_Simulation):
 
         "[CARD_NAME] enters the battlefield tapped and adds one green mana to your mana pool. You may tap [CARD_NAME] and deal 3 damage to yourself to search your library for a basic Forest card and put that land onto the battlefield tapped.",
     ]
+
+    @simulate
+    def simulate_with_forest_and_life_to_pay(self):
+        # The seeded basic lands provide a Forest, while high life makes the
+        # self-damage mode usable without immediately putting the player at risk.
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.room.env_life_high(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
+        )
+
+        return self.room.simulate_play(self.card)

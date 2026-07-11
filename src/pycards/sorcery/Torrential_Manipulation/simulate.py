@@ -30,3 +30,21 @@ class Torrential_Manipulation_Simulation(Card_Simulation):
 
         "[CARD_NAME] puts target creature into its owner's hand, then you randomly cast an instant or sorcery spell without paying its mana cost."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_initinal_hand(self.player.opponent, {"instant_number": (1, 2), "sorcery_number": (2, 4)})
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U": (1, 7)},
+            least_mana={"colorless": 1, "U": 1},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

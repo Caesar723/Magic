@@ -30,3 +30,20 @@ class Icy_Imprisonment_Simulation(Card_Simulation):
 
         "[CARD_NAME] keeps all creatures your opponents control frozen until the start of your next turn."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U": (2, 7)},
+            least_mana={"colorless": 1, "U": 2},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

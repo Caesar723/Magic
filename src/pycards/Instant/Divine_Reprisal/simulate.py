@@ -21,3 +21,21 @@ class Divine_Reprisal_Simulation(Card_Simulation):
         "[CARD_NAME]: destroy target attacking creature.",
         "Eliminate target attacking creature.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.room.attacker=self.player.opponent.battlefield[0]
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W":(1,7)},
+            least_mana={"colorless":2,"W":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

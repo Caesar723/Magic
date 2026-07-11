@@ -21,3 +21,21 @@ class Mystic_Tide_Simulation(Card_Simulation):
         "[CARD_NAME] counters unless 3 mana; with Island, return random opponent creature to hand.",
         "Counter unless controller's mana pool is under 3. Island enables bouncing a random opponent creature.",
     ]
+
+    @simulate
+    def simulate_card_stack(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(1,7)},
+            least_mana={"colorless":1,"U":1}
+        )
+
+        self.room.env_stack_cards(self.player,self.card)
+        simulate_info=self.room.simulate_play_in_stack(self.card)
+        return simulate_info

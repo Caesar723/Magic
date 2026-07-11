@@ -21,3 +21,20 @@ class Time_Warp_Simulation(Card_Simulation):
         "[CARD_NAME] gives extra turn; untap step is skipped.",
         "Take extra turn after this one, skipping untap step.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(2,7)},
+            least_mana={"colorless":3,"U":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

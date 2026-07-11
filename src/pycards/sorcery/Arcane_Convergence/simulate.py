@@ -30,3 +30,24 @@ class Arcane_Convergence_Simulation(Card_Simulation):
 
         "Untap all lands you control. Add X mana in any combination of colors, where X is the number of sorcery cards in your graveyard."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_initinal_graveyard(self.player, {"sorcery_number": (3, 6)})
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U": (6, 7)},
+            least_mana={"colorless": 3, "U": 2},
+        )
+
+        if self.player.land_area:
+            self.player.land_area[0].tap()
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

@@ -21,3 +21,21 @@ class Mystic_Convergence_Simulation(Card_Simulation):
         "[CARD_NAME] fogs combat and converts prevented damage into mana next main phase.",
         "Prevent combat damage this turn; add X colored mana next main phase where X is damage prevented.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.room.attacker=self.player.opponent.battlefield[0]
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"G":(1,7),"W":(1,7)},
+            least_mana={"colorless":2,"G":1,"W":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

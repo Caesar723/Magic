@@ -30,3 +30,20 @@ class Apocalypse_Riders_Simulation(Card_Simulation):
 
         "[CARD_NAME] brings four 2/2 Knight creature tokens onto the battlefield, each with a separate ability among Lifelink, Trample, Flying, and Haste."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_no_creature(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W": (2, 7)},
+            least_mana={"colorless": 5, "W": 2},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

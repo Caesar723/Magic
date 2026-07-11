@@ -21,3 +21,23 @@ class Monk_s_Inner_Rebound_Simulation(Card_Simulation):
         "[CARD_NAME] counters a spell and reflects its effects to a random target.",
         "Counter a spell; redirect its effects to a random object.",
     ]
+
+    @simulate
+    def simulate_card_stack(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W":(3,7)},
+            least_mana={"colorless":1,"W":3}
+        )
+
+        self.room.env_stack_cards(
+            self.player,self.card,preferred_types=("instant","sorcery")
+        )
+        simulate_info=self.room.simulate_play_in_stack(self.card)
+        return simulate_info

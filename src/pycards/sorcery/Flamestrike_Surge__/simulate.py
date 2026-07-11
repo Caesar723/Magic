@@ -30,3 +30,21 @@ class Flamestrike_Surge___Simulation(Card_Simulation):
 
         "Deal 3 damage to any target. Randomly discard a card, then draw a card."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_initinal_hand(self.player, {"creature_number": (1, 2), "instant_number": (1, 2)})
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"R": (2, 7)},
+            least_mana={"colorless": 1, "R": 2},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

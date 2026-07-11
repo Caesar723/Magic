@@ -30,3 +30,21 @@ class Sanctum_of_Verdant_Growth_Simulation(Card_Simulation):
 
         "[CARD_NAME] enters the battlefield tapped and adds one green mana to your mana pool. You may tap [CARD_NAME] and pay 3 mana to search your library for a basic Forest card and put it into play tapped.",
     ]
+
+    @simulate
+    def simulate_with_forest_and_search_cost(self):
+        # basic_initinal always seeds the library with one card of every basic land,
+        # which guarantees that the Forest-search mode has a valid result.
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
+            least_mana={"colorless": 3},
+        )
+
+        return self.room.simulate_play(self.card)

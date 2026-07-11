@@ -21,3 +21,20 @@ class Mystic_Rupture_Simulation(Card_Simulation):
         "All nonland permanents to hand. Each player may search library for tapped basic land.",
         "[CARD_NAME] returns nonlands to hand and lets each player fetch a tapped basic land.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(2,7)},
+            least_mana={"colorless":3,"U":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

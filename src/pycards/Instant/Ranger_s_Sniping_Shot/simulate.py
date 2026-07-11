@@ -21,3 +21,23 @@ class Ranger_s_Sniping_Shot_Simulation(Card_Simulation):
         "[CARD_NAME] counters and punishes creature spell controllers with damage equal to power.",
         "Counter spell; if creature, deal damage to controller equal to its power.",
     ]
+
+    @simulate
+    def simulate_card_stack(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"G":(1,7)},
+            least_mana={"colorless":1,"G":1}
+        )
+
+        self.room.env_stack_cards(
+            self.player,self.card,preferred_types=("creature",)
+        )
+        simulate_info=self.room.simulate_play_in_stack(self.card)
+        return simulate_info

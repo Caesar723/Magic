@@ -394,47 +394,98 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             messages.append(f"{name}|play_card|0||{sel}")
         return messages
 
-    def env_stack_cards(self,player:"Player"):
-        self.stack.clear()
-        
+    def env_stack_cards(
+        self,
+        player: "Player",
+        undo_card: Instant = None,
+        preferred_types: tuple[str, ...] = None,
+        max_mana_value: int = None,
+    ):
+        """Build a resolvable stack for an ``Instant_Undo`` simulation.
 
-        state=random.randint(0,2)
-        if state==0:
-            first_card_key=self.get_cards_sample_by_name(random.choice(["creature","instant","sorcery","land"]),1)[0]
-            first_card=CARD_DICTION[first_card_key](player.opponent)
+        The card on top is always controlled by the opponent and, when an undo
+        card is supplied, matches that card's ``undo_range``.  Stack cards are
+        also staged in the zone used by the real play flow so counter effects
+        that move the countered card do not fail during resolution.
+        """
+        self.stack.clear()
+
+        async def empty_prepared_function():
+            return None
+
+        def normalize_type(card_type: str) -> str:
+            return card_type.lower()
+
+        def card_keys_for(card_types: list[str]) -> list[str]:
+            normalized = {normalize_type(card_type) for card_type in card_types}
+            return [
+                key
+                for key in CARD_DICTION
+                if key.rsplit("_", 1)[-1].lower() in normalized
+            ]
+
+        def create_card(
+            owner: "Player",
+            card_types: list[str],
+            mana_value_limit: int = None,
+        ) -> Card:
+            keys = card_keys_for(card_types)
+            random.shuffle(keys)
+            for key in keys:
+                candidate = CARD_DICTION[key](owner)
+                if mana_value_limit is None or sum(candidate.cost.values()) <= mana_value_limit:
+                    return candidate
+            raise ValueError(
+                f"No stack card matches types={card_types} and "
+                f"max_mana_value={mana_value_limit}"
+            )
+
+        def stage_stack_card(card: Card):
+            owner = card.player
+            if isinstance(card, Creature):
+                owner.battlefield.append(card)
+            elif isinstance(card, Land):
+                owner.land_area.append(card)
+            else:
+                owner.graveyard.append(card)
+
             self.stack.append({
-                "card":first_card,
-                "prepared_function":lambda:None,
-                "message":random.choice(self.all_play_card_messages(first_card.player)),
+                "card": card,
+                "prepared_function": empty_prepared_function,
+                "message": random.choice(self.all_play_card_messages(owner)),
             })
-        elif state==1:
-            if random.random()<0.5 and player.battlefield:
-                creature=random.choice(player.battlefield)
-                index=player.battlefield.index(creature)
-                self.stack.append({
-                    "card":creature,
-                    "prepared_function":lambda:None,
-                    "message":f"{player.name}|select_defender|{index}",
-                })
-            elif player.opponent.battlefield:
-                creature=random.choice(player.opponent.battlefield)
-                index=player.opponent.battlefield.index(creature)
-                self.stack.append({
-                    "card":creature,
-                    "prepared_function":lambda:None,
-                    "message":f"{player.opponent.name}|select_defender|{index}",
-                })
-        
-        
-        rest=self.get_cards_sample_by_name("instant",random.randint(0,4))
-        cards=[CARD_DICTION[key](random.choice([player,player.opponent])) for key in rest]
-        
-        for card in cards:
-            self.stack.append({
-                "card":card,
-                "prepared_function":lambda:None,
-                "message":random.choice(self.all_play_card_messages(card.player)),
-            })
+
+        # Lower stack entries make multi-counter effects meaningful while the
+        # final entry below remains the guaranteed legal target.
+        lower_count = random.randint(0, 3)
+        if undo_card is not None and type(undo_card).__name__ == "Time_Reversal":
+            lower_count = random.randint(1, 3)
+        for _ in range(lower_count):
+            owner = random.choice([player, player.opponent])
+            card = create_card(owner, ["instant", "sorcery"])
+            stage_stack_card(card)
+
+        if undo_card is None or getattr(undo_card, "undo_range", "all") == "all":
+            allowed_types = ["creature", "instant", "sorcery"]
+        else:
+            allowed_types = [
+                normalize_type(card_type)
+                for card_type in undo_card.undo_range.split("|")
+            ]
+
+        if preferred_types:
+            preferred = [normalize_type(card_type) for card_type in preferred_types]
+            target_types = [card_type for card_type in preferred if card_type in allowed_types]
+            if not target_types:
+                raise ValueError(
+                    f"preferred_types={preferred_types} do not match "
+                    f"undo_range={getattr(undo_card, 'undo_range', 'all')}"
+                )
+        else:
+            target_types = allowed_types
+
+        target_card = create_card(player.opponent, target_types, max_mana_value)
+        stage_stack_card(target_card)
 
 
 
@@ -555,7 +606,30 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
                 "action":None
             }
 
-        action=self.sample_action((22+card_index*33,22+card_index*33+33))
+        action=self.sample_action((32+card_index*33,32+card_index*33+33))
+
+        simulate_info={
+            "card":card,
+            "type":0,
+            "action":action
+        }
+        print(simulate_info)
+
+        return simulate_info
+
+    def simulate_activate_ability(self,card:Card):
+        card.flag_dict["tap"]=False
+
+        if self.player_1.land_area and len(self.player_1.land_area)!=1:
+            card_index=min(9,random.randint(0,len(self.player_1.land_area)-1))
+            self.player_1.land_area[card_index]=card
+        else:
+            self.player_1.land_area.append(card)
+            card_index=len(self.player_1.land_area)-1
+        self.active_player=self.player_1
+        self.non_active_player=self.player_2
+
+        action=self.sample_action((22+card_index,22+card_index+1))
 
         simulate_info={
             "card":card,

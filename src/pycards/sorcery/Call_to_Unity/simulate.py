@@ -30,3 +30,20 @@ class Call_to_Unity_Simulation(Card_Simulation):
 
         "Create two 1/1 Human creature tokens that are white."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_no_creature(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W": (1, 7)},
+            least_mana={"colorless": 1, "W": 1},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

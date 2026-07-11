@@ -30,3 +30,20 @@ class Soul_Siphon_Simulation(Card_Simulation):
 
         "[CARD_NAME] randomly destroys an opponent's creature, and you gain life equal to that creature's power."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.room.env_life_low(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"B": (1, 7)},
+            least_mana={"colorless": 1, "B": 1},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

@@ -21,3 +21,22 @@ class Arcane_Inferno_Simulation(Card_Simulation):
         "[CARD_NAME] deals 3 to any target, boosted to 5 when you control a large creature (power 5+).",
         "Deal 3 damage to any target. If you have a creature with power 5 or greater, [CARD_NAME] deals 5 instead.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.player.battlefield[0].power=max(5,self.player.battlefield[0].power)
+        self.player.battlefield[0].actual_power=max(5,self.player.battlefield[0].actual_power)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"R":(1,7)},
+            least_mana={"colorless":1,"R":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

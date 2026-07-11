@@ -30,3 +30,20 @@ class Flameblast_Simulation(Card_Simulation):
 
         "Choose any target. [CARD_NAME] deals 5 damage to it."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"R": (2, 7)},
+            least_mana={"colorless": 3, "R": 2},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

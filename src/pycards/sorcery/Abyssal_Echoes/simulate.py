@@ -5,6 +5,7 @@ if TYPE_CHECKING:
 
 from game.card_simulation import bind_card,simulate,Card_Simulation,test
 from pycards.sorcery.Abyssal_Echoes.model import Abyssal_Echoes
+from pycards.creature.Blightsteel_Colossus.model import Blightsteel_Colossus
 
 @bind_card(Abyssal_Echoes)
 class Abyssal_Echoes_Simulation(Card_Simulation):
@@ -30,3 +31,22 @@ class Abyssal_Echoes_Simulation(Card_Simulation):
 
         "[CARD_NAME] searches your library for a creature card with mana value 7 or greater and puts it onto the battlefield."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_initinal_library(self.player, {"creature_number": (3, 6)})
+        self.player.library.append(Blightsteel_Colossus(self.player))
+        self.room.env_no_creature(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"B": (2, 7)},
+            least_mana={"colorless": 5, "B": 2},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

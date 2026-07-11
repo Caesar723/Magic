@@ -21,3 +21,20 @@ class Blazing_Reversal_Simulation(Card_Simulation):
         "[CARD_NAME]: redirect single-target spell or ability; flashback by sacrificing a Mountain, then exile on resolve.",
         "Alter the target of a single-target spell or ability. You may pick new targets. Sacrifice a Mountain to cast [CARD_NAME] from your graveyard.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(1,7),"R":(1,7)},
+            least_mana={"colorless":1,"U":1,"R":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

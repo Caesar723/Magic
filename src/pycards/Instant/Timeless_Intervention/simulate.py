@@ -21,3 +21,20 @@ class Timeless_Intervention_Simulation(Card_Simulation):
         "Mass exile creatures and planeswalkers; they re-enter at next end step.",
         "[CARD_NAME] blinks all creatures and planeswalkers until next end step.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"G":(1,7),"W":(1,7)},
+            least_mana={"colorless":2,"G":1,"W":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

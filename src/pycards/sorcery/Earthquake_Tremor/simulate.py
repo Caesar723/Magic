@@ -30,3 +30,24 @@ class Earthquake_Tremor_Simulation(Card_Simulation):
 
         "[CARD_NAME] randomly destroys three creature permanents. For each permanent destroyed this way, you create a 3/3 Elemental creature token."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_no_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"R": (2, 7)},
+            least_mana={"colorless": 4, "R": 2},
+        )
+
+        while len(self.player.opponent.battlefield) < 3:
+            creature_type = type(self.player.opponent.battlefield[0])
+            self.player.opponent.battlefield.append(creature_type(self.player.opponent))
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

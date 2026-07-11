@@ -30,3 +30,23 @@ class Elysian_Grove_Simulation(Card_Simulation):
 
         "[CARD_NAME] enters the battlefield tapped and adds one green mana to your mana pool. You may tap [CARD_NAME] to tap a random land an opponent controls.",
     ]
+
+    @simulate
+    def simulate_with_opponent_land(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
+        )
+        # The alternate tap mode needs at least one opposing land to select at random.
+        self.room.env_mana(
+            self.player.opponent,
+            {"U": (0, 2), "B": (0, 2), "G": (1, 3), "R": (0, 2), "W": (0, 2)},
+        )
+
+        return self.room.simulate_play(self.card)

@@ -21,3 +21,26 @@ class Ethereal_Reversal_Simulation(Card_Simulation):
         "Return target nonland permanent to hand. Free cast a spell from hand with CMC equal or less.",
         "[CARD_NAME] returns a nonland permanent and may let you cast a spell from hand without paying mana.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_initinal_hand(
+            self.player,
+            {"instant_number":(1,2),"sorcery_number":(1,2)},
+        )
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+        for creature in self.player.battlefield+self.player.opponent.battlefield:
+            creature.mana_cost="9"
+
+        self.room.env_mana(
+            self.player,
+            {"U":(2,7)},
+            least_mana={"colorless":1,"U":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

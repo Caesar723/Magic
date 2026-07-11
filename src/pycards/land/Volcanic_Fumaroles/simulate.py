@@ -30,3 +30,19 @@ class Volcanic_Fumaroles_Simulation(Card_Simulation):
 
         "[CARD_NAME] enters the battlefield tapped and adds one red mana to your mana pool. You may pay 1 mana to tap [CARD_NAME] and deal 1 damage to a random opponent's creature or to the opponent.",
     ]
+
+    @simulate
+    def simulate_with_damage_cost_and_target(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
+            least_mana={"colorless": 1},
+        )
+
+        return self.room.simulate_play(self.card)

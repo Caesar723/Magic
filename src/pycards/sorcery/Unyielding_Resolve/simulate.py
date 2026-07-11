@@ -30,3 +30,20 @@ class Unyielding_Resolve_Simulation(Card_Simulation):
 
         "Creatures you control have indestructible and lifelink until end of turn."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W": (2, 7)},
+            least_mana={"colorless": 2, "W": 2},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

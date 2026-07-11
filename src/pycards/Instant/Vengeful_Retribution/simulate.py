@@ -21,3 +21,23 @@ class Vengeful_Retribution_Simulation(Card_Simulation):
         "Opponent sacrifices two random creatures. If so, damage random target for total power.",
         "[CARD_NAME] forces sacrifices and deals damage equal to total sacrificed power.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        if len(self.player.opponent.battlefield)==1:
+            creature=self.player.opponent.battlefield[0]
+            self.player.opponent.battlefield.append(type(creature)(self.player.opponent))
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"B":(1,7)},
+            least_mana={"colorless":4,"B":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

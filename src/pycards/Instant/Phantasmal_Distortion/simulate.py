@@ -21,3 +21,22 @@ class Phantasmal_Distortion_Simulation(Card_Simulation):
         "Target creature copies random creature you control until EOT; returns to hand next end step.",
         "[CARD_NAME] distorts your creature into a random copy, then bounces it next end step.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        if len(self.player.battlefield)==1:
+            self.player.battlefield.append(type(self.player.battlefield[0])(self.player))
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(2,7)},
+            least_mana={"colorless":1,"U":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

@@ -30,3 +30,21 @@ class Demonic_Ascendance_Simulation(Card_Simulation):
 
         "[CARD_NAME] makes an opponent reveal their hand. You may put a creature card from it onto the battlefield under your control with haste, sacrificing it at the beginning of the next end step."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_initinal_hand(self.player.opponent, {"creature_number": (2, 4), "instant_number": (0, 1)})
+        self.room.env_no_creature(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"B": (1, 7)},
+            least_mana={"colorless": 3, "B": 1},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

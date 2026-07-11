@@ -21,3 +21,23 @@ class Sacred_Reinforcement_Simulation(Card_Simulation):
         "Tap up to two creatures; they gain +1/+1 until end of turn.",
         "[CARD_NAME] taps up to two targets and buffs them +1/+1.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.room.env_creature(self.player.opponent)
+        if len(self.player.opponent.battlefield)==1:
+            creature=self.player.opponent.battlefield[0]
+            self.player.opponent.battlefield.append(type(creature)(self.player.opponent))
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W":(1,7)},
+            least_mana={"colorless":1,"W":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

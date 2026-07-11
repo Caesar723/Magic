@@ -30,3 +30,21 @@ class Treasure_Hunt_Simulation(Card_Simulation):
 
         "[CARD_NAME] returns one card from your graveyard to your hand."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.room.env_initinal_graveyard(self.player, {"creature_number": (1, 3), "instant_number": (1, 3), "sorcery_number": (1, 3)})
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U": (1, 7)},
+            least_mana={"colorless": 0, "U": 1},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

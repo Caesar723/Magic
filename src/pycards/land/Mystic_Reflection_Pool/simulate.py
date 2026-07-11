@@ -30,3 +30,27 @@ class Mystic_Reflection_Pool_Simulation(Card_Simulation):
 
         "[CARD_NAME] enters the battlefield untapped and adds one blue mana to your mana pool. You may tap [CARD_NAME] and pay 1 mana to scry 2, then draw one card.",
     ]
+
+    @simulate
+    def simulate_with_scry_cost(self):
+        self.basic_initinal(
+            {
+                "graveyard": {"creature_number": (0, 4), "instant_number": (0, 4), "sorcery_number": (0, 4), "land_number": (0, 4)},
+                "hand": {"creature_number": (0, 2), "instant_number": (0, 2), "sorcery_number": (0, 2), "land_number": (0, 2)},
+                "library": {"creature_number": (2, 8), "instant_number": (2, 8), "sorcery_number": (2, 8), "land_number": (2, 8)},
+            }
+        )
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        # The model currently consumes two generic mana in its manual branch, so keep
+        # two sources available even though the printed text advertises a one-mana cost.
+        self.room.env_mana(
+            self.player,
+            {"U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
+            least_mana={"colorless": 2},
+        )
+
+        return self.room.simulate_play(self.card)

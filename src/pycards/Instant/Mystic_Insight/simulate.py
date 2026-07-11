@@ -21,3 +21,20 @@ class Mystic_Insight_Simulation(Card_Simulation):
         "You scry 3, then draw a card.",
         "[CARD_NAME] scrys 3 then draws you a card.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U":(1,7)},
+            least_mana={"colorless":1,"U":1}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

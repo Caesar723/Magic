@@ -30,3 +30,22 @@ class Divine_Offering_Simulation(Card_Simulation):
 
         "[CARD_NAME] causes target land to be destroyed. Its controller gains 3 life."
     ]
+
+    @simulate
+    def simulate_when_cast(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.room.env_life_low(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W": (1, 7)},
+            least_mana={"colorless": 2, "W": 1},
+        )
+
+        self.room.env_mana(self.player.opponent, {"W": (1, 4)})
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info

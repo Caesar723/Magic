@@ -21,3 +21,24 @@ class Celestial_Rebirth_Simulation(Card_Simulation):
         "Return a creature from graveyard to play; indestructible until end of turn. Exile [CARD_NAME].",
         "[CARD_NAME]: reanimate a creature with indestructible this turn, then exile itself.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_initinal_graveyard(
+            self.player,
+            {"creature_number":(1,10)},
+        )
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"W":(3,7)},
+            least_mana={"colorless":1,"W":3}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info

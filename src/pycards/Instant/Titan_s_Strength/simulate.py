@@ -21,3 +21,20 @@ class Titan_s_Strength_Simulation(Card_Simulation):
         "All creatures you control gain +4/+4 and trample until end of turn.",
         "[CARD_NAME] empowers your creatures with +4/+4 and trample this turn.",
     ]
+
+    @simulate
+    def simulate_card(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"G":(2,7)},
+            least_mana={"colorless":3,"G":2}
+        )
+
+        simulate_info=self.room.simulate_play(self.card)
+        return simulate_info
