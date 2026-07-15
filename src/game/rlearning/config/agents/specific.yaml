@@ -18,7 +18,7 @@ cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Cre
 seed: 1234
 max_store: 1024
 #------------------------------------
-dataset_class_name: "game.rlearning.datasets.clip.CLIPDataset"
+dataset_class_name: "game.rlearning.datasets.CVAE.CVAEDataset"
 dataloader:
   batch_size: 32
   num_workers: 0
@@ -27,7 +27,7 @@ dataset_multiple: 10
 
 
 #------------------------------------
-trainer: "game.rlearning.module.clip.CLIPTrainer"
+trainer: "game.rlearning.module.CVAE.CVAETrainer"
 
 reward_function: "game.rlearning.rewards.win_base.get_reward"
 state_function: "game.rlearning.states.specific.get_state"
@@ -103,7 +103,6 @@ model:
     class_name: 'game.rlearning.net.embed.HeroEmbed'
     len_life: 21
     embed_dim: 16
-    
 
   HeroEmbedOppo:
     class_name: 'game.rlearning.net.embed.HeroEmbed'
@@ -139,7 +138,7 @@ model:
     class_name: 'game.rlearning.net.ppo.Actor'
     input_dim: 560
     hidden_dim: 512
-    output_dim: 352
+    output_dim: 362
     deep: 2
 
   Critic:
@@ -148,6 +147,3 @@ model:
     hidden_dim: 512
     output_dim: 1
     deep: 2
-  
-
-    

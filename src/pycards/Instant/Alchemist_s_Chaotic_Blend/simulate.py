@@ -22,7 +22,6 @@ class Alchemist_s_Chaotic_Blend_Simulation(Card_Simulation):
         "Counter target spell, then reveal a random card from your deck and cast it without paying its mana cost.",
     ]
 
-    @test
     @simulate
     def simulate_card_stack(self):
         self.basic_initinal()

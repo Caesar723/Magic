@@ -5,6 +5,7 @@ if TYPE_CHECKING:
 
 from game.card_simulation import bind_card,simulate,Card_Simulation,test
 from pycards.creature.Igni_the_Pyromancer.model import Igni_the_Pyromancer
+from pycards.sorcery.Mystic_Insight.model import Mystic_Insight
 
 @bind_card(Igni_the_Pyromancer)
 class Igni_the_Pyromancer_Simulation(Card_Simulation):
@@ -49,9 +50,13 @@ class Igni_the_Pyromancer_Simulation(Card_Simulation):
     @simulate
     def simulate_when_attack_opponent(self):
         self.basic_initinal()
+        self.room.env_initinal_graveyard(self.player,{})
+        self.player.graveyard.append(Mystic_Insight(self.player))
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
+        # With no blocker, combat damage reaches the player and exercises the
+        # graveyard-cast branch in when_harm_is_done.
+        self.room.env_no_creature(self.player.opponent)
         self.random_life()(self.player.opponent)
 
         self.room.env_mana(
@@ -77,4 +82,3 @@ class Igni_the_Pyromancer_Simulation(Card_Simulation):
 
         simulate_info=self.room.simulate_creature_defend(self.card)
         return simulate_info
-

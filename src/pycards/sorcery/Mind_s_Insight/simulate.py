@@ -5,6 +5,8 @@ if TYPE_CHECKING:
 
 from game.card_simulation import bind_card,simulate,Card_Simulation,test
 from pycards.sorcery.Mind_s_Insight.model import Mind_s_Insight
+from pycards.land.Island.model import Island
+from pycards.land.Plains.model import Plains
 
 @bind_card(Mind_s_Insight)
 class Mind_s_Insight_Simulation(Card_Simulation):
@@ -32,9 +34,31 @@ class Mind_s_Insight_Simulation(Card_Simulation):
     ]
 
     @simulate
-    def simulate_when_cast(self):
+    def simulate_with_island(self):
         self.basic_initinal()
-        self.room.env_initinal_hand(self.player, {"land_number": (2, 3), "instant_number": (1, 2)})
+        self.player.hand=[Island(self.player) for _ in range(4)]
+        self.player.library=[Island(self.player) for _ in range(5)]
+        for island in self.player.hand+self.player.library:
+            island.type_card="Island"
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U": (1, 7)},
+            least_mana={"colorless": 4, "U": 1},
+        )
+
+        simulate_info = self.room.simulate_play(self.card)
+        return simulate_info
+
+    @simulate
+    def simulate_without_island(self):
+        self.basic_initinal()
+        self.player.hand=[Plains(self.player) for _ in range(4)]
+        self.player.library=[Plains(self.player) for _ in range(5)]
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)

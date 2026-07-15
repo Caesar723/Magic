@@ -41,4 +41,5 @@ class Arcane_Haven(Land):
         else:
             return {}
 
-    
+    def check_ability_can_be_used(self,player:'Player'=None,opponent:'Player'=None):
+        return (player or self.player).life>10

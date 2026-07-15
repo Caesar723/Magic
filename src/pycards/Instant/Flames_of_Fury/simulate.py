@@ -25,10 +25,13 @@ class Flames_of_Fury_Simulation(Card_Simulation):
     @simulate
     def simulate_card(self):
         self.basic_initinal()
-        self.random_env_creature()(self.player)
+        self.room.env_creature(self.player)
         self.random_life()(self.player)
         self.room.env_creature(self.player.opponent)
         self.random_life()(self.player.opponent)
+        for creature in self.player.battlefield+self.player.opponent.battlefield:
+            creature.live=min(creature.live,3)
+            creature.actual_live=creature.live
 
         self.room.env_mana(
             self.player,
@@ -36,5 +39,5 @@ class Flames_of_Fury_Simulation(Card_Simulation):
             least_mana={"colorless":1,"R":1}
         )
 
-        simulate_info=self.room.simulate_play(self.card)
+        simulate_info=self.room.simulate_play(self.card,preferred_subactions=range(1,21))
         return simulate_info

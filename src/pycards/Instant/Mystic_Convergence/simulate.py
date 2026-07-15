@@ -29,6 +29,7 @@ class Mystic_Convergence_Simulation(Card_Simulation):
         self.random_life()(self.player)
         self.room.env_creature(self.player.opponent)
         self.room.attacker=self.player.opponent.battlefield[0]
+        self.room.flag_dict["attacker_defenders"]=True
         self.random_life()(self.player.opponent)
 
         self.room.env_mana(

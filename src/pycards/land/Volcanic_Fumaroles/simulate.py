@@ -6,6 +6,7 @@ if TYPE_CHECKING:
 from game.card_simulation import bind_card,simulate,Card_Simulation,test
 from pycards.land.Volcanic_Fumaroles.model import Volcanic_Fumaroles
 
+@test
 @bind_card(Volcanic_Fumaroles)
 class Volcanic_Fumaroles_Simulation(Card_Simulation):
 
@@ -46,3 +47,19 @@ class Volcanic_Fumaroles_Simulation(Card_Simulation):
         )
 
         return self.room.simulate_play(self.card)
+
+    @simulate
+    def simulate_activate_ability(self):
+        self.basic_initinal()
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        # Guarantee a creature target in addition to the opposing player.
+        self.room.env_creature(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"colorless": (1, 1), "U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
+        )
+
+        return self.room.simulate_activate_ability(self.card)

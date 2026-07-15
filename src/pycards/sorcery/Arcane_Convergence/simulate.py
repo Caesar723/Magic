@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
     from game.player import Player
-
+import random
 from game.card_simulation import bind_card,simulate,Card_Simulation,test
 from pycards.sorcery.Arcane_Convergence.model import Arcane_Convergence
 
@@ -47,7 +47,8 @@ class Arcane_Convergence_Simulation(Card_Simulation):
         )
 
         if self.player.land_area:
-            self.player.land_area[0].tap()
+            for i in random.sample(range(0, len(self.player.land_area)), random.randint(1, min(5, len(self.player.land_area)))):
+                self.player.land_area[i].flag_dict["tap"]=True
 
         simulate_info = self.room.simulate_play(self.card)
         return simulate_info

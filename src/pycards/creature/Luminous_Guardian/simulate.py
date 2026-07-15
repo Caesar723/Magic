@@ -34,7 +34,10 @@ class Luminous_Guardian_Simulation(Card_Simulation):
         self.basic_initinal()
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
+        self.room.env_creature(self.player.opponent)
+        for creature in self.player.opponent.battlefield:
+            creature.power=max(creature.power,3)
+            creature.actual_power=max(creature.actual_power,3)
         self.random_life()(self.player.opponent)
 
         self.room.env_mana(
@@ -77,4 +80,3 @@ class Luminous_Guardian_Simulation(Card_Simulation):
 
         simulate_info=self.room.simulate_creature_defend(self.card)
         return simulate_info
-

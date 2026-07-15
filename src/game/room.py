@@ -671,10 +671,13 @@ class Room:
                 await recorder.store_game_ini_message("activate_ability")
             self.action_processor.start_record()
             #self.action_processor.add_action(actions.Activate_Ability(card,player))
-            await card.when_clicked(player,player.opponent,manual=True)
+            activated=await card.when_clicked(player,player.opponent,manual=True)
             self.action_processor.add_action(actions.Change_Mana(card,player,player.get_manas()))
 
             self.action_processor.end_record()
+            if not activated:
+                return (False,"Ability can't be activated")
+            return (True,"success")
 
         else:
             return (False,"You can't activate ability")
@@ -1013,4 +1016,3 @@ if __name__=="__main__":
     asyncio.run(main())
     
     
-

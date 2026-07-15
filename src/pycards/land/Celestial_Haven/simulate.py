@@ -46,3 +46,21 @@ class Celestial_Haven_Simulation(Card_Simulation):
         )
 
         return self.room.simulate_play(self.card)
+
+    @simulate
+    def simulate_activate_ability(self):
+        self.basic_initinal()
+        self.room.env_creature(self.player)
+        # More than three life forces the manual prevention branch.
+        self.room.env_life_high(self.player)
+        self.room.env_creature(self.player.opponent)
+        self.room.attacker=self.player.opponent.battlefield[0]
+        self.room.flag_dict["attacker_defenders"]=True
+        self.random_life()(self.player.opponent)
+
+        self.room.env_mana(
+            self.player,
+            {"U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
+        )
+
+        return self.room.simulate_activate_ability(self.card)

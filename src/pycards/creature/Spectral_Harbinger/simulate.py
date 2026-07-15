@@ -37,6 +37,9 @@ class Spectral_Harbinger_Simulation(Card_Simulation):
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
 
+        self.room.env_initinal_graveyard(self.player,{})
+        self.player.graveyard.append(type(self.card)(self.player))
+
         self.room.env_mana(
             self.player,
             {"W":(2,7)},
@@ -77,4 +80,3 @@ class Spectral_Harbinger_Simulation(Card_Simulation):
 
         simulate_info=self.room.simulate_creature_defend(self.card)
         return simulate_info
-

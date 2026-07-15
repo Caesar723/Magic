@@ -43,7 +43,7 @@ class Summoner_s_Respite(Instant):
         #print(player.room.get_flag("attacker_defenders") , self.get_flag("start_receive"))
         if player.room.get_flag("attacker_defenders") and self.get_flag("start_receive"):
             await self.cure_to_object(object,value,"rgba(89,154,85,0.6)","Missile_Hit")
-            self.damage_collect+=value
+            #self.damage_collect+=value
 
 
     async def when_start_turn(self,player: "Player" = None, opponent: "Player" = None):#OK

@@ -34,4 +34,3 @@ class Mind_s_Insight(Sorcery):
         if discard_candidates.type_card not in ("Island"):
             player.discard(discard_candidates)
         
-

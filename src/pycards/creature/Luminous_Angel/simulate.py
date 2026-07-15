@@ -34,6 +34,7 @@ class Luminous_Angel_Simulation(Card_Simulation):
         self.basic_initinal()
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
+        self.player.life=20
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
 
@@ -51,6 +52,7 @@ class Luminous_Angel_Simulation(Card_Simulation):
         self.basic_initinal()
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
+        self.player.life=20
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
 
@@ -67,6 +69,7 @@ class Luminous_Angel_Simulation(Card_Simulation):
         self.basic_initinal()
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
+        self.player.life=20
         self.room.env_creature(self.player.opponent)
         self.random_life()(self.player.opponent)
 
@@ -77,4 +80,3 @@ class Luminous_Angel_Simulation(Card_Simulation):
 
         simulate_info=self.room.simulate_creature_defend(self.card)
         return simulate_info
-

@@ -54,7 +54,7 @@ class Celestial_Haven(Land):
                 self.tap()
                 return True
             else:
-                self.attact_to_object(player,3,"rgba(240, 248, 255, 0.85)","Missile_Hit")
+                await self.attact_to_object(player,3,"rgba(240, 248, 255, 0.85)","Missile_Hit")
                 player.add_counter_dict("spend_land_count", 1)
                 self.tap()
                 self.flag_dict["prevent_combat_damage"]=True

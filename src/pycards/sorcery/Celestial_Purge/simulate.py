@@ -47,5 +47,5 @@ class Celestial_Purge_Simulation(Card_Simulation):
 
         self.player.opponent.battlefield[0].color = "red"
 
-        simulate_info = self.room.simulate_play(self.card)
+        simulate_info = self.room.simulate_play(self.card,preferred_subactions=range(1,11))
         return simulate_info

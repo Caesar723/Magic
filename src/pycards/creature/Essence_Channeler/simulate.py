@@ -78,3 +78,19 @@ class Essence_Channeler_Simulation(Card_Simulation):
         simulate_info=self.room.simulate_creature_defend(self.card)
         return simulate_info
 
+    @simulate
+    def simulate_when_play_a_card(self):
+        self.basic_initinal()
+        self.random_life()(self.player)
+        self.random_life()(self.player.opponent)
+        self.stage_card(self.card)
+        self.room.env_mana(
+            self.player,
+            {"G":(1,7)},
+            least_mana={"colorless":1}
+        )
+
+        trigger_card=type(self.card)(self.player)
+        simulate_info=self.room.simulate_play(trigger_card)
+        simulate_info["card"]=self.card
+        return simulate_info

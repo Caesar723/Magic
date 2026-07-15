@@ -38,6 +38,12 @@ class Divine_Reckoning_Simulation(Card_Simulation):
         self.room.env_life_middle(self.player)
         self.room.env_creature(self.player.opponent)
         self.room.env_life_middle(self.player.opponent)
+        for participant in (self.player,self.player.opponent):
+            while len(participant.battlefield)<2:
+                participant.battlefield.append(type(participant.battlefield[0])(participant))
+            participant.battlefield[0].type_creature="Angel"
+            for creature in participant.battlefield[1:]:
+                creature.type_creature="Merfolk Creature"
 
         self.room.env_mana(
             self.player,

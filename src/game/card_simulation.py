@@ -100,8 +100,19 @@ class Card_Simulation:
     def get_card(self):
         return self.card
 
+    def stage_card(self,card:"Card",player:"Player"=None,zone:str="battlefield"):
+        """Place a setup card in a zone without emitting gameplay actions."""
+        owner=player or card.player
+        cards=getattr(owner,zone)
+        if card not in cards:
+            cards.append(card)
+        for key in card.check_overwritten():
+            owner.put_card_to_dict(key,card)
+        return card
+
     def get_candidates_simulation(self):
         methods = []
+        
 
         for name in dir(self):
             method = getattr(self, name)
@@ -113,7 +124,6 @@ class Card_Simulation:
             if getattr(func, "_is_simulate", False):
                 methods.append(method)
         return methods
-
     def basic_initinal(self,parameters:dict={
         "graveyard":{"creature_number":(0,10),"instant_number":(0,10),"sorcery_number":(0,10),"land_number":(0,10)},
         "hand":{"creature_number":(0,2),"instant_number":(0,2),"sorcery_number":(0,2),"land_number":(0,2)},
@@ -139,10 +149,3 @@ class Card_Simulation:
                 self.room.env_life_high,
             ]
         )
-        
-
-    
-
-
-
-    

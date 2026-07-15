@@ -54,6 +54,10 @@ class Base_Agent_Room(Room):
         action2num=get_class_by_name(action2num_path)
         result["action2num"]=partial(action2num,self)
 
+        add_action_history_path=config.get("add_action_history_function","game.rlearning.actions.single_deck.add_action_history")
+        add_action_history=get_class_by_name(add_action_history_path)
+        result["add_action_history"]=partial(add_action_history,self)
+
         create_action_mask=get_class_by_name(config.get("action_mask_function","game.rlearning.actions.single_deck.create_action_mask"))
         result["create_action_mask"]=partial(create_action_mask,self)
 

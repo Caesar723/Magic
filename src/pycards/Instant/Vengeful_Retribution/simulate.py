@@ -28,7 +28,7 @@ class Vengeful_Retribution_Simulation(Card_Simulation):
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
         self.room.env_creature(self.player.opponent)
-        if len(self.player.opponent.battlefield)==1:
+        while len(self.player.opponent.battlefield)<3:
             creature=self.player.opponent.battlefield[0]
             self.player.opponent.battlefield.append(type(creature)(self.player.opponent))
         self.random_life()(self.player.opponent)

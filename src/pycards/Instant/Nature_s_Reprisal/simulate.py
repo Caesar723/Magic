@@ -28,7 +28,8 @@ class Nature_s_Reprisal_Simulation(Card_Simulation):
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
         self.room.env_creature(self.player.opponent)
-        self.player.opponent.battlefield[0].flag_dict["flying"]=True
+        for creature in self.player.opponent.battlefield:
+            creature.flag_dict["flying"]=True
         self.random_life()(self.player.opponent)
 
         self.room.env_mana(

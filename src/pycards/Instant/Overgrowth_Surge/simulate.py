@@ -26,6 +26,9 @@ class Overgrowth_Surge_Simulation(Card_Simulation):
     def simulate_card(self):
         self.basic_initinal()
         self.room.env_creature(self.player)
+        # Make the sampled target a Treefolk so the conditional trample branch fires.
+        for creature in self.player.battlefield:
+            creature.type_creature="Treefolk"
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)

@@ -49,7 +49,16 @@ class Thunderclap_Behemoth_Simulation(Card_Simulation):
     @simulate
     def simulate_when_attack_opponent(self):
         self.basic_initinal()
-        self.random_env_creature()(self.player)
+        self.room.env_creature(self.player)
+        for creature in self.player.battlefield:
+            creature.power=max(creature.power,4)
+            creature.actual_power=max(creature.actual_power,4)
+        # simulate_creature_attack replaces one battlefield slot with this
+        # card; keeping at least two slots guarantees another 4-power body.
+        supporting_creature=type(self.card)(self.player)
+        supporting_creature.power=max(supporting_creature.power,4)
+        supporting_creature.actual_power=max(supporting_creature.actual_power,4)
+        self.player.battlefield.append(supporting_creature)
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
@@ -77,4 +86,3 @@ class Thunderclap_Behemoth_Simulation(Card_Simulation):
 
         simulate_info=self.room.simulate_creature_defend(self.card)
         return simulate_info
-

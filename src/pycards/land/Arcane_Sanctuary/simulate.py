@@ -53,3 +53,25 @@ class Arcane_Sanctuary_Simulation(Card_Simulation):
         )
 
         return self.room.simulate_play(self.card)
+
+    @simulate
+    def simulate_activate_ability(self):
+        self.basic_initinal(
+            {
+                "graveyard": {"creature_number": (0, 4), "instant_number": (0, 4), "sorcery_number": (0, 4), "land_number": (0, 4)},
+                "hand": {"creature_number": (0, 2), "instant_number": (0, 2), "sorcery_number": (0, 2), "land_number": (0, 2)},
+                "library": {"creature_number": (2, 8), "instant_number": (2, 8), "sorcery_number": (2, 8), "land_number": (2, 8)},
+            }
+        )
+        self.random_env_creature()(self.player)
+        self.random_life()(self.player)
+        self.random_env_creature()(self.player.opponent)
+        self.random_life()(self.player.opponent)
+
+        # Keep the two-mana manual branch payable after the land is staged for activation.
+        self.room.env_mana(
+            self.player,
+            {"colorless": (2, 2), "U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
+        )
+
+        return self.room.simulate_activate_ability(self.card)

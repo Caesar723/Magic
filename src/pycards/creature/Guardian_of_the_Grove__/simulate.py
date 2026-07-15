@@ -5,6 +5,7 @@ if TYPE_CHECKING:
 
 from game.card_simulation import bind_card,simulate,Card_Simulation,test
 from pycards.creature.Guardian_of_the_Grove__.model import Guardian_of_the_Grove__
+from pycards.land.Forest.model import Forest
 
 @bind_card(Guardian_of_the_Grove__)
 class Guardian_of_the_Grove___Simulation(Card_Simulation):
@@ -36,6 +37,9 @@ class Guardian_of_the_Grove___Simulation(Card_Simulation):
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
+
+        if not any(isinstance(card,Forest) for card in self.player.library):
+            self.player.library.append(Forest(self.player))
 
         self.room.env_mana(
             self.player,
@@ -77,4 +81,3 @@ class Guardian_of_the_Grove___Simulation(Card_Simulation):
 
         simulate_info=self.room.simulate_creature_defend(self.card)
         return simulate_info
-

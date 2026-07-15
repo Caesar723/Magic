@@ -29,6 +29,10 @@ class Arcane_Insight_Simulation(Card_Simulation):
             self.player,
             {"instant_number":(1,2),"sorcery_number":(1,2)},
         )
+        # Keep every post-draw choice an Instant so the implemented discard branch
+        # is deterministic instead of depending on the seeded basic lands.
+        self.player.hand=[type(self.card)(self.player) for _ in range(4)]
+        self.player.library=[type(self.card)(self.player) for _ in range(5)]
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)

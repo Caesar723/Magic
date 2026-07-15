@@ -29,6 +29,11 @@ class Mystic_Barrier_Simulation(Card_Simulation):
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
+        # The implemented effect decorates cards already in the opponent's hand.
+        self.room.env_initinal_hand(
+            self.player.opponent,
+            {"creature_number":(1,2),"instant_number":(1,3),"sorcery_number":(1,3),"land_number":(1,2)},
+        )
 
         self.room.env_mana(
             self.player,

@@ -29,8 +29,11 @@ class Mystic_Reflection_Simulation(Card_Simulation):
         self.random_life()(self.player)
         self.room.env_creature(self.player.opponent)
         self.random_life()(self.player.opponent)
-        shared_name=self.player.battlefield[0].name
-        self.player.opponent.battlefield[0].name=shared_name
+        # Whichever creature the action samples, another same-named creature exists.
+        all_creatures=self.player.battlefield+self.player.opponent.battlefield
+        shared_name=all_creatures[0].name
+        for creature in all_creatures:
+            creature.name=shared_name
 
         self.room.env_mana(
             self.player,

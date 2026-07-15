@@ -37,5 +37,12 @@ class Warrior_s_Forced_Challenge_Simulation(Card_Simulation):
         )
 
         self.room.env_stack_cards(self.player,self.card)
-        simulate_info=self.room.simulate_play_in_stack(self.card)
+        countered_card=self.room.stack[-1]["card"]
+        countered_card.power=countered_card.actual_power=1
+        countered_card.live=countered_card.actual_live=1
+        for creature in self.player.opponent.battlefield:
+            if creature is not countered_card:
+                creature.power=creature.actual_power=20
+                creature.live=creature.actual_live=20
+        simulate_info=self.room.simulate_play_in_stack(self.card,preferred_subactions=(1,))
         return simulate_info

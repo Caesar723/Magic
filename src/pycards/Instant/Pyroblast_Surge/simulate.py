@@ -32,7 +32,8 @@ class Pyroblast_Surge_Simulation(Card_Simulation):
 
         self.room.env_mana(
             self.player,
-            {"R":(1,7)},
+            # Paying 1R still leaves another Mountain untapped for the bonus damage.
+            {"R":(3,7)},
             least_mana={"colorless":1,"R":1}
         )
 

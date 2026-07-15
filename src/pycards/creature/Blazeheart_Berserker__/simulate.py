@@ -58,6 +58,7 @@ class Blazeheart_Berserker___Simulation(Card_Simulation):
         self.room.env_mana(
             self.player,
             {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
+            least_mana={"R":1}
         )
 
         simulate_info=self.room.simulate_creature_attack(self.card)

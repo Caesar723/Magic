@@ -26,6 +26,9 @@ class Honorable_Protection_Simulation(Card_Simulation):
     def simulate_card(self):
         self.basic_initinal()
         self.room.env_creature(self.player)
+        # Every legal target exercises both indestructible and the Knight-only counter.
+        for creature in self.player.battlefield:
+            creature.type_card=f"{creature.type_card} Knight"
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)

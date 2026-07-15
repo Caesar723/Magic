@@ -34,7 +34,9 @@ class Nighthaunt_Assassin_Simulation(Card_Simulation):
         self.basic_initinal()
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
+        # Testing creatures cost one mana, so the Assassin always has an
+        # eligible opposing creature for its enter-the-battlefield effect.
+        self.room.env_creature(self.player.opponent)
         self.random_life()(self.player.opponent)
 
         self.room.env_mana(
@@ -77,4 +79,3 @@ class Nighthaunt_Assassin_Simulation(Card_Simulation):
 
         simulate_info=self.room.simulate_creature_defend(self.card)
         return simulate_info
-

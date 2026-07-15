@@ -30,7 +30,7 @@ class Verdant_Growth_Simulation(Card_Simulation):
         self.room.env_creature(self.player.opponent)
         self.random_life()(self.player.opponent)
         for creature in self.player.battlefield+self.player.opponent.battlefield:
-            creature.type_creature="Treefolk Creature"
+            creature.type_card="Treefolk Creature"
 
         self.room.env_mana(
             self.player,

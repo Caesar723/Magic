@@ -110,8 +110,9 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         
 
         card_simulation_cls=self.get_card_simulation()
+        
         card_simulation:"Card_Simulation"=card_simulation_cls(self.player_1,self)
-
+        print("simulate_card",card_simulation_cls.__name__)
         similar_description=card_simulation.get_similar_description()
         
         candidates=card_simulation.get_candidates_simulation()
@@ -146,7 +147,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         player.hand=[]
         player.library=[]
         player.battlefield=[]
-        player.life=[]
+        player.life=20
         player.land_area=[]
         player.exile_area=[]
         player.treasure=[]
@@ -508,9 +509,22 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         action = random.choice(actions)
         return action
 
+    def sample_card_action(self,card_index:int,preferred_subactions=None):
+        start=32+card_index*33
+        if preferred_subactions is None:
+            return self.sample_action((start,start+33))
+
+        actions_mask=self.basic_func[self.player_1.name]["create_action_mask"](self.player_1)[0]
+        actions=[
+            start+sub_action
+            for sub_action in preferred_subactions
+            if 0<=sub_action<33 and actions_mask[start+sub_action]
+        ]
+        return random.choice(actions) if actions else None
+
         
     
-    def simulate_play(self,card:Card):
+    def simulate_play(self,card:Card,preferred_subactions=None):
         
         card.flag_dict["tap"]=False
         if self.player_1.hand and len(self.player_1.hand)!=1:
@@ -536,6 +550,11 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             'opponent_creatures':[self.player_2],
             'your_creatures':[self.player_1],
         }
+        land_select_dict={
+            'all_lands':[self.player_2,self.player_1],
+            'opponent_lands':[self.player_2],
+            'your_lands':[self.player_1],
+        }
         
         for cls in instance_dict:
             if isinstance(card,cls):
@@ -544,15 +563,13 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             for player in select_dict[select_range]:
                 if not player.battlefield:
                     self.env_creature(player)
-        elif "land" in select_range:
-            return {
-                "card":card,
-                "type":0,
-                "action":None
-            }
+        elif select_range in land_select_dict:
+            for player in land_select_dict[select_range]:
+                if not player.land_area:
+                    player.land_area.append(Plains(player))
 
 
-        action=self.sample_action((22+card_index*33,22+card_index*33+33))
+        action=self.sample_card_action(card_index,preferred_subactions)
 
         simulate_info={
             "card":card,
@@ -564,7 +581,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         return simulate_info
 
     
-    def simulate_play_in_stack(self,card:Card):
+    def simulate_play_in_stack(self,card:Card,preferred_subactions=None):
         self.flag_dict["bullet_time"]=True
 
         card.flag_dict["tap"]=False
@@ -591,6 +608,11 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             'opponent_creatures':[self.player_2],
             'your_creatures':[self.player_1],
         }
+        land_select_dict={
+            'all_lands':[self.player_2,self.player_1],
+            'opponent_lands':[self.player_2],
+            'your_lands':[self.player_1],
+        }
         
         for cls in instance_dict:
             if isinstance(card,cls):
@@ -599,14 +621,12 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             for player in select_dict[select_range]:
                 if not player.battlefield:
                     self.env_creature(player)
-        elif "land" in select_range:
-            return {
-                "card":card,
-                "type":0,
-                "action":None
-            }
+        elif select_range in land_select_dict:
+            for player in land_select_dict[select_range]:
+                if not player.land_area:
+                    player.land_area.append(Plains(player))
 
-        action=self.sample_action((32+card_index*33,32+card_index*33+33))
+        action=self.sample_card_action(card_index,preferred_subactions)
 
         simulate_info={
             "card":card,
@@ -620,12 +640,19 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
     def simulate_activate_ability(self,card:Card):
         card.flag_dict["tap"]=False
 
-        if self.player_1.land_area and len(self.player_1.land_area)!=1:
-            card_index=min(9,random.randint(0,len(self.player_1.land_area)-1))
+        # ``specific.get_state`` currently exposes aggregate mana but not the
+        # ordered land zone.  Keep the supervised activation label stable at
+        # slot zero instead of assigning an unobservable random land index.
+        card_index=0
+        if self.player_1.land_area:
+            old_card=self.player_1.land_area[card_index]
+            for key in old_card.check_overwritten():
+                self.player_1.remove_card_from_dict(key,old_card)
             self.player_1.land_area[card_index]=card
         else:
             self.player_1.land_area.append(card)
-            card_index=len(self.player_1.land_area)-1
+        for key in card.check_overwritten():
+            self.player_1.put_card_to_dict(key,card)
         self.active_player=self.player_1
         self.non_active_player=self.player_2
 
@@ -841,9 +868,9 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             action_oppo = random.choice(actions)
             await self.process_action(agent_oppo,action_oppo)
 
+        elif action>=22 and action <=31:
+            pass
             
-            
-        
         elif action!=0:
             await self.end_bullet_time()
         elif action==0:

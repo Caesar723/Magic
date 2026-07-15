@@ -5,6 +5,7 @@ if TYPE_CHECKING:
 
 from game.card_simulation import bind_card,simulate,Card_Simulation,test
 from pycards.creature.Temporal_Traveler.model import Temporal_Traveler
+from pycards.sorcery.Mystic_Insight.model import Mystic_Insight
 
 @bind_card(Temporal_Traveler)
 class Temporal_Traveler_Simulation(Card_Simulation):
@@ -49,6 +50,8 @@ class Temporal_Traveler_Simulation(Card_Simulation):
     @simulate
     def simulate_when_attack_opponent(self):
         self.basic_initinal()
+        self.room.env_initinal_graveyard(self.player,{})
+        self.player.graveyard.append(Mystic_Insight(self.player))
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)
@@ -77,4 +80,3 @@ class Temporal_Traveler_Simulation(Card_Simulation):
 
         simulate_info=self.room.simulate_creature_defend(self.card)
         return simulate_info
-

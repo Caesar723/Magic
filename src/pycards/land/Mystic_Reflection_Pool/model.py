@@ -52,7 +52,7 @@ class Mystic_Reflection_Pool(Land):
                     player.mana[key]+=mana[key]
                 self.tap()
             else:
-                await self.player.generate_and_consume_mana(check_result[1],{"colorless":2,"U":0,"W":0,"B":0,"R":0,"G":0},self)
+                await self.player.generate_and_consume_mana(check_result[1],{"colorless":1,"U":0,"W":0,"B":0,"R":0,"G":0},self)
                 await self.Scry(player, opponent, 2)
                 player.draw_card(1)
                 self.tap()

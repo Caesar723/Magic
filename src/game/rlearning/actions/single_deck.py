@@ -63,19 +63,20 @@ def num2subaction(room:"Base_Agent_Room",agent:"Agent",sub_action:int):
 
 
 """
-Gameplay action space (num2action / create_action_mask):
 0: end turn
 1: end bullet time
 2-11: select a creature to attack with (10 choices)
 12-21: select a creature to block with (10 choices)
-22-1341: play card in deck id slot * 33 sub-actions
 
-Stack action encoding (action2num), 37 actions without index:
-0: end_step
-1: end_bullet
-2: select_attacker
-3: select_defender
-4-36: play_card sub-action (33 variants)
+22-1341:
+There are 40 cards in Deck. For each card (40 * 33 = 1320):
+    play a card without selecting anything
+
+    play a card and select an opponent's creature (0-9, total 10)
+    play a card and select your own creature (0-9, total 10)
+    play a card and select the opponent's hero
+    play a card and select your own hero
+    play a card and select a card (10)
 """
 def subaction2num(room:"Base_Agent_Room",agent:"Agent",sub_content:str)->int:
     if not sub_content:
@@ -108,7 +109,16 @@ def subaction2num(room:"Base_Agent_Room",agent:"Agent",sub_content:str)->int:
     raise ValueError(f"unknown sub action content: {sub_content}")
 
 
-def _split_action_message(message:str)->tuple[str,str]:
+def _battlefield_rank(room:"Base_Agent_Room",agent:"Agent",battlefield_index:int)->int:
+    sort_function=create_sort_function(room,agent)
+    self_battlefield_sorted=sorted(enumerate(agent.battlefield), key=lambda x: sort_function(x[1]), reverse=True)
+    for rank,(idx,_) in enumerate(self_battlefield_sorted):
+        if idx==battlefield_index:
+            return rank
+    raise ValueError(f"battlefield index {battlefield_index} not found")
+
+
+def _split_action_message(message:str)->tuple[str,str|None]:
     if "||" in message:
         message,select_content=message.split("||",1)
         return message,select_content
@@ -119,20 +129,24 @@ def action2num(room:"Base_Agent_Room",agent:"Agent",message:str,select_content:s
     message,merged_select_content=_split_action_message(message)
     if select_content is None:
         select_content=merged_select_content
-    _,type_act,_=message.split("|")
+    _,type_act,content=message.split("|")
     if type_act=="end_step":
         return 0
     if type_act=="end_bullet":
         return 1
     if type_act=="select_attacker":
-        return 2
+        return 2+_battlefield_rank(room,agent,int(content))
     if type_act=="select_defender":
-        return 3
+        return 12+_battlefield_rank(room,agent,int(content))
     if type_act=="play_card":
+        hand_index=int(content)
+        hand_card=agent.hand[hand_index]
+        card_key=f"{hand_card.name}+{hand_card.type}"
+        id_index=agent.id_dict[card_key]
         if select_content is None:
             select_content=agent.select_content
         sub_action=subaction2num(room,agent,select_content)
-        return 4+sub_action
+        return 22+(id_index-1)*33+sub_action
     raise ValueError(f"unknown action message: {message}")
 
 
@@ -216,11 +230,6 @@ def mask_hand(room:"Base_Agent_Room",agent:"Agent",oppo_agent:"Agent",mask:np.nd
     #getattr(obj, 'my_attribute')
     card_counter=0
     for hand_card in agent.hand:
-        if room.get_flag("bullet_time"):
-            if not isinstance(hand_card,Instant) or not hand_card.get_flag("Flash"):
-                start_index+=33
-                card_counter+=1
-                continue
         if card_counter>=9:
             break
         current_index=start_index+(agent.id_dict[f"{hand_card.name}+{hand_card.type}"]-1)*33
@@ -266,3 +275,29 @@ def create_action_mask(room:"Base_Agent_Room",agent:"Agent"):
     
     return mask[np.newaxis, :]
 
+
+
+def add_action_history(agent:"Agent",batch):
+    def append_history(agent,action:int):
+        if agent.agent.config.get("new_history",False):
+            if (action==1 or action==2) and action==agent.action_history[-1] and self.agent.config.get("history_attack",False)==False:
+                return 
+        agent.action_history.append(action)
+        if len(agent.action_history)>agent.action_history_length:
+            agent.action_history.pop(0)
+    action=batch["action"]
+    if action==0:
+        append_history(agent,action)
+    elif action==1:
+        pass
+    elif action>=2 and action<=11:
+        append_history(agent,(1) if agent.agent.config.get("new_history",False) else (action-1))
+    elif action>=12 and action<=21:
+        append_history(agent,(2) if agent.agent.config.get("new_history",False) else (action-1))
+    else:
+        if agent.agent.config.get("new_history",False):
+            history_action=3+((action-22)//33)
+        else:
+            history_action=22+((action-22)//33)
+        #history_action=22+((action-22)//33)
+        append_history(agent,history_action-1)

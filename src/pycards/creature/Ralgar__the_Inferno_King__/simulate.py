@@ -5,6 +5,7 @@ if TYPE_CHECKING:
 
 from game.card_simulation import bind_card,simulate,Card_Simulation,test
 from pycards.creature.Ralgar__the_Inferno_King__.model import Ralgar__the_Inferno_King__
+from pycards.sorcery.Mystic_Insight.model import Mystic_Insight
 
 @bind_card(Ralgar__the_Inferno_King__)
 class Ralgar__the_Inferno_King___Simulation(Card_Simulation):
@@ -78,3 +79,19 @@ class Ralgar__the_Inferno_King___Simulation(Card_Simulation):
         simulate_info=self.room.simulate_creature_defend(self.card)
         return simulate_info
 
+    @simulate
+    def simulate_when_play_a_card(self):
+        self.basic_initinal()
+        self.random_life()(self.player)
+        self.random_life()(self.player.opponent)
+        self.stage_card(self.card)
+        self.room.env_mana(
+            self.player,
+            {"U":(1,7)},
+            least_mana={"colorless":1,"U":1}
+        )
+
+        trigger_card=Mystic_Insight(self.player)
+        simulate_info=self.room.simulate_play(trigger_card)
+        #simulate_info["card"]=self.card
+        return simulate_info

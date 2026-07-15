@@ -5,6 +5,7 @@ if TYPE_CHECKING:
 
 from game.card_simulation import bind_card,simulate,Card_Simulation,test
 from pycards.creature.Vorinclex__Apex_of_Mutation.model import Vorinclex__Apex_of_Mutation
+from pycards.sorcery.Mystic_Insight.model import Mystic_Insight
 
 @bind_card(Vorinclex__Apex_of_Mutation)
 class Vorinclex__Apex_of_Mutation_Simulation(Card_Simulation):
@@ -78,3 +79,24 @@ class Vorinclex__Apex_of_Mutation_Simulation(Card_Simulation):
         simulate_info=self.room.simulate_creature_defend(self.card)
         return simulate_info
 
+    @simulate
+    def simulate_when_play_a_card(self):
+        self.basic_initinal()
+        self.room.env_no_creature(self.player)
+        self.room.env_no_creature(self.player.opponent)
+        self.stage_card(self.card)
+
+        # A second infected permanent guarantees that proliferate has a buff
+        # to copy and exercises the opponent-life payment branch as well.
+        opponent_permanent=type(self.card)(self.player.opponent)
+        self.stage_card(opponent_permanent,self.player.opponent)
+        self.room.env_mana(
+            self.player,
+            {"U":(1,7)},
+            least_mana={"colorless":1,"U":1}
+        )
+
+        trigger_card=Mystic_Insight(self.player)
+        simulate_info=self.room.simulate_play(trigger_card)
+        simulate_info["card"]=self.card
+        return simulate_info

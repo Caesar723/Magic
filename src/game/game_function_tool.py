@@ -293,12 +293,15 @@ def get_cards_simulation_diction():
             base_name=base_class_name(subclass.card_cls)
             if base_name is None or (test_mode and not subclass._is_test) or not subclass.get_candidates_simulation(subclass):
                 continue
-            if subclass._is_test:
+
+            
+            if subclass._is_test and not test_mode:
                 test_mode=True
                 result_dict={}
             result_dict[f"{class_dict[class_name]}_{base_name}"]=subclass
         except KeyError as e:
             #print(class_name)
+            
             print(subclass.__name__,"token")
     return result_dict
 

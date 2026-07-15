@@ -27,8 +27,9 @@ class Divine_Reprisal_Simulation(Card_Simulation):
         self.basic_initinal()
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
+        self.room.env_one_creature(self.player.opponent)
         self.room.attacker=self.player.opponent.battlefield[0]
+        self.room.flag_dict["attacker_defenders"]=True
         self.random_life()(self.player.opponent)
 
         self.room.env_mana(

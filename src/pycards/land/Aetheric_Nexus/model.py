@@ -41,3 +41,6 @@ class Aetheric_Nexus(Land):
             return {"colorless":1}
         else:
             return {}
+
+    def check_ability_can_be_used(self,player:'Player'=None,opponent:'Player'=None):
+        return bool((player or self.player).battlefield)

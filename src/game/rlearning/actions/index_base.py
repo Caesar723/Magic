@@ -17,10 +17,10 @@ Gameplay action space (num2action / create_action_mask):
 1: end bullet time
 2-11: select a creature to attack with (10 choices)
 12-21: select a creature to block with (10 choices)
-22-31: activate ability in hand slot * 10 sub-actions
+22-31: activate an ability from a land-area slot (10 choices)
 32-361: play card in hand slot * 33 sub-actions
 
-Stack action encoding (action2num), 37 actions without index:
+Stack action encoding (action2num), 38 actions without index:
 0: end_step
 1: end_bullet
 2: select_attacker
@@ -39,14 +39,21 @@ def select_stage(selects,index_range,start_index,mask):
 
 
 
-def mask_hand(room:"Base_Agent_Room",agent:"Agent",oppo_agent:"Agent",mask:np.ndarray):
-    start_index=32
+def get_card_select_range(card):
     instance_dict={
         Creature:"when_enter_battlefield",
         Instant:"card_ability",
         Land:"when_enter_landarea",
         Sorcery:"card_ability"
     }
+    for cls, ability_name in instance_dict.items():
+        if isinstance(card,cls):
+            return getattr(card,ability_name).select_range
+    return ""
+
+
+def mask_hand(room:"Base_Agent_Room",agent:"Agent",oppo_agent:"Agent",mask:np.ndarray):
+    start_index=32
 
     select_dict={
         'all_roles':[oppo_agent.battlefield,agent.battlefield,[1],[1]],
@@ -54,7 +61,10 @@ def mask_hand(room:"Base_Agent_Room",agent:"Agent",oppo_agent:"Agent",mask:np.nd
         'your_roles':[[],agent.battlefield,[1],[]],
         'all_creatures':[oppo_agent.battlefield,agent.battlefield,[],[]],
         'opponent_creatures':[oppo_agent.battlefield,[],[],[]],
-        'your_creatures':[[],agent.battlefield,[],[]]
+        'your_creatures':[[],agent.battlefield,[],[]],
+        'all_lands':[oppo_agent.land_area,agent.land_area,[],[]],
+        'opponent_lands':[oppo_agent.land_area,[],[],[]],
+        'your_lands':[[],agent.land_area,[],[]]
     }
 
     index_range=[10,10,1,1]
@@ -67,14 +77,10 @@ def mask_hand(room:"Base_Agent_Room",agent:"Agent",oppo_agent:"Agent",mask:np.nd
                 card_counter+=1
                 continue
         
-        if card_counter>=9:
+        if card_counter>=10:
             break
-        print(hand_card,hand_card.check_can_use(agent))
         if hand_card.check_can_use(agent)[0]:
-            select_range=''
-            for cls in instance_dict:
-                if isinstance(hand_card,cls):
-                    select_range=getattr(hand_card,instance_dict[cls]).select_range
+            select_range=get_card_select_range(hand_card)
             #print(select_range)
             if select_range in select_dict:
                 select_stage(select_dict[select_range],index_range,start_index+1,mask)#+1 是因为有player a card 不选择
@@ -86,9 +92,17 @@ def mask_hand(room:"Base_Agent_Room",agent:"Agent",oppo_agent:"Agent",mask:np.nd
         card_counter+=1
 
 
+def mask_land_abilities(agent:"Agent",oppo_agent:"Agent",mask:np.ndarray):
+    """Expose usable land abilities in every priority window."""
+    for index, land in enumerate(agent.land_area[:10]):
+        if not land.get_flag("tap") and land.check_ability_can_be_used(agent, oppo_agent):
+            mask[22+index]=True
+
+
 def create_action_mask(room:"Base_Agent_Room",agent:"Agent"):
     oppo_agent=agent.opponent
     mask=np.zeros((362))
+    mask_land_abilities(agent,oppo_agent,mask)
     if room.get_flag('attacker_defenders'):
         mask[1]=True
         for i,creat in enumerate(agent.battlefield):
@@ -101,7 +115,6 @@ def create_action_mask(room:"Base_Agent_Room",agent:"Agent"):
             mask_hand(room,agent,oppo_agent,mask)
     elif room.get_flag("bullet_time"):
         if agent.hand:
-            print(agent.hand)
             mask_hand(room,agent,oppo_agent,mask)
     else:
         mask[0]=True
@@ -111,16 +124,11 @@ def create_action_mask(room:"Base_Agent_Room",agent:"Agent"):
     not creat.get_flag("tap") and (creat.get_counter_from_dict("attack_counter")>0):
                 mask[2+i]=True
         #if agent.battlefield: mask[2:len(agent.battlefield)+2]=True
-        if agent.land_area:
-            for i,land in enumerate(agent.land_area):
-                if i>=10:break
-                if not land.get_flag("tap") :
-                    mask[22+i]=True
         if agent.hand:mask_hand(room,agent,oppo_agent,mask)
     #print(mask)
     return mask[np.newaxis, :]
 
-def num2subaction(room:"Base_Agent_Room",agent:"Agent",sub_action:int):
+def num2subaction(room:"Base_Agent_Room",agent:"Agent",sub_action:int,select_range:str=""):
     name=agent.name
     content=''
     father_class="field"
@@ -131,19 +139,24 @@ def num2subaction(room:"Base_Agent_Room",agent:"Agent",sub_action:int):
     if sub_action==0:
         pass
     elif sub_action>=1 and sub_action<=10:
-        opponent_battlefield=agent.opponent.battlefield
-        opponent_battlefield_sorted=sorted(enumerate(opponent_battlefield), key=lambda x: sort_function(x[1]), reverse=True)
-        type_act="opponent_battlefield"
-        selected_index=opponent_battlefield_sorted[sub_action-1][0]
+        if select_range in ("all_lands","opponent_lands"):
+            type_act="opponent_landfield"
+            selected_index=sub_action-1
+        else:
+            opponent_battlefield=agent.opponent.battlefield
+            opponent_battlefield_sorted=sorted(enumerate(opponent_battlefield), key=lambda x: sort_function(x[1]), reverse=True)
+            type_act="opponent_battlefield"
+            selected_index=opponent_battlefield_sorted[sub_action-1][0]
         content=f"{selected_index}"
     elif sub_action>=11 and sub_action<=20:
-        self_battlefield=agent.battlefield
-        
-        self_battlefield_sorted=sorted(enumerate(self_battlefield), key=lambda x: sort_function(x[1]), reverse=True)
-        
-        selected_index=self_battlefield_sorted[sub_action-11][0]
-        
-        type_act="self_battlefield"
+        if select_range in ("all_lands","your_lands"):
+            type_act="self_landfield"
+            selected_index=sub_action-11
+        else:
+            self_battlefield=agent.battlefield
+            self_battlefield_sorted=sorted(enumerate(self_battlefield), key=lambda x: sort_function(x[1]), reverse=True)
+            selected_index=self_battlefield_sorted[sub_action-11][0]
+            type_act="self_battlefield"
         content=f"{selected_index}"
     elif sub_action==21:
         type_act="oppo"
@@ -179,6 +192,16 @@ def subaction2num(room:"Base_Agent_Room",agent:"Agent",sub_content:str)->int:
                 if idx==selected_index:
                     return rank+11
             raise ValueError(f"self battlefield index {selected_index} not found")
+        if type_act=="opponent_landfield":
+            selected_index=int(content)
+            if 0<=selected_index<min(len(agent.opponent.land_area),10):
+                return selected_index+1
+            raise ValueError(f"opponent land index {selected_index} not found")
+        if type_act=="self_landfield":
+            selected_index=int(content)
+            if 0<=selected_index<min(len(agent.land_area),10):
+                return selected_index+11
+            raise ValueError(f"self land index {selected_index} not found")
         if type_act=="oppo":
             return 21
         if type_act=="self":
@@ -233,14 +256,19 @@ async def num2action(room:"Base_Agent_Room",agent:"Agent",action:int)->str:
         content=f'{action-12}'
     elif action>=22 and action<=31:
         type_act="activate_ability"
-        content=f'{action-22}'
+        content=f'land_area;{action-22}'
     else:
         type_act="play_card"
         index_card=(action-32)//33
         content=f"{index_card}"
         sub_action=(action-32)%33
-        sub_content=num2subaction(room,agent,sub_action)
+        select_range=get_card_select_range(agent.hand[index_card])
+        sub_content=num2subaction(room,agent,sub_action,select_range)
         agent.set_select_content(sub_content)
         #print(sub_content)
     result=f"{name}|{type_act}|{content}"
     return result
+
+
+def add_action_history(agent:"Agent",batch):
+    pass
