@@ -1,7 +1,10 @@
 import sys
 if __name__=="__main__":
     
-    sys.path.append("/Users/xuanpeichen/Desktop/code/python/openai/src")
+    from pathlib import Path
+    src_root = next(parent for parent in Path(__file__).resolve().parents if parent.name == "src")
+    if str(src_root) not in sys.path:
+        sys.path.append(str(src_root))
     
    
 import inspect

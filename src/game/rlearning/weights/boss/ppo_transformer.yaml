@@ -20,11 +20,11 @@ treasures:
             
 #------------------------------------
 
-trainer: "game.rlearning.module.ppo_agent_lstm.PPOTrainer"
+trainer: "game.rlearning.module.fixed_deck.ppo_agent_lstm.PPOTrainer"
 reward_function: "game.rlearning.rewards.win_base.get_reward"
-state_function: "game.rlearning.states.single_deck.get_state"
-action_transform_function: "game.rlearning.actions.single_deck.num2action"
-action_mask_function: "game.rlearning.actions.single_deck.create_action_mask"
+state_function: "game.rlearning.states.fixed_deck.single_deck.get_state"
+action_transform_function: "game.rlearning.actions.fixed_deck.single_deck.num2action"
+action_mask_function: "game.rlearning.actions.fixed_deck.single_deck.create_action_mask"
 
 ###########################
 #  Train 
@@ -32,7 +32,7 @@ action_mask_function: "game.rlearning.actions.single_deck.create_action_mask"
 seed: 1247
 max_store: 1024
 #------------------------------------
-dataset_class_name: "game.rlearning.datasets.ppo_agent_transformer.PPOAgentDataset"
+dataset_class_name: "game.rlearning.datasets.fixed_deck.ppo_agent_transformer.PPOAgentDataset"
 dataloader:
   batch_size: 32
   num_workers: 0
@@ -41,7 +41,7 @@ dataset_multiple: 10
 
 
 #------------------------------------
-trainer: "game.rlearning.module.ppo_agent_transformer.PPOTrainer"
+trainer: "game.rlearning.module.fixed_deck.ppo_agent_transformer.PPOTrainer"
 
 w_val_loss: 0.5
 w_act_loss: 0.5
@@ -112,75 +112,75 @@ model:
 
   
   HeroEmbedSelf:
-    class_name: 'game.rlearning.net.embed.HeroEmbed'
+    class_name: 'game.rlearning.net.fixed_deck.embed.HeroEmbed'
     len_life: 21
     embed_dim: 128
     
 
   HeroEmbedOppo:
-    class_name: 'game.rlearning.net.embed.HeroEmbed'
+    class_name: 'game.rlearning.net.fixed_deck.embed.HeroEmbed'
     len_life: 21
     embed_dim: 128
 
   ManaEmbed:
-    class_name: 'game.rlearning.net.embed.ManaEmbed'
+    class_name: 'game.rlearning.net.fixed_deck.embed.ManaEmbed'
     len_mana: 5
     embed_dim: 16
     max_mana: 20
 
   CardsHandEmbed:
-    class_name: 'game.rlearning.net.embed.HandEmbedNew'
+    class_name: 'game.rlearning.net.fixed_deck.embed.HandEmbedNew'
     <<: *shared_card_cfg
     card_hand_dim: 40
 
 
   CardsBoardEmbed:
-    class_name: 'game.rlearning.net.transformer.CardBoardEmbed'
+    class_name: 'game.rlearning.net.fixed_deck.transformer.CardBoardEmbed'
     <<: *shared_card_cfg
 
 
   # CardsBoardEmbedOppo:
-  #   class_name: 'game.rlearning.net.transformer.CardBoardEmbed'
+  #   class_name: 'game.rlearning.net.fixed_deck.transformer.CardBoardEmbed'
   #   <<: *shared_card_cfg
 
 
   # AttackerEmbed:
-  #   class_name: 'game.rlearning.net.transformer.CardBoardEmbed'
+  #   class_name: 'game.rlearning.net.fixed_deck.transformer.CardBoardEmbed'
   #   <<: *shared_card_cfg
 
   BoardTransformer:
-    class_name: 'game.rlearning.net.transformer.BoardTransformer'
+    class_name: 'game.rlearning.net.fixed_deck.transformer.BoardTransformer'
     d_model: 128
     nhead: 8
     num_layers: 3
     dropout: 0.1
 
   ActionEmbed:
-    class_name: 'game.rlearning.net.embed.ActionEmbed'
+    class_name: 'game.rlearning.net.fixed_deck.embed.ActionEmbed'
     action_dim: 1342
     action_embed_dim: 128
     is_g: False
 
   Dense:
-    class_name: 'game.rlearning.net.baseNets.Dense'
+    class_name: 'game.rlearning.net.common.baseNets.Dense'
     d_in: 16
     d_out: 560
     is_g: False
 
   HistoryEmbed:
-    class_name: 'game.rlearning.net.embed.HistoryEmbed'
+    class_name: 'game.rlearning.net.fixed_deck.embed.HistoryEmbed'
     history_dim: 43 #new history 40+1+1+1
     history_embed_dim: 128
     
 
   Actor:
-    class_name: 'game.rlearning.net.ppo.Actor'
+    class_name: 'game.rlearning.net.fixed_deck.ppo.Actor'
     input_dim: 528
     hidden_dim: 512
     output_dim: 1342
     deep: 5
   Critic:
-    class_name: 'game.rlearning.net.ppo.Critic'
+    class_name: 'game.rlearning.net.fixed_deck.ppo.Critic'
     input_dim: 528
     hidden_dim: 512
     output_dim: 1

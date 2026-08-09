@@ -38,10 +38,12 @@ class Agent_Player(Player):
         batch=self.agent.choose_action([state],isTrain=isTrain)
 
         self.room.basic_func[self.name]["add_action_history"](self,batch)
+        action=batch["action"]
+        return action
     #     if self.agent.name=="main":
     #         pass
     #         #self.agent.embedding_store(state,batch)
-    #     action=batch["action"]
+        
     #     if action==0:
     #         self.add_action_history(action)
     #     elif action==1:
@@ -58,7 +60,7 @@ class Agent_Player(Player):
     #         #history_action=22+((action-22)//33)
     #         self.add_action_history(history_action-1)
 
-    #     return action
+        
     # def add_action_history(self,action:int):
     #     if self.agent.config.get("new_history",False):
     #         if (action==1 or action==2) and action==self.action_history[-1] and self.agent.config.get("history_attack",False)==False:

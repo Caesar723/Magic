@@ -1,6 +1,9 @@
 if __name__=="__main__":
     import sys
-    sys.path.append("/Users/xuanpeichen/Desktop/code/python/openai/")
+    from pathlib import Path
+    src_root = next(parent for parent in Path(__file__).resolve().parents if parent.name == "src")
+    if str(src_root) not in sys.path:
+        sys.path.append(str(src_root))
     
     
 
@@ -510,7 +513,7 @@ class Room:
 
         if not card:
             return (False,"no card")
-        print(card.get_flag("haste"),card.get_flag("summoning_sickness"),card.get_flag("tap"),card.get_counter_from_dict("attack_counter"))
+        #print(card.get_flag("haste"),card.get_flag("summoning_sickness"),card.get_flag("tap"),card.get_counter_from_dict("attack_counter"))
         if player==self.active_player and not self.get_flag('attacker_defenders') and\
         (not card.get_flag("summoning_sickness") or card.get_flag("haste")) and\
         not card.get_flag("tap") and (card.get_counter_from_dict("attack_counter")>0):

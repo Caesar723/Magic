@@ -8,8 +8,8 @@ if __name__ == "__main__":
     ORGPATH=os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     
     sys.path.append(ORGPATH)
-from game.rlearning.net.baseNets import AttnPool
-from game.rlearning.net.RelationTransformer import RelationMultiHeadAttention,RelationTransformerLayer
+from game.rlearning.net.common.baseNets import AttnPool
+from game.rlearning.net.fixed_deck.RelationTransformer import RelationMultiHeadAttention,RelationTransformerLayer
 
 class HeroEmbed(nn.Module):
     

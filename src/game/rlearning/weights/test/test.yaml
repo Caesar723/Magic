@@ -18,7 +18,7 @@ cards: "Eternal Phoenix+Creature+4|Raging Firekin+Creature+4|Emberheart Salamand
 seed: 1234
 max_store: 1024
 #------------------------------------
-dataset_class_name: "game.rlearning.datasets.agent_test.AgentTestDataset"
+dataset_class_name: "game.rlearning.datasets.fixed_deck.agent_test.AgentTestDataset"
 dataloader:
   batch_size: 32
   num_workers: 0
@@ -27,12 +27,12 @@ dataset_multiple: 10
 
 
 #------------------------------------
-trainer: "game.rlearning.module.agent_test.AgentTestTrainer"
+trainer: "game.rlearning.module.fixed_deck.agent_test.AgentTestTrainer"
 
 reward_function: "game.rlearning.rewards.win_base.get_reward"
-state_function: "game.rlearning.states.single_deck.get_state"
-action_transform_function: "game.rlearning.actions.index_base.num2action"
-action_mask_function: "game.rlearning.actions.index_base.create_action_mask"
+state_function: "game.rlearning.states.fixed_deck.single_deck.get_state"
+action_transform_function: "game.rlearning.actions.state_space.index_base.num2action"
+action_mask_function: "game.rlearning.actions.state_space.index_base.create_action_mask"
 
 
 optimizer:

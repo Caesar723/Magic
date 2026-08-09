@@ -4,7 +4,10 @@ from types import SimpleNamespace
 
 if __name__=="__main__":
     import sys
-    sys.path.append("/Users/xuanpeichen/Desktop/code/python/openai/src")
+    from pathlib import Path
+    src_root = next(parent for parent in Path(__file__).resolve().parents if parent.name == "src")
+    if str(src_root) not in sys.path:
+        sys.path.append(str(src_root))
 from game.game_function_tool import ORGPATH
 from game.rlearning.utils.model import get_class_by_name
 from game.rogue.rogue_dict import ROGUE_AGENTS_DICT,ROGUE_TREASURE_DICT,ROGUE_EVENT_DICT,ROGUE_CARD_BATCH_DICT

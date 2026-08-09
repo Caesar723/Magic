@@ -22,7 +22,7 @@ max_store: 1024
 
 train_mode: 1 # 0: train only embed, 1: train only action, 2: both
 #------------------------------------
-dataset_class_name: "game.rlearning.datasets.action_embed.PPOAgentDataset"
+dataset_class_name: "game.rlearning.datasets.fixed_deck.action_embed.PPOAgentDataset"
 dataloader:
   batch_size: 32
   num_workers: 0
@@ -31,7 +31,7 @@ dataset_multiple: 10
 
 
 #------------------------------------
-trainer: "game.rlearning.module.action_embed.PPOTrainer"
+trainer: "game.rlearning.module.fixed_deck.action_embed.PPOTrainer"
 
 w_val_loss: 0.5
 w_act_loss: 0.5
@@ -98,62 +98,62 @@ model:
 
   
   HeroEmbedSelf:
-    class_name: 'game.rlearning.net.embed.HeroEmbed'
+    class_name: 'game.rlearning.net.fixed_deck.embed.HeroEmbed'
     len_life: 21
     embed_dim: 16
     
 
   HeroEmbedOppo:
-    class_name: 'game.rlearning.net.embed.HeroEmbed'
+    class_name: 'game.rlearning.net.fixed_deck.embed.HeroEmbed'
     len_life: 21
     embed_dim: 16
 
   ManaEmbed:
-    class_name: 'game.rlearning.net.embed.ManaEmbed'
+    class_name: 'game.rlearning.net.fixed_deck.embed.ManaEmbed'
     len_mana: 5
     embed_dim: 16
     max_mana: 20
 
   CardsHandEmbed:
-    class_name: 'game.rlearning.net.embed.HandEmbedNew'
+    class_name: 'game.rlearning.net.fixed_deck.embed.HandEmbedNew'
     <<: *shared_card_cfg
     card_hand_dim: 160
 
 
   CardsBoardEmbedSelf:
-    class_name: 'game.rlearning.net.embed.BoardEmbed'
+    class_name: 'game.rlearning.net.fixed_deck.embed.BoardEmbed'
     <<: *shared_card_cfg
 
 
   CardsBoardEmbedOppo:
-    class_name: 'game.rlearning.net.embed.BoardEmbed'
+    class_name: 'game.rlearning.net.fixed_deck.embed.BoardEmbed'
     <<: *shared_card_cfg
 
 
   AttackerEmbed:
-    class_name: 'game.rlearning.net.embed.CardBoardEmbed'
+    class_name: 'game.rlearning.net.fixed_deck.embed.CardBoardEmbed'
     <<: *shared_card_cfg
 
   ActionEmbed:
-    class_name: 'game.rlearning.net.embed.ActionEmbed'
+    class_name: 'game.rlearning.net.fixed_deck.embed.ActionEmbed'
     action_dim: 1342
     action_embed_dim: 16
     is_g: False
 
   Dense:
-    class_name: 'game.rlearning.net.baseNets.Dense'
+    class_name: 'game.rlearning.net.common.baseNets.Dense'
     d_in: 576
     d_out: 560
     is_g: False
 
   Actor:
-    class_name: 'game.rlearning.net.ppo.Actor'
+    class_name: 'game.rlearning.net.fixed_deck.ppo.Actor'
     input_dim: 560
     hidden_dim: 512
     output_dim: 1342
     deep: 5
   Critic:
-    class_name: 'game.rlearning.net.ppo.Critic'
+    class_name: 'game.rlearning.net.fixed_deck.ppo.Critic'
     input_dim: 560
     hidden_dim: 512
     output_dim: 1

@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-from game.rlearning.net.baseNets import AttnPool
+from game.rlearning.net.common.baseNets import AttnPool
 
 class HeroEmbed(nn.Module):
     

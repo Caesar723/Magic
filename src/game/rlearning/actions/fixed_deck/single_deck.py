@@ -118,7 +118,7 @@ def _battlefield_rank(room:"Base_Agent_Room",agent:"Agent",battlefield_index:int
     raise ValueError(f"battlefield index {battlefield_index} not found")
 
 
-def _split_action_message(message:str)->tuple[str,str|None]:
+def _split_action_message(message:str)->tuple[str,str]:
     if "||" in message:
         message,select_content=message.split("||",1)
         return message,select_content
@@ -280,7 +280,7 @@ def create_action_mask(room:"Base_Agent_Room",agent:"Agent"):
 def add_action_history(agent:"Agent",batch):
     def append_history(agent,action:int):
         if agent.agent.config.get("new_history",False):
-            if (action==1 or action==2) and action==agent.action_history[-1] and self.agent.config.get("history_attack",False)==False:
+            if (action==1 or action==2) and action==agent.action_history[-1] and agent.config.get("history_attack",False)==False:
                 return 
         agent.action_history.append(action)
         if len(agent.action_history)>agent.action_history_length:

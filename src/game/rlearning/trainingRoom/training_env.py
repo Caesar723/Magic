@@ -1,6 +1,9 @@
 if __name__=="__main__":
     import sys
-    sys.path.append("/Users/xuanpeichen/Desktop/code/python/openai/src")
+    from pathlib import Path
+    src_root = next(parent for parent in Path(__file__).resolve().parents if parent.name == "src")
+    if str(src_root) not in sys.path:
+        sys.path.append(str(src_root))
     
    
 import inspect
@@ -10,7 +13,7 @@ import numpy as np
 import asyncio
 from game.train_agent import Agent_Train
 from game.room import Room
-from game.rlearning.module.ppo_agent import PPOTrainer
+from game.rlearning.module.fixed_deck.ppo_agent import PPOTrainer
 from game.rlearning.utils.model import get_class_by_name
 
 from game.card import Card

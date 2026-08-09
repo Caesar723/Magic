@@ -1,7 +1,10 @@
 
 if __name__=="__main__":
     import sys
-    sys.path.append("/Users/xuanpeichen/Desktop/code/python/openai/src")
+    from pathlib import Path
+    src_root = next(parent for parent in Path(__file__).resolve().parents if parent.name == "src")
+    if str(src_root) not in sys.path:
+        sys.path.append(str(src_root))
     
    
 
@@ -13,7 +16,7 @@ from functools import partial
 
 from game.agent import Agent_Player as Agent
 from game.room import Room
-from game.rlearning.module.ppo_agent import PPOTrainer
+from game.rlearning.module.fixed_deck.ppo_agent import PPOTrainer
 from game.rlearning.utils.model import get_class_by_name
 
 from game.card import Card
@@ -42,11 +45,11 @@ class Base_Agent_Room(Room):
         get_reward=get_class_by_name(config.get("reward_function","game.rlearning.rewards.win_base.get_reward"))
         result["get_reward"]=partial(get_reward,self)
 
-        get_state=get_class_by_name(config.get("state_function","game.rlearning.states.single_deck.get_state"))
+        get_state=get_class_by_name(config.get("state_function","game.rlearning.states.fixed_deck.single_deck.get_state"))
         result["get_state"]=partial(get_state,self)
 
 
-        action_transform_path=config.get("action_transform_function","game.rlearning.actions.single_deck.num2action")
+        action_transform_path=config.get("action_transform_function","game.rlearning.actions.fixed_deck.single_deck.num2action")
         num2action=get_class_by_name(action_transform_path)
         result["num2action"]=partial(num2action,self)
 
@@ -54,11 +57,11 @@ class Base_Agent_Room(Room):
         action2num=get_class_by_name(action2num_path)
         result["action2num"]=partial(action2num,self)
 
-        add_action_history_path=config.get("add_action_history_function","game.rlearning.actions.single_deck.add_action_history")
+        add_action_history_path=config.get("add_action_history_function","game.rlearning.actions.fixed_deck.single_deck.add_action_history")
         add_action_history=get_class_by_name(add_action_history_path)
-        result["add_action_history"]=partial(add_action_history,self)
+        result["add_action_history"]=add_action_history
 
-        create_action_mask=get_class_by_name(config.get("action_mask_function","game.rlearning.actions.single_deck.create_action_mask"))
+        create_action_mask=get_class_by_name(config.get("action_mask_function","game.rlearning.actions.fixed_deck.single_deck.create_action_mask"))
         result["create_action_mask"]=partial(create_action_mask,self)
 
         return result

@@ -1,6 +1,9 @@
 if __name__=="__main__":
     import sys
-    sys.path.append("/Users/xuanpeichen/Desktop/code/python/openai/src")
+    from pathlib import Path
+    src_root = next(parent for parent in Path(__file__).resolve().parents if parent.name == "src")
+    if str(src_root) not in sys.path:
+        sys.path.append(str(src_root))
     
    
 import inspect
@@ -12,7 +15,7 @@ import asyncio
 import os
 from game.train_agent import Agent_Train
 from game.room import Room
-from game.rlearning.module.ppo_agent import PPOTrainer
+from game.rlearning.module.fixed_deck.ppo_agent import PPOTrainer
 from game.rlearning.utils.model import get_class_by_name
 
 from game.card import Card
@@ -428,7 +431,7 @@ async def tasks(room):
 async def main():
     
     room=Multi_Agent_Room(
-        "/Users/xuanpeichen/Desktop/code/python/openai/src/game/rlearning/config/white/ppo_lstm3.yaml",
+        "/home/a123456/Desktop/Magic/src/game/rlearning/config/agents/white/ppo_lstm3.yaml",
     )
     
     await room.game_start()
