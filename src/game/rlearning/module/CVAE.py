@@ -33,10 +33,16 @@ class CVAETrainer(BaseTrainer):
         h_action = models["ActionEncoder"](batch["action_index"])
         # 3) card_used
         cu = batch["card_used"]
-        h_text = models["TextEncoder"](
-            cu["description"],
-            src_key_padding_mask=~cu["attention_mask"].bool(),
-        )
+        if "attention_mask" in cu:
+            h_text = models["TextEncoder"](
+                cu["description"],
+                src_key_padding_mask=~cu["attention_mask"].bool(),
+            )
+        else:
+            h_text = models["TextEncoder"](
+                cu["description"],
+                device=h_s.device,
+            )
         h_card_attr = models["CardStateEncoder"](
             cu["card_type"].long(),
             cu["special_type"],

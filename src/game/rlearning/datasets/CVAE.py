@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-from transformers import CLIPTokenizer
 
 from game.rlearning.utils.baseDataset import BaseDataset
 from game.rlearning.utils.data import batch_to_cuda, detach_cuda, to_cpu, to_cuda
@@ -352,10 +351,43 @@ class CVAEDataset(BaseDataset):
         self.set_extra()
 
     def set_extra(self):
-        self.extra = {
-            "CLIPTokenizer": CLIPTokenizer.from_pretrained(
-                "openai/clip-vit-base-patch32"
-            )
+        self.extra = {}
+        if self.use_raw_text():
+            return
+
+        from transformers import AutoTokenizer
+
+        tokenizer_config = self.config.get("TextTokenizer", self.config["CLIPTokenizer"])
+        model_name = tokenizer_config.get(
+            "model_name",
+            "openai/clip-vit-base-patch32",
+        )
+        self.extra["TextTokenizer"] = AutoTokenizer.from_pretrained(
+            model_name,
+            trust_remote_code=tokenizer_config.get("trust_remote_code", False),
+        )
+
+    def use_raw_text(self):
+        return self.config.get("TextTokenizer", {}).get("raw_text", False)
+
+    def encode_descriptions(self, descriptions):
+        if self.use_raw_text():
+            return {
+                "input": descriptions,
+                "attention_mask": None,
+            }
+
+        tokenizer_config = self.config.get("TextTokenizer", self.config["CLIPTokenizer"])
+        tokens = self.extra["TextTokenizer"](
+            descriptions,
+            padding=tokenizer_config["padding"],
+            truncation=True,
+            max_length=tokenizer_config["context_length"],
+            return_tensors="pt",
+        )
+        return {
+            "input": tokens["input_ids"],
+            "attention_mask": tokens["attention_mask"],
         }
 
     def get_sample(self, data):
@@ -440,16 +472,11 @@ class CVAEDataset(BaseDataset):
 
         descriptions = batch_card_used["card_used"]["description"]
 
-        tokens = self.extra["CLIPTokenizer"](
-            descriptions,
-            padding=self.config["CLIPTokenizer"]["padding"],
-            truncation=True,
-            max_length=self.config["CLIPTokenizer"]["context_length"],
-            return_tensors="pt",
-        )
+        tokens = self.encode_descriptions(descriptions)
 
-        batch_card_used["card_used"]["description"] = tokens["input_ids"]
-        batch_card_used["card_used"]["attention_mask"] = tokens["attention_mask"]
+        batch_card_used["card_used"]["description"] = tokens["input"]
+        if tokens["attention_mask"] is not None:
+            batch_card_used["card_used"]["attention_mask"] = tokens["attention_mask"]
 
         return batch_card_used
 
@@ -493,26 +520,16 @@ class CVAEDataset(BaseDataset):
         descriptions = batch_card_used["card_used"]["description"]
         similar_descriptions = batch_card_used["card_used"]["similar_description"]
 
-        tokens = self.extra["CLIPTokenizer"](
-            descriptions,
-            padding=self.config["CLIPTokenizer"]["padding"],
-            truncation=True,
-            max_length=self.config["CLIPTokenizer"]["context_length"],
-            return_tensors="pt",
-        )
+        tokens = self.encode_descriptions(descriptions)
+        similar_tokens = self.encode_descriptions(similar_descriptions)
 
-        similar_tokens = self.extra["CLIPTokenizer"](
-            similar_descriptions,
-            padding=self.config["CLIPTokenizer"]["padding"],
-            truncation=True,
-            max_length=self.config["CLIPTokenizer"]["context_length"],
-            return_tensors="pt",
-        )
+        batch_card_used["card_used"]["description"] = tokens["input"]
+        if tokens["attention_mask"] is not None:
+            batch_card_used["card_used"]["attention_mask"] = tokens["attention_mask"]
 
-        batch_card_used["card_used"]["description"] = tokens["input_ids"]
-        batch_card_used["card_used"]["attention_mask"] = tokens["attention_mask"]
-        batch_card_used["card_used"]["similar_description"] = similar_tokens["input_ids"]
-        batch_card_used["card_used"]["similar_attention_mask"] = similar_tokens["attention_mask"]
+        batch_card_used["card_used"]["similar_description"] = similar_tokens["input"]
+        if similar_tokens["attention_mask"] is not None:
+            batch_card_used["card_used"]["similar_attention_mask"] = similar_tokens["attention_mask"]
 
         return batch_card_used
 

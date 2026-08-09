@@ -30,3 +30,5 @@ src/game/game_records
 
 .pytest_cache/
 .vscode/
+
+models

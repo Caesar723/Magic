@@ -91,6 +91,9 @@ shared_card_cfg: &shared_card_cfg
   card_embed_dim: 128
   
 
+TextTokenizer:
+  raw_text: True
+  
 CLIPTokenizer:
   context_length: 77
   padding: "max_length"
@@ -98,52 +101,69 @@ CLIPTokenizer:
 
 model:
 
-  
-  HeroEmbedSelf:
-    class_name: 'game.rlearning.net.embed.HeroEmbed'
-    len_life: 21
-    embed_dim: 16
+  StateTransformerEncoder:
+    class_name: 'game.rlearning.net.StateEncoder.StateTransformerEncoder'
+    num_card_types: 5
+    special_type_dim: 20
+    stack_player_dim: 2
+    stack_action_vocab_size: 20
+    d_model: 128
+    nhead: 4
+    num_layers: 2
+    dim_feedforward: 256
+    dropout: 0.1
+    max_slots: 64
 
-  HeroEmbedOppo:
-    class_name: 'game.rlearning.net.embed.HeroEmbed'
-    len_life: 21
-    embed_dim: 16
+  ActionEncoder:
+    class_name: 'game.rlearning.net.StateEncoder.ActionEncoder'
+    action_size: 362
+    output_dim: 128
 
-  ManaEmbed:
-    class_name: 'game.rlearning.net.embed.ManaEmbed'
-    len_mana: 5
-    embed_dim: 16
-    max_mana: 20
+  TextEncoder:
+    class_name: 'game.rlearning.net.jina_text_encoder.JinaTextEncoder'
+    model_name: 'jinaai/jina-embeddings-v5-text-small'
+    local_model_path: 'models/jina-embeddings-v5-text-small'
+    cache_dir: 'models'
+    task: 'text-matching'
+    truncate_dim: 128
+    normalize: True
+    trust_remote_code: True
+    local_files_only: False
+    lazy_load: True
 
-  CardsHandEmbed:
-    class_name: 'game.rlearning.net.embed.HandEmbed'
-    <<: *shared_card_cfg
+  CardStateEncoder:
+    class_name: 'game.rlearning.net.StateEncoder.CardStateEncoder'
+    max_card_type: 5
+    num_special: 20
+    output_dim: 128
 
+  CardFusion:
+    class_name: 'game.rlearning.net.CVAE.CardFusion'
+    text_dim: 128
+    attr_dim: 128
+    hidden_dim: 256
+    d_model: 128
 
-  CardsBoardEmbedSelf:
-    class_name: 'game.rlearning.net.embed.BoardEmbed'
-    <<: *shared_card_cfg
+  PriorityEncoder:
+    class_name: 'game.rlearning.net.CVAE.PriorityEncoder'
+    d_model: 128
+    latent_dim: 128
 
+  PosteriorDecoder:
+    class_name: 'game.rlearning.net.CVAE.PosteriorDecoder'
+    d_model: 128
+    latent_dim: 128
 
-  CardsBoardEmbedOppo:
-    class_name: 'game.rlearning.net.embed.BoardEmbed'
-    <<: *shared_card_cfg
-
-
-  AttackerEmbed:
-    class_name: 'game.rlearning.net.embed.CardBoardEmbed'
-    <<: *shared_card_cfg
-
-  Actor:
-    class_name: 'game.rlearning.net.ppo.Actor'
-    input_dim: 560
-    hidden_dim: 512
-    output_dim: 362
-    deep: 2
-
-  Critic:
-    class_name: 'game.rlearning.net.ppo.Critic'
-    input_dim: 560
-    hidden_dim: 512
-    output_dim: 1
-    deep: 2
+  TokenTransitionStateDecoder:
+    class_name: 'game.rlearning.net.StateEncoder.TokenTransitionStateDecoder'
+    transition_dim: 128
+    num_card_types: 5
+    special_type_dim: 20
+    stack_player_dim: 2
+    stack_action_vocab_size: 20
+    d_model: 128
+    transition_memory_len: 10
+    nhead: 4
+    num_layers: 2
+    dim_feedforward: 256
+    dropout: 0.1

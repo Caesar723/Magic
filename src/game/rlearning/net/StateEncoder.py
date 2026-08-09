@@ -81,7 +81,12 @@ class CardStateEncoder(nn.Module):
         super().__init__()
 
         self.type_embed = nn.Embedding(config["max_card_type"], config["output_dim"])
-        self.special_type_embed= nn.Embedding(config["num_special"], config["output_dim"])
+        self.special_type_proj = nn.Sequential(
+            nn.Linear(config["num_special"], config["output_dim"]),
+            nn.LayerNorm(config["output_dim"]),
+            nn.GELU(),
+            nn.Linear(config["output_dim"], config["output_dim"]),
+        )
         self.mana_encoder = nn.Sequential(
             nn.Linear(6, config["output_dim"]),
             nn.LayerNorm(config["output_dim"]),
@@ -109,8 +114,8 @@ class CardStateEncoder(nn.Module):
 
     def forward(self, card_type,special_type, mana_cost, attack, defense, has_combat):
         type_feat = self.type_embed(card_type)
-        special_feat = self.special_type_embed(special_type)
-        mana_feat = self.mana_encoder(mana_cost.unsqueeze(-1))
+        special_feat = self.special_type_proj(special_type.float())
+        mana_feat = self.mana_encoder(mana_cost.float())
 
         combat_raw = torch.stack([attack, defense], dim=-1)
         combat_feat = self.combat_mlp(combat_raw)

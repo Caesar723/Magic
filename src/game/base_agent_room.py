@@ -93,7 +93,7 @@ class Base_Agent_Room(Room):
             card_type=3
             if not (Land.when_enter_landarea is card.when_enter_landarea.__func__):
                 special_types[0]=1
-            if not (Land.when_enter_landarea is card.when_enter_landarea.__func__):
+            if not (Land.when_leave_landarea is card.when_leave_landarea.__func__):
                 special_types[1]=1
         elif isinstance(card,Sorcery):
             card_type=4
