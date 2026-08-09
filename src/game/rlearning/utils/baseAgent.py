@@ -242,8 +242,12 @@ class BaseTrainer:
 
             self.dataset.data_preprocess(self)
             self._init_dataloader()
-            self.save_checkpoint()
             self.run()
+            # The rollout service loads g_last after this method returns.  Save
+            # after optimisation, otherwise it would always receive the model
+            # from before the just-finished update.
+            self._moving_average()
+            self.save_checkpoint()
             self.dataset.clear_data()
             return True
         return False

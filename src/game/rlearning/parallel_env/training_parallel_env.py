@@ -16,6 +16,7 @@ from game.rlearning.utils.model import get_class_by_name
 from game.rlearning.utils.file import read_yaml
 from game.rlearning.utils.baseParallelEnv import BaseParallelEnv
 from game.rlearning.utils.agentSchedule import AgentSchedule
+from game.rlearning.inference.protocol import PolicyUpdate
 if TYPE_CHECKING:
     from game.rlearning.communicate.training_parallel_room import Info_Communication
 
@@ -41,6 +42,12 @@ class Parallel_Env(BaseParallelEnv):
             is_update=self.agent1.update()
             if is_update:
                 self.info_communication.update_model(self.agent1.step,-1)
+                if self.inference_communication is not None:
+                    self.inference_communication.control_queue.put(PolicyUpdate(
+                        policy_id="main",
+                        config_path=self.config_path,
+                        restore_step=-1,
+                    ))
                 
             for worker_id in range(self.num_worker):
                 if not self.info_communication.check_model_update(worker_id):
@@ -48,11 +55,11 @@ class Parallel_Env(BaseParallelEnv):
                     
                     logdir=f"{ORGPATH}/../{CHECKPOINT_ROOT_PATH}/{config['log_dir']}"
                     restore_step=AgentSchedule.get_restore_step(logdir)
-                    print(agent_path,restore_step)
+                    #print(agent_path,restore_step)
                     self.info_communication.update_model_opponent(worker_id,agent_path,restore_step)
 
             if self.agent1.step >= self.agent1.total_step:  
                 if self.agent1.rank == 0:
                     self.agent1.save_checkpoint() 
+                self.stop_inference_server()
                 return 
-

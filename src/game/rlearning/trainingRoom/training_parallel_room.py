@@ -21,6 +21,7 @@ from game.rlearning.utils.file import read_yaml
 from game.base_agent_room import Base_Agent_Room
 from game.game_recorder import GameRecorder
 from game.rlearning.utils.agentSchedule import AgentSchedule
+from game.rlearning.rollout.rollout_agent import RolloutAgent
 from initinal_file import ORGPATH
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -39,11 +40,13 @@ class Multi_Agent_Parallel_Room(Base_Agent_Room):
     env_config,
     info_communication:"Info_Communication",
     worker_id:int,
+    inference_communication,
     ) -> None:
         self.env_config=env_config
         config_path=f"{ORGPATH}/{env_config['agent_config']}"
         config_path_list=[f"{ORGPATH}/{config_path}" for config_path in env_config["opponent_config"]]
         self.info_communication=info_communication
+        self.inference_communication=inference_communication
         self.worker_id=worker_id
         
         self.config_path=config_path
@@ -51,13 +54,16 @@ class Multi_Agent_Parallel_Room(Base_Agent_Room):
         self.config=read_yaml(config_path)
         self.config_list=[read_yaml(config_path) for config_path in config_path_list]
 
-        trainer1=get_class_by_name(self.config["trainer"])
-        trainer1.pbar=None
-        trainer_list=[get_class_by_name(config["trainer"]) for config in self.config_list]
-        self.agent1=trainer1(self.config,self.config["restore_step"],name="main")
+        self.agent1=RolloutAgent(
+            self.config_path, self.inference_communication, worker_id, "main",
+            self.config["restore_step"],
+        )
         self.agent_list={
-            config_path_list[i]:trainer(self.config_list[i],self.config_list[i]["restore_step"],name=f"agent{i+1}") 
-            for i,trainer in enumerate(trainer_list)
+            config_path_list[i]: RolloutAgent(
+                config_path_list[i], self.inference_communication, worker_id,
+                f"opponent-{worker_id}-{i}", self.config_list[i]["restore_step"],
+            )
+            for i in range(len(self.config_list))
         }
         # self.agent1.load_pth(
         #     "/Users/xuanpeichen/Desktop/code/python/openai/model_complete_act.pth",
@@ -148,6 +154,7 @@ class Multi_Agent_Parallel_Room(Base_Agent_Room):
         if model_info["success_update"]:
             self.update_flag[self.player_1.name]=True
             self.player_1.agent.restore_checkpoint(model_info["model_path"])
+            self.player_1.agent.step = model_info["model_update_steps"]
         if model_info["success_opponent_update"]:
             self.player_2.agent.restore_checkpoint(model_info["model_opponent_path"])
         #self.player_2.agent.restore_checkpoint(AgentSchedule.get_restore_step(self.player_2))
