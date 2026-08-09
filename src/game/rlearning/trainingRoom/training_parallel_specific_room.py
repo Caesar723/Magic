@@ -115,7 +115,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         card_simulation_cls=self.get_card_simulation()
         
         card_simulation:"Card_Simulation"=card_simulation_cls(self.player_1,self)
-        print("simulate_card",card_simulation_cls.__name__)
+        #print("simulate_card",card_simulation_cls.__name__)
         similar_description=card_simulation.get_similar_description()
         
         candidates=card_simulation.get_candidates_simulation()
@@ -164,7 +164,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
     def get_cards_sample_by_name(self,name:str,number:int,is_except=False):
         if name == "undo":
-            print("get_cards_sample_by_name",name,number,is_except)
+            #print("get_cards_sample_by_name",name,number,is_except)
             result=[]
             types=["Instant","land","sorcery","creature"]
             subclass_dict={"Instant_Undo":"Instant"}
@@ -504,7 +504,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         # 从 mask 里抽一个为 true index，但是有范围限制
         
         actions_mask = self.basic_func[self.player_1.name]["create_action_mask"](self.player_1)[0]
-        print(actions_mask)
+        #print(actions_mask)
         min_index,max_index = action_range  # 设置你想要的最大index（不包含max_index本身）
         actions = [i for i in range(min_index, max_index) if actions_mask[i]]
         if not actions:
@@ -579,7 +579,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             "type":0,
             "action":action
         }
-        print(simulate_info)
+        #(simulate_info)
 
         return simulate_info
 
@@ -636,7 +636,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             "type":0,
             "action":action
         }
-        print(simulate_info)
+        #print(simulate_info)
 
         return simulate_info
 
@@ -666,7 +666,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             "type":0,
             "action":action
         }
-        print(simulate_info)
+        #print(simulate_info)
 
         return simulate_info
 
@@ -729,13 +729,13 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
     async def action_process_system(self):#这个会等待，直到收到send_actioin_request发送的请求
         repeat_train=True
         while repeat_train:
-            print(self)
+            #print(self)
             
 
             for i in range(256):
                 simulate_info=self.change_environmrnt()
-                print(self)
-                print(simulate_info)
+                #print(self)
+                #print(simulate_info)
                 action=simulate_info["action"]
                 if action is None:
                     continue
@@ -743,10 +743,10 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
                 state=self.basic_func[agent.name]["get_state"](agent)
                 state["card_used"]=self.get_card_used_info(simulate_info)
 
-                print(action)
+                #print(action)
                 
                 reward_func=await self.process_action(agent,action)
-                print(self)
+                #print(self)
 
                 # print("\n\n\n\n\n")
                 #asyncio.create_task(agent.store_data(state,action,reward_func))
@@ -767,7 +767,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
                             await agent.store_data(state,action,reward_func)
                         #print("store_data_func",action,id(store_data_func),id(reward_func),id(state))
                         agent.add_pedding_store_task(store_data_func)
-                        print(len(agent.pedding_store_task))
+                        #print(len(agent.pedding_store_task))
                     
                 await self.check_death()
                 
@@ -835,7 +835,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         # 获取state，done，计算reward
         #返回new state 和 reward 和 done
         message:str=await self.basic_func[agent.name]["num2action"](agent,action)
-        print(message)
+        #print(message)
         username,type,content=message.split("|")
         #old_reward=self.get_reward_red(agent)
         #print(username,content,type)

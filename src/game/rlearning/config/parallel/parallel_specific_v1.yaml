@@ -3,7 +3,7 @@ opponent_config:
   - game/rlearning/config/agents/specific.yaml
 
 info_communication: "game.rlearning.communicate.training_parallel_specific_room.Info_Communication"
-num_worker: 1
+num_worker: 50
 
 
 env: "game.rlearning.parallel_env.training_parallel_specific_env.Parallel_Env"
