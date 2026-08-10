@@ -69,9 +69,11 @@ synthesis_items: 20
 save_step: 2000
 epochs: 5
 n_epoch: 15
+
 ###########################
 #  Model 
 ###########################
+action_space: 362
 shared_card_cfg: &shared_card_cfg
   max_card_id: 100
   max_card_type: 4
@@ -158,6 +160,7 @@ model:
     class_name: 'game.rlearning.net.state_space.StateEncoder.TokenTransitionStateDecoder'
     transition_dim: 128
     num_card_types: 5
+    num_card_costs: 6
     special_type_dim: 20
     stack_player_dim: 2
     stack_action_vocab_size: 20

@@ -9,7 +9,7 @@ if __name__=="__main__":
 from typing import TYPE_CHECKING
 
 
-
+from game.rlearning.inference.protocol import PolicyUpdate
 from initinal_file import ORGPATH
 from game.rlearning.utils.baseParallelEnv import BaseParallelEnv
 if TYPE_CHECKING:
@@ -25,9 +25,23 @@ class Parallel_Env(BaseParallelEnv):
         while True:
             
             data=self.info_communication.get_game_data()
-            #self.agent1.store_round_data(data)
+            self.agent1.store_round_data(data)
             
-            print(len(data))
+            is_update=self.agent1.update()
+            if is_update:
+                self.info_communication.update_model(self.agent1.step,-1)
+                if self.inference_communication is not None:
+                    self.inference_communication.control_queue.put(PolicyUpdate(
+                        policy_id="main",
+                        config_path=self.config_path,
+                        restore_step=-1,
+                    ))
+
+            if self.agent1.step >= self.agent1.total_step:  
+                if self.agent1.rank == 0:
+                    self.agent1.save_checkpoint() 
+                self.stop_inference_server()
+                return 
             
             
 

@@ -341,9 +341,15 @@ class StateTransformerEncoder(nn.Module):
             nn.LayerNorm(d_model),
         )
 
-        # cost, atk, hp, has_state
+        self.card_cost_proj = nn.Sequential(
+            nn.Linear(6, d_model),
+            nn.GELU(),
+            nn.LayerNorm(d_model),
+        )
+
+        # atk, hp, has_state
         self.card_numeric_proj = nn.Sequential(
-            nn.Linear(4, d_model),
+            nn.Linear(3, d_model),
             nn.GELU(),
             nn.LayerNorm(d_model),
         )
@@ -391,37 +397,54 @@ class StateTransformerEncoder(nn.Module):
             dtype=torch.long,
             device=device,
         )
-    def owner_ids_from_player_one_hot(self, player_one_hot):
+    def owner_ids_from_player_one_hot(self, player_one_hot, num_slots=None):
         """
-        player_one_hot: [B, 2]
-
-        假设:
-            [1, 0] -> self
-            [0, 1] -> oppo
-            [0, 0] -> none
-
-        return:
-            owner_ids: [B]
+        支持：
+        [B, 2]    -> [B] 或扩展为 [B, N]
+        [B, N, 2] -> [B, N]
         """
         player_one_hot = player_one_hot.float()
 
-        B = player_one_hot.shape[0]
-        device = player_one_hot.device
+        if player_one_hot.ndim == 2:
+            B, _ = player_one_hot.shape
 
-        owner_ids = torch.full(
-            (B,),
-            self.owner_to_id["none"],
-            dtype=torch.long,
-            device=device,
-        )
+            owner_ids = torch.full(
+                (B,),
+                self.owner_to_id["none"],
+                dtype=torch.long,
+                device=player_one_hot.device,
+            )
 
-        self_mask = player_one_hot[:, 0] > 0.5
-        oppo_mask = player_one_hot[:, 1] > 0.5
+            self_mask = player_one_hot[:, 0] > 0.5
+            oppo_mask = player_one_hot[:, 1] > 0.5
 
-        owner_ids[self_mask] = self.owner_to_id["self"]
-        owner_ids[oppo_mask] = self.owner_to_id["oppo"]
+            owner_ids[self_mask] = self.owner_to_id["self"]
+            owner_ids[oppo_mask] = self.owner_to_id["oppo"]
 
-        return owner_ids
+            if num_slots is not None:
+                owner_ids = owner_ids.unsqueeze(1).expand(B, num_slots)
+
+            return owner_ids
+
+        if player_one_hot.ndim == 3:
+            B, N, _ = player_one_hot.shape
+
+            owner_ids = torch.full(
+                (B, N),
+                self.owner_to_id["none"],
+                dtype=torch.long,
+                device=player_one_hot.device,
+            )
+
+            self_mask = player_one_hot[..., 0] > 0.5
+            oppo_mask = player_one_hot[..., 1] > 0.5
+
+            owner_ids[self_mask] = self.owner_to_id["self"]
+            owner_ids[oppo_mask] = self.owner_to_id["oppo"]
+
+            return owner_ids
+
+        
 
     # =========================================================
     # global scalar tokens
@@ -477,8 +500,8 @@ class StateTransformerEncoder(nn.Module):
             
         )
 
-        print(value_emb.shape, name_emb.shape, zone_ids.shape, kind_ids.shape, owner_ids.shape)
-        print(self.owner_emb(owner_ids).shape)
+        # print(value_emb.shape, name_emb.shape, zone_ids.shape, kind_ids.shape, owner_ids.shape)
+        # print(self.owner_emb(owner_ids).shape)
 
         x = (
             value_emb
@@ -562,26 +585,31 @@ class StateTransformerEncoder(nn.Module):
         # -----------------------------------------------------
         # numeric features
         # -----------------------------------------------------
-        def get_scalar(name):
+        def get_scalar(name,unsqueeze=True,dim=1):
             if name in zone:
                 x = zone[name].float()
+                if unsqueeze:
+                    return x.unsqueeze(-1)
+                else:
+                    return x
             else:
                 x = torch.zeros(
                     B,
                     N,
+                    dim,
                     dtype=torch.float32,
                     device=device,
                 )
-            return x.unsqueeze(-1)
+                return x
+            
 
-        card_costs = get_scalar("card_costs")
+        card_costs = get_scalar("card_costs",unsqueeze=False,dim=6)
         card_atks = get_scalar("card_atks")
         card_hps = get_scalar("card_hps")
         card_has_state = get_scalar("card_has_state")
 
         numeric = torch.cat(
             [
-                card_costs,
                 card_atks,
                 card_hps,
                 card_has_state,
@@ -590,11 +618,12 @@ class StateTransformerEncoder(nn.Module):
         )
 
         numeric_emb = self.card_numeric_proj(numeric)
+        card_cost_emb = self.card_cost_proj(card_costs)
 
         # -----------------------------------------------------
         # content embedding
         # -----------------------------------------------------
-        x = card_type_emb + special_type_emb + numeric_emb
+        x = card_type_emb + special_type_emb + numeric_emb + card_cost_emb
 
         # -----------------------------------------------------
         # structural embeddings
@@ -833,6 +862,7 @@ class TokenTransitionStateDecoder(nn.Module):
 
         transition_dim=config["transition_dim"]
         num_card_types=config["num_card_types"]
+        num_card_costs=config["num_card_costs"]
         special_type_dim=config["special_type_dim"]
         stack_player_dim=config["stack_player_dim"]
         stack_action_vocab_size=config["stack_action_vocab_size"]
@@ -896,7 +926,7 @@ class TokenTransitionStateDecoder(nn.Module):
 
         # card zones
         self.card_type_head = nn.Linear(d_model, num_card_types)
-        self.card_cost_head = nn.Linear(d_model, 1)
+        self.card_cost_head = nn.Linear(d_model, num_card_costs)
         self.card_special_type_head = nn.Linear(d_model, special_type_dim)
         self.card_atk_head = nn.Linear(d_model, 1)
         self.card_hp_head = nn.Linear(d_model, 1)

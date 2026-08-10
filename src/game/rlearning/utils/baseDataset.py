@@ -1,3 +1,4 @@
+import os
 import torch
 import numpy as np
 
@@ -49,7 +50,14 @@ class BaseDataset(Dataset):
         self.config = config
         self.datas=[]
         self.logdir = f'{ORGPATH}/../{CHECKPOINT_ROOT_PATH}/{config["log_dir"]}'
-        self.pbar = tqdm(total=self.config.get("max_store", 1000), desc="Storing Samples", unit="sample")
+        self.pbar = self._new_pbar()
+
+    def _new_pbar(self):
+        # Rollout workers only collect data.  Their progress bars compete for
+        # the same terminal and are intentionally disabled by the worker entry.
+        if os.environ.get("RL_ROLLOUT_WORKER") == "1":
+            return None
+        return tqdm(total=self.config.get("max_store", 1000), desc="Storing Samples", unit="sample")
 
     
     def store_data(self, data):
@@ -112,7 +120,7 @@ class BaseDataset(Dataset):
 
     def clear_data(self):
         self.datas = []
-        self.pbar = tqdm(total=self.config.get("max_store", 1000), desc="Storing Samples", unit="sample")
+        self.pbar = self._new_pbar()
 
     def get_sample(self, data):
         pass
@@ -140,4 +148,4 @@ class BaseDataset(Dataset):
     def __getitem__(self, idx):
         idx = idx % len(self.datas)
         data = self.datas[idx]
-        return self.get_sample_preprocess(data,extra_keys=["state"]) 
+        return self.get_sample_preprocess(data,extra_keys=["state"])

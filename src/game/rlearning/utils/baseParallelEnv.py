@@ -126,6 +126,7 @@ def worker_process(
     room_class:type):
     # sys.stdout = open(os.devnull, 'w')
     # sys.stderr = open(os.devnull, 'w')
+    os.environ["RL_ROLLOUT_WORKER"] = "1"
     # The parent process owns Ctrl+C and performs coordinated shutdown.
     signal.signal(signal.SIGINT, signal.SIG_IGN)
     # Each rollout is Python/CPU bound.  One torch thread per process avoids

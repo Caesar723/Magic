@@ -3,7 +3,7 @@
 # Common
 ###########################
 
-log_dir: "ppo/ppo_white_lstm_n02_v03"
+log_dir: "ppo/ppo_white_v0"
 restore_step: 0
 new_version: True
 reward_type: "reward_creature_base"
@@ -26,12 +26,12 @@ dataloader:
   batch_size: 32
   num_workers: 0
 
-dataset_multiple: 10
+dataset_multiple: 2
 
 
 #------------------------------------
 trainer: "game.rlearning.module.fixed_deck.ppo_agent_lstm.PPOTrainer"
-reward_function: "game.rlearning.rewards.win_base.get_reward"
+reward_function: "game.rlearning.rewards.empty.get_reward"
 state_function: "game.rlearning.states.fixed_deck.single_deck.get_state"
 action_transform_function: "game.rlearning.actions.fixed_deck.single_deck.num2action"
 action_mask_function: "game.rlearning.actions.fixed_deck.single_deck.create_action_mask"
@@ -51,7 +51,7 @@ ppo:
 
 
 optimizer:
-  learning_rate: 5.0e-7
+  learning_rate: 1.0e-7
   betas: [0.8, 0.99]
   eps: 1.0e-9 
   grad_clip_thresh: 1.0
@@ -66,14 +66,14 @@ reset_learning_rate: True
 moving_average_beta: 0
 
 #------------------------------------
-total_step: 500000
+total_step: 1000000
 log_step: 20
-eval_step: 2000
-synthesis_step: 2000
+eval_step: 4000
+synthesis_step: 4000
 synthesis_items: 20
-save_step: 2000
+save_step: 4000
 epochs: 5
-n_epoch: 15
+n_epoch: 7
 ###########################
 #  Model 
 ###########################

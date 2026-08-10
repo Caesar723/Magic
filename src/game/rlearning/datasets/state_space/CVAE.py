@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+from transformers import AutoTokenizer
 
 from game.rlearning.utils.baseDataset import BaseDataset
 from game.rlearning.utils.data import batch_to_cuda, detach_cuda, to_cpu, to_cuda
@@ -350,12 +351,16 @@ class CVAEDataset(BaseDataset):
         super().__init__(config)
         self.set_extra()
 
+    def __getitem__(self, idx):
+        idx = idx % len(self.datas)
+        return self.get_sample(self.datas[idx])
+        
     def set_extra(self):
         self.extra = {}
         if self.use_raw_text():
             return
 
-        from transformers import AutoTokenizer
+
 
         tokenizer_config = self.config.get("TextTokenizer", self.config["CLIPTokenizer"])
         model_name = tokenizer_config.get(
@@ -403,14 +408,14 @@ class CVAEDataset(BaseDataset):
             }
         """
         result = {}
-
+       
         result["state"] = get_state(data["state"])
         result["next_state"] = get_state(data["next_state"])
 
         action = int(data["action"])
 
         action_one_hot = np.zeros(
-            len(self.action_space),
+            self.config.get("action_space",362),
             dtype=np.float32,
         )
         action_one_hot[action] = 1.0
@@ -418,7 +423,7 @@ class CVAEDataset(BaseDataset):
         result["action"] = action_one_hot
         result["action_index"] = np.asarray(action, dtype=np.int64)
 
-        result["card_used"] = data["card_used"]
+        result["card_used"] = data["state"]["card_used"]
 
         return result
 

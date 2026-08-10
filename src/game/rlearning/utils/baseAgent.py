@@ -603,4 +603,7 @@ class EmptyTrainer(BaseTrainer):
         self.epoch = 0 
         self._init_dataset()
 
+    def restore_checkpoint(self, restore_step):
+        self.step = 0 if restore_step == -1 else int(restore_step)
+
     

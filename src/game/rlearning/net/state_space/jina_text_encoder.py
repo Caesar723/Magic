@@ -1,4 +1,5 @@
 import os
+from transformers import AutoModel
 
 import torch
 import torch.nn as nn
@@ -29,7 +30,7 @@ class JinaTextEncoder(nn.Module):
 
     def _load_encoder(self, device=None):
         if self._encoder is None:
-            from transformers import AutoModel
+            
 
             model_path = (
                 self.local_model_path
