@@ -124,6 +124,10 @@ class CVAETrainer(BaseTrainer):
     def __init__(self, config,restore_step, rank=0, n_gpus=1,name="main"):
         super().__init__(config,restore_step, rank, n_gpus,name)
 
+    def _synthesis(self, models):
+        """CVAE synthesis hook; generation and output handling are added later."""
+        return None
+
     def _forward(self, batch, models, isTrain, step, epoch):
 
         batch=self.encode(batch,models,isTrain,step,epoch)

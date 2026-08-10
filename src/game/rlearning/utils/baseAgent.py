@@ -453,9 +453,9 @@ class BaseTrainer:
         #     self.evaluate() 
         #     torch.cuda.empty_cache()
             
-        # if self.step % self.config["synthesis_step"] == 0:
-        #     self.synthesis() 
-        #     torch.cuda.empty_cache()
+        if self.step % self.config["synthesis_step"] == 0:
+            self.synthesis() 
+            torch.cuda.empty_cache()
 
 
 
@@ -467,6 +467,32 @@ class BaseTrainer:
 
     def _init_extra(self):
         self.extra = {}
+
+    @torch.no_grad()
+    def synthesis(self):
+        """Run the trainer-specific synthesis hook with inference models.
+
+        The base implementation deliberately owns only orchestration.  Concrete
+        trainers decide how to select inputs, generate samples, and persist
+        results in ``_synthesis``.
+        """
+        if self.rank != 0:
+            return None
+
+        models = self.models_test
+        training_modes = {name: model.training for name, model in models.items()}
+        for model in models.values():
+            model.eval()
+
+        try:
+            return self._synthesis(models)
+        finally:
+            for name, model in models.items():
+                model.train(training_modes[name])
+
+    def _synthesis(self, models):
+        """Trainer-specific synthesis extension point."""
+        return None
 
 
 
