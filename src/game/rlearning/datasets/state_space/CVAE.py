@@ -151,7 +151,7 @@ def collate_card_zone_numpy(batch, prefix: str):
 
     return shape usually:
         card_types:         [T, N]
-        card_costs:         [T, N]
+        card_costs:         [T, N, 6]
         card_special_types: [T, N, S]
         card_atks:          [T, N]
         card_hps:           [T, N]

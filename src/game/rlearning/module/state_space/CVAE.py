@@ -21,18 +21,7 @@ from game.rlearning.synthesis.state_space import (
 )
 import game.rlearning.utils.log as log
 
-def masked_mse(pred_value, target_value, valid_mask):
-    loss = (pred_value - target_value.float()).pow(2)
 
-    valid_mask = valid_mask.float()
-
-    while valid_mask.ndim < loss.ndim:
-        valid_mask = valid_mask.unsqueeze(-1)
-
-    valid_mask = valid_mask.expand_as(loss)
-    denom = valid_mask.sum().clamp_min(1.0)
-
-    return (loss * valid_mask).sum() / denom
 def masked_bce(pred_logits, target_value, valid_mask):
     loss = F.binary_cross_entropy_with_logits(
         pred_logits,
@@ -47,7 +36,90 @@ def masked_bce(pred_logits, target_value, valid_mask):
     denom = valid_mask.expand_as(loss).sum().clamp_min(1.0)
     return (loss * valid_mask).sum() / denom
 
-def card_zone_loss(pred_zone, target_zone):
+
+def _values_to_classes(values, num_classes, value_scale):
+    return (values.float() * value_scale).round().long().clamp(
+        0,
+        num_classes - 1,
+    )
+
+
+def masked_stat_class_loss(
+    pred_logits,
+    target_value,
+    source_value,
+    valid_mask,
+    source_mask,
+    *,
+    expected_l1_weight=1.0,
+    unchanged_bonus=3.0,
+    value_scale=None,
+):
+    """Combine class CE and expected-value L1 for masked discrete values."""
+
+    # 1. Convert source and target values to discrete class indices.
+    num_classes = pred_logits.shape[-1]
+    if value_scale is None:
+        value_scale = num_classes - 1
+
+    target_class = _values_to_classes(target_value, num_classes, value_scale)
+    source_class = _values_to_classes(source_value, num_classes, value_scale)
+
+    # 2. Expand slot masks to match multi-channel values such as card costs.
+    valid = valid_mask.bool()
+    source_valid = source_mask.bool()
+    while valid.ndim < target_class.ndim:
+        valid = valid.unsqueeze(-1)
+        source_valid = source_valid.unsqueeze(-1)
+
+    valid = valid.expand_as(target_class)
+    source_valid = source_valid.expand_as(target_class)
+    if not valid.any():
+        return pred_logits.new_zeros(())
+
+    # 3. Give unchanged valid values an additional loss weight.
+    unchanged = valid & source_valid & (source_class == target_class)
+    slot_weights = 1.0 + float(unchanged_bonus) * unchanged.float()
+
+    # 4. Compute cross-entropy independently for every valid value.
+    flat_logits = pred_logits.reshape(-1, pred_logits.shape[-1])
+    flat_target = target_class.reshape(-1)
+    ce = F.cross_entropy(flat_logits, flat_target, reduction="none").reshape_as(
+        target_class
+    )
+
+    # 5. Penalize the distance between the predicted expectation and target.
+    probs = F.softmax(pred_logits, dim=-1)
+    class_values = torch.arange(
+        num_classes,
+        device=pred_logits.device,
+        dtype=pred_logits.dtype,
+    )
+    expected = (probs * class_values).sum(dim=-1)
+    expected_l1 = (expected - target_class.float()).abs()
+
+    # 6. Apply weights and masks, then average over valid values only.
+    per_slot = ce + float(expected_l1_weight) * expected_l1
+    valid = valid.float()
+    weighted_loss = per_slot * slot_weights * valid
+    return weighted_loss.sum() / valid.sum().clamp_min(1.0)
+
+
+def _stat_loss_options(config):
+    return {
+        "expected_l1_weight": float(config.get("w_stat_expected_l1", 1.0)),
+        "unchanged_bonus": float(config.get("unchanged_stat_bonus", 3.0)),
+    }
+
+
+def zone_reconstruction_loss(
+    pred_zone,
+    target_zone,
+    source_zone,
+    stat_loss_options,
+    *,
+    include_card_metadata,
+):
     zone_loss = pred_zone["card_mask"].new_zeros(())
 
     # 所有 slot 都训练“这里是否有卡”
@@ -59,85 +131,53 @@ def card_zone_loss(pred_zone, target_zone):
 
     # 卡实际存在时，才训练其属性
     valid_mask = target_mask > 0.5
+    if not valid_mask.any():
+        return zone_loss
 
-    if valid_mask.any():
+    if include_card_metadata:
         zone_loss = zone_loss + F.cross_entropy(
             pred_zone["card_types"][valid_mask],
             target_zone["card_types"][valid_mask].long(),
         )
 
-        zone_loss = zone_loss + masked_mse(
+        zone_loss = zone_loss + masked_stat_class_loss(
             pred_zone["card_costs"],
             target_zone["card_costs"],
+            source_zone["card_costs"],
             valid_mask,
+            source_zone["card_mask"],
+            value_scale=1.0,
+            **stat_loss_options,
         )
 
-        zone_loss = zone_loss + masked_bce(
-            pred_zone["card_special_types"],
-            target_zone["card_special_types"],
-            valid_mask,
-        )
-
-        zone_loss = zone_loss + masked_mse(
-            pred_zone["card_atks"],
-            target_zone["card_atks"],
-            valid_mask,
-        )
-
-        zone_loss = zone_loss + masked_mse(
-            pred_zone["card_hps"],
-            target_zone["card_hps"],
-            valid_mask,
-        )
-
-        zone_loss = zone_loss + masked_bce(
-            pred_zone["card_has_state"],
-            target_zone["card_has_state"],
-            valid_mask,
-        )
-
-    return zone_loss
-
-def board_zone_loss(pred_zone, target_zone):
-    zone_loss = pred_zone["card_mask"].new_zeros(())
-
-    target_mask = target_zone["card_mask"].float()
-    zone_loss = zone_loss + F.binary_cross_entropy_with_logits(
-        pred_zone["card_mask"],
-        target_mask,
+    zone_loss = zone_loss + masked_bce(
+        pred_zone["card_special_types"],
+        target_zone["card_special_types"],
+        valid_mask,
     )
 
-    valid_mask = target_mask > 0.5
-
-    if valid_mask.any():
-        zone_loss = zone_loss + masked_bce(
-            pred_zone["card_special_types"],
-            target_zone["card_special_types"],
+    source_mask = source_zone["card_mask"]
+    for stat_name in ("card_atks", "card_hps"):
+        zone_loss = zone_loss + masked_stat_class_loss(
+            pred_zone[stat_name],
+            target_zone[stat_name],
+            source_zone[stat_name],
             valid_mask,
+            source_mask,
+            **stat_loss_options,
         )
 
-        zone_loss = zone_loss + masked_mse(
-            pred_zone["card_atks"],
-            target_zone["card_atks"],
-            valid_mask,
-        )
-
-        zone_loss = zone_loss + masked_mse(
-            pred_zone["card_hps"],
-            target_zone["card_hps"],
-            valid_mask,
-        )
-
-        zone_loss = zone_loss + masked_bce(
-            pred_zone["card_has_state"],
-            target_zone["card_has_state"],
-            valid_mask,
-        )
-
+    zone_loss = zone_loss + masked_bce(
+        pred_zone["card_has_state"],
+        target_zone["card_has_state"],
+        valid_mask,
+    )
     return zone_loss
+
+
 class CVAETrainer(BaseTrainer):
-    def __init__(self, config,restore_step, rank=0, n_gpus=1,name="main"):
-        super().__init__(config,restore_step, rank, n_gpus,name)
+    def __init__(self, config, restore_step, rank=0, n_gpus=1, name="main"):
+        super().__init__(config, restore_step, rank, n_gpus, name)
 
     def _synthesis(self, models):
         """Write a latent transition space with linked reconstruction highlights."""
@@ -476,29 +516,54 @@ class CVAETrainer(BaseTrainer):
     def reconstruction_loss(self, batch):
         pred = batch["pred_next"]
         target = squeeze_time_dim_state(batch["next_state"])
+        source = squeeze_time_dim_state(batch["state"])
+        stat_loss_options = _stat_loss_options(self.config)
 
-        result={}
+        result = {}
         result["total_loss"] = pred["global_state"].new_zeros(())
 
-        # 全局状态：self_life、oppo_life、self_mana
-        result["global_state_loss"] = F.mse_loss(
+        # 生命值和五种法力均按离散值训练。
+        global_valid = torch.ones_like(target["global_state"], dtype=torch.bool)
+        result["global_state_loss"] = masked_stat_class_loss(
             pred["global_state"],
-            target["global_state"].float(),
+            target["global_state"],
+            source["global_state"],
+            global_valid,
+            global_valid,
+            **stat_loss_options,
         )
-        result["total_loss"]=result["total_loss"]+result["global_state_loss"]*self.config.get("w_global_state_loss",1.0)
+        result["total_loss"] += result["global_state_loss"] * self.config.get(
+            "w_global_state_loss",
+            1.0,
+        )
+
         for zone_name in ["hand", "library", "graveyard", "stack_cards"]:
-            result[f"card_zone_loss_{zone_name}"] = card_zone_loss(
+            loss_name = f"card_zone_loss_{zone_name}"
+            result[loss_name] = zone_reconstruction_loss(
                 pred["card_zones"][zone_name],
                 target["card_zones"][zone_name],
+                source["card_zones"][zone_name],
+                stat_loss_options,
+                include_card_metadata=True,
             )
-            result["total_loss"]=result["total_loss"]+result[f"card_zone_loss_{zone_name}"]*self.config.get(f"w_card_zone_loss_{zone_name}",1.0)
+            result["total_loss"] += result[loss_name] * self.config.get(
+                f"w_card_zone_loss_{zone_name}",
+                1.0,
+            )
 
         for zone_name in ["self_board", "oppo_board"]:
-            result[f"board_zone_loss_{zone_name}"] = board_zone_loss(
+            loss_name = f"board_zone_loss_{zone_name}"
+            result[loss_name] = zone_reconstruction_loss(
                 pred["board_zones"][zone_name],
                 target["board_zones"][zone_name],
+                source["board_zones"][zone_name],
+                stat_loss_options,
+                include_card_metadata=False,
             )
-            result["total_loss"]=result["total_loss"]+result[f"board_zone_loss_{zone_name}"]*self.config.get(f"w_board_zone_loss_{zone_name}",1.0)
+            result["total_loss"] += result[loss_name] * self.config.get(
+                f"w_board_zone_loss_{zone_name}",
+                1.0,
+            )
 
         return result
 

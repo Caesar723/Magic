@@ -311,10 +311,8 @@ class StateTransformerEncoder(nn.Module):
             d_model,
         )
 
-        # scalar name:
-        # 0 = self_life
-        # 1 = oppo_life
-        # 2 = self_mana
+        # scalar name ids for global channels:
+        # 0 = self_life, 1 = oppo_life, 2..6 = mana U/R/G/W/B
         self.scalar_name_emb = nn.Embedding(
             16,
             d_model,
@@ -452,16 +450,14 @@ class StateTransformerEncoder(nn.Module):
 
     def encode_global_tokens(self, global_state):
         """
-        global_state: [B, 3]
+        global_state: [B, G]
+            G = 7 = self_life + oppo_life + self_mana(U,R,G,W,B)
 
-        token:
-            self_life
-            oppo_life
-            self_mana
+        token: one scalar token per channel
 
         return:
-            x:    [B, 3, D]
-            mask: [B, 3]
+            x:    [B, G, D]
+            mask: [B, G]
         """
         B, G = global_state.shape
         device = global_state.device
@@ -541,7 +537,7 @@ class StateTransformerEncoder(nn.Module):
 
         zone:
             card_types:         [B, N]      可选
-            card_costs:         [B, N]      可选
+            card_costs:         [B, N, 6]   可选
             card_special_types: [B, N, K]
             card_atks:          [B, N]
             card_hps:           [B, N]
@@ -853,27 +849,26 @@ class StateTransformerEncoder(nn.Module):
 
 
 class TokenTransitionStateDecoder(nn.Module):
-    def __init__(
-        self,
-        config: dict,
-
-    ):
+    def __init__(self, config: dict):
         super().__init__()
 
-        transition_dim=config["transition_dim"]
-        num_card_types=config["num_card_types"]
-        num_card_costs=config["num_card_costs"]
-        special_type_dim=config["special_type_dim"]
-        stack_player_dim=config["stack_player_dim"]
-        stack_action_vocab_size=config["stack_action_vocab_size"]
-        d_model=config["d_model"]
-        transition_memory_len=config["transition_memory_len"]
-        nhead=config["nhead"]
-        num_layers=config["num_layers"]
-        dim_feedforward=config["dim_feedforward"]
-        dropout=config["dropout"]
+        transition_dim = config["transition_dim"]
+        num_card_types = config["num_card_types"]
+        num_card_costs = config["num_card_costs"]
+        special_type_dim = config["special_type_dim"]
+        stack_player_dim = config["stack_player_dim"]
+        stack_action_vocab_size = config["stack_action_vocab_size"]
+        d_model = config["d_model"]
+        transition_memory_len = config["transition_memory_len"]
+        nhead = config["nhead"]
+        num_layers = config["num_layers"]
+        dim_feedforward = config["dim_feedforward"]
+        dropout = config["dropout"]
+        num_stat_classes = config["num_stat_classes"]
 
         self.num_card_types = num_card_types
+        self.num_card_costs = num_card_costs
+        self.num_stat_classes = num_stat_classes
         self.special_type_dim = special_type_dim
         self.stack_player_dim = stack_player_dim
         self.stack_action_vocab_size = stack_action_vocab_size
@@ -921,15 +916,18 @@ class TokenTransitionStateDecoder(nn.Module):
         # heads
         # =====================================================
 
-        # global scalar token -> one float
-        self.global_head = nn.Linear(d_model, 1)
+        # Global values and card stats share the same discrete value classes.
+        self.global_head = nn.Linear(d_model, num_stat_classes)
 
         # card zones
         self.card_type_head = nn.Linear(d_model, num_card_types)
-        self.card_cost_head = nn.Linear(d_model, num_card_costs)
+        self.card_cost_head = nn.Linear(
+            d_model,
+            num_card_costs * num_stat_classes,
+        )
         self.card_special_type_head = nn.Linear(d_model, special_type_dim)
-        self.card_atk_head = nn.Linear(d_model, 1)
-        self.card_hp_head = nn.Linear(d_model, 1)
+        self.card_atk_head = nn.Linear(d_model, num_stat_classes)
+        self.card_hp_head = nn.Linear(d_model, num_stat_classes)
         self.card_has_state_head = nn.Linear(d_model, 1)
         self.card_mask_head = nn.Linear(d_model, 1)
 
@@ -965,19 +963,16 @@ class TokenTransitionStateDecoder(nn.Module):
         """
         h_zone: [B, N, D]
         """
+        card_costs = self.card_cost_head(h_zone).unflatten(
+            -1,
+            (self.num_card_costs, self.num_stat_classes),
+        )
         return {
-            # logits: [B, N, C]
             "card_types": self.card_type_head(h_zone),
-
-            # regression: [B, N]
-            "card_costs": self.card_cost_head(h_zone).squeeze(-1),
-            "card_atks": self.card_atk_head(h_zone).squeeze(-1),
-            "card_hps": self.card_hp_head(h_zone).squeeze(-1),
-
-            # logits: [B, N, K]
+            "card_costs": card_costs,
+            "card_atks": self.card_atk_head(h_zone),
+            "card_hps": self.card_hp_head(h_zone),
             "card_special_types": self.card_special_type_head(h_zone),
-
-            # logits: [B, N]
             "card_has_state": self.card_has_state_head(h_zone).squeeze(-1),
             "card_mask": self.card_mask_head(h_zone).squeeze(-1),
         }
@@ -989,8 +984,8 @@ class TokenTransitionStateDecoder(nn.Module):
         """
         return {
             "card_special_types": self.card_special_type_head(h_zone),
-            "card_atks": self.card_atk_head(h_zone).squeeze(-1),
-            "card_hps": self.card_hp_head(h_zone).squeeze(-1),
+            "card_atks": self.card_atk_head(h_zone),
+            "card_hps": self.card_hp_head(h_zone),
             "card_has_state": self.card_has_state_head(h_zone).squeeze(-1),
             "card_mask": self.card_mask_head(h_zone).squeeze(-1),
         }
@@ -1002,10 +997,10 @@ class TokenTransitionStateDecoder(nn.Module):
         """
         pred = {}
 
-        # global_state
+        # global_state class logits: [B, G, num_stat_classes]
         s, e = spans["global_state"]
         h_global = h_next_tokens[:, s:e]
-        pred["global_state"] = self.global_head(h_global).squeeze(-1)
+        pred["global_state"] = self.global_head(h_global)
 
         # card zones
         pred["card_zones"] = {}
@@ -1150,6 +1145,7 @@ def make_fake_card_zone(
         zone["card_costs"] = torch.rand(
             B,
             N,
+            6,
             device=device,
         ) * 10.0
 
@@ -1195,7 +1191,7 @@ def make_fake_state(
     state = {
         "global_state": torch.randn(
             B,
-            3,
+            7,
             device=device,
         ),
 
@@ -1312,6 +1308,8 @@ if __name__ == "__main__":
 
     config = {
         "num_card_types": 32,
+        "num_card_costs": 6,
+        "num_stat_classes": 21,
         "special_type_dim": 6,
         "stack_player_dim": 2,
         "stack_action_vocab_size": 20,
@@ -1321,7 +1319,7 @@ if __name__ == "__main__":
         "num_layers": 2,
         "dim_feedforward": 128,
         "dropout": 0.1,
-        "transition_memory_len":10,
+        "transition_memory_len": 10,
 
         "max_slots": 64,
 
@@ -1373,7 +1371,7 @@ if __name__ == "__main__":
 
     expected_L = (
         1  # cls
-        + 3  # global_state
+        + 7  # global_state: life*2 + mana*5
         + sizes["hand"]
         + sizes["library"]
         + sizes["graveyard"]
@@ -1413,13 +1411,21 @@ if __name__ == "__main__":
 
     assert pred_next_state["global_state"].shape == (
         B,
-        3,
+        7,
+        config["num_stat_classes"],
     )
 
     assert pred_next_state["card_zones"]["hand"]["card_types"].shape == (
         B,
         sizes["hand"],
         config["num_card_types"],
+    )
+
+    assert pred_next_state["card_zones"]["hand"]["card_costs"].shape == (
+        B,
+        sizes["hand"],
+        config["num_card_costs"],
+        config["num_stat_classes"],
     )
 
     assert pred_next_state["card_zones"]["library"]["card_types"].shape == (

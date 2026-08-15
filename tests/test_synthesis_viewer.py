@@ -30,6 +30,26 @@ except ModuleNotFoundError:
     torch = None
 
 
+def _peaked_logits(
+    classes,
+    *,
+    batch_size: int = 1,
+    num_classes: int = 21,
+    device=None,
+) -> "torch.Tensor":
+    class_indices = torch.tensor(classes, dtype=torch.long, device=device)
+    logits = torch.full(
+        (batch_size, *class_indices.shape, num_classes),
+        -3.0,
+        device=device,
+    )
+    peak_indices = class_indices.unsqueeze(0).expand(
+        batch_size,
+        *class_indices.shape,
+    )
+    return logits.scatter(-1, peak_indices.unsqueeze(-1), 3.0)
+
+
 def _zone(cards: list[dict], slots: int = 10) -> dict:
     return {"card_count": len(cards), "slot_count": slots, "cards": cards}
 
@@ -219,14 +239,16 @@ class SynthesisViewerTest(unittest.TestCase):
             zone = {
                 "card_mask": torch.tensor([[3.0, -3.0]]),
                 "card_special_types": torch.zeros(1, 2, 11),
-                "card_atks": torch.tensor([[0.10, 0.0]]),
-                "card_hps": torch.tensor([[0.15, 0.0]]),
+                "card_atks": _peaked_logits([2, 0]),
+                "card_hps": _peaked_logits([3, 0]),
                 "card_has_state": torch.tensor([[3.0, -3.0]]),
             }
             zone["card_special_types"][0, 0, 4] = 3.0
             if with_type:
                 zone["card_types"] = torch.tensor([[[0.0, 3.0, 0.0, 0.0, 0.0], [3.0, 0.0, 0.0, 0.0, 0.0]]])
-                zone["card_costs"] = torch.tensor([[[2.0, 1.0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]])
+                zone["card_costs"] = _peaked_logits(
+                    [[2, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]
+                )
             return zone
 
         target = {
@@ -240,7 +262,7 @@ class SynthesisViewerTest(unittest.TestCase):
             "board_zones": {name: target_zone(False) for name in ["self_board", "oppo_board"]},
         }
         prediction = {
-            "global_state": torch.tensor([[0.95, 0.9, 0.0, 0.0, 0.0, 0.1, 0.0]]),
+            "global_state": _peaked_logits([19, 18, 0, 0, 0, 2, 0]),
             "card_zones": {name: prediction_zone(True) for name in ["hand", "library", "graveyard", "stack_cards"]},
             "board_zones": {name: prediction_zone(False) for name in ["self_board", "oppo_board"]},
         }
@@ -252,6 +274,10 @@ class SynthesisViewerTest(unittest.TestCase):
 
         self.assertEqual(decoded_target["global_state"]["self_life"], 20)
         self.assertEqual(decoded_target["card_zones"]["hand"]["cards"][0]["type"], "Creature")
+        self.assertEqual(
+            decoded_prediction["card_zones"]["hand"]["cards"][0]["mana_cost"],
+            [2, 1, 0, 0, 0, 0],
+        )
         self.assertEqual(decoded_prediction["card_zones"]["hand"]["cards"][0]["attack"], 2)
         self.assertEqual(decoded_prediction["card_zones"]["hand"]["cards"][0]["health"], 3)
         self.assertEqual(delta["change_type"], "opponent_damage")
@@ -304,8 +330,12 @@ class SynthesisViewerTest(unittest.TestCase):
             zone = {
                 "card_mask": torch.tensor([[3.0, -3.0]], device=device).repeat(batch_size, 1),
                 "card_special_types": torch.zeros(batch_size, 2, 11, device=device),
-                "card_atks": torch.tensor([[0.10, 0.0]], device=device).repeat(batch_size, 1),
-                "card_hps": torch.tensor([[0.15, 0.0]], device=device).repeat(batch_size, 1),
+                "card_atks": _peaked_logits(
+                    [2, 0], batch_size=batch_size, device=device
+                ),
+                "card_hps": _peaked_logits(
+                    [3, 0], batch_size=batch_size, device=device
+                ),
                 "card_has_state": torch.tensor([[3.0, -3.0]], device=device).repeat(batch_size, 1),
             }
             if with_type:
@@ -313,18 +343,20 @@ class SynthesisViewerTest(unittest.TestCase):
                 card_types[:, 0, 1] = 3.0
                 card_types[:, 1, 0] = 3.0
                 zone["card_types"] = card_types
-                zone["card_costs"] = torch.tensor(
-                    [[[2.0, 1.0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]],
+                zone["card_costs"] = _peaked_logits(
+                    [[2, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]],
+                    batch_size=batch_size,
                     device=device,
-                ).repeat(batch_size, 1, 1)
+                )
             return zone
 
         def prediction_state(batch_size: int, device) -> dict:
             return {
-                "global_state": torch.tensor(
-                    [[0.95, 0.9, 0.0, 0.0, 0.0, 0.1, 0.0]],
+                "global_state": _peaked_logits(
+                    [19, 18, 0, 0, 0, 2, 0],
+                    batch_size=batch_size,
                     device=device,
-                ).repeat(batch_size, 1),
+                ),
                 "card_zones": {
                     name: prediction_zone(batch_size, True, device)
                     for name in ["hand", "library", "graveyard", "stack_cards"]

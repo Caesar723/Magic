@@ -61,6 +61,21 @@ def _clamped_integer(value: torch.Tensor | float, scale: float = 1.0) -> int:
     return max(0, min(20, round(float(value) * scale)))
 
 
+def _stat_class_from_logits(logits: torch.Tensor) -> int:
+    """Decode discrete stat logits to their integer class."""
+    return int(logits.argmax(dim=-1).detach().cpu().item())
+
+
+def _normalized_values_to_classes(
+    values: torch.Tensor,
+    num_classes: int,
+) -> torch.Tensor:
+    return (values.float() * (num_classes - 1)).round().long().clamp(
+        0,
+        num_classes - 1,
+    )
+
+
 def _active_special_types(values: torch.Tensor, threshold: float | None) -> list[str]:
     values = values.detach().cpu()
     if threshold is None:
@@ -70,9 +85,13 @@ def _active_special_types(values: torch.Tensor, threshold: float | None) -> list
     return [SPECIAL_TYPE_NAMES.get(index, f"Trait {index}") for index in active]
 
 
-def _mana_cost(values: torch.Tensor) -> list[int]:
+def _mana_cost_from_target(values: torch.Tensor) -> list[int]:
     values = values.detach().cpu().flatten()
     return [_clamped_integer(value) for value in values]
+
+
+def _mana_cost_from_prediction(logits: torch.Tensor) -> list[int]:
+    return logits.detach().cpu().argmax(dim=-1).tolist()
 
 
 def _card_from_target(zone: dict[str, torch.Tensor], slot_index: int, *, board: bool) -> dict[str, Any] | None:
@@ -91,7 +110,9 @@ def _card_from_target(zone: dict[str, torch.Tensor], slot_index: int, *, board: 
         "presence_confidence": 1.0,
     }
     if not board:
-        card["mana_cost"] = _mana_cost(zone["card_costs"][slot_index])
+        card["mana_cost"] = _mana_cost_from_target(
+            zone["card_costs"][slot_index]
+        )
     return card
 
 
@@ -106,14 +127,16 @@ def _card_from_prediction(zone: dict[str, torch.Tensor], slot_index: int, *, boa
         "type": "Creature" if board else CARD_TYPE_NAMES.get(
             int(zone["card_types"][slot_index].argmax().detach().cpu().item()), "Unknown"
         ),
-        "attack": _clamped_integer(zone["card_atks"][slot_index], scale=20),
-        "health": _clamped_integer(zone["card_hps"][slot_index], scale=20),
+        "attack": _stat_class_from_logits(zone["card_atks"][slot_index]),
+        "health": _stat_class_from_logits(zone["card_hps"][slot_index]),
         "has_state": _as_float(torch.sigmoid(zone["card_has_state"][slot_index])) >= 0.5,
         "special_types": _active_special_types(zone["card_special_types"][slot_index], 0.5),
         "presence_confidence": round(presence_value, 3),
     }
     if not board:
-        card["mana_cost"] = _mana_cost(zone["card_costs"][slot_index])
+        card["mana_cost"] = _mana_cost_from_prediction(
+            zone["card_costs"][slot_index]
+        )
     return card
 
 
@@ -156,14 +179,14 @@ def _global_from_target(values: torch.Tensor) -> dict[str, Any]:
 
 
 def _global_from_prediction(values: torch.Tensor) -> dict[str, Any]:
-    values = values.detach().cpu().flatten()
-    mana_values = values[2 : 2 + len(MANA_NAMES)]
+    """Decode discrete global class logits with shape [G, K]."""
+    classes = values.detach().cpu().argmax(dim=-1).tolist()
     return {
-        "self_life": _clamped_integer(values[0], scale=20),
-        "oppo_life": _clamped_integer(values[1], scale=20),
+        "self_life": classes[0],
+        "oppo_life": classes[1],
         "mana": {
-            mana_name: _clamped_integer(value, scale=20)
-            for mana_name, value in zip(MANA_NAMES, mana_values)
+            mana_name: classes[2 + offset]
+            for offset, mana_name in enumerate(MANA_NAMES)
         },
     }
 
@@ -342,9 +365,13 @@ def reconstruction_metrics(
     prediction: dict[str, Any], target: dict[str, Any], sample_index: int
 ) -> dict[str, float]:
     """Small per-sample diagnostics for the reconstruction list."""
-    global_mse = F.mse_loss(
-        prediction["global_state"][sample_index], target["global_state"][sample_index]
+    pred_global = prediction["global_state"][sample_index]
+    target_global = target["global_state"][sample_index]
+    target_classes = _normalized_values_to_classes(
+        target_global,
+        pred_global.shape[-1],
     )
+    global_ce = F.cross_entropy(pred_global, target_classes)
 
     mask_losses = []
     for collection in ("card_zones", "board_zones"):
@@ -357,9 +384,9 @@ def reconstruction_metrics(
             )
 
     mask_bce = torch.stack(mask_losses).mean()
-    total = global_mse + mask_bce
+    total = global_ce + mask_bce
     return {
-        "global_mse": round(_as_float(global_mse), 6),
+        "global_ce": round(_as_float(global_ce), 6),
         "mask_bce": round(_as_float(mask_bce), 6),
         "score": round(_as_float(total), 6),
     }
