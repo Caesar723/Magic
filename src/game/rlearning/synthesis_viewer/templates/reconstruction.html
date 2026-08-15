@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "_state.html" import game_state %}
+
+{% block content %}
+  <header class="reconstruction-header">
+    <div>
+      <p class="eyebrow"><a href="{{ url_for('step_page', experiment_id=experiment.id, step=step) }}">{{ experiment.name }} / step {{ step }}</a></p>
+      <h1>Reconstruction · sample {{ sample.sample_id }}</h1>
+    </div>
+    <div class="metric-strip">
+      {% for name, value in sample.metrics.items() %}
+        <span><small>{{ name }}</small><b>{{ value }}</b></span>
+      {% endfor %}
+    </div>
+  </header>
+
+  <div class="reconstruction-layout">
+    <aside class="sample-list">
+      <h2>Samples</h2>
+      {% for item in index.samples %}
+        <a class="sample-link {% if item.sample_id == sample.sample_id %}is-active{% endif %}"
+           href="{{ url_for('reconstruction_sample_page', experiment_id=experiment.id, step=step, sample_id=item.sample_id) }}">
+          <strong>#{{ item.sample_id }}</strong>
+          <span>{{ item.summary.action | default('Unknown action') }}</span>
+          <small>score {{ item.summary.score | default('-') }}</small>
+        </a>
+      {% endfor %}
+    </aside>
+
+    <div class="reconstruction-detail">
+      {{ game_state('Current state', sample.input_state) }}
+
+      <section class="transition-card">
+        <div>
+          <p class="eyebrow">USED CARD</p>
+          <h2>{{ sample.transition.card_used.type }}</h2>
+          <p class="card-description">{{ sample.transition.card_used.description }}</p>
+          <p class="inline-facts">
+            Cost {{ sample.transition.card_used.mana_cost | join('/') }} ·
+            {{ sample.transition.card_used.attack }}/{{ sample.transition.card_used.health }}
+          </p>
+        </div>
+        <div>
+          <p class="eyebrow">ACTION</p>
+          <h2>#{{ sample.transition.action.index }}</h2>
+          <p>{{ sample.transition.action.label }}</p>
+        </div>
+      </section>
+
+      <div class="next-state-grid">
+        {{ game_state('Predicted next state', sample.predicted_next_state, true) }}
+        {{ game_state('True next state', sample.target_next_state) }}
+      </div>
+    </div>
+  </div>
+{% endblock %}

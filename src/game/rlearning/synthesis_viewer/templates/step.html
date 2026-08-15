@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <header class="page-header compact-header">
+    <p class="eyebrow"><a href="{{ url_for('experiment_page', experiment_id=experiment.id) }}">{{ experiment.name }}</a> / SYNTHESIS</p>
+    <h1>step {{ step_info.step }}</h1>
+    <p>Generated at {{ step_info.manifest.generated_at | default('an unknown time') }}</p>
+  </header>
+
+  <section class="module-grid">
+    {% set reconstruction = step_info.manifest.modules.reconstruction if step_info.manifest.modules is defined else none %}
+    {% if reconstruction and reconstruction.status == 'complete' %}
+      <a class="module-card is-ready" href="{{ url_for('reconstruction_page', experiment_id=experiment.id, step=step_info.step) }}">
+        <span class="module-status">READY</span>
+        <h2>Reconstruction</h2>
+        <p>Current board, used card and action, then predicted and true next state.</p>
+        <small>{{ reconstruction.sample_count }} samples</small>
+      </a>
+    {% else %}
+      <article class="module-card">
+        <span class="module-status">PENDING</span>
+        <h2>Reconstruction</h2>
+        <p>This step does not have a complete reconstruction artifact yet.</p>
+      </article>
+    {% endif %}
+
+    <article class="module-card is-muted">
+      <span class="module-status">LATER</span>
+      <h2>Card space</h2>
+      <p>Will show card-vector nearest neighbors and clusters.</p>
+    </article>
+    {% set transition_space = step_info.manifest.modules.transition_space if step_info.manifest.modules is defined else none %}
+    {% if transition_space and transition_space.status == 'complete' %}
+      <a class="module-card is-ready" href="{{ url_for('transition_space_page', experiment_id=experiment.id, step=step_info.step) }}">
+        <span class="module-status">READY</span>
+        <h2>Transition space</h2>
+        <p>Two-dimensional latent projection with linked reconstruction highlights.</p>
+        <small>{{ transition_space.point_count }} points · {{ transition_space.highlight_count }} highlights</small>
+      </a>
+    {% else %}
+      <article class="module-card">
+        <span class="module-status">PENDING</span>
+        <h2>Transition space</h2>
+        <p>This step does not have a complete transition-space artifact yet.</p>
+      </article>
+    {% endif %}
+  </section>
+{% endblock %}

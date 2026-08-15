@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='viewer.css') }}">
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="brand" href="{{ url_for('home') }}">Synthesis Viewer</a>
+        <p class="sidebar-caption">Experiments</p>
+        <nav>
+          {% for item in experiments %}
+            <a class="nav-experiment {% if item.id == current_experiment_id %}is-active{% endif %}"
+               href="{{ url_for('experiment_page', experiment_id=item.id) }}">
+              {{ item.name }}
+            </a>
+          {% else %}
+            <p class="empty-copy">No experiment directory containing synthesis/ was found.</p>
+          {% endfor %}
+        </nav>
+      </aside>
+      <main class="content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

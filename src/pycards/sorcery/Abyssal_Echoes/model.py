@@ -37,6 +37,7 @@ class Abyssal_Echoes(Sorcery):
         ]
         if cards_library:
             card_library:"Creature"=random.choice(cards_library)
+            player.remove_card_from_dict("library",card_library)
 
             # player.action_store.start_record()
             await player.auto_play_card(card_library,start_bullet_time=False)

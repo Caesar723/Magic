@@ -1,0 +1,59 @@
+{% macro card(item, predicted=false) -%}
+  <article class="card {% if predicted and item.presence_confidence < 0.7 %}is-low-confidence{% endif %}">
+    <div class="card-title">
+      <strong>#{{ item.slot }} · {{ item.type }}</strong>
+      {% if predicted %}<small>presence {{ '%.0f'|format(item.presence_confidence * 100) }}%</small>{% endif %}
+    </div>
+    <div class="card-stats">
+      {% if item.mana_cost is defined %}<span>cost {{ item.mana_cost | join('/') }}</span>{% endif %}
+      <span>{{ item.attack }}/{{ item.health }}</span>
+      {% if item.has_state %}<span>has state</span>{% endif %}
+      {% if item.stack_player is defined %}<span>{{ item.stack_player }} · stack action {{ item.stack_action }}</span>{% endif %}
+    </div>
+    {% if item.special_types %}
+      <div class="tags">
+        {% for tag in item.special_types %}<span>{{ tag }}</span>{% endfor %}
+      </div>
+    {% endif %}
+  </article>
+{%- endmacro %}
+
+{% macro zone(label, zone, predicted=false, open_zone=false) -%}
+  <details class="zone" {% if open_zone %}open{% endif %}>
+    <summary>
+      <span>{{ label }}</span>
+      <small>{{ zone.card_count }} / {{ zone.slot_count }}</small>
+    </summary>
+    <div class="card-grid">
+      {% for item in zone.cards %}
+        {{ card(item, predicted) }}
+      {% else %}
+        <p class="empty-zone">Empty</p>
+      {% endfor %}
+    </div>
+  </details>
+{%- endmacro %}
+
+{% macro game_state(title, state, predicted=false) -%}
+  <section class="game-state {% if predicted %}is-prediction{% endif %}">
+    <header class="state-heading">
+      <h2>{{ title }}</h2>
+      {% if predicted %}<span>threshold-decoded</span>{% endif %}
+    </header>
+    <div class="life-bar opponent">
+      <span>Opponent life</span><strong>{{ state.global_state.oppo_life }}</strong>
+    </div>
+    {{ zone('Opponent board', state.board_zones.oppo_board, predicted, true) }}
+    {{ zone('Self board', state.board_zones.self_board, predicted, true) }}
+    <div class="life-bar self">
+      <span>Self life</span><strong>{{ state.global_state.self_life }}</strong>
+      <span class="mana">Mana
+        {% for name, value in state.global_state.mana.items() %}<b>{{ name }} {{ value }}</b>{% endfor %}
+      </span>
+    </div>
+    {{ zone('Hand', state.card_zones.hand, predicted, true) }}
+    {{ zone('Stack', state.card_zones.stack_cards, predicted, false) }}
+    {{ zone('Library', state.card_zones.library, predicted, false) }}
+    {{ zone('Graveyard', state.card_zones.graveyard, predicted, false) }}
+  </section>
+{%- endmacro %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <header class="page-header">
+    <p class="eyebrow">SYNTHESIS ARTIFACTS</p>
+    <h1>Select an experiment</h1>
+    <p>This service reads existing synthesis results only.</p>
+  </header>
+  <section class="experiment-grid">
+    {% for experiment in experiments %}
+      <a class="experiment-card" href="{{ url_for('experiment_page', experiment_id=experiment.id) }}">
+        <span>EXPERIMENT</span>
+        <strong>{{ experiment.name }}</strong>
+      </a>
+    {% else %}
+      <div class="notice">There are no complete synthesis artifacts here yet. An experiment appears after training writes its first manifest.json.</div>
+    {% endfor %}
+  </section>
+{% endblock %}

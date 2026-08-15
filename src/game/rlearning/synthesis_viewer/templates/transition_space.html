@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <header class="reconstruction-header">
+    <div>
+      <p class="eyebrow"><a href="{{ url_for('step_page', experiment_id=experiment.id, step=step) }}">{{ experiment.name }} / step {{ step }}</a></p>
+      <h1>Transition space</h1>
+      <p class="page-subtitle">{{ index.projection.method | upper }} projection of posterior means</p>
+    </div>
+    <div class="metric-strip">
+      <span><small>points</small><b>{{ index.point_count }}</b></span>
+      <span><small>highlights</small><b>{{ index.highlight_count }}</b></span>
+      <span><small>dimensions</small><b>{{ index.vector_dimensions }}</b></span>
+    </div>
+  </header>
+
+  <section class="transition-controls">
+    <label><input id="highlight-toggle" type="checkbox" checked> Highlight reconstruction samples</label>
+    <label><input id="highlights-only-toggle" type="checkbox"> Show highlights only</label>
+    <span class="plot-legend"><i class="legend-dot"></i> Transition <i class="legend-dot highlight"></i> Reconstruction</span>
+  </section>
+
+  <div class="transition-space-layout">
+    <section class="transition-plot-card">
+      <div class="transition-plot-shell">
+        <svg id="transition-plot" viewBox="0 0 1000 640" role="img" aria-label="Two-dimensional transition vector projection"></svg>
+        <div id="transition-tooltip" class="transition-tooltip" hidden></div>
+      </div>
+      <footer>
+        <span>PC1</span>
+        <span>PC2 is shown on the vertical axis</span>
+      </footer>
+    </section>
+
+    <aside class="transition-inspector">
+      <p class="eyebrow">SELECTED POINT</p>
+      <h2 id="point-title">Select a point</h2>
+      <dl>
+        <dt>Action</dt><dd id="point-action">—</dd>
+        <dt>Card type</dt><dd id="point-card-type">—</dd>
+        <dt>Card text</dt><dd id="point-card-text">—</dd>
+        <dt>Source index</dt><dd id="point-source-index">—</dd>
+        <dt>Reconstruction score</dt><dd id="point-score">—</dd>
+      </dl>
+      <a id="reconstruction-link" class="inspector-link" href="#" hidden>Open reconstruction</a>
+    </aside>
+  </div>
+
+  <script id="transition-points-data" type="application/json">{{ points | tojson }}</script>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', path='transition_space.js') }}" defer></script>
+{% endblock %}
+

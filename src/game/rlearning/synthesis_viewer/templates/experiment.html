@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <header class="page-header">
+    <p class="eyebrow">EXPERIMENT</p>
+    <h1>{{ experiment.name }}</h1>
+    <p>Browse synthesis results by the training step that produced them.</p>
+  </header>
+  <section class="step-grid">
+    {% for item in steps %}
+      <a class="step-card" href="{{ url_for('step_page', experiment_id=experiment.id, step=item.step) }}">
+        <span>STEP</span>
+        <strong>{{ item.step }}</strong>
+        <small>
+          {% set reconstruction = item.manifest.modules.reconstruction if item.manifest.modules is defined else none %}
+          {% if reconstruction and reconstruction.status == 'complete' %}
+            Reconstruction · {{ reconstruction.sample_count }} samples
+          {% else %}
+            No complete modules
+          {% endif %}
+        </small>
+      </a>
+    {% else %}
+      <div class="notice">This experiment has no browseable synthesis step yet.</div>
+    {% endfor %}
+  </section>
+{% endblock %}

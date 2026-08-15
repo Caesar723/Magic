@@ -3,7 +3,7 @@
 # Common
 ###########################
 
-log_dir: "specific/specific_n01_v01"
+log_dir: "specific/specific_n01_v02"
 restore_step: 0
 #------------------------------------
 
@@ -66,6 +66,8 @@ log_step: 20
 eval_step: 2000
 synthesis_step: 2000
 synthesis_items: 20
+synthesis_transition_items: 1000
+synthesis_transition_batch_size: 32
 save_step: 2000
 epochs: 5
 n_epoch: 15

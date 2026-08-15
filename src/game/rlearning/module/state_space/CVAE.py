@@ -4,7 +4,21 @@ import torch.nn.functional as F
 
 
 from game.rlearning.utils.baseAgent import BaseTrainer
+from game.rlearning.utils.data import batch_to_cuda
 from game.rlearning.net.state_space.StateEncoder import squeeze_time_dim_state
+from game.rlearning.synthesis.artifacts import (
+    write_reconstruction_artifact,
+    write_transition_space_artifact,
+)
+from game.rlearning.synthesis.projection import pca_project_2d
+from game.rlearning.synthesis.state_space import (
+    card_used_from_raw,
+    describe_action,
+    reconstruction_metrics,
+    state_from_prediction,
+    state_from_target,
+)
+import game.rlearning.utils.log as log
 
 def masked_mse(pred_value, target_value, valid_mask):
     loss = (pred_value - target_value.float()).pow(2)
@@ -125,8 +139,235 @@ class CVAETrainer(BaseTrainer):
         super().__init__(config,restore_step, rank, n_gpus,name)
 
     def _synthesis(self, models):
-        """CVAE synthesis hook; generation and output handling are added later."""
-        return None
+        """Write a latent transition space with linked reconstruction highlights."""
+        dataset_size = len(self.dataset.datas)
+        transition_count = min(
+            int(self.config.get("synthesis_transition_items", 1000)),
+            dataset_size,
+        )
+        reconstruction_count = min(
+            int(self.config.get("synthesis_items", 20)),
+            transition_count,
+        )
+        if transition_count <= 0:
+            return None
+
+        source_indices = self._synthesis_source_indices(dataset_size, transition_count)
+        highlight_vector_indices = self._synthesis_source_indices(
+            transition_count,
+            reconstruction_count,
+        )
+        highlight_sample_ids = {
+            vector_index: f"{sample_number:03d}"
+            for sample_number, vector_index in enumerate(highlight_vector_indices)
+        }
+        batch_size = max(
+            1,
+            int(
+                self.config.get(
+                    "synthesis_transition_batch_size",
+                    self.config.get("dataloader", {}).get("batch_size", 32),
+                )
+            ),
+        )
+
+        # The Jina encoder is frozen and loaded outside the registered state
+        # dict. Reuse the already-loaded training copy to avoid loading a second
+        # 1.3 GB encoder when synthesis switches to moving-average models.
+        synthesis_models = dict(models)
+        if "TextEncoder" in self.models:
+            synthesis_models["TextEncoder"] = self.models["TextEncoder"]
+
+        vector_chunks = {
+            "mean_q": [],
+            "std_q": [],
+            "mean_p": [],
+            "std_p": [],
+            "z_sampled": [],
+        }
+        transition_records = []
+        reconstruction_records = []
+
+        log.info(
+            f"Synthesis step {self.step}: encoding {transition_count} transitions "
+            f"in batches of {batch_size}; {reconstruction_count} reconstruction highlights."
+        )
+
+        for batch_start in range(0, transition_count, batch_size):
+            batch_end = min(batch_start + batch_size, transition_count)
+            batch_source_indices = source_indices[batch_start:batch_end]
+            source_samples = [
+                self.dataset.get_sample(self.dataset.datas[index])
+                for index in batch_source_indices
+            ]
+            batch = batch_to_cuda(self.dataset.collate_fn(source_samples), self.rank)
+            batch = self.encode(
+                batch,
+                synthesis_models,
+                isTrain=True,
+                step=self.step,
+                epoch=self.epoch,
+            )
+
+            for vector_name in vector_chunks:
+                source_name = "z" if vector_name == "z_sampled" else vector_name
+                vector_chunks[vector_name].append(
+                    batch[source_name].detach().float().cpu()
+                )
+
+            source_state = squeeze_time_dim_state(batch["state"])
+            target_state = squeeze_time_dim_state(batch["next_state"])
+
+            for local_index, source_index in enumerate(batch_source_indices):
+                vector_index = batch_start + local_index
+                action_index = int(
+                    batch["action_index"][local_index].detach().cpu().item()
+                )
+                card_used = card_used_from_raw(
+                    self._raw_card_used(self.dataset.datas[source_index])
+                )
+                reconstruction_sample_id = highlight_sample_ids.get(vector_index)
+                transition_records.append(
+                    {
+                        "vector_index": vector_index,
+                        "source_index": source_index,
+                        "is_highlighted": reconstruction_sample_id is not None,
+                        "reconstruction_sample_id": reconstruction_sample_id,
+                        "action": {
+                            "index": action_index,
+                            "label": describe_action(action_index),
+                        },
+                        "card_used": card_used,
+                    }
+                )
+
+            highlight_local_indices = [
+                vector_index - batch_start
+                for vector_index in highlight_vector_indices
+                if batch_start <= vector_index < batch_end
+            ]
+            if highlight_local_indices:
+                selection = torch.as_tensor(
+                    highlight_local_indices,
+                    dtype=torch.long,
+                    device=batch["mean_q"].device,
+                )
+                prediction = synthesis_models["TokenTransitionStateDecoder"](
+                    state_tokens=batch["tokens_s"].index_select(0, selection),
+                    state_padding_mask=batch["pad_s"].index_select(0, selection),
+                    spans=batch["spans_s"],
+                    transition_vec=batch["mean_q"].index_select(0, selection),
+                )
+                selected_target_state = self._select_batch(target_state, selection)
+
+                for reconstruction_index, local_index in enumerate(
+                    highlight_local_indices
+                ):
+                    vector_index = batch_start + local_index
+                    source_index = source_indices[vector_index]
+                    sample_id = highlight_sample_ids[vector_index]
+                    action_index = int(
+                        batch["action_index"][local_index].detach().cpu().item()
+                    )
+                    card_used = card_used_from_raw(
+                        self._raw_card_used(self.dataset.datas[source_index])
+                    )
+                    metrics = reconstruction_metrics(
+                        prediction,
+                        selected_target_state,
+                        reconstruction_index,
+                    )
+                    transition_records[vector_index]["reconstruction_score"] = metrics[
+                        "score"
+                    ]
+                    reconstruction_records.append(
+                        {
+                            "schema_version": 1,
+                            "sample_id": sample_id,
+                            "source_index": source_index,
+                            "vector_index": vector_index,
+                            "summary": {
+                                "action": describe_action(action_index),
+                                "score": metrics["score"],
+                            },
+                            "metrics": metrics,
+                            "input_state": state_from_target(
+                                source_state,
+                                local_index,
+                            ),
+                            "transition": {
+                                "card_used": card_used,
+                                "action": {
+                                    "index": action_index,
+                                    "label": describe_action(action_index),
+                                },
+                            },
+                            "predicted_next_state": state_from_prediction(
+                                prediction,
+                                reconstruction_index,
+                            ),
+                            "target_next_state": state_from_target(
+                                target_state,
+                                local_index,
+                            ),
+                        }
+                    )
+
+            if batch_end == transition_count or batch_end % (batch_size * 10) == 0:
+                log.info(
+                    f"Synthesis step {self.step}: encoded {batch_end}/{transition_count} transitions."
+                )
+
+        vectors = {
+            name: torch.cat(chunks, dim=0).numpy()
+            for name, chunks in vector_chunks.items()
+        }
+        coordinates, projection = pca_project_2d(vectors["mean_q"])
+        step_dir = f"{self.logdir}/synthesis/{self.step}"
+        reconstruction_path = write_reconstruction_artifact(
+            step_dir,
+            step=self.step,
+            samples=reconstruction_records,
+        )
+        transition_path = write_transition_space_artifact(
+            step_dir,
+            step=self.step,
+            vectors=vectors,
+            records=transition_records,
+            coordinates=coordinates,
+            projection=projection,
+        )
+        log.info(
+            f"Synthesis step {self.step}: wrote {reconstruction_path} and {transition_path}."
+        )
+        return transition_path
+
+    @staticmethod
+    def _synthesis_source_indices(dataset_size, item_count):
+        """Select evenly-spaced current replay samples deterministically."""
+        if item_count >= dataset_size:
+            return list(range(dataset_size))
+        if item_count == 1:
+            return [0]
+        return [round(index * (dataset_size - 1) / (item_count - 1)) for index in range(item_count)]
+
+    @staticmethod
+    def _raw_card_used(data):
+        state = data.get("state", {})
+        if isinstance(state, (list, tuple)):
+            state = state[-1] if state else {}
+        return state.get("card_used", {}) if isinstance(state, dict) else {}
+
+    @staticmethod
+    def _select_batch(value, indices):
+        if isinstance(value, dict):
+            return {
+                key: CVAETrainer._select_batch(item, indices)
+                for key, item in value.items()
+            }
+        if isinstance(value, torch.Tensor):
+            return value.index_select(0, indices.to(value.device))
+        return value
 
     def _forward(self, batch, models, isTrain, step, epoch):
 

@@ -6,7 +6,6 @@ if TYPE_CHECKING:
 from game.card_simulation import bind_card,simulate,Card_Simulation,test
 from pycards.land.Volcanic_Fumaroles.model import Volcanic_Fumaroles
 
-@test
 @bind_card(Volcanic_Fumaroles)
 class Volcanic_Fumaroles_Simulation(Card_Simulation):
 

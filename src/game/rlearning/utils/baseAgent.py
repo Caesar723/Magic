@@ -479,6 +479,7 @@ class BaseTrainer:
         if self.rank != 0:
             return None
 
+        self._moving_average()
         models = self.models_test
         training_modes = {name: model.training for name, model in models.items()}
         for model in models.values():
