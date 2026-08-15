@@ -244,6 +244,69 @@ def state_from_prediction(prediction: dict[str, Any], sample_index: int) -> dict
     }
 
 
+def _count_zone_cards(state: dict[str, Any], collection: str, name: str, sample_index: int) -> int:
+    zone = state.get(collection, {}).get(name)
+    if not isinstance(zone, dict) or "card_mask" not in zone:
+        return 0
+    mask = zone["card_mask"][sample_index].detach().cpu().float()
+    return int((mask > 0.5).sum().item())
+
+
+def _target_life(state: dict[str, Any], sample_index: int, offset: int) -> int:
+    return _clamped_integer(state["global_state"][sample_index].flatten()[offset], scale=20)
+
+
+def _target_mana_total(state: dict[str, Any], sample_index: int) -> int:
+    values = state["global_state"][sample_index].detach().cpu().flatten()
+    return sum(_clamped_integer(value, scale=20) for value in values[2 : 2 + len(MANA_NAMES)])
+
+
+def state_delta_from_target(source: dict[str, Any], target: dict[str, Any], sample_index: int) -> dict[str, Any]:
+    """Summarize the real state change for coloring transition points."""
+    self_life_delta = _target_life(target, sample_index, 0) - _target_life(source, sample_index, 0)
+    oppo_life_delta = _target_life(target, sample_index, 1) - _target_life(source, sample_index, 1)
+    hand_delta = _count_zone_cards(target, "card_zones", "hand", sample_index) - _count_zone_cards(source, "card_zones", "hand", sample_index)
+    graveyard_delta = _count_zone_cards(target, "card_zones", "graveyard", sample_index) - _count_zone_cards(source, "card_zones", "graveyard", sample_index)
+    library_delta = _count_zone_cards(target, "card_zones", "library", sample_index) - _count_zone_cards(source, "card_zones", "library", sample_index)
+    self_board_delta = _count_zone_cards(target, "board_zones", "self_board", sample_index) - _count_zone_cards(source, "board_zones", "self_board", sample_index)
+    oppo_board_delta = _count_zone_cards(target, "board_zones", "oppo_board", sample_index) - _count_zone_cards(source, "board_zones", "oppo_board", sample_index)
+    mana_delta = _target_mana_total(target, sample_index) - _target_mana_total(source, sample_index)
+
+    change_type = "no_major_change"
+    if oppo_life_delta < 0:
+        change_type = "opponent_damage"
+    elif self_life_delta < 0:
+        change_type = "self_damage"
+    elif self_life_delta > 0 or oppo_life_delta > 0:
+        change_type = "life_gain"
+    elif self_board_delta > 0 or oppo_board_delta > 0:
+        change_type = "summon"
+    elif self_board_delta < 0 or oppo_board_delta < 0:
+        change_type = "remove"
+    elif hand_delta > 0:
+        change_type = "draw"
+    elif hand_delta < 0:
+        change_type = "discard"
+    elif graveyard_delta != 0:
+        change_type = "graveyard_change"
+    elif library_delta != 0:
+        change_type = "library_change"
+    elif mana_delta != 0:
+        change_type = "mana_change"
+
+    return {
+        "change_type": change_type,
+        "self_life_delta": self_life_delta,
+        "oppo_life_delta": oppo_life_delta,
+        "hand_delta": hand_delta,
+        "graveyard_delta": graveyard_delta,
+        "library_delta": library_delta,
+        "self_board_delta": self_board_delta,
+        "oppo_board_delta": oppo_board_delta,
+        "mana_delta": mana_delta,
+    }
+
+
 def card_used_from_raw(card_used: dict[str, Any] | None) -> dict[str, Any]:
     """Format the raw card data retained by the replay dataset."""
     card_used = card_used or {}

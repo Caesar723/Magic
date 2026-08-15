@@ -15,6 +15,7 @@ from game.rlearning.synthesis.state_space import (
     card_used_from_raw,
     describe_action,
     reconstruction_metrics,
+    state_delta_from_target,
     state_from_prediction,
     state_from_target,
 )
@@ -233,6 +234,11 @@ class CVAETrainer(BaseTrainer):
                         "source_index": source_index,
                         "is_highlighted": reconstruction_sample_id is not None,
                         "reconstruction_sample_id": reconstruction_sample_id,
+                        "state_delta": state_delta_from_target(
+                            source_state,
+                            target_state,
+                            local_index,
+                        ),
                         "action": {
                             "index": action_index,
                             "label": describe_action(action_index),

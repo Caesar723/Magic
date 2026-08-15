@@ -61,7 +61,7 @@ reset_learning_rate: True
 moving_average_beta: 0
 
 #------------------------------------
-total_step: 500000
+total_step: 600000
 log_step: 20
 eval_step: 2000
 synthesis_step: 2000

@@ -17,7 +17,7 @@
   <section class="transition-controls">
     <label><input id="highlight-toggle" type="checkbox" checked> Highlight reconstruction samples</label>
     <label><input id="highlights-only-toggle" type="checkbox"> Show highlights only</label>
-    <span class="plot-legend"><i class="legend-dot"></i> Transition <i class="legend-dot highlight"></i> Reconstruction</span>
+    <span id="state-change-legend" class="plot-legend"></span>
   </section>
 
   <div class="transition-space-layout">
@@ -39,6 +39,7 @@
         <dt>Action</dt><dd id="point-action">—</dd>
         <dt>Card type</dt><dd id="point-card-type">—</dd>
         <dt>Card text</dt><dd id="point-card-text">—</dd>
+        <dt>State change</dt><dd id="point-change">—</dd>
         <dt>Source index</dt><dd id="point-source-index">—</dd>
         <dt>Reconstruction score</dt><dd id="point-score">—</dd>
       </dl>
@@ -52,4 +53,3 @@
 {% block scripts %}
   <script src="{{ url_for('static', path='transition_space.js') }}" defer></script>
 {% endblock %}
-

@@ -21,6 +21,7 @@ try:
     import torch
     from game.rlearning.synthesis.state_space import (
         reconstruction_metrics,
+        state_delta_from_target,
         state_from_prediction,
         state_from_target,
     )
@@ -153,6 +154,7 @@ class SynthesisViewerTest(unittest.TestCase):
                     "is_highlighted": index == 1,
                     "reconstruction_sample_id": "000" if index == 1 else None,
                     "reconstruction_score": 0.18 if index == 1 else None,
+                    "state_delta": {"change_type": "opponent_damage"},
                     "action": {"index": 32, "label": "Play hand card slot 1"},
                     "card_used": {
                         "type": "Creature",
@@ -182,6 +184,7 @@ class SynthesisViewerTest(unittest.TestCase):
             )
             self.assertEqual(response.status_code, 200)
             self.assertIn("Transition space", response.text)
+            self.assertIn("State change", response.text)
             self.assertIn("Highlight reconstruction samples", response.text)
             self.assertIn("/reconstruction/000", response.text)
 
@@ -231,6 +234,11 @@ class SynthesisViewerTest(unittest.TestCase):
             "card_zones": {name: target_zone(True) for name in ["hand", "library", "graveyard", "stack_cards"]},
             "board_zones": {name: target_zone(False) for name in ["self_board", "oppo_board"]},
         }
+        source = {
+            "global_state": torch.tensor([[1.0, 1.0, 0.0, 0.0, 0.0, 0.15, 0.0]]),
+            "card_zones": {name: target_zone(True) for name in ["hand", "library", "graveyard", "stack_cards"]},
+            "board_zones": {name: target_zone(False) for name in ["self_board", "oppo_board"]},
+        }
         prediction = {
             "global_state": torch.tensor([[0.95, 0.9, 0.0, 0.0, 0.0, 0.1, 0.0]]),
             "card_zones": {name: prediction_zone(True) for name in ["hand", "library", "graveyard", "stack_cards"]},
@@ -239,12 +247,14 @@ class SynthesisViewerTest(unittest.TestCase):
 
         decoded_target = state_from_target(target, 0)
         decoded_prediction = state_from_prediction(prediction, 0)
+        delta = state_delta_from_target(source, target, 0)
         metrics = reconstruction_metrics(prediction, target, 0)
 
         self.assertEqual(decoded_target["global_state"]["self_life"], 20)
         self.assertEqual(decoded_target["card_zones"]["hand"]["cards"][0]["type"], "Creature")
         self.assertEqual(decoded_prediction["card_zones"]["hand"]["cards"][0]["attack"], 2)
         self.assertEqual(decoded_prediction["card_zones"]["hand"]["cards"][0]["health"], 3)
+        self.assertEqual(delta["change_type"], "opponent_damage")
         self.assertIn("score", metrics)
 
     @unittest.skipIf(torch is None, "PyTorch is required for CVAE synthesis")
@@ -435,6 +445,7 @@ class SynthesisViewerTest(unittest.TestCase):
             highlighted = [
                 point for point in points["points"] if point["is_highlighted"]
             ]
+            self.assertEqual(points["points"][0]["state_delta"]["change_type"], "no_major_change")
             self.assertEqual(
                 [point["reconstruction_sample_id"] for point in highlighted],
                 ["000", "001"],
