@@ -288,12 +288,12 @@ def get_creature_state_batch(room:"Base_Agent_Room",agent:"Agent",creatures:list
     batch_result["card_mask"]=[]
 
 
-    sort_function=room.create_sort_function(agent)
-    cards_sorted = sorted(creatures, key=sort_function, reverse=True)
+    # sort_function=room.create_sort_function(agent)
+    # cards_sorted = sorted(creatures, key=sort_function, reverse=True)
     #print(cards_sorted)
     for i in range(10):
         if i < length:
-            creature=cards_sorted[i]
+            creature=creatures[i]
             result=get_creature_state(room,creature)
             batch_result["card_special_types"]+=result["card_special_types"]
             batch_result["card_atks"]+=result["card_atks"]

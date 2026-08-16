@@ -1,6 +1,6 @@
-agent_config: game/rlearning/config/agents/specific.yaml
+agent_config: game/rlearning/config/agents/specific/specific.yaml
 opponent_config:
-  - game/rlearning/config/agents/specific.yaml
+  - game/rlearning/config/agents/specific/specific.yaml
 
 info_communication: "game.rlearning.communicate.training_parallel_specific_room.Info_Communication"
 num_worker: 50
