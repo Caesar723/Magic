@@ -1,13 +1,25 @@
 {% macro card(item, predicted=false) -%}
-  <article class="card {% if predicted and item.presence_confidence < 0.7 %}is-low-confidence{% endif %}">
+  {% set confidence = item.location_confidence if item.location_confidence is defined else item.presence_confidence %}
+  <article class="card {% if predicted and confidence < 0.7 %}is-low-confidence{% endif %}">
     <div class="card-title">
       <strong>#{{ item.slot }} · {{ item.type }}</strong>
-      {% if predicted %}<small>presence {{ '%.0f'|format(item.presence_confidence * 100) }}%</small>{% endif %}
+      {% if predicted and item.location_confidence is defined %}
+        <small>location {{ '%.0f'|format(item.location_confidence * 100) }}%</small>
+      {% elif predicted %}
+        <small>presence {{ '%.0f'|format(item.presence_confidence * 100) }}%</small>
+      {% endif %}
     </div>
+    {% if item.source_zone is defined %}
+      <div class="card-route">
+        {{ item.source_zone | replace('_', ' ') }} → {{ item.destination_zone | replace('_', ' ') }}
+      </div>
+    {% endif %}
     <div class="card-stats">
       {% if item.mana_cost is defined %}<span>cost {{ item.mana_cost | join('/') }}</span>{% endif %}
       <span>{{ item.attack }}/{{ item.health }}</span>
       {% if item.has_state %}<span>has state</span>{% endif %}
+      {% if item.tapped is defined %}<span>{{ 'tapped' if item.tapped else 'untapped' }}</span>{% endif %}
+      {% if item.card_id is defined %}<span>id {{ item.card_id }}</span>{% endif %}
       {% if item.stack_player is defined %}<span>{{ item.stack_player }} · stack action {{ item.stack_action }}</span>{% endif %}
     </div>
     {% if item.special_types %}
@@ -38,13 +50,19 @@
   <section class="game-state {% if predicted %}is-prediction{% endif %}">
     <header class="state-heading">
       <h2>{{ title }}</h2>
-      {% if predicted %}<span>threshold-decoded</span>{% endif %}
+      {% if predicted %}<span>{{ state.decode_label | default('threshold-decoded') }}</span>{% endif %}
     </header>
     <div class="life-bar opponent">
       <span>Opponent life</span><strong>{{ state.global_state.oppo_life }}</strong>
     </div>
+    {% if state.board_zones.oppo_land is defined %}
+      {{ zone('Opponent lands', state.board_zones.oppo_land, predicted, true) }}
+    {% endif %}
     {{ zone('Opponent board', state.board_zones.oppo_board, predicted, true) }}
     {{ zone('Self board', state.board_zones.self_board, predicted, true) }}
+    {% if state.board_zones.self_land is defined %}
+      {{ zone('Self lands', state.board_zones.self_land, predicted, true) }}
+    {% endif %}
     <div class="life-bar self">
       <span>Self life</span><strong>{{ state.global_state.self_life }}</strong>
       <span class="mana">Mana

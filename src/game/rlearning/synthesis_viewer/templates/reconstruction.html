@@ -47,6 +47,48 @@
         </div>
       </section>
 
+      {% if sample.entity_transitions is defined %}
+        <details class="entity-transitions" open>
+          <summary>
+            <span>Card entity transitions</span>
+            <small>moved cards and errors are listed first</small>
+          </summary>
+          <div class="entity-transition-table-wrap">
+            <table class="entity-transition-table">
+              <thead>
+                <tr>
+                  <th>Card</th>
+                  <th>Source</th>
+                  <th>Predicted</th>
+                  <th>Target</th>
+                  <th>Attributes (pred / target)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for entity in sample.entity_transitions %}
+                  <tr class="{{ 'is-correct' if entity.correct else 'is-error' }}">
+                    <td>
+                      <strong>{{ entity.card_type }}</strong>
+                      <small>id {{ entity.card_id }}</small>
+                    </td>
+                    <td>{{ entity.source_zone | replace('_', ' ') }}</td>
+                    <td>
+                      {{ entity.predicted_zone | replace('_', ' ') }}
+                      <small>{{ '%.0f'|format(entity.confidence * 100) }}%</small>
+                    </td>
+                    <td>{{ entity.target_zone | replace('_', ' ') }}</td>
+                    <td>
+                      {{ entity.predicted_attributes }}
+                      <small>/ {{ entity.target_attributes }}</small>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      {% endif %}
+
       <div class="next-state-grid">
         {{ game_state('Predicted next state', sample.predicted_next_state, true) }}
         {{ game_state('True next state', sample.target_next_state) }}

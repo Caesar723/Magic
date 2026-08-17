@@ -502,13 +502,20 @@ class CVAETrainer(BaseTrainer):
 
 
     def prior_posterior_kl_loss(self, batch):
+        """Return the standard CVAE divergence KL(q(z|...) || p(z|...))."""
         mean_p = batch["mean_p"]
         std_p = batch["std_p"].clamp_min(1e-6)
 
         mean_q = batch["mean_q"]
         std_q = batch["std_q"].clamp_min(1e-6)
 
-        kl_loss= torch.log(std_q / std_p) + (std_p.pow(2) + (mean_p - mean_q).pow(2)) / (2 * std_q.pow(2)) - 0.5
+        # q is the posterior that observes s_next; p is the inference-time prior.
+        kl_loss = (
+            torch.log(std_p / std_q)
+            + (std_q.pow(2) + (mean_q - mean_p).pow(2))
+            / (2 * std_p.pow(2))
+            - 0.5
+        )
 
         return kl_loss.sum(dim=-1).mean()
 
