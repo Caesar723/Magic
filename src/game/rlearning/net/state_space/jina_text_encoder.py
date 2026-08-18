@@ -21,6 +21,8 @@ class JinaTextEncoder(nn.Module):
         self.normalize = config.get("normalize", True)
         self.trust_remote_code = config.get("trust_remote_code", True)
         self.local_files_only = config.get("local_files_only", False)
+        # Default False: frozen encoder (current behavior).
+        self.trainable = config.get("trainable", False)
 
         self._encoder = None
         self._encoder_device = None
@@ -28,10 +30,16 @@ class JinaTextEncoder(nn.Module):
         if not config.get("lazy_load", True):
             self._load_encoder()
 
+    def _apply_trainability(self, encoder):
+        if self.trainable:
+            encoder.requires_grad_(True)
+            encoder.train(self.training)
+        else:
+            encoder.requires_grad_(False)
+            encoder.eval()
+
     def _load_encoder(self, device=None):
         if self._encoder is None:
-            
-
             model_path = (
                 self.local_model_path
                 if self.local_model_path and os.path.isdir(self.local_model_path)
@@ -43,15 +51,25 @@ class JinaTextEncoder(nn.Module):
                 trust_remote_code=self.trust_remote_code,
                 local_files_only=self.local_files_only,
             )
-            encoder.eval()
-            encoder.requires_grad_(False)
-            object.__setattr__(self, "_encoder", encoder)
+            self._apply_trainability(encoder)
+            if self.trainable:
+                # Register as submodule so parameters appear in self.parameters().
+                self._encoder = encoder
+            else:
+                # Keep out of the module tree (frozen feature extractor).
+                object.__setattr__(self, "_encoder", encoder)
 
         if device is not None and self._encoder_device != device:
             self._encoder.to(device)
             self._encoder_device = device
 
         return self._encoder
+
+    def train(self, mode=True):
+        super().train(mode)
+        if self._encoder is not None:
+            self._apply_trainability(self._encoder)
+        return self
 
     def forward(
         self,
@@ -80,8 +98,11 @@ class JinaTextEncoder(nn.Module):
         if self.truncate_dim is not None:
             encode_kwargs["truncate_dim"] = self.truncate_dim
 
-        with torch.no_grad():
+        if self.trainable:
             embeddings = encoder.encode(texts, **encode_kwargs)
+        else:
+            with torch.no_grad():
+                embeddings = encoder.encode(texts, **encode_kwargs)
 
         if not isinstance(embeddings, torch.Tensor):
             embeddings = torch.as_tensor(embeddings, dtype=torch.float32)
