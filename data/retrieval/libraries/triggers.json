@@ -1,0 +1,2758 @@
+{
+  "_meta": {
+    "version": "3.2.0",
+    "description": "Generic trigger phrase library for query generation. Slot-level only — no card IDs. {name} is a compose-time placeholder filled from card metadata, not a hardcoded card reference.",
+    "composition_rule": "Pick one trigger phrase + one effect phrase + one target phrase per binding. Never put effect text inside trigger phrases.",
+    "when_vs_whenever": "For retrieval training, When and Whenever belong to the same slot family unless the query explicitly asks about repeatability.",
+    "card_mapping": "Per-card trigger bindings live in parsed_cards.jsonl (parser output), not in this library.",
+    "phrase_target_per_slot": 20,
+    "phrase_style_balance": "~5 oracle_template, ~7 shorthand, ~8 natural_language per slot",
+    "name_placeholder": "{name} = card display name at query compose time. Phrases with uses_name:true require substitution; uses_name:false phrases stay generic for mechanic-level retrieval."
+  },
+  "types": {
+    "ETB": {
+      "label": "Enters the Battlefield",
+      "kind": "triggered",
+      "event": "self_permanent_enters_battlefield",
+      "subject": "this_permanent",
+      "confusable_with": [
+        "ETB_OR_ATTACK",
+        "CAST_CREATURE_SPELL",
+        "CONSTELLATION",
+        "LAND_ENTERS"
+      ]
+    },
+    "ETB_OR_ATTACK": {
+      "label": "Enters the Battlefield or Attacks",
+      "kind": "triggered",
+      "event": "self_enters_battlefield_or_declares_attack",
+      "subject": "this_creature",
+      "confusable_with": [
+        "ETB",
+        "ATTACK"
+      ]
+    },
+    "ATTACK": {
+      "label": "Attacks",
+      "kind": "triggered",
+      "event": "self_declares_attack",
+      "subject": "this_creature",
+      "confusable_with": [
+        "ETB_OR_ATTACK",
+        "DEFEND",
+        "DEALS_DAMAGE"
+      ]
+    },
+    "DEFEND": {
+      "label": "Defends / Blocks",
+      "kind": "triggered",
+      "event": "self_blocks",
+      "subject": "this_creature",
+      "note": "Pool may use 'defends'; MTG Oracle often uses 'blocks'. Same slot.",
+      "confusable_with": [
+        "ATTACK",
+        "SELF_DEALT_DAMAGE"
+      ]
+    },
+    "DIES": {
+      "label": "This Permanent Dies",
+      "kind": "triggered",
+      "event": "self_dies",
+      "subject": "this_permanent",
+      "confusable_with": [
+        "CREATURE_DIES"
+      ]
+    },
+    "CREATURE_DIES": {
+      "label": "Any Creature Dies",
+      "kind": "triggered",
+      "event": "any_creature_dies",
+      "subject": "any_creature",
+      "confusable_with": [
+        "DIES"
+      ]
+    },
+    "SELF_DEALT_DAMAGE": {
+      "label": "Dealt Damage (Incoming)",
+      "kind": "triggered",
+      "event": "self_is_dealt_damage",
+      "subject": "this_permanent",
+      "confusable_with": [
+        "DEALS_DAMAGE",
+        "DEFEND"
+      ]
+    },
+    "DEALS_DAMAGE": {
+      "label": "Deals Damage (Outgoing)",
+      "kind": "triggered",
+      "event": "self_deals_damage",
+      "subject": "this_permanent",
+      "note": "Broader than ATTACK; includes non-combat damage dealt by this source.",
+      "confusable_with": [
+        "SELF_DEALT_DAMAGE",
+        "ATTACK"
+      ]
+    },
+    "UPKEEP": {
+      "label": "Upkeep Step",
+      "kind": "triggered",
+      "event": "controller_upkeep_step_begins",
+      "subject": "controller",
+      "confusable_with": [
+        "END_STEP",
+        "MAIN_PHASE"
+      ]
+    },
+    "END_STEP": {
+      "label": "Next End Step",
+      "kind": "delayed",
+      "event": "next_end_step_begins",
+      "subject": "delayed_effect",
+      "note": "Leading timing ('At the beginning of the next end step') or trailing delayed clause on spells.",
+      "confusable_with": [
+        "UPKEEP",
+        "MAIN_PHASE"
+      ]
+    },
+    "MAIN_PHASE": {
+      "label": "Next Main Phase",
+      "kind": "delayed",
+      "event": "next_main_phase_begins",
+      "subject": "delayed_effect",
+      "confusable_with": [
+        "UPKEEP",
+        "END_STEP"
+      ]
+    },
+    "CAST_SPELL": {
+      "label": "Cast Any Spell",
+      "kind": "triggered",
+      "event": "controller_casts_spell",
+      "subject": "controller",
+      "confusable_with": [
+        "CAST_INSTANT_SORCERY",
+        "CAST_CREATURE_SPELL",
+        "CAST_COLORED_SPELL"
+      ]
+    },
+    "CAST_INSTANT_SORCERY": {
+      "label": "Cast Instant or Sorcery",
+      "kind": "triggered",
+      "event": "controller_casts_instant_or_sorcery",
+      "subject": "controller",
+      "confusable_with": [
+        "CAST_SPELL",
+        "CAST_CREATURE_SPELL"
+      ]
+    },
+    "CAST_CREATURE_SPELL": {
+      "label": "Cast Creature Spell",
+      "kind": "triggered",
+      "event": "controller_casts_creature_spell",
+      "subject": "controller",
+      "confusable_with": [
+        "ETB",
+        "CAST_SPELL"
+      ]
+    },
+    "CAST_COLORED_SPELL": {
+      "label": "Cast Colored Spell",
+      "kind": "triggered",
+      "event": "controller_casts_colored_spell",
+      "subject": "controller",
+      "confusable_with": [
+        "CAST_SPELL",
+        "CAST_INSTANT_SORCERY"
+      ]
+    },
+    "CONSTELLATION": {
+      "label": "Constellation",
+      "kind": "triggered",
+      "event": "enchantment_enters_under_control",
+      "subject": "controller",
+      "note": "Includes standard 'another enchantment enters' and self-ETB constellation variants.",
+      "confusable_with": [
+        "ETB"
+      ]
+    },
+    "OPPONENT_PROLIFERATES": {
+      "label": "Opponent Proliferates",
+      "kind": "triggered",
+      "event": "opponent_proliferates",
+      "subject": "opponent",
+      "confusable_with": [
+        "CAST_SPELL"
+      ]
+    },
+    "LAND_ENTERS": {
+      "label": "Land Enters Battlefield",
+      "kind": "triggered",
+      "event": "self_land_enters_battlefield",
+      "subject": "this_land",
+      "note": "Separate from creature ETB. This pool often bundles land entry with mana in one sentence.",
+      "confusable_with": [
+        "ETB",
+        "LAND_MANA"
+      ]
+    },
+    "LAND_MANA": {
+      "label": "Land Mana Production",
+      "kind": "static",
+      "event": "land_taps_for_mana",
+      "subject": "this_land",
+      "note": "Mana ability only. Do not mix entry tapped/untapped state here.",
+      "confusable_with": [
+        "LAND_ENTERS",
+        "ETB"
+      ]
+    },
+    "LAND_ACTIVATED": {
+      "label": "Land Activated Ability",
+      "kind": "activated",
+      "event": "land_tapped_for_optional_effect",
+      "subject": "this_land",
+      "note": "Not a triggered ability. Kept here for retrieval query phrases.",
+      "confusable_with": [
+        "LAND_MANA",
+        "LAND_ENTERS"
+      ]
+    }
+  },
+  "phrases": {
+    "ETB": [
+      {
+        "phrase": "When {name} enters the battlefield",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "when"
+      },
+      {
+        "phrase": "Whenever {name} enters the battlefield",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "whenever"
+      },
+      {
+        "phrase": "When {name} enters play",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "when"
+      },
+      {
+        "phrase": "Whenever {name} enters play",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "whenever"
+      },
+      {
+        "phrase": "When this creature enters the battlefield",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever this creature enters the battlefield",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When this permanent enters the battlefield",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "When it enters the battlefield",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever it enters the battlefield",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When this creature enters play",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "ETB",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on entry",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when it enters",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "enters the battlefield",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "entry trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on ETB",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "enters play",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when this comes in",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "upon entering the battlefield",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when this hits the field",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "ETB_OR_ATTACK": [
+      {
+        "phrase": "When {name} enters the battlefield or attacks",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "when"
+      },
+      {
+        "phrase": "Whenever {name} enters the battlefield or attacks",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "whenever"
+      },
+      {
+        "phrase": "When {name} enters or attacks",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "when"
+      },
+      {
+        "phrase": "When this creature enters the battlefield or attacks",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever this creature enters the battlefield or attacks",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When it enters the battlefield or attacks",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever it enters the battlefield or attacks",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When this creature enters or attacks",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "ETB or attack",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "entry or attack trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "ETB/attack",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on entry or on attack",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "enters or attacks",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "dual ETB attack",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when it enters or attacks",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "triggers on entry and attack",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when this comes in or attacks",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "enters or swings",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when entering or attacking",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on ETB or swing",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "ATTACK": [
+      {
+        "phrase": "Whenever {name} attacks",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "whenever"
+      },
+      {
+        "phrase": "When {name} attacks",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "when"
+      },
+      {
+        "phrase": "Whenever {name} declares an attack",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "whenever"
+      },
+      {
+        "phrase": "Whenever this creature attacks",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When this creature attacks",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever it attacks",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When it attacks",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever this creature declares an attack",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "on attack",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "attack trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when it attacks",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on swing",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "swing trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "attacking trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on declare attack",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when this creature swings",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "whenever this creature swings",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "combat trigger on attack",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when attacking",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "triggers when it attacks",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "DEFEND": [
+      {
+        "phrase": "Whenever {name} defends",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "whenever"
+      },
+      {
+        "phrase": "Whenever {name} blocks",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "whenever"
+      },
+      {
+        "phrase": "When {name} blocks",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "when"
+      },
+      {
+        "phrase": "Whenever this creature defends",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever this creature blocks",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When this creature blocks",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "When it blocks",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever it blocks",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "on block",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when it blocks",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "block trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on defend",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "defending trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "blocks trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "while blocking",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when it defends",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when blocking",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "combat trigger on block",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when this creature defends",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "defensive trigger",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "DIES": [
+      {
+        "phrase": "When {name} dies",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "when"
+      },
+      {
+        "phrase": "When {name} is put into a graveyard from the battlefield",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "when"
+      },
+      {
+        "phrase": "When this creature dies",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "When this permanent dies",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "When it dies",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "When this creature is put into a graveyard from the battlefield",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "When it leaves the battlefield by dying",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "when it dies",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "dies trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "death trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on death",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "upon death",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when this dies",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "dies payoff",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "upon dying",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when sent to the graveyard",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when this goes to the yard",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "self dies trigger",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "death trigger ability",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when this creature is destroyed",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "CREATURE_DIES": [
+      {
+        "phrase": "Whenever a creature dies",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When a creature dies",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever any creature dies",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever another creature dies",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When another creature dies",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "whenever a creature dies",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when a creature dies",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on any creature death",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "global dies trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "dies matters",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "creature death trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on creature death",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when any creature dies",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "whenever any creature dies",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "whenever another creature dies",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on any die",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "whenever creatures die",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when a creature is put into a graveyard",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "dies watch trigger",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "global death trigger",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "SELF_DEALT_DAMAGE": [
+      {
+        "phrase": "Whenever {name} is dealt damage",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "whenever"
+      },
+      {
+        "phrase": "When {name} is dealt damage",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "when"
+      },
+      {
+        "phrase": "Whenever this creature is dealt damage",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When this creature is dealt damage",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever it is dealt damage",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When it is dealt damage",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever this permanent is dealt damage",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "when dealt damage",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when it takes damage",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on being damaged",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "whenever damaged",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "incoming damage trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "damage taken trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on damage taken",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "retaliates when damaged",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when this takes damage",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when hit by damage",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "reacts to damage",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when struck for damage",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "upon taking damage",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "DEALS_DAMAGE": [
+      {
+        "phrase": "Whenever {name} deals damage",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "whenever"
+      },
+      {
+        "phrase": "Whenever {name} deals damage to an opponent",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "whenever"
+      },
+      {
+        "phrase": "Whenever {name} deals damage to a player",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "whenever"
+      },
+      {
+        "phrase": "When {name} deals damage",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "when"
+      },
+      {
+        "phrase": "Whenever this creature deals damage",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever this creature deals damage to an opponent",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever this creature deals damage to a player",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When this creature deals damage",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever it deals damage",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "when it deals damage",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on dealing damage",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "damage dealt trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "outgoing damage trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "deals damage trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on damage to player",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "damage ping trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when this deals damage",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "whenever it deals damage",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when damage is dealt by this",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when this creature hits for damage",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "UPKEEP": [
+      {
+        "phrase": "At the beginning of your upkeep",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "At the start of your upkeep",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "At the beginning of each of your upkeeps",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "At the start of each of your upkeeps",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "During your upkeep",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "upkeep trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "each upkeep",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on upkeep",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "at upkeep",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "every upkeep",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "upkeep step trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "upkeep ability",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "beginning of upkeep",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "start of upkeep trigger",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "during upkeep",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "at your upkeep",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "each turn at upkeep",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on your upkeep step",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "recurring upkeep trigger",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "upkeep payoff",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "END_STEP": [
+      {
+        "phrase": "At the beginning of the next end step",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "At the start of the next end step",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "At the beginning of each end step",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "At the start of each end step",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "Until the beginning of the next end step",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "next end step",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "at next end step",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "end step trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "delayed to end step",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "end step timing",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "next end step clause",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "end step delayed",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on the next end step",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "beginning of next end step",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "delayed end step",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "end-of-turn step trigger",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "at the next end step",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "timing at next end step",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "scheduled for next end step",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "timing window at next end step",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "MAIN_PHASE": [
+      {
+        "phrase": "At the beginning of your next main phase",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "At the start of your next main phase",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "At the beginning of the next main phase",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "At the start of the next main phase",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "During your next main phase",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "next main phase",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "at next main phase",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "main phase trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "delayed to main phase",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "next main timing",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "main phase delayed",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on next main",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on the next main phase",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "beginning of next main phase",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "delayed main phase",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "at your next main",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "start of next main phase",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "main phase step trigger",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "at the next main phase",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "timing at next main phase",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "CAST_SPELL": [
+      {
+        "phrase": "Whenever you cast a spell",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When you cast a spell",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever you cast a nonland spell",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When you cast a nonland spell",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever you cast a spell this way",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "when you cast a spell",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on spell cast",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "cast trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on cast",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "spell cast trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "cast matters",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on casting",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "whenever you play a spell",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when you play a spell",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "spellcasting trigger",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on any spell cast",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when casting a spell",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "whenever you cast",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "cast payoff trigger",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when you cast anything",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "CAST_INSTANT_SORCERY": [
+      {
+        "phrase": "Whenever you cast an instant or sorcery spell",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When you cast an instant or sorcery spell",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever you cast an instant or sorcery",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When you cast an instant or sorcery",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever you cast a sorcery or instant spell",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "spellslinger trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "I&S trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "instant sorcery trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on instant/sorcery cast",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "cast instant trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "cast sorcery trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on I/S cast",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when you cast an instant or sorcery",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "spellslinger payoff",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when you cast instants or sorceries",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "instant or sorcery cast trigger",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when casting instants and sorceries",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "whenever an instant or sorcery is cast",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "noncreature instant sorcery trigger",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when you play an instant or sorcery",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "CAST_CREATURE_SPELL": [
+      {
+        "phrase": "Whenever you cast a creature spell",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When you cast a creature spell",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever you cast a creature",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When you cast a creature",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever you cast a creature card",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "when you cast a creature",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "creature spell trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on creature cast",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "cast creature trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on creature spell",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "creature cast payoff",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on casting creatures",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when casting a creature spell",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "whenever a creature spell is cast",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when you play a creature spell",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "creature casting trigger",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when you cast creatures",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on creature spell cast",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when you summon a creature",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "cast creature payoff",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "CAST_COLORED_SPELL": [
+      {
+        "phrase": "Whenever you cast a {color} spell",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When you cast a {color} spell",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever you cast a spell that is {color}",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When you cast a spell that is {color}",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever you cast spells of {color}",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "when you cast a {color} spell",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "{color} spell trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on {color} cast",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "cast {color} trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "{color} spells matter",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on {color} spell cast",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "{color} spellcast trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when you play a {color} spell",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when casting {color} spells",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "whenever a {color} spell is cast",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "{color} cast payoff",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "whenever you cast {color}",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on casting {color} magic",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "{color} magic trigger",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when you cast spells of {color}",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "CONSTELLATION": [
+      {
+        "phrase": "Whenever {name} or another enchantment enters the battlefield under your control",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "whenever"
+      },
+      {
+        "phrase": "When {name} enters the battlefield under your control",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "when"
+      },
+      {
+        "phrase": "Whenever {name} or another enchantment you control enters",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "whenever"
+      },
+      {
+        "phrase": "Whenever this permanent or another enchantment enters the battlefield under your control",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When this permanent enters the battlefield under your control",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever an enchantment enters the battlefield under your control",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When an enchantment enters the battlefield under your control",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever another enchantment enters under your control",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "constellation",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "constellation trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on constellation",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "enchantment ETB trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on enchantment entry",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "enchantment enters trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "constellation ability",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when an enchantment enters",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "whenever an enchantment enters",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when another enchantment enters",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when enchantment enters under your control",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on enchantment entering",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "OPPONENT_PROLIFERATES": [
+      {
+        "phrase": "Whenever an opponent proliferates",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When an opponent proliferates",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever an opponent chooses to proliferate",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "When an opponent chooses to proliferate",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "Whenever your opponent proliferates",
+        "style": "oracle_template",
+        "wording": "whenever",
+        "uses_name": false
+      },
+      {
+        "phrase": "proliferate trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on opponent proliferate",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when they proliferate",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "opponent proliferates trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on enemy proliferate",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "proliferate payoff",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on opposing proliferate",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when opponent proliferates",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "whenever opponent proliferates",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when an enemy proliferates",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "proliferate response trigger",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on proliferate by opponent",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when rival proliferates",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "whenever enemies proliferate",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "opponent proliferate ability",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "LAND_ENTERS": [
+      {
+        "phrase": "When {name} enters the battlefield",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "when"
+      },
+      {
+        "phrase": "When {name} enters the battlefield tapped",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "when"
+      },
+      {
+        "phrase": "When {name} enters the battlefield untapped",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": "when"
+      },
+      {
+        "phrase": "When this land enters the battlefield",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "When it enters the battlefield",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "When this land enters the battlefield tapped",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "When this land enters the battlefield untapped",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "When this land enters tapped",
+        "style": "oracle_template",
+        "wording": "when",
+        "uses_name": false
+      },
+      {
+        "phrase": "enters the battlefield tapped",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "enters the battlefield untapped",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "enters tapped",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "enters untapped",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "land ETB",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "on land entry",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "land entry trigger",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "land that enters tapped",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "land that enters untapped",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when this land enters",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "when the land comes in",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "upon entering as a land",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "LAND_MANA": [
+      {
+        "phrase": "Add {color} mana",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "Tap this land for {color} mana",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "Add one mana of any {color} type",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "Tap: Add {color} mana",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "Produces {color} mana",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "adds {color} mana",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "tap for {color} mana",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "produces {color} mana",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "taps for {color}",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "mana ability",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "{color} mana land",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "tap for mana",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "land that taps for {color}",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "generates {color} mana",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "adds one {color} mana",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "produces one {color} mana",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "color fixing land",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "mana production from land",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "tap this land for {color}",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "{color} producing land",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ],
+    "LAND_ACTIVATED": [
+      {
+        "phrase": "You may tap {name} to",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": null
+      },
+      {
+        "phrase": "You may also tap {name} and pay {cost} to",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": null
+      },
+      {
+        "phrase": "Additionally, you may tap {name} and pay {cost} to",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": null
+      },
+      {
+        "phrase": "{cost}, Tap {name}:",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": null
+      },
+      {
+        "phrase": "You may tap this land to",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "You may also tap this land and pay {cost} to",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "Additionally, you may tap this land and pay {cost} to",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "Tap this land: ",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "{cost}, Tap this land: ",
+        "style": "oracle_template",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "utility land ability",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "tap land for effect",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "activated land ability",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "optional tap ability",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "land sink ability",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "tap and pay ability",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "secondary land ability",
+        "style": "shorthand",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "tap this land for an effect",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "optional land activation",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "land with tap ability",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      },
+      {
+        "phrase": "utility tap on land",
+        "style": "natural_language",
+        "wording": null,
+        "uses_name": false
+      }
+    ]
+  },
+  "binding_patterns": [
+    {
+      "triggers": [
+        "ETB",
+        "CREATURE_DIES"
+      ],
+      "note": "dual trigger: entry plus dies trigger"
+    },
+    {
+      "triggers": [
+        "ETB",
+        "CAST_INSTANT_SORCERY"
+      ],
+      "note": "dual trigger: entry plus spell cast"
+    },
+    {
+      "triggers": [
+        "ETB",
+        "ATTACK"
+      ],
+      "note": "dual trigger: entry plus attack"
+    },
+    {
+      "triggers": [
+        "CAST_SPELL",
+        "OPPONENT_PROLIFERATES"
+      ],
+      "note": "dual trigger: own spell cast plus opponent proliferate"
+    },
+    {
+      "triggers": [
+        "LAND_ENTERS",
+        "LAND_MANA",
+        "LAND_ACTIVATED"
+      ],
+      "note": "utility land: entry + mana + activated ability"
+    }
+  ],
+  "confusion_pairs": [
+    {
+      "a": "ETB",
+      "b": "ATTACK",
+      "reason": "same effect family, different trigger"
+    },
+    {
+      "a": "ETB",
+      "b": "ETB_OR_ATTACK",
+      "reason": "pure ETB vs dual trigger"
+    },
+    {
+      "a": "DIES",
+      "b": "CREATURE_DIES",
+      "reason": "self dies vs any creature dies"
+    },
+    {
+      "a": "SELF_DEALT_DAMAGE",
+      "b": "DEALS_DAMAGE",
+      "reason": "incoming vs outgoing damage trigger"
+    },
+    {
+      "a": "CAST_CREATURE_SPELL",
+      "b": "ETB",
+      "reason": "casting creature vs creature entering"
+    },
+    {
+      "a": "CAST_INSTANT_SORCERY",
+      "b": "ETB",
+      "reason": "spell cast trigger vs creature ETB"
+    },
+    {
+      "a": "LAND_MANA",
+      "b": "ETB",
+      "reason": "land mana production vs creature ETB"
+    },
+    {
+      "a": "LAND_ENTERS",
+      "b": "ETB",
+      "reason": "land entry vs creature entry"
+    },
+    {
+      "a": "LAND_ENTERS",
+      "b": "LAND_MANA",
+      "reason": "how land enters vs what mana it produces"
+    },
+    {
+      "a": "UPKEEP",
+      "b": "END_STEP",
+      "reason": "different phase triggers"
+    },
+    {
+      "a": "ATTACK",
+      "b": "DEALS_DAMAGE",
+      "reason": "attack-only vs any damage dealt"
+    }
+  ]
+}
