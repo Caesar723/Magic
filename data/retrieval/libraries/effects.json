@@ -1,0 +1,3572 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Generic effect phrase library for query generation. Slot-level only — no card IDs. Placeholders {amount}, {p}, {t}, {keyword}, {token}, {color} filled at compose time.",
+    "composition_rule": "Pick one trigger phrase + one effect phrase + one target phrase per binding. Effect phrases describe the action only; targeting lives in targets.json, numbers in amounts.json.",
+    "card_mapping": "Per-card effect bindings live in parsed_cards.jsonl (parser output), not in this library.",
+    "phrase_target_per_slot": 20,
+    "phrase_style_balance": "~5 oracle_template, ~7 shorthand, ~8 natural_language per slot",
+    "placeholders": {
+      "amount": "numeric magnitude (damage, life, cards, counters)",
+      "p": "power component of buff",
+      "t": "toughness component of buff",
+      "keyword": "static ability name (flying, lifelink, ...)",
+      "token": "token stat line e.g. 4/4 red Dragon",
+      "color": "color word or WUBRG"
+    }
+  },
+  "types": {
+    "DEAL_DAMAGE": {
+      "label": "Deal Damage",
+      "kind": "instant",
+      "verb": "deal_damage",
+      "confusable_with": [
+        "DAMAGE_EACH",
+        "STAT_EQUAL_DAMAGE",
+        "PREVENT_DAMAGE"
+      ]
+    },
+    "DAMAGE_EACH": {
+      "label": "Damage to Each",
+      "kind": "instant",
+      "verb": "deal_damage_each",
+      "confusable_with": [
+        "DEAL_DAMAGE"
+      ]
+    },
+    "STAT_EQUAL_DAMAGE": {
+      "label": "Damage Equal to Stat",
+      "kind": "instant",
+      "verb": "deal_damage_scaled",
+      "confusable_with": [
+        "DEAL_DAMAGE"
+      ]
+    },
+    "GAIN_LIFE": {
+      "label": "Gain Life",
+      "kind": "instant",
+      "verb": "gain_life",
+      "confusable_with": [
+        "LOSE_LIFE"
+      ]
+    },
+    "LOSE_LIFE": {
+      "label": "Lose Life",
+      "kind": "instant",
+      "verb": "lose_life",
+      "confusable_with": [
+        "GAIN_LIFE",
+        "DEAL_DAMAGE"
+      ]
+    },
+    "DRAW": {
+      "label": "Draw Cards",
+      "kind": "instant",
+      "verb": "draw_cards",
+      "confusable_with": [
+        "DISCARD",
+        "MILL",
+        "SCRY"
+      ]
+    },
+    "DISCARD": {
+      "label": "Discard",
+      "kind": "instant",
+      "verb": "discard",
+      "confusable_with": [
+        "DRAW",
+        "MILL"
+      ]
+    },
+    "COUNTER_SPELL": {
+      "label": "Counter Spell",
+      "kind": "instant",
+      "verb": "counter_spell",
+      "confusable_with": [
+        "EXILE",
+        "RETURN_HAND"
+      ]
+    },
+    "DESTROY": {
+      "label": "Destroy",
+      "kind": "instant",
+      "verb": "destroy",
+      "confusable_with": [
+        "EXILE",
+        "SACRIFICE"
+      ]
+    },
+    "EXILE": {
+      "label": "Exile",
+      "kind": "instant",
+      "verb": "exile",
+      "confusable_with": [
+        "DESTROY",
+        "RETURN_HAND"
+      ]
+    },
+    "RETURN_HAND": {
+      "label": "Return to Hand",
+      "kind": "instant",
+      "verb": "return_hand",
+      "confusable_with": [
+        "EXILE",
+        "DESTROY"
+      ]
+    },
+    "PUT_BATTLEFIELD": {
+      "label": "Put onto Battlefield",
+      "kind": "instant",
+      "verb": "put_battlefield",
+      "confusable_with": [
+        "REANIMATE",
+        "CREATE_TOKEN"
+      ]
+    },
+    "REANIMATE": {
+      "label": "Reanimate from Graveyard",
+      "kind": "instant",
+      "verb": "reanimate",
+      "confusable_with": [
+        "PUT_BATTLEFIELD",
+        "CREATE_TOKEN"
+      ]
+    },
+    "SEARCH_LIBRARY": {
+      "label": "Search Library",
+      "kind": "instant",
+      "verb": "search_library",
+      "confusable_with": [
+        "SEARCH_TO_HAND",
+        "PUT_BATTLEFIELD"
+      ]
+    },
+    "SEARCH_TO_HAND": {
+      "label": "Search to Hand",
+      "kind": "instant",
+      "verb": "search_to_hand",
+      "confusable_with": [
+        "SEARCH_LIBRARY",
+        "DRAW"
+      ]
+    },
+    "TEMP_BUFF": {
+      "label": "Temporary P/T Buff",
+      "kind": "continuous",
+      "verb": "temp_buff",
+      "note": "Until end of turn; duration detail in durations.json",
+      "confusable_with": [
+        "PLUS1_COUNTER",
+        "GRANT_KEYWORD"
+      ]
+    },
+    "PLUS1_COUNTER": {
+      "label": "+1/+1 Counter",
+      "kind": "continuous",
+      "verb": "plus1_counter",
+      "confusable_with": [
+        "TEMP_BUFF"
+      ]
+    },
+    "GRANT_KEYWORD": {
+      "label": "Grant Keyword",
+      "kind": "continuous",
+      "verb": "grant_keyword",
+      "confusable_with": [
+        "TEMP_BUFF"
+      ]
+    },
+    "CREATE_TOKEN": {
+      "label": "Create Token",
+      "kind": "instant",
+      "verb": "create_token",
+      "confusable_with": [
+        "PUT_BATTLEFIELD"
+      ]
+    },
+    "SCRY": {
+      "label": "Scry / Look at Top",
+      "kind": "instant",
+      "verb": "scry",
+      "confusable_with": [
+        "DRAW",
+        "MILL"
+      ]
+    },
+    "PREVENT_DAMAGE": {
+      "label": "Prevent Damage",
+      "kind": "instant",
+      "verb": "prevent_damage",
+      "confusable_with": [
+        "DEAL_DAMAGE"
+      ]
+    },
+    "TAP": {
+      "label": "Tap",
+      "kind": "instant",
+      "verb": "tap",
+      "confusable_with": []
+    },
+    "ADD_MANA": {
+      "label": "Add Mana",
+      "kind": "instant",
+      "verb": "add_mana",
+      "confusable_with": [
+        "SEARCH_LIBRARY"
+      ]
+    },
+    "SACRIFICE": {
+      "label": "Sacrifice",
+      "kind": "instant",
+      "verb": "sacrifice",
+      "confusable_with": [
+        "DESTROY"
+      ]
+    },
+    "EXTRA_TURN": {
+      "label": "Extra Turn",
+      "kind": "instant",
+      "verb": "extra_turn",
+      "confusable_with": []
+    },
+    "MILL": {
+      "label": "Mill",
+      "kind": "instant",
+      "verb": "mill",
+      "confusable_with": [
+        "DRAW",
+        "DISCARD"
+      ]
+    }
+  },
+  "phrases": {
+    "DEAL_DAMAGE": [
+      {
+        "phrase": "deals {amount} damage",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "deal {amount} damage",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Deals {amount} damage",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Deal {amount} damage",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "it deals {amount} damage",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage spell",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "deals {amount}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "ping for {amount}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "burn for {amount}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "fireball",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "direct damage",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage dealer",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "deals damage",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "deals {amount} damage to any target",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "does {amount} damage",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "inflicts {amount} damage",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hits for {amount}",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "burn effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage ping",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "DAMAGE_EACH": [
+      {
+        "phrase": "deals {amount} damage to each creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "deals {amount} damage to each opponent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Deals {amount} damage to each creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Deal {amount} damage to each opponent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "deals {amount} damage to each player",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each creature takes {amount}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "board wipe damage",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage to each",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each takes {amount}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mass damage",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "AoE damage",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage all creatures",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage each opponent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hits every creature for {amount}",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damages all creatures",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage to the board",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "clears small creatures with damage",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damages each opponent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each creature gets {amount} damage",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "sweep damage",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "STAT_EQUAL_DAMAGE": [
+      {
+        "phrase": "deals damage equal to its power",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "deals damage equal to its toughness",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "deals damage equal to your life total",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "deals damage equal to the number of",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage equal to power",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "power-based damage",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage = power",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "toughness damage",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "life total damage",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "scaled damage",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "variable damage",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "X damage based on power",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "deals damage equal to power",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage scales with power",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage based on stats",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage tied to toughness",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage tied to life total",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "power matters damage",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "stat-based burn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage grows with power",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "GAIN_LIFE": [
+      {
+        "phrase": "you gain {amount} life",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "You gain {amount} life",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gain {amount} life",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Gain {amount} life",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "your life total increases by {amount}",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gain life",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "lifegain",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gain {amount} life",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "life gain",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "heal {amount}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "restore {amount} life",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "life bump",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "you gain life",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gain some life",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "increases your life",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "life gain effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "healing effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gain life when",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "restore life",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "life buffer",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "LOSE_LIFE": [
+      {
+        "phrase": "loses {amount} life",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Lose {amount} life",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each opponent loses {amount} life",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a player loses {amount} life",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "life loss",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "drain",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "drain {amount}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "lose life",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "life drain",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "opponent loses life",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "drain life",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "makes them lose life",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "life loss effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "drain effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "opponent life drain",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "lose life effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "siphon life",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "bleed {amount} life",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "life reduction",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "life total drops",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "DRAW": [
+      {
+        "phrase": "draw a card",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "draw {amount} cards",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Draw a card",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Draw {amount} cards",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "draws a card",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "draw",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "card draw",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "draw {amount}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "cantrip",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "draw a card",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "draw cards",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "extra card",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "draw engine",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "draws cards",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "card advantage",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "refill hand",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "draw effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "draw payoff",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gets you a card",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "draws you cards",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "DISCARD": [
+      {
+        "phrase": "discards a card",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "discards {amount} cards",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Discard a card",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Discard {amount} cards",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "you discard a card",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "discard",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "make them discard",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hand disruption",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "discard {amount}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "forced discard",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "discard effect",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "strip their hand",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "opponent discards",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "discard from hand",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hand hate",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "makes you discard",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "discard payoff",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "empty their hand",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "discard a card",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hand destruction",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "COUNTER_SPELL": [
+      {
+        "phrase": "counter a spell",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Counter a spell",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counter that spell",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counters a spell",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "you may counter a spell",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counterspell",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counter",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "negate",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "spell counter",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counter magic",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counter effect",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hard counter",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counters a spell",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "stop a spell",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "spell negation",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counter stack spell",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "answer a spell",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counter instant or sorcery",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counter their spell",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "spell denial",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "DESTROY": [
+      {
+        "phrase": "destroy a creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Destroy a creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "destroy a permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "destroy an artifact or enchantment",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "destroys a creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "destroy",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "removal",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature removal",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "destroy a creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "kill a creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "destroy permanent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "destroy effect",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "destroys a creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "single target removal",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "destroy a permanent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "removes a creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "destroy payoff",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hard removal",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "destroy something",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "eliminates a creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "EXILE": [
+      {
+        "phrase": "exile a creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Exile a creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exile a permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exiles a creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exile it",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exile",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exile removal",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exile a creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "banish",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exile effect",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exile a permanent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exiles permanently",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exiles a creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exile payoff",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "permanent exile",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "remove from game",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exile instead of destroy",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exile spell",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "banish creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exile interaction",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "RETURN_HAND": [
+      {
+        "phrase": "return a creature to its owner's hand",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Return a creature to its owner's hand",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "return a permanent to its owner's hand",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "returns a creature to its owner's hand",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "return it to its owner's hand",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "bounce",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "return to hand",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "bounce creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "unsummon",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tempo bounce",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "return hand",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "bounce effect",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "bounces a creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "send back to hand",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "return creature to hand",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "bounce removal",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "returns to hand",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "bounce spell",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tempo play",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "returns permanent to hand",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "PUT_BATTLEFIELD": [
+      {
+        "phrase": "put it onto the battlefield",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "put that card onto the battlefield",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Put a creature card onto the battlefield",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "put it onto the battlefield under your control",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "puts it onto the battlefield",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "put onto battlefield",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "cheat into play",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "put into play",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "free creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "reanimate onto field",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "put on battlefield",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "enters from hand to field",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "puts a creature into play",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "cheat a creature in",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "put creature on board",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "battlefield cheat",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "put card into play",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "free deploy",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "put permanent onto battlefield",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "cheat out a creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "REANIMATE": [
+      {
+        "phrase": "return target creature card from your graveyard to the battlefield",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Return target creature card from a graveyard to the battlefield",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "return it to the battlefield",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "return that creature card to the battlefield",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "put that creature card onto the battlefield",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "reanimate",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "return from graveyard",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gy recursion",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "raise dead",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "reanimation",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "return from yard",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "recur creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "brings back from graveyard",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "returns a creature from the yard",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "graveyard to battlefield",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "reanimate effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "recursion spell",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "return dead creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "revive from graveyard",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "reanimation effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "SEARCH_LIBRARY": [
+      {
+        "phrase": "search your library for a land card",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "search your library for a creature card",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Search your library for a basic land card",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "search your library for a card",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "you may search your library",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tutor",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "search library",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "ramp",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "land tutor",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "fetch land",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "library search",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "find a card",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "searches your library",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tutor effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "find a land",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "fetch a basic",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "ramp spell",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "land search",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tutors for a card",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "finds a card in library",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "SEARCH_TO_HAND": [
+      {
+        "phrase": "reveal it and put it into your hand",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "put it into your hand",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Put that card into your hand",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "search your library for a card and put it into your hand",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "reveal it, put it into your hand",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tutor to hand",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "search to hand",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "find and put in hand",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "land to hand",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "reveal to hand",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "put into hand",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hand tutor",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "finds a card for your hand",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "searches and puts in hand",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tutor a land to hand",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "ramp to hand",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "land in hand",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "fetch to hand",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "puts searched card in hand",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hand ramp",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "TEMP_BUFF": [
+      {
+        "phrase": "gets +{p}/+{t} until end of turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gets +{p}/+{t} until end of turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "it gets +{p}/+{t} until end of turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gets +{p}/+{t}",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gains +{p}/+{t} until end of turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "pump spell",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "temp buff",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "+{p}/+{t} until EOT",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "pump",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "temporary pump",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "EOT buff",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "combat trick",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "buff until end of turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "temporary power boost",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "pumps a creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "size boost until end of turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "temporarily bigger",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "combat pump",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "turn buff",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "short term buff",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "PLUS1_COUNTER": [
+      {
+        "phrase": "put a +1/+1 counter on a creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "put {amount} +1/+1 counters on it",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Put a +1/+1 counter on a creature you control",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gets a +1/+1 counter",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gets {amount} +1/+1 counters",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "+1/+1 counter",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counter",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "grow with counters",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "put a counter",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counter placement",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "+1/+1",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counters matter",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "puts a +1/+1 counter",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "permanent buff counter",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counter growth",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "stack counters",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "grow creature with counters",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counter effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "buff with counters",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "incremental growth",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "GRANT_KEYWORD": [
+      {
+        "phrase": "gains {keyword} until end of turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "has {keyword}",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gains {keyword}",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creatures you control gain {keyword}",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "it gains {keyword} until end of turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "grant {keyword}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "keyword grant",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gives {keyword}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gain {keyword}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "keyword pump",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "ability grant",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "grant keyword",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gains an ability",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "grants a keyword",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gives flying or lifelink etc",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "keyword effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "ability grant effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "grants hexproof or indestructible",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "temporary keyword",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "grants an ability until end of turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "CREATE_TOKEN": [
+      {
+        "phrase": "create a {token} creature token",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Create a {token} creature token",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "create {amount} {token} creature tokens",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "create a token that's a copy of",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "create a token",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "token maker",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "make a token",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "create token",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "summon a token",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "token generation",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "spawn token",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "token",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creates tokens",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "token effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "summons tokens",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "makes creature tokens",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "token producer",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "pop out tokens",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "token army",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creates a creature token",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "SCRY": [
+      {
+        "phrase": "scry {amount}",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Scry {amount}",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "look at the top {amount} cards of your library",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "look at the top card of your library",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "you may scry {amount}",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "scry",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "scry {amount}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "library filter",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "top deck manipulation",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "scry effect",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "look at top",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "filter draws",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "manipulates top of library",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "scry payoff",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "look at top cards",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "deck filtering",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "arrange top of library",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "scry value",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "topdeck scry",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "library top manipulation",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "PREVENT_DAMAGE": [
+      {
+        "phrase": "prevent the next {amount} damage",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Prevent all damage",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "prevent that damage",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "prevent the next {amount} damage that would be dealt to you",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "prevent damage that would be dealt",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "prevent damage",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage prevention",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "fog",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "prevent next damage",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage shield",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "prevent all",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "protection from damage",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "prevents damage",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage prevention effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "fog effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "negate incoming damage",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "shield from damage",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "prevent combat damage",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "damage prevention spell",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "blocks damage",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "TAP": [
+      {
+        "phrase": "tap a creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Tap a creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tap a permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "taps a creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "you may tap a creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tap",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tap down",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tap creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tap effect",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tap permanent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tap out",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tap ability",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "taps a creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tap removal",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tap down creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tap a permanent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tap effect spell",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "keeps creature tapped",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tap an opposing creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tap lock",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "ADD_MANA": [
+      {
+        "phrase": "add {amount} mana",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Add {amount} mana",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "add {color} mana",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Add one mana of any color",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "add mana of any one color",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mana ramp",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "add mana",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "ritual",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mana burst",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "add {color}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mana fix",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mana acceleration",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "adds mana",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mana generation",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mana ritual effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "temporary mana",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mana spike",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "adds colored mana",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mana production spell",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mana bump",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "SACRIFICE": [
+      {
+        "phrase": "sacrifice a creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Sacrifice a creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each opponent sacrifices a creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "sacrifice another creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "sacrifices a creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "sacrifice",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "edict",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "sacrifice outlet",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "sacrifice effect",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "force sacrifice",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "sac a creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "sacrifice fodder",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "makes them sacrifice",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "sacrifice payoff",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "sacrifice a permanent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "edict effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "sacrifice removal",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "sacrifice trigger fuel",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "forced sacrifice",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "sacrifice cost effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "EXTRA_TURN": [
+      {
+        "phrase": "take an extra turn after this one",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Take an extra turn after this one",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "take another turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "You take an extra turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "extra turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "time walk",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "extra turn",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "another turn",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "turn seed",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "bonus turn",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "extra turn spell",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "take extra turn",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gets an extra turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "extra turn effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "take another turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "bonus turn effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "time walk effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "extra turn payoff",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "additional turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "turn manipulation",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "MILL": [
+      {
+        "phrase": "put the top {amount} cards of your library into your graveyard",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mill {amount} cards",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a player mills {amount}",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Put the top card of your library into your graveyard",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mill cards",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mill",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "self mill",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mill {amount}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "graveyard fill",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mill effect",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "library to yard",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mill self",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mills cards",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "put cards into graveyard from library",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mill payoff",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "self-mill effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "dump library to yard",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mill strategy",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "milling effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "cards to graveyard from top",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ]
+  },
+  "binding_patterns": [
+    {
+      "effects": [
+        "DRAW",
+        "DISCARD"
+      ],
+      "note": "looting / rummage"
+    },
+    {
+      "effects": [
+        "DRAW",
+        "SCRY"
+      ],
+      "note": "filter then draw"
+    },
+    {
+      "effects": [
+        "TEMP_BUFF",
+        "GRANT_KEYWORD"
+      ],
+      "note": "pump plus keyword"
+    },
+    {
+      "effects": [
+        "SEARCH_LIBRARY",
+        "PUT_BATTLEFIELD"
+      ],
+      "note": "ramp / tutor to field"
+    },
+    {
+      "effects": [
+        "SEARCH_LIBRARY",
+        "SEARCH_TO_HAND"
+      ],
+      "note": "tutor to hand"
+    },
+    {
+      "effects": [
+        "COUNTER_SPELL",
+        "DRAW"
+      ],
+      "note": "counter with cantrip rider"
+    },
+    {
+      "effects": [
+        "COUNTER_SPELL",
+        "DEAL_DAMAGE"
+      ],
+      "note": "counter with damage rider"
+    },
+    {
+      "effects": [
+        "COUNTER_SPELL",
+        "EXILE"
+      ],
+      "note": "counter with exile rider"
+    },
+    {
+      "effects": [
+        "REANIMATE",
+        "GRANT_KEYWORD"
+      ],
+      "note": "return with haste/indestructible etc"
+    },
+    {
+      "effects": [
+        "DEAL_DAMAGE",
+        "GAIN_LIFE"
+      ],
+      "note": "drain pattern"
+    },
+    {
+      "effects": [
+        "CREATE_TOKEN",
+        "TEMP_BUFF"
+      ],
+      "note": "tokens plus team pump"
+    }
+  ],
+  "confusion_pairs": [
+    {
+      "a": "TEMP_BUFF",
+      "b": "PLUS1_COUNTER",
+      "reason": "until EOT vs permanent counter"
+    },
+    {
+      "a": "TEMP_BUFF",
+      "b": "GRANT_KEYWORD",
+      "reason": "often same sentence but different mechanic"
+    },
+    {
+      "a": "DEAL_DAMAGE",
+      "b": "DAMAGE_EACH",
+      "reason": "single target vs each"
+    },
+    {
+      "a": "DEAL_DAMAGE",
+      "b": "STAT_EQUAL_DAMAGE",
+      "reason": "fixed amount vs scaled"
+    },
+    {
+      "a": "DESTROY",
+      "b": "EXILE",
+      "reason": "destroy vs exile removal"
+    },
+    {
+      "a": "EXILE",
+      "b": "RETURN_HAND",
+      "reason": "exile vs bounce"
+    },
+    {
+      "a": "COUNTER_SPELL",
+      "b": "EXILE",
+      "reason": "counter vs exile on stack"
+    },
+    {
+      "a": "COUNTER_SPELL",
+      "b": "RETURN_HAND",
+      "reason": "counter vs bounce rider"
+    },
+    {
+      "a": "DRAW",
+      "b": "DISCARD",
+      "reason": "draw vs discard / looting direction"
+    },
+    {
+      "a": "DRAW",
+      "b": "MILL",
+      "reason": "draw vs mill from library"
+    },
+    {
+      "a": "SEARCH_LIBRARY",
+      "b": "PUT_BATTLEFIELD",
+      "reason": "search vs cheat into play wording"
+    },
+    {
+      "a": "SEARCH_LIBRARY",
+      "b": "SEARCH_TO_HAND",
+      "reason": "to field vs to hand"
+    },
+    {
+      "a": "REANIMATE",
+      "b": "PUT_BATTLEFIELD",
+      "reason": "from graveyard vs from hand"
+    },
+    {
+      "a": "GAIN_LIFE",
+      "b": "LOSE_LIFE",
+      "reason": "gain vs drain"
+    },
+    {
+      "a": "CREATE_TOKEN",
+      "b": "PUT_BATTLEFIELD",
+      "reason": "token vs real card"
+    }
+  ]
+}
