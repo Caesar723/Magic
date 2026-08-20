@@ -1,0 +1,2823 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Generic target phrase library for query generation. Slot-level only — no card IDs. Describes who/what is affected; effects live in effects.json.",
+    "composition_rule": "Pick one trigger phrase + one effect phrase + one target phrase per binding. Target phrases never include the effect verb.",
+    "card_mapping": "Per-card target bindings live in parsed_cards.jsonl (parser output), not in this library.",
+    "phrase_target_per_slot": 20,
+    "phrase_style_balance": "~5 oracle_template, ~7 shorthand, ~8 natural_language per slot",
+    "name_placeholder": "{name} only on SELF when referring to the permanent itself at compose time.",
+    "selection_modes": {
+      "targeted": "player chooses",
+      "mass": "affects a set without choosing one",
+      "random": "random selection (pool-specific)",
+      "self": "this permanent or controller",
+      "search": "found by searching a zone"
+    }
+  },
+  "types": {
+    "CREATURE": {
+      "label": "Target Creature",
+      "kind": "targeted",
+      "scope": "single",
+      "controller": "any",
+      "confusable_with": [
+        "CREATURE_YOU_CONTROL",
+        "CREATURE_OPPONENT",
+        "ANY",
+        "RANDOM_CREATURE"
+      ]
+    },
+    "CREATURE_YOU_CONTROL": {
+      "label": "Creature You Control",
+      "kind": "targeted",
+      "scope": "single",
+      "controller": "you",
+      "confusable_with": [
+        "CREATURE",
+        "CREATURES_YOU_CONTROL",
+        "SELF"
+      ]
+    },
+    "CREATURE_OPPONENT": {
+      "label": "Opponent's Creature",
+      "kind": "targeted",
+      "scope": "single",
+      "controller": "opponent",
+      "confusable_with": [
+        "CREATURE",
+        "RANDOM_CREATURE",
+        "OPPONENT"
+      ]
+    },
+    "CREATURES_YOU_CONTROL": {
+      "label": "Creatures You Control (Team)",
+      "kind": "mass",
+      "scope": "all_your_creatures",
+      "controller": "you",
+      "confusable_with": [
+        "CREATURE_YOU_CONTROL",
+        "ALL_CREATURES",
+        "EACH_CREATURE"
+      ]
+    },
+    "ANY": {
+      "label": "Any Target",
+      "kind": "targeted",
+      "scope": "single",
+      "controller": "any",
+      "note": "Creature, player, or planeswalker. Broader than CREATURE.",
+      "confusable_with": [
+        "CREATURE",
+        "PLAYER",
+        "OPPONENT"
+      ]
+    },
+    "PLAYER": {
+      "label": "Target Player",
+      "kind": "targeted",
+      "scope": "single",
+      "controller": "any_player",
+      "confusable_with": [
+        "OPPONENT",
+        "YOU",
+        "ANY"
+      ]
+    },
+    "OPPONENT": {
+      "label": "Target Opponent",
+      "kind": "targeted",
+      "scope": "single",
+      "controller": "opponent",
+      "confusable_with": [
+        "PLAYER",
+        "EACH_OPPONENT",
+        "YOU"
+      ]
+    },
+    "EACH_OPPONENT": {
+      "label": "Each Opponent",
+      "kind": "mass",
+      "scope": "all_opponents",
+      "controller": "opponent",
+      "confusable_with": [
+        "OPPONENT",
+        "PLAYER"
+      ]
+    },
+    "EACH_CREATURE": {
+      "label": "Each Creature",
+      "kind": "mass",
+      "scope": "each",
+      "controller": "any",
+      "note": "Per-object application (damage to each). Distinct from ALL_CREATURES wipe wording.",
+      "confusable_with": [
+        "ALL_CREATURES",
+        "CREATURES_YOU_CONTROL"
+      ]
+    },
+    "ALL_CREATURES": {
+      "label": "All Creatures",
+      "kind": "mass",
+      "scope": "all",
+      "controller": "any",
+      "confusable_with": [
+        "EACH_CREATURE",
+        "CREATURES_YOU_CONTROL"
+      ]
+    },
+    "SELF": {
+      "label": "This Permanent / Itself",
+      "kind": "self",
+      "scope": "self",
+      "controller": "you",
+      "confusable_with": [
+        "CREATURE_YOU_CONTROL",
+        "YOU"
+      ]
+    },
+    "YOU": {
+      "label": "You (Controller)",
+      "kind": "self",
+      "scope": "controller",
+      "controller": "you",
+      "confusable_with": [
+        "PLAYER",
+        "SELF",
+        "OPPONENT"
+      ]
+    },
+    "PERMANENT": {
+      "label": "Target Permanent",
+      "kind": "targeted",
+      "scope": "single",
+      "controller": "any",
+      "confusable_with": [
+        "NONLAND_PERMANENT",
+        "CREATURE",
+        "ARTIFACT_OR_ENCHANTMENT"
+      ]
+    },
+    "NONLAND_PERMANENT": {
+      "label": "Nonland Permanent",
+      "kind": "targeted",
+      "scope": "single",
+      "controller": "any",
+      "confusable_with": [
+        "PERMANENT",
+        "CREATURE",
+        "ARTIFACT_OR_ENCHANTMENT"
+      ]
+    },
+    "SPELL": {
+      "label": "Target Spell",
+      "kind": "targeted",
+      "scope": "stack",
+      "controller": "any",
+      "confusable_with": [
+        "CREATURE",
+        "PERMANENT"
+      ]
+    },
+    "ARTIFACT_OR_ENCHANTMENT": {
+      "label": "Artifact or Enchantment",
+      "kind": "targeted",
+      "scope": "single",
+      "controller": "any",
+      "confusable_with": [
+        "PERMANENT",
+        "NONLAND_PERMANENT"
+      ]
+    },
+    "RANDOM_CREATURE": {
+      "label": "Random Creature",
+      "kind": "random",
+      "scope": "single",
+      "controller": "usually_opponent",
+      "note": "Pool often uses random where Oracle would use target. Keep distinct for retrieval.",
+      "confusable_with": [
+        "CREATURE",
+        "CREATURE_OPPONENT",
+        "RANDOM_PERMANENT"
+      ]
+    },
+    "RANDOM_PERMANENT": {
+      "label": "Random Permanent",
+      "kind": "random",
+      "scope": "single",
+      "controller": "usually_opponent",
+      "confusable_with": [
+        "PERMANENT",
+        "NONLAND_PERMANENT",
+        "RANDOM_CREATURE"
+      ]
+    },
+    "GRAVEYARD_CREATURE": {
+      "label": "Creature Card in Graveyard",
+      "kind": "targeted",
+      "scope": "graveyard",
+      "controller": "any",
+      "confusable_with": [
+        "CREATURE",
+        "LIBRARY_CARD"
+      ]
+    },
+    "LIBRARY_CARD": {
+      "label": "Card from Library",
+      "kind": "search",
+      "scope": "library",
+      "controller": "you",
+      "confusable_with": [
+        "GRAVEYARD_CREATURE",
+        "CREATURE"
+      ]
+    }
+  },
+  "phrases": {
+    "CREATURE": [
+      {
+        "phrase": "target creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target creature of your choice",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one target creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "any target creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a creature target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "single creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hit a creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature pick",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "choose a creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "pick a creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "any creature you choose",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a creature on the board",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one creature of your choice",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "selected creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a creature you point at",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature of choice",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "CREATURE_YOU_CONTROL": [
+      {
+        "phrase": "target creature you control",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a creature you control",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "another target creature you control",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target creature under your control",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one of your creatures",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "your creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "friendly creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature you control",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "own creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "ally creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "your board creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "self-side creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one of your creatures",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a creature on your side",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "your creature on the field",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target your own creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a creature you own on the field",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "friendly target",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature under your control",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "your board pick",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "CREATURE_OPPONENT": [
+      {
+        "phrase": "target creature an opponent controls",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a creature an opponent controls",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target creature controlled by an opponent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target opposing creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a creature controlled by an opponent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "opponent's creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "enemy creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "opposing creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "their creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hostile creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "opp creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "opponent creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a creature on the opponent's side",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "enemy board creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature they control",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "an opposing creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature across the table",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "their board pick",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature an opponent controls",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "enemy target creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "CREATURES_YOU_CONTROL": [
+      {
+        "phrase": "creatures you control",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all creatures you control",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each creature you control",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "your creatures",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creatures under your control",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "your team",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "your board",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all your creatures",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "friendly board",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "team pump target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "your army",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "own creatures",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all creatures on your side",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "your whole board",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "every creature you control",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "your creatures as a team",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all friendly creatures",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "everyone on your battlefield",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "your creature team",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creatures you own in play",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "ANY": [
+      {
+        "phrase": "any target",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target creature or planeswalker or player",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target creature or player",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target creature, player, or planeswalker",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a creature or a player",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "any target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "bolt target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature or player",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "flexible target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "any legal target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "go anywhere",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "face or creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature or player of choice",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hit anything",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "point at creature or player",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "flexible burn target",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "any creature or player",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "choose creature or face",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "any legal object",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target of your choice",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "PLAYER": [
+      {
+        "phrase": "target player",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a player",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target player of your choice",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "that player",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one target player",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "player",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a player target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "player pick",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "face",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hit a player",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "player target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "to a player",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "choose a player",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "pick a player",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "any player you choose",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a player at the table",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "player of choice",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "go to face",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target someone's life total",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "selected player",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "OPPONENT": [
+      {
+        "phrase": "target opponent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "an opponent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target opponent of your choice",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "that opponent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one opponent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "opponent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "enemy player",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "opp",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "opposing player",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "their face",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "opponent pick",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hostile player",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "choose an opponent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "pick an opponent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "the opposing player",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "an enemy player",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "opponent of choice",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "across the table",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "selected opponent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "enemy life total",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "EACH_OPPONENT": [
+      {
+        "phrase": "each opponent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each of your opponents",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all opponents",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "every opponent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each opposing player",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all opponents",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "every opp",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each opp",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "multiplayer each",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "opponents plural",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all enemy players",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each foe",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "every opponent at the table",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all opposing players",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each enemy player",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "everyone against you",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all your opponents",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "every rival",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each player opposing you",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hit all opponents",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "EACH_CREATURE": [
+      {
+        "phrase": "each creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each other creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "every creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each creature on the battlefield",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creatures",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "every creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "board each",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all creatures each",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature-by-creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "every body",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each body",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "every creature in play",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each creature on the board",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "every creature gets hit",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature by creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each creature present",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "across all creatures",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "every creature individually",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "each creature separately",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "ALL_CREATURES": [
+      {
+        "phrase": "all creatures",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all other creatures",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all creatures",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all creatures on the battlefield",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "every creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "board wipe",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "wrath",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all creatures",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mass wipe",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "full board",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "wipe the board",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all bodies",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "every creature on the field",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "the whole board of creatures",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all creatures at once",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mass creature wipe",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "clear the board",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "all creatures present",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "entire creature board",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "every creature together",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "SELF": [
+      {
+        "phrase": "this creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{name}",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": null
+      },
+      {
+        "phrase": "it",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "itself",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "this permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "self",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "itself",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "this creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "on itself",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "self-target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "own body",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "reflexive",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "this creature itself",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "targets itself",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "affects itself",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "on its own body",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "self-referential target",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "the creature itself",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "itself as the target",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "its own stats",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "YOU": [
+      {
+        "phrase": "you",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "yourself",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "your life total",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "you gain",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "to you",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "you",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "self player",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "your life",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "yourself",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "controller",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "you as player",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "own life total",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "affects you",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "targets you",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "your own life",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "you the controller",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "yourself as the player",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "your side as player",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "you personally",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "the controller of this spell",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "PERMANENT": [
+      {
+        "phrase": "target permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target permanent of your choice",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "any permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one target permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "permanent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "any permanent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "permanent target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "board permanent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hit a permanent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "permanent pick",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "any permanent type",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "choose a permanent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "pick a permanent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "any permanent on the field",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a permanent of any type",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "permanent of choice",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "something on the battlefield",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "any permanent object",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "selected permanent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "NONLAND_PERMANENT": [
+      {
+        "phrase": "target nonland permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a nonland permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target nonland permanent an opponent controls",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "nonland permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a permanent that isn't a land",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "nonland",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "nonland permanent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "nonland target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "everything but lands",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "nonland board",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "not a land",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "nonland permanent pick",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "permanent that isn't a land",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "any nonland permanent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "board permanent except lands",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "nonland object",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "something that isn't a land",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "nonland permanent of choice",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a nonland permanent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "nonland permanent target",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "SPELL": [
+      {
+        "phrase": "target spell",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a spell",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target spell on the stack",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "that spell",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target instant or sorcery spell",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "spell",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "stack spell",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "spell on stack",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "spell on the stack",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "spell pick",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "stack object",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "spell target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a spell on the stack",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "choose a spell",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "spell being cast",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "something on the stack",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "spell of choice",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "the spell they're casting",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "stack target",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "selected spell",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "ARTIFACT_OR_ENCHANTMENT": [
+      {
+        "phrase": "target artifact or enchantment",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "an artifact or enchantment",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target artifact",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target enchantment",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target artifact or enchantment",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "naturalize target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "artifact or enchantment",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "A/E",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "disenchant",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "artifact target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "enchantment target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "naturalize",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "artifact or enchantment of choice",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "hit an artifact or enchantment",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "remove an artifact or enchantment",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "enchantment or artifact",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "permanent that is A or E",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "disenchant target",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "artifact/enchantment pick",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "noncreature permanent A/E",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "RANDOM_CREATURE": [
+      {
+        "phrase": "a random creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random creature an opponent controls",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a random creature an opponent controls",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random opposing creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "destroy random opponent's creature",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "rng creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random opp creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random pick",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "coin-flip creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random body",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a random creature on their board",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "randomly chosen creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature at random",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random enemy creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "pick a creature randomly",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random opposing body",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "uncontrolled random creature",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "whatever creature is random",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "RANDOM_PERMANENT": [
+      {
+        "phrase": "a random permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random nonland permanent an opponent controls",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a random nonland permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random opposing permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random permanent an opponent controls",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random permanent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random nonland",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "rng permanent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random board object",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random permanent pick",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random opp permanent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random nonland permanent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a random permanent on their side",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "randomly chosen permanent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "permanent at random",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random enemy permanent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "pick a permanent randomly",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random opposing permanent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "whatever permanent is random",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "random nonland object",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "GRAVEYARD_CREATURE": [
+      {
+        "phrase": "target creature card from a graveyard",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a creature card from your graveyard",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "target creature card in a graveyard",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature card from your graveyard",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a creature card in your graveyard",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gy creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "graveyard creature",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature in yard",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "yard target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "yard creature card",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "gy pick",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "dead creature card",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature from the graveyard",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a creature in the yard",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature card in graveyard",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "pick from graveyard",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "dead creature card",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature resting in graveyard",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "graveyard creature of choice",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "creature card from yard",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "LIBRARY_CARD": [
+      {
+        "phrase": "a card from your library",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a land card from your library",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a creature card from your library",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a basic land card",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a card in your library",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "library card",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "from library",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tutor target",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "searched card",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "deck find",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "library pick",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "basic land from library",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a card in your deck",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "something from your library",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a land from your deck",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "card you search for",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "library find of choice",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "deck search result",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "card buried in library",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "the card you tutor",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ]
+  },
+  "binding_patterns": [
+    {
+      "targets": [
+        "CREATURE",
+        "ANY"
+      ],
+      "note": "burn that can go face or creature"
+    },
+    {
+      "targets": [
+        "CREATURE_YOU_CONTROL",
+        "SELF"
+      ],
+      "note": "buff self vs buff another"
+    },
+    {
+      "targets": [
+        "CREATURE",
+        "RANDOM_CREATURE"
+      ],
+      "note": "chosen vs random creature"
+    },
+    {
+      "targets": [
+        "OPPONENT",
+        "EACH_OPPONENT"
+      ],
+      "note": "single opponent vs all"
+    },
+    {
+      "targets": [
+        "EACH_CREATURE",
+        "ALL_CREATURES"
+      ],
+      "note": "per-object vs wipe wording"
+    },
+    {
+      "targets": [
+        "PERMANENT",
+        "NONLAND_PERMANENT"
+      ],
+      "note": "lands included or not"
+    },
+    {
+      "targets": [
+        "CREATURE",
+        "SPELL"
+      ],
+      "note": "battlefield vs stack"
+    },
+    {
+      "targets": [
+        "GRAVEYARD_CREATURE",
+        "LIBRARY_CARD"
+      ],
+      "note": "yard recursion vs tutor"
+    }
+  ],
+  "confusion_pairs": [
+    {
+      "a": "CREATURE",
+      "b": "CREATURE_YOU_CONTROL",
+      "reason": "any creature vs only yours"
+    },
+    {
+      "a": "CREATURE",
+      "b": "CREATURE_OPPONENT",
+      "reason": "any creature vs only theirs"
+    },
+    {
+      "a": "CREATURE",
+      "b": "ANY",
+      "reason": "creature-only vs creature-or-player"
+    },
+    {
+      "a": "CREATURE",
+      "b": "RANDOM_CREATURE",
+      "reason": "chosen target vs random"
+    },
+    {
+      "a": "CREATURE_OPPONENT",
+      "b": "RANDOM_CREATURE",
+      "reason": "chosen enemy vs random enemy"
+    },
+    {
+      "a": "PLAYER",
+      "b": "OPPONENT",
+      "reason": "any player vs opponent only"
+    },
+    {
+      "a": "OPPONENT",
+      "b": "EACH_OPPONENT",
+      "reason": "one opponent vs all opponents"
+    },
+    {
+      "a": "EACH_CREATURE",
+      "b": "ALL_CREATURES",
+      "reason": "each vs all wipe wording"
+    },
+    {
+      "a": "CREATURES_YOU_CONTROL",
+      "b": "ALL_CREATURES",
+      "reason": "your team vs whole board"
+    },
+    {
+      "a": "SELF",
+      "b": "CREATURE_YOU_CONTROL",
+      "reason": "itself vs another of yours"
+    },
+    {
+      "a": "YOU",
+      "b": "PLAYER",
+      "reason": "controller vs chosen player"
+    },
+    {
+      "a": "PERMANENT",
+      "b": "NONLAND_PERMANENT",
+      "reason": "lands included or excluded"
+    },
+    {
+      "a": "PERMANENT",
+      "b": "CREATURE",
+      "reason": "any permanent vs creature only"
+    },
+    {
+      "a": "ARTIFACT_OR_ENCHANTMENT",
+      "b": "NONLAND_PERMANENT",
+      "reason": "A/E only vs any nonland"
+    },
+    {
+      "a": "SPELL",
+      "b": "CREATURE",
+      "reason": "stack vs battlefield"
+    },
+    {
+      "a": "GRAVEYARD_CREATURE",
+      "b": "CREATURE",
+      "reason": "yard card vs battlefield creature"
+    },
+    {
+      "a": "RANDOM_CREATURE",
+      "b": "RANDOM_PERMANENT",
+      "reason": "random creature vs random permanent"
+    }
+  ]
+}
