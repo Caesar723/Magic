@@ -2,6 +2,168 @@ import random
 from typing import Any, Mapping
 
 
+def render_candidate_duration(
+    body,
+    duration_type,
+    libraries,
+):
+    if not duration_type:
+        return body
+
+    config = (
+        libraries["durations"]
+        ["candidate_render"]
+        [duration_type]
+    )
+
+    mode = config["mode"]
+    phrases = config.get("phrases", [])
+
+    # PERMANENT / INSTANT / EXTRA_TURN 等
+    if mode == "omit":
+        return body
+
+    if not phrases:
+        return body
+
+    phrase = random.choice(phrases)
+
+    if mode == "suffix":
+        return f"{body} {phrase}"
+
+    if mode == "clause":
+        body = body.rstrip(".")
+        return f"{body}. {phrase}"
+
+    # NEXT_END_STEP / NEXT_MAIN_PHASE
+    # 暂时不要乱拼
+    if mode == "delayed":
+        return body
+
+    raise ValueError(
+        f"Unknown duration mode: {mode}"
+    )
+
+def fill_candidate_placeholders(
+    text,
+    spec,
+    libraries,
+):
+    if "{target}" in text:
+        target_type = spec.get("target")
+
+        if target_type is None:
+            raise ValueError(
+                f"Missing target: {spec}"
+            )
+
+        target_config = (
+            libraries["targets"]
+            ["candidate_render"]
+            [target_type]
+        )
+
+        if isinstance(target_config, dict):
+            phrases = target_config["phrases"]
+        else:
+            phrases = target_config
+
+        target = random.choice(phrases)
+
+        text = text.replace(
+            "{target}",
+            target,
+        )
+
+    if "{amount}" in text:
+        amount = spec.get("amount_value")
+
+        if amount is None:
+            raise ValueError(
+                f"Missing amount: {spec}"
+            )
+
+        text = text.replace(
+            "{amount}",
+            str(amount),
+        )
+
+    if "{p}" in text:
+        if spec.get("p") is None:
+            raise ValueError(
+                f"Missing p: {spec}"
+            )
+
+        text = text.replace(
+            "{p}",
+            str(spec["p"]),
+        )
+
+    if "{t}" in text:
+        if spec.get("t") is None:
+            raise ValueError(
+                f"Missing t: {spec}"
+            )
+
+        text = text.replace(
+            "{t}",
+            str(spec["t"]),
+        )
+
+    if "{keyword}" in text:
+        keyword_type = spec.get("keyword")
+
+        if keyword_type is None:
+            raise ValueError(
+                f"Missing keyword: {spec}"
+            )
+
+        keyword_item = pick_phrase(
+            libraries["statics"],
+            keyword_type,
+        )
+
+        text = text.replace(
+            "{keyword}",
+            keyword_item["phrase"],
+        )
+
+    if "{token}" in text:
+        token = spec.get("token")
+
+        if token is None:
+            raise ValueError(
+                f"Missing token: {spec}"
+            )
+
+        text = text.replace(
+            "{token}",
+            str(token),
+        )
+
+    if "{color}" in text:
+        color = spec.get("color")
+
+        if color is None:
+            raise ValueError(
+                f"Missing color: {spec}"
+            )
+
+        text = text.replace(
+            "{color}",
+            str(color),
+        )
+
+    return text
+
+def format_signed(value: int) -> str:
+    if value > 0:
+        return f"+{value}"
+
+    if value < 0:
+        return str(value)
+
+    return "0"
 
 def phrase_is_compatible(
     item: dict,
@@ -132,15 +294,31 @@ def fill_placeholders(
         )
 
     # p / t
-    text = text.replace(
-        "{p}",
-        str(spec.get("p", "")),
-    )
+    if "{p}" in text:
+        p = spec.get("p")
 
-    text = text.replace(
-        "{t}",
-        str(spec.get("t", "")),
-    )
+        if p is None:
+            raise ValueError(
+                f"Missing p: {spec}"
+            )
+
+        text = text.replace(
+            "{p}",
+            format_signed(p),
+        )
+
+    if "{t}" in text:
+        t = spec.get("t")
+
+        if t is None:
+            raise ValueError(
+                f"Missing t: {spec}"
+            )
+
+        text = text.replace(
+            "{t}",
+            format_signed(t),
+        )
 
     # keyword
     if "{keyword}" in text:
@@ -195,18 +373,27 @@ def render_candidate_spec(
     trigger_type = spec.get("trigger")
 
     if trigger_type:
-        trigger_item = pick_phrase(
-            libraries["triggers"],
-            trigger_type,
+        trigger_config = (
+            libraries["triggers"]
+            ["candidate_render"]
+            [trigger_type]
         )
 
-        trigger = fill_placeholders(
-            trigger_item["phrase"],
-            spec,
-            libraries,
-        )
+        if trigger_config.get("mode") == "omit":
+            trigger = None
+        else:
+            trigger_template = random.choice(
+                trigger_config["templates"]
+            )
 
-        parts.append(trigger)
+            trigger = fill_placeholders(
+                trigger_template,
+                spec,
+                libraries,
+            )
+
+        if trigger:
+            parts.append(trigger)
 
     # =================================
     # 2. Effect
@@ -214,81 +401,41 @@ def render_candidate_spec(
 
     effect_type = spec["effect"]
 
-    effect_item = pick_phrase(
-        libraries["effects"],
-        effect_type,
-        spec=spec,
+    config = (
+        libraries["effects"]
+        ["candidate_render"]
+        [effect_type]
     )
 
-    effect = fill_placeholders(
-        effect_item["phrase"],
+    template = random.choice(
+        config["templates"]
+    )
+
+    body = fill_candidate_placeholders(
+        template,
         spec,
         libraries,
     )
-
-    consumed = set(
-        effect_item.get(
-            "consumes",
-            [],
-        )
-    )
-
-    body = effect
-
-    # =================================
-    # 3. Target
-    # effect 没吃掉 target 才追加
-    # =================================
-
-    target_type = spec.get("target")
-
-    if (
-        target_type
-        and "target" not in consumed
-    ):
-        target_item = pick_phrase(
-            libraries["targets"],
-            target_type,
-        )
-
-        target = fill_placeholders(
-            target_item["phrase"],
-            spec,
-            libraries,
-        )
-
-        body += f" to {target}"
 
     # =================================
     # 4. Duration
     # =================================
 
-    duration_type = spec.get(
-        "duration"
+    body = render_candidate_duration(
+        body,
+        spec.get("duration"),
+        libraries,
     )
-
-    if (
-        duration_type
-        and "duration" not in consumed
-    ):
-        duration_item = pick_phrase(
-            libraries["durations"],
-            duration_type,
-        )
-
-        duration = fill_placeholders(
-            duration_item["phrase"],
-            spec,
-            libraries,
-        )
-
-        body += f" {duration}"
 
     # =================================
     # 5. Trigger + body
     # =================================
 
     if parts:
+        body = (
+            body[0].lower()
+            + body[1:]
+        )
         text = (
             f"{parts[0]}, "
             f"{body}"

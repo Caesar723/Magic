@@ -7,7 +7,8 @@
     "card_mapping": "Per-card trigger bindings live in parsed_cards.jsonl (parser output), not in this library.",
     "phrase_target_per_slot": 20,
     "phrase_style_balance": "~5 oracle_template, ~7 shorthand, ~8 natural_language per slot",
-    "name_placeholder": "{name} = card display name at query compose time. Phrases with uses_name:true require substitution; uses_name:false phrases stay generic for mechanic-level retrieval."
+    "name_placeholder": "{name} = card display name at query compose time. Phrases with uses_name:true require substitution; uses_name:false phrases stay generic for mechanic-level retrieval.",
+    "candidate_render_note": "candidate_render is for synthetic card text only. Existing phrases remain the query-generation phrase pool. Candidate templates must be complete Oracle-like trigger prefixes and must not contain effect, target, duration, or query shorthand wording."
   },
   "types": {
     "ETB": {
@@ -216,6 +217,145 @@
         "LAND_MANA",
         "LAND_ENTERS"
       ]
+    }
+  },
+  "candidate_render": {
+    "ETB": {
+      "templates": [
+        "When this permanent enters the battlefield",
+        "Whenever this permanent enters the battlefield"
+      ],
+      "note": "Complete self-entry trigger prefix; effect text is supplied separately."
+    },
+    "ETB_OR_ATTACK": {
+      "templates": [
+        "When this creature enters the battlefield or attacks",
+        "Whenever this creature enters the battlefield or attacks"
+      ],
+      "note": "Keep both events in the trigger prefix and do not add effect wording."
+    },
+    "ATTACK": {
+      "templates": [
+        "When this creature attacks",
+        "Whenever this creature attacks"
+      ],
+      "note": "Use as a complete attack trigger prefix."
+    },
+    "DEFEND": {
+      "templates": [
+        "When this creature blocks",
+        "Whenever this creature blocks"
+      ],
+      "note": "Use Oracle-like blocks wording rather than the query synonym defends."
+    },
+    "DIES": {
+      "templates": [
+        "When this creature dies",
+        "Whenever this creature dies"
+      ],
+      "note": "Use as a complete self-dies trigger prefix."
+    },
+    "CREATURE_DIES": {
+      "templates": [
+        "When a creature dies",
+        "Whenever a creature dies"
+      ],
+      "note": "The any-creature scope is expressed directly in the trigger prefix."
+    },
+    "SELF_DEALT_DAMAGE": {
+      "templates": [
+        "When this creature is dealt damage",
+        "Whenever this creature is dealt damage"
+      ],
+      "note": "Use incoming-damage wording; do not confuse it with this source dealing damage."
+    },
+    "DEALS_DAMAGE": {
+      "templates": [
+        "When this creature deals damage",
+        "Whenever this creature deals damage"
+      ],
+      "note": "Use outgoing-damage wording; this is broader than attacking."
+    },
+    "UPKEEP": {
+      "templates": [
+        "At the beginning of your upkeep"
+      ],
+      "note": "Complete upkeep timing prefix."
+    },
+    "END_STEP": {
+      "templates": [
+        "At the beginning of the next end step"
+      ],
+      "note": "This is a delayed timing prefix, not an effect suffix."
+    },
+    "MAIN_PHASE": {
+      "templates": [
+        "At the beginning of your next main phase"
+      ],
+      "note": "This is a delayed timing prefix, not an effect suffix."
+    },
+    "CAST_SPELL": {
+      "templates": [
+        "When you cast a spell",
+        "Whenever you cast a spell"
+      ],
+      "note": "Use complete cast-event wording without adding the spell effect."
+    },
+    "CAST_INSTANT_SORCERY": {
+      "templates": [
+        "When you cast an instant or sorcery spell",
+        "Whenever you cast an instant or sorcery spell"
+      ],
+      "note": "Keep the instant-or-sorcery restriction in the trigger prefix."
+    },
+    "CAST_CREATURE_SPELL": {
+      "templates": [
+        "When you cast a creature spell",
+        "Whenever you cast a creature spell"
+      ],
+      "note": "Use complete creature-spell cast wording."
+    },
+    "CAST_COLORED_SPELL": {
+      "templates": [
+        "When you cast a colored spell",
+        "Whenever you cast a colored spell"
+      ],
+      "note": "Use colored spell as the event restriction; do not insert a color query phrase."
+    },
+    "CONSTELLATION": {
+      "templates": [
+        "When an enchantment enters the battlefield under your control",
+        "Whenever an enchantment enters the battlefield under your control"
+      ],
+      "note": "Expand the constellation shorthand into its enchantment-entry event."
+    },
+    "OPPONENT_PROLIFERATES": {
+      "templates": [
+        "When an opponent proliferates",
+        "Whenever an opponent proliferates"
+      ],
+      "note": "Use opponent proliferates as the complete event."
+    },
+    "LAND_ENTERS": {
+      "templates": [
+        "When this land enters the battlefield",
+        "Whenever this land enters the battlefield"
+      ],
+      "note": "Keep land-entry wording distinct from creature ETB."
+    },
+    "LAND_MANA": {
+      "mode": "omit",
+      "templates": [
+        "Tap this land: Add one mana of any color"
+      ],
+      "note": "This is a mana ability, not a triggered prefix; omit it from trigger-plus-effect composition."
+    },
+    "LAND_ACTIVATED": {
+      "mode": "omit",
+      "templates": [
+        "Tap this land:"
+      ],
+      "note": "This is an activated ability, not a triggered prefix; omit it from trigger-plus-effect composition."
     }
   },
   "phrases": {

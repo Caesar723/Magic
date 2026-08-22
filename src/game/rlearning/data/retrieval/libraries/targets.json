@@ -13,7 +13,8 @@
       "random": "random selection (pool-specific)",
       "self": "this permanent or controller",
       "search": "found by searching a zone"
-    }
+    },
+    "candidate_render_note": "candidate_render is for synthetic card text only. Existing phrases remain the query-generation phrase pool. Candidate target phrases must be short, grammatical fragments whose target/each/you wording is compatible with direct insertion into an effect template."
   },
   "types": {
     "CREATURE": {
@@ -231,6 +232,129 @@
         "GRAVEYARD_CREATURE",
         "CREATURE"
       ]
+    }
+  },
+  "candidate_render": {
+    "CREATURE": {
+      "phrases": [
+        "target creature"
+      ],
+      "note": "Use as a direct object after to, or after an effect verb such as destroy."
+    },
+    "CREATURE_YOU_CONTROL": {
+      "phrases": [
+        "target creature you control"
+      ],
+      "note": "Keep target and controller restriction together so effect templates do not duplicate either phrase."
+    },
+    "CREATURE_OPPONENT": {
+      "phrases": [
+        "target creature an opponent controls"
+      ],
+      "note": "Use the complete opponent-control restriction as the target fragment."
+    },
+    "CREATURES_YOU_CONTROL": {
+      "phrases": [
+        "each creature you control"
+      ],
+      "note": "Use each rather than all so templates such as each creature you control gets remain grammatical."
+    },
+    "ANY": {
+      "phrases": [
+        "any target"
+      ],
+      "note": "This phrase already contains target; effect templates must not add another target word."
+    },
+    "PLAYER": {
+      "phrases": [
+        "target player"
+      ],
+      "note": "Use as a complete player target fragment."
+    },
+    "OPPONENT": {
+      "phrases": [
+        "target opponent"
+      ],
+      "note": "Use as a complete opponent target fragment or as the subject of an opponent-directed effect."
+    },
+    "EACH_OPPONENT": {
+      "phrases": [
+        "each opponent"
+      ],
+      "note": "The mass quantifier belongs here; effect templates should not add another each."
+    },
+    "EACH_CREATURE": {
+      "phrases": [
+        "each creature"
+      ],
+      "note": "Use as a complete mass target fragment."
+    },
+    "ALL_CREATURES": {
+      "phrases": [
+        "all creatures"
+      ],
+      "note": "Use only where the effect semantics support an all-creatures scope."
+    },
+    "SELF": {
+      "phrases": [
+        "this permanent",
+        "it"
+      ],
+      "note": "The renderer should choose the subject form that agrees with the effect template and surrounding sentence."
+    },
+    "YOU": {
+      "phrases": [
+        "you"
+      ],
+      "note": "Use as a subject or direct object without adding target."
+    },
+    "PERMANENT": {
+      "phrases": [
+        "target permanent"
+      ],
+      "note": "Use as a complete permanent target fragment."
+    },
+    "NONLAND_PERMANENT": {
+      "phrases": [
+        "target nonland permanent"
+      ],
+      "note": "Keep the nonland restriction in the target fragment."
+    },
+    "SPELL": {
+      "phrases": [
+        "target spell"
+      ],
+      "note": "Use as a complete spell target fragment."
+    },
+    "ARTIFACT_OR_ENCHANTMENT": {
+      "phrases": [
+        "target artifact or enchantment"
+      ],
+      "note": "Use as a complete artifact-or-enchantment target fragment."
+    },
+    "RANDOM_CREATURE": {
+      "phrases": [
+        "a random creature"
+      ],
+      "note": "Do not add target; random selection is expressed by the fragment itself."
+    },
+    "RANDOM_PERMANENT": {
+      "phrases": [
+        "a random permanent"
+      ],
+      "note": "Do not add target; random selection is expressed by the fragment itself."
+    },
+    "GRAVEYARD_CREATURE": {
+      "phrases": [
+        "target creature card"
+      ],
+      "note": "The reanimation effect template supplies the graveyard zone, avoiding duplicate wording such as from your graveyard twice."
+    },
+    "LIBRARY_CARD": {
+      "phrases": [
+        "a card"
+      ],
+      "note": "Search and put-onto-battlefield effect templates supply the library context; do not use a query fragment such as card you tutor."
     }
   },
   "phrases": {

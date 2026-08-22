@@ -6,7 +6,8 @@
     "card_mapping": "Per-card duration bindings live in parsed_cards.jsonl (parser output), not in this library.",
     "phrase_target_per_slot": 20,
     "phrase_style_balance": "~5 oracle_template, ~7 shorthand, ~8 natural_language per slot",
-    "overlap_with_triggers": "NEXT_END_STEP and NEXT_MAIN_PHASE also exist as trigger/delayed slots. Use duration when attaching timing to an effect; use trigger when the clause is the ability's firing condition."
+    "overlap_with_triggers": "NEXT_END_STEP and NEXT_MAIN_PHASE also exist as trigger/delayed slots. Use duration when attaching timing to an effect; use trigger when the clause is the ability's firing condition.",
+    "candidate_render_note": "candidate_render is for synthetic card text only. Existing phrases remain the query-generation phrase pool. Candidate rendering must respect mode and must not blindly append every duration phrase to an effect."
   },
   "types": {
     "UNTIL_EOT": {
@@ -88,6 +89,80 @@
         "THIS_TURN",
         "NEXT_MAIN_PHASE"
       ]
+    }
+  },
+  "candidate_render": {
+    "UNTIL_EOT": {
+      "mode": "suffix",
+      "phrases": [
+        "until end of turn",
+        "until end of this turn",
+        "until the end of the turn"
+      ],
+      "note": "Use only as a duration suffix when the effect does not already express an end-of-turn expiry."
+    },
+    "THIS_TURN": {
+      "mode": "suffix",
+      "phrases": [
+        "this turn",
+        "during this turn"
+      ],
+      "note": "Use only when the effect is a current-turn restriction or window; do not append it to an effect that already states its timing."
+    },
+    "NEXT_END_STEP": {
+      "mode": "delayed",
+      "phrases": [
+        "at the beginning of the next end step",
+        "at the start of the next end step"
+      ],
+      "note": "Pass to a delayed-trigger or timing renderer; do not append as an ordinary duration suffix to the effect."
+    },
+    "DONT_UNTAP_NEXT": {
+      "mode": "clause",
+      "phrases": [
+        "It doesn't untap during its controller's next untap step.",
+        "It skips its next untap step."
+      ],
+      "note": "Emit as a complete follow-up clause, with the subject resolved from the target; do not treat it as a simple suffix."
+    },
+    "AS_LONG_AS_CONTROL": {
+      "mode": "suffix",
+      "phrases": [
+        "as long as you control it",
+        "while you control this permanent"
+      ],
+      "note": "Resolve the pronoun and subject against the candidate target or permanent name before rendering."
+    },
+    "UNTIL_LEAVES": {
+      "mode": "suffix",
+      "phrases": [
+        "until it leaves the battlefield",
+        "until this permanent leaves the battlefield"
+      ],
+      "note": "Resolve it or this permanent against the candidate subject; use as a suffix only when the effect lasts until that subject leaves the battlefield."
+    },
+    "PERMANENT": {
+      "mode": "omit",
+      "phrases": [],
+      "note": "Normally omit this duration; the effect mechanic itself expresses that it has no expiry, so do not append permanently."
+    },
+    "INSTANT": {
+      "mode": "omit",
+      "phrases": [],
+      "note": "Normally omit this duration; one-shot effects do not need an immediately or similar timing word appended."
+    },
+    "NEXT_MAIN_PHASE": {
+      "mode": "delayed",
+      "phrases": [
+        "at the beginning of your next main phase",
+        "at the start of your next main phase"
+      ],
+      "note": "Pass to a delayed-trigger or timing renderer; do not append as an ordinary duration suffix to the effect."
+    },
+    "EXTRA_TURN": {
+      "mode": "omit",
+      "phrases": [],
+      "note": "Do not append EXTRA_TURN duration to an EXTRA_TURN effect; the effect already expresses the turn timing."
     }
   },
   "phrases": {

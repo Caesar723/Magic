@@ -892,43 +892,43 @@
     ],
     "BUFF_PT": [
       {
-        "phrase": "+{p}/+{t}",
+        "phrase": "{p}/{t}",
         "style": "oracle_template",
         "uses_name": false,
         "wording": null
       },
       {
-        "phrase": "+{p}/+{t} amount",
+        "phrase": "{p}/{t} amount",
         "style": "oracle_template",
         "uses_name": false,
         "wording": null
       },
       {
-        "phrase": "+{p}/+{t} to power and toughness",
+        "phrase": "{p}/{t} to power and toughness",
         "style": "oracle_template",
         "uses_name": false,
         "wording": null
       },
       {
-        "phrase": "+{p}/+{t} gain",
+        "phrase": "{p}/{t} gain",
         "style": "oracle_template",
         "uses_name": false,
         "wording": null
       },
       {
-        "phrase": "modify power and toughness by +{p}/+{t}",
+        "phrase": "modify power and toughness by {p}/{t}",
         "style": "oracle_template",
         "uses_name": false,
         "wording": null
       },
       {
-        "phrase": "+{p}/+{t} amount",
+        "phrase": "{p}/{t} amount",
         "style": "shorthand",
         "uses_name": false,
         "wording": null
       },
       {
-        "phrase": "pump +{p}/+{t}",
+        "phrase": "pump {p}/{t}",
         "style": "shorthand",
         "uses_name": false,
         "wording": null
@@ -940,19 +940,19 @@
         "wording": null
       },
       {
-        "phrase": "+{p}/+{t} EOT",
+        "phrase": "{p}/{t} EOT",
         "style": "shorthand",
         "uses_name": false,
         "wording": null
       },
       {
-        "phrase": "size +{p}/+{t}",
+        "phrase": "size {p}/{t}",
         "style": "shorthand",
         "uses_name": false,
         "wording": null
       },
       {
-        "phrase": "P/T +{p}/+{t}",
+        "phrase": "P/T {p}/{t}",
         "style": "shorthand",
         "uses_name": false,
         "wording": null
@@ -970,19 +970,19 @@
         "wording": null
       },
       {
-        "phrase": "boost by +{p}/+{t}",
+        "phrase": "boost by {p}/{t}",
         "style": "natural_language",
         "uses_name": false,
         "wording": null
       },
       {
-        "phrase": "grows by +{p}/+{t}",
+        "phrase": "grows by {p}/{t}",
         "style": "natural_language",
         "uses_name": false,
         "wording": null
       },
       {
-        "phrase": "temporary +{p}/+{t}",
+        "phrase": "temporary {p}/{t}",
         "style": "natural_language",
         "uses_name": false,
         "wording": null
@@ -994,19 +994,19 @@
         "wording": null
       },
       {
-        "phrase": "power +{p} toughness +{t}",
+        "phrase": "power {p} toughness {t}",
         "style": "natural_language",
         "uses_name": false,
         "wording": null
       },
       {
-        "phrase": "sized up +{p}/+{t}",
+        "phrase": "sized up {p}/{t}",
         "style": "natural_language",
         "uses_name": false,
         "wording": null
       },
       {
-        "phrase": "P/T modification +{p}/+{t}",
+        "phrase": "P/T modification {p}/{t}",
         "style": "natural_language",
         "uses_name": false,
         "wording": null

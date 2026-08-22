@@ -13,7 +13,8 @@
       "keyword": "static ability name (flying, lifelink, ...)",
       "token": "token stat line e.g. 4/4 red Dragon",
       "color": "color word or WUBRG"
-    }
+    },
+    "candidate_render_note": "candidate_render is for synthetic card text only. Existing phrases remain the query-generation phrase pool. Candidate templates must contain the complete effect wording needed for composition, while target and numeric values remain placeholders; do not copy query shorthand or append duration wording here."
   },
   "types": {
     "DEAL_DAMAGE": {
@@ -237,6 +238,165 @@
         "DRAW",
         "DISCARD"
       ]
+    }
+  },
+  "candidate_render": {
+    "DEAL_DAMAGE": {
+      "templates": [
+        "Deal {amount} damage to {target}"
+      ],
+      "note": "The target placeholder supplies the target phrase; keep the damage action here and do not add duration wording."
+    },
+    "DAMAGE_EACH": {
+      "templates": [
+        "Deal {amount} damage to {target}"
+      ],
+      "note": "Use a mass target phrase such as each creature or each opponent; do not hard-code a second each."
+    },
+    "STAT_EQUAL_DAMAGE": {
+      "templates": [
+        "Deal damage equal to its power to {target}",
+        "Deal damage equal to its toughness to {target}"
+      ],
+      "note": "The selected template must agree with the source statistic in the effect spec; the target remains a separate placeholder."
+    },
+    "GAIN_LIFE": {
+      "templates": [
+        "You gain {amount} life"
+      ],
+      "note": "This effect already names the player; do not append a target phrase."
+    },
+    "LOSE_LIFE": {
+      "templates": [
+        "{target} loses {amount} life"
+      ],
+      "note": "Use a target phrase that supplies the subject, such as target opponent or each opponent."
+    },
+    "DRAW": {
+      "templates": [
+        "Draw {amount} cards"
+      ],
+      "note": "Draw is a complete one-shot effect; do not add immediately or a redundant target."
+    },
+    "DISCARD": {
+      "templates": [
+        "{target} discards {amount} cards"
+      ],
+      "note": "Use a player target phrase that can grammatically serve as the subject."
+    },
+    "COUNTER_SPELL": {
+      "templates": [
+        "Counter {target}"
+      ],
+      "note": "The target placeholder should resolve to a spell target phrase; do not duplicate spell wording here."
+    },
+    "DESTROY": {
+      "templates": [
+        "Destroy {target}"
+      ],
+      "note": "The target placeholder supplies the permanent, creature, or artifact/enchantment phrase."
+    },
+    "EXILE": {
+      "templates": [
+        "Exile {target}"
+      ],
+      "note": "Keep exile as the action only; any duration or return condition belongs to another slot."
+    },
+    "RETURN_HAND": {
+      "templates": [
+        "Return {target} to its owner's hand"
+      ],
+      "note": "Use a target phrase that names the object being returned; do not add bounce shorthand."
+    },
+    "PUT_BATTLEFIELD": {
+      "templates": [
+        "Put {target} from your library onto the battlefield"
+      ],
+      "note": "The target placeholder should resolve to the card or permanent being put onto the battlefield."
+    },
+    "REANIMATE": {
+      "templates": [
+        "Return {target} from your graveyard to the battlefield"
+      ],
+      "note": "Use a graveyard-creature target phrase; the zone movement is part of the effect template."
+    },
+    "SEARCH_LIBRARY": {
+      "templates": [
+        "Search your library for {target}, reveal it, put it into your hand, then shuffle"
+      ],
+      "note": "This is the complete synthetic tutor form used by the current spec renderer; keep search wording out of query phrases."
+    },
+    "SEARCH_TO_HAND": {
+      "templates": [
+        "Search your library for {target}, reveal it, put it into your hand, then shuffle"
+      ],
+      "note": "The hand destination is explicit here so this effect cannot become an incomplete search fragment."
+    },
+    "TEMP_BUFF": {
+      "templates": [
+        "{target} gets {p}/{t}"
+      ],
+      "note": "Do not include until end of turn here; duration rendering owns that suffix."
+    },
+    "PLUS1_COUNTER": {
+      "templates": [
+        "Put a +1/+1 counter on {target}"
+      ],
+      "note": "The counter mechanic itself expresses persistence; do not append permanently or other duration wording."
+    },
+    "GRANT_KEYWORD": {
+      "templates": [
+        "{target} gains {keyword}"
+      ],
+      "note": "The keyword placeholder must be filled from the static-ability spec; duration rendering owns any until-end-of-turn wording."
+    },
+    "CREATE_TOKEN": {
+      "templates": [
+        "Create {amount} 1/1 white Soldier creature tokens"
+      ],
+      "note": "The current candidate spec supplies quantity but not token identity; use this stable Oracle-like fallback rather than leaving a token placeholder unresolved."
+    },
+    "SCRY": {
+      "templates": [
+        "Scry {amount}"
+      ],
+      "note": "Scry is a complete one-shot effect and does not need a target or immediately suffix."
+    },
+    "PREVENT_DAMAGE": {
+      "templates": [
+        "Prevent the next {amount} damage"
+      ],
+      "note": "The current spec models prevention without a target; keep this as a complete prevention clause."
+    },
+    "TAP": {
+      "templates": [
+        "Tap {target}"
+      ],
+      "note": "The target placeholder supplies the permanent or creature phrase; do not use tap-down query shorthand."
+    },
+    "ADD_MANA": {
+      "templates": [
+        "Add {amount} mana"
+      ],
+      "note": "The current candidate spec supplies a numeric amount; color-specific wording belongs to a color-aware effect spec."
+    },
+    "SACRIFICE": {
+      "templates": [
+        "{target} sacrifices a creature"
+      ],
+      "note": "Choose a subject-compatible target phrase, such as an opponent or each opponent; do not append sacrifice shorthand."
+    },
+    "EXTRA_TURN": {
+      "templates": [
+        "Take an extra turn after this one"
+      ],
+      "note": "The effect already expresses the extra-turn timing; duration rendering must omit EXTRA_TURN."
+    },
+    "MILL": {
+      "templates": [
+        "{target} mills {amount} cards"
+      ],
+      "note": "Use a player subject target phrase; keep mill wording complete and Oracle-like."
     }
   },
   "phrases": {
@@ -2072,31 +2232,31 @@
     ],
     "TEMP_BUFF": [
       {
-        "phrase": "gets +{p}/+{t} until end of turn",
+        "phrase": "gets {p}/{t} until end of turn",
         "style": "oracle_template",
         "uses_name": false,
         "wording": null
       },
       {
-        "phrase": "gets +{p}/+{t} until end of turn",
+        "phrase": "gets {p}/{t} until end of turn",
         "style": "oracle_template",
         "uses_name": false,
         "wording": null
       },
       {
-        "phrase": "it gets +{p}/+{t} until end of turn",
+        "phrase": "it gets {p}/{t} until end of turn",
         "style": "oracle_template",
         "uses_name": false,
         "wording": null
       },
       {
-        "phrase": "gets +{p}/+{t}",
+        "phrase": "gets {p}/{t}",
         "style": "oracle_template",
         "uses_name": false,
         "wording": null
       },
       {
-        "phrase": "gains +{p}/+{t} until end of turn",
+        "phrase": "gains {p}/{t} until end of turn",
         "style": "oracle_template",
         "uses_name": false,
         "wording": null
@@ -2114,7 +2274,7 @@
         "wording": null
       },
       {
-        "phrase": "+{p}/+{t} until EOT",
+        "phrase": "{p}/{t} until EOT",
         "style": "shorthand",
         "uses_name": false,
         "wording": null
