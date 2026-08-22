@@ -1,0 +1,38 @@
+{
+  "_meta": {
+    "description": "Synthetic names for replacing {name} during query generation.",
+    "count": 10000,
+    "composition": "100 prefixes x 100 suffixes"
+  },
+  "prefixes": [
+    "Aether", "Ashen", "Astral", "Blood", "Bone", "Celestial", "Crystal", "Dawn",
+    "Dusk", "Ember", "Ever", "Feral", "Flame", "Frost", "Grove", "Hollow",
+    "Iron", "Jade", "Lunar", "Mist", "Night", "Obsidian", "Radiant", "Rift",
+    "Rune", "Shadow", "Silver", "Star", "Storm", "Sun", "Thorn", "Thunder",
+    "Verdant", "Void", "Wild", "Wind", "Winter", "Wyrm", "Zephyr", "Arcane",
+    "Azure", "Blazing", "Brilliant", "Cinder", "Crimson", "Dark", "Dream", "Elder",
+    "Enchanted", "Eternal", "Fallen", "Fierce", "Gilded", "Glimmering", "Golden", "Granite",
+    "Grim", "Hallowed", "Immortal", "Ivory", "Kindled", "Leviathan", "Lost", "Marrow",
+    "Midnight", "Moonglow", "Nether", "Noble", "Oaken", "Pale", "Phantom", "Primal",
+    "Quicksilver", "Raging", "Raven", "Regal", "Resplendent", "Sable", "Sacred", "Scarlet",
+    "Shimmering", "Sky", "Solar", "Spectral", "Spire", "Starlit", "Steel", "Tempest",
+    "Umbral", "Unbroken", "Valiant", "Waking", "Wandering", "Whispering", "White", "Wildfire",
+    "Willow", "Windborne", "Withered", "Wrathful"
+  ],
+  "suffixes": [
+    "Adept", "Avenger", "Binder", "Caller", "Champion", "Druid", "Elemental",
+    "Herald", "Hunter", "Keeper", "Knight", "Mage", "Mystic", "Oracle",
+    "Ranger", "Reaver", "Sage", "Seeker", "Shaper", "Sentinel", "Sorcerer",
+    "Speaker", "Warden", "Weaver", "Walker", "Arbiter", "Arcanist", "Assassin",
+    "Beast", "Berserker", "Bloodletter", "Bringer", "Broodmother", "Chanter", "Conjurer",
+    "Cultivator", "Diviner", "Dreamer", "Enchanter", "Exarch", "Farseer", "Forgemaster",
+    "Guardian", "Guide", "Invoker", "Juggernaut", "Loremaster", "Marauder", "Mindbender",
+    "Nomad", "Pathfinder", "Prophet", "Ravager", "Reclaimer", "Ritualist", "Runeblade",
+    "Scion", "Shaman", "Skald", "Slayer", "Spellblade", "Spirit", "Stalker", "Summoner",
+    "Tactician", "Thaumaturge", "Traveler", "Trickster", "Tunneler", "Usurper", "Vessel",
+    "Visionary", "Warlock", "Warmonger", "Watcher", "Whisperer", "Witch", "Wraith",
+    "Zealot", "Acolyte", "Alchemist", "Behemoth", "Chronomancer", "Commander", "Defender",
+    "Emissary", "Exile", "Gladiator", "Harbinger", "Incarnate", "Infiltrator", "Illusionist",
+    "Lich", "Mentor", "Outrider", "Puppeteer", "Rider", "Swordmaster", "Warlord", "Wayfarer"
+  ]
+}

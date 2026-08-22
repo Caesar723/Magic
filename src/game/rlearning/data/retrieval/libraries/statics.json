@@ -1,0 +1,178 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Generic static keyword / ability phrase library for synthetic query generation.",
+    "phrase_target_per_slot": 5
+  },
+  "types": {
+    "FLYING": {"label": "Flying"},
+    "TRAMPLE": {"label": "Trample"},
+    "VIGILANCE": {"label": "Vigilance"},
+    "LIFELINK": {"label": "Lifelink"},
+    "HEXPROOF": {"label": "Hexproof"},
+    "INDESTRUCTIBLE": {"label": "Indestructible"},
+    "HASTE": {"label": "Haste"},
+    "MENACE": {"label": "Menace"},
+    "DEATHTOUCH": {"label": "Deathtouch"},
+    "FIRST_STRIKE": {"label": "First Strike"},
+    "DOUBLE_STRIKE": {"label": "Double Strike"},
+    "REACH": {"label": "Reach"},
+    "WARD": {"label": "Ward"},
+    "DEFENDER": {"label": "Defender"},
+    "PROWESS": {"label": "Prowess"},
+    "INFECT": {"label": "Infect"},
+    "FLASH": {"label": "Flash"},
+    "SHROUD": {"label": "Shroud"},
+    "UNBLOCKABLE": {"label": "Unblockable"},
+    "CANNOT_ATTACK": {"label": "Cannot Attack"}
+  },
+  "phrases": {
+    "FLYING": [
+      {"phrase": "flying", "style": "oracle_template"},
+      {"phrase": "has flying", "style": "oracle_template"},
+      {"phrase": "with flying", "style": "shorthand"},
+      {"phrase": "can fly", "style": "natural_language"},
+      {"phrase": "is airborne", "style": "natural_language"}
+    ],
+    "TRAMPLE": [
+      {"phrase": "trample", "style": "oracle_template"},
+      {"phrase": "has trample", "style": "oracle_template"},
+      {"phrase": "with trample", "style": "shorthand"},
+      {"phrase": "can deal excess combat damage", "style": "natural_language"},
+      {"phrase": "breaks through blockers", "style": "natural_language"}
+    ],
+    "VIGILANCE": [
+      {"phrase": "vigilance", "style": "oracle_template"},
+      {"phrase": "has vigilance", "style": "oracle_template"},
+      {"phrase": "with vigilance", "style": "shorthand"},
+      {"phrase": "does not tap when attacking", "style": "natural_language"},
+      {"phrase": "can attack without tapping", "style": "natural_language"}
+    ],
+    "LIFELINK": [
+      {"phrase": "lifelink", "style": "oracle_template"},
+      {"phrase": "has lifelink", "style": "oracle_template"},
+      {"phrase": "with lifelink", "style": "shorthand"},
+      {"phrase": "gains life from combat damage", "style": "natural_language"},
+      {"phrase": "heals you when it deals damage", "style": "natural_language"}
+    ],
+    "HEXPROOF": [
+      {"phrase": "hexproof", "style": "oracle_template"},
+      {"phrase": "has hexproof", "style": "oracle_template"},
+      {"phrase": "with hexproof", "style": "shorthand"},
+      {"phrase": "cannot be targeted by opponents", "style": "natural_language"},
+      {"phrase": "is protected from enemy spells", "style": "natural_language"}
+    ],
+    "INDESTRUCTIBLE": [
+      {"phrase": "indestructible", "style": "oracle_template"},
+      {"phrase": "has indestructible", "style": "oracle_template"},
+      {"phrase": "with indestructible", "style": "shorthand"},
+      {"phrase": "cannot be destroyed", "style": "natural_language"},
+      {"phrase": "survives destruction effects", "style": "natural_language"}
+    ],
+    "HASTE": [
+      {"phrase": "haste", "style": "oracle_template"},
+      {"phrase": "has haste", "style": "oracle_template"},
+      {"phrase": "with haste", "style": "shorthand"},
+      {"phrase": "can attack immediately", "style": "natural_language"},
+      {"phrase": "is ready to attack this turn", "style": "natural_language"}
+    ],
+    "MENACE": [
+      {"phrase": "menace", "style": "oracle_template"},
+      {"phrase": "has menace", "style": "oracle_template"},
+      {"phrase": "with menace", "style": "shorthand"},
+      {"phrase": "requires two blockers", "style": "natural_language"},
+      {"phrase": "is difficult to block", "style": "natural_language"}
+    ],
+    "DEATHTOUCH": [
+      {"phrase": "deathtouch", "style": "oracle_template"},
+      {"phrase": "has deathtouch", "style": "oracle_template"},
+      {"phrase": "with deathtouch", "style": "shorthand"},
+      {"phrase": "kills creatures it damages", "style": "natural_language"},
+      {"phrase": "deals lethal damage easily", "style": "natural_language"}
+    ],
+    "FIRST_STRIKE": [
+      {"phrase": "first strike", "style": "oracle_template"},
+      {"phrase": "has first strike", "style": "oracle_template"},
+      {"phrase": "with first strike", "style": "shorthand"},
+      {"phrase": "deals combat damage first", "style": "natural_language"},
+      {"phrase": "strikes before normal combat damage", "style": "natural_language"}
+    ],
+    "DOUBLE_STRIKE": [
+      {"phrase": "double strike", "style": "oracle_template"},
+      {"phrase": "has double strike", "style": "oracle_template"},
+      {"phrase": "with double strike", "style": "shorthand"},
+      {"phrase": "deals first strike and regular damage", "style": "natural_language"},
+      {"phrase": "hits twice in combat", "style": "natural_language"}
+    ],
+    "REACH": [
+      {"phrase": "reach", "style": "oracle_template"},
+      {"phrase": "has reach", "style": "oracle_template"},
+      {"phrase": "with reach", "style": "shorthand"},
+      {"phrase": "can block flying creatures", "style": "natural_language"},
+      {"phrase": "can reach attackers in the air", "style": "natural_language"}
+    ],
+    "WARD": [
+      {"phrase": "ward", "style": "oracle_template"},
+      {"phrase": "has ward", "style": "oracle_template"},
+      {"phrase": "with ward protection", "style": "shorthand"},
+      {"phrase": "makes opponents pay to target it", "style": "natural_language"},
+      {"phrase": "is protected by a ward cost", "style": "natural_language"}
+    ],
+    "DEFENDER": [
+      {"phrase": "defender", "style": "oracle_template"},
+      {"phrase": "has defender", "style": "oracle_template"},
+      {"phrase": "with defender", "style": "shorthand"},
+      {"phrase": "cannot attack", "style": "natural_language"},
+      {"phrase": "is a defensive creature", "style": "natural_language"}
+    ],
+    "PROWESS": [
+      {"phrase": "prowess", "style": "oracle_template"},
+      {"phrase": "has prowess", "style": "oracle_template"},
+      {"phrase": "with prowess", "style": "shorthand"},
+      {"phrase": "gets stronger when you cast a noncreature spell", "style": "natural_language"},
+      {"phrase": "gains power from spellcasting", "style": "natural_language"}
+    ],
+    "INFECT": [
+      {"phrase": "infect", "style": "oracle_template"},
+      {"phrase": "has infect", "style": "oracle_template"},
+      {"phrase": "with infect", "style": "shorthand"},
+      {"phrase": "deals poison counters to players", "style": "natural_language"},
+      {"phrase": "gives creatures -1/-1 counters", "style": "natural_language"}
+    ],
+    "FLASH": [
+      {"phrase": "flash", "style": "oracle_template"},
+      {"phrase": "has flash", "style": "oracle_template"},
+      {"phrase": "with flash", "style": "shorthand"},
+      {"phrase": "can be cast at instant speed", "style": "natural_language"},
+      {"phrase": "can appear during any phase", "style": "natural_language"}
+    ],
+    "SHROUD": [
+      {"phrase": "shroud", "style": "oracle_template"},
+      {"phrase": "has shroud", "style": "oracle_template"},
+      {"phrase": "with shroud", "style": "shorthand"},
+      {"phrase": "cannot be targeted", "style": "natural_language"},
+      {"phrase": "is untargetable", "style": "natural_language"}
+    ],
+    "UNBLOCKABLE": [
+      {"phrase": "unblockable", "style": "oracle_template"},
+      {"phrase": "cannot be blocked", "style": "oracle_template"},
+      {"phrase": "with unblockable attacks", "style": "shorthand"},
+      {"phrase": "gets through without blockers", "style": "natural_language"},
+      {"phrase": "cannot be stopped in combat", "style": "natural_language"}
+    ],
+    "CANNOT_ATTACK": [
+      {"phrase": "cannot attack", "style": "oracle_template"},
+      {"phrase": "does not attack", "style": "oracle_template"},
+      {"phrase": "with an attack restriction", "style": "shorthand"},
+      {"phrase": "is unable to attack", "style": "natural_language"},
+      {"phrase": "stays back during combat", "style": "natural_language"}
+    ]
+  },
+  "confusion_pairs": [
+    {"a": "FLYING", "b": "REACH"},
+    {"a": "HEXPROOF", "b": "SHROUD"},
+    {"a": "FIRST_STRIKE", "b": "DOUBLE_STRIKE"},
+    {"a": "TRAMPLE", "b": "MENACE"},
+    {"a": "HASTE", "b": "VIGILANCE"}
+  ]
+}

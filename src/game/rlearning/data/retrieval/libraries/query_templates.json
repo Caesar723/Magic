@@ -1,0 +1,3029 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Query composition templates. Combine phrases from other libraries via placeholders. No card IDs. Generator fills {trigger}/{effect}/... from slot libraries.",
+    "composition_rule": "1) parse card into bindings 2) pick a template whose required slots are available 3) sample a phrase for each slot 4) optionally LLM-paraphrase within slot meaning",
+    "placeholder_fill": "Replace each {slot} with one phrase from that library. Optional slots may be omitted if the template lists them under optional_slots or if text still reads cleanly after drop.",
+    "style_balance_per_type": "~5 oracle_template, ~7 shorthand, ~8 natural_language",
+    "phrase_target_per_type": 20,
+    "depends_on": [
+      "triggers.json",
+      "effects.json",
+      "targets.json",
+      "durations.json",
+      "amounts.json",
+      "statics.json (optional until created)"
+    ]
+  },
+  "types": {
+    "FULL_BINDING": {
+      "label": "Full Trigger-Effect-Target Binding",
+      "query_role": "high_precision",
+      "required_slots": [
+        "trigger",
+        "effect",
+        "target"
+      ],
+      "typical_relevance": 3,
+      "confusable_with": [
+        "TRIGGER_EFFECT",
+        "EFFECT_TARGET"
+      ]
+    },
+    "FULL_BINDING_ALL": {
+      "label": "Full Named Binding",
+      "query_role": "maximum_precision",
+      "required_slots": [
+        "name",
+        "trigger",
+        "effect",
+        "target",
+        "amount",
+        "duration",
+        "static"
+      ],
+      "typical_relevance": 3,
+      "confusable_with": [
+        "FULL_BINDING",
+        "WITH_AMOUNT",
+        "WITH_DURATION"
+      ]
+    },
+    "TRIGGER_EFFECT": {
+      "label": "Trigger + Effect",
+      "query_role": "binding_core",
+      "required_slots": [
+        "trigger",
+        "effect"
+      ],
+      "typical_relevance": 3,
+      "confusable_with": [
+        "FULL_BINDING",
+        "SHORTHAND_BAG"
+      ]
+    },
+    "EFFECT_TARGET": {
+      "label": "Effect + Target (Spell Resolve)",
+      "query_role": "spell_search",
+      "required_slots": [
+        "effect",
+        "target"
+      ],
+      "typical_relevance": 3,
+      "note": "For instants/sorceries without a creature trigger.",
+      "confusable_with": [
+        "EFFECT_ONLY",
+        "FULL_BINDING"
+      ]
+    },
+    "EFFECT_ONLY": {
+      "label": "Effect Only",
+      "query_role": "broad",
+      "required_slots": [
+        "effect"
+      ],
+      "typical_relevance": 2,
+      "confusable_with": [
+        "TRIGGER_ONLY",
+        "PARTIAL"
+      ]
+    },
+    "TRIGGER_ONLY": {
+      "label": "Trigger Only",
+      "query_role": "partial",
+      "required_slots": [
+        "trigger"
+      ],
+      "typical_relevance": 1,
+      "confusable_with": [
+        "EFFECT_ONLY",
+        "PARTIAL"
+      ]
+    },
+    "SHORTHAND_BAG": {
+      "label": "Mechanic Shorthand Bag",
+      "query_role": "player_shorthand",
+      "required_slots": [],
+      "typical_relevance": 2,
+      "note": "Compact bags like 'ETB draw'. Slot fill still comes from libraries.",
+      "confusable_with": [
+        "TRIGGER_EFFECT",
+        "PARTIAL"
+      ]
+    },
+    "NATURAL_CARD": {
+      "label": "Natural Language Card Ask",
+      "query_role": "player_nl",
+      "required_slots": [],
+      "typical_relevance": 2,
+      "confusable_with": [
+        "FULL_BINDING",
+        "EFFECT_TARGET"
+      ]
+    },
+    "PARTIAL": {
+      "label": "Partial / Incomplete Query",
+      "query_role": "partial",
+      "required_slots": [],
+      "typical_relevance": 1,
+      "confusable_with": [
+        "TRIGGER_ONLY",
+        "EFFECT_ONLY"
+      ]
+    },
+    "WITH_DURATION": {
+      "label": "Effect With Duration",
+      "query_role": "duration_sensitive",
+      "required_slots": [
+        "effect",
+        "duration"
+      ],
+      "typical_relevance": 3,
+      "confusable_with": [
+        "WITH_AMOUNT",
+        "EFFECT_ONLY"
+      ]
+    },
+    "WITH_AMOUNT": {
+      "label": "Effect With Amount",
+      "query_role": "amount_sensitive",
+      "required_slots": [
+        "effect",
+        "amount"
+      ],
+      "typical_relevance": 3,
+      "confusable_with": [
+        "WITH_DURATION",
+        "EFFECT_ONLY"
+      ]
+    },
+    "STATIC_PLUS": {
+      "label": "Static Keyword Plus Binding",
+      "query_role": "keyword_plus",
+      "required_slots": [
+        "static"
+      ],
+      "typical_relevance": 2,
+      "note": "Requires statics.json phrases when composing.",
+      "confusable_with": [
+        "NATURAL_CARD",
+        "SHORTHAND_BAG"
+      ]
+    },
+    "NAME_ANCHORED": {
+      "label": "Name-Anchored Query",
+      "query_role": "name_augmented",
+      "required_slots": [
+        "name"
+      ],
+      "typical_relevance": 3,
+      "note": "{name} filled at compose time. Use sparingly to avoid name overfitting; prefer mechanic slots.",
+      "confusable_with": [
+        "FULL_BINDING",
+        "NATURAL_CARD"
+      ]
+    },
+    "MULTI_BINDING": {
+      "label": "Multi-Binding / Dual Ability",
+      "query_role": "multi_ability",
+      "required_slots": [
+        "trigger1",
+        "effect1",
+        "trigger2",
+        "effect2"
+      ],
+      "typical_relevance": 3,
+      "confusable_with": [
+        "FULL_BINDING",
+        "TRIGGER_EFFECT"
+      ]
+    }
+  },
+  "slot_sources": {
+    "trigger": "triggers.json",
+    "effect": "effects.json",
+    "target": "targets.json",
+    "duration": "durations.json",
+    "amount": "amounts.json",
+    "static": "statics.json",
+    "name": "names.json",
+    "trigger1": "triggers.json",
+    "trigger2": "triggers.json",
+    "effect1": "effects.json",
+    "effect2": "effects.json",
+    "target1": "targets.json",
+    "target2": "targets.json"
+  },
+  "connectors": {
+    "sequence": [
+      ", ",
+      "; ",
+      " and ",
+      " then ",
+      " -> ",
+      " / "
+    ],
+    "clause": [
+      "When ",
+      "Whenever ",
+      "At ",
+      ""
+    ],
+    "relation": [
+      " that ",
+      " which ",
+      " to ",
+      " on ",
+      " against ",
+      " into "
+    ]
+  },
+  "sampling_hints": {
+    "FULL_BINDING": {
+      "weight": "high",
+      "use_when": "parsed binding has trigger+effect+target"
+    },
+    "FULL_BINDING_ALL": {
+      "weight": "high",
+      "use_when": "synthetic training sample must expose every binding slot"
+    },
+    "TRIGGER_EFFECT": {
+      "weight": "high",
+      "use_when": "binding has trigger+effect"
+    },
+    "EFFECT_TARGET": {
+      "weight": "high",
+      "use_when": "instant/sorcery resolve binding"
+    },
+    "EFFECT_ONLY": {
+      "weight": "medium",
+      "use_when": "broad effect recall"
+    },
+    "TRIGGER_ONLY": {
+      "weight": "low",
+      "use_when": "partial / hard-negative soft queries"
+    },
+    "SHORTHAND_BAG": {
+      "weight": "high",
+      "use_when": "player shorthand distribution"
+    },
+    "NATURAL_CARD": {
+      "weight": "high",
+      "use_when": "NL robustness"
+    },
+    "PARTIAL": {
+      "weight": "medium",
+      "use_when": "partial match training"
+    },
+    "WITH_DURATION": {
+      "weight": "medium",
+      "use_when": "TEMP_BUFF vs PLUS1_COUNTER discrimination"
+    },
+    "WITH_AMOUNT": {
+      "weight": "medium",
+      "use_when": "numeric graded relevance"
+    },
+    "STATIC_PLUS": {
+      "weight": "medium",
+      "use_when": "statics.json available"
+    },
+    "NAME_ANCHORED": {
+      "weight": "low",
+      "use_when": "optional; keep <=10-15% of queries"
+    },
+    "MULTI_BINDING": {
+      "weight": "medium",
+      "use_when": "card has 2+ bindings"
+    }
+  },
+  "templates": {
+    "FULL_BINDING": [
+      {
+        "template": "{trigger}, {effect} {target}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger}, {effect} to {target}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger}, {effect} {target} {duration}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger",
+          "effect",
+          "target",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger}, {effect} {amount} to {target}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger",
+          "effect",
+          "amount",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "When {trigger}: {effect} {target}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} -> {effect} {target}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} {effect} {target}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger}: {effect}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [
+          "target"
+        ],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} then {effect} {target}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} / {effect} / {target}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "ETB-style: {trigger} {effect}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} payoff: {effect} {target}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "a card that {trigger} and {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "creature that {effect} {target} {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "when it {trigger}, it {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "something that {effect} {target} whenever it {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "looking for {trigger} that {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "card with {trigger} ability that {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} and then {effect} against {target}",
+        "style": "natural_language",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "I want {trigger} into {effect} on {target}",
+        "style": "natural_language",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      }
+    ],
+    "FULL_BINDING_ALL": [
+      {
+        "template": "{name} has {static}. {trigger}, {effect} {target} {duration}.",
+        "style": "oracle_template",
+        "slots": [
+          "name",
+          "trigger",
+          "effect",
+          "target",
+          "amount",
+          "duration",
+          "static"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "When {name} {trigger}, {effect} {target} {duration}. It has {static}.",
+        "style": "natural_language",
+        "slots": [
+          "name",
+          "trigger",
+          "effect",
+          "target",
+          "amount",
+          "duration",
+          "static"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "{name} has {static}. {trigger}, {effect} {target} {duration}.",
+        "style": "natural_language",
+        "slots": [
+          "name",
+          "trigger",
+          "effect",
+          "target",
+          "amount",
+          "duration",
+          "static"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      }
+    ],
+    "TRIGGER_EFFECT": [
+      {
+        "template": "{trigger}, {effect}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger}, {effect} {amount}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger",
+          "effect",
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger}, {effect} {duration}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger",
+          "effect",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger}: {effect}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "Whenever {trigger}, {effect}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} {effect}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} -> {effect}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger}/{effect}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} payoff {effect}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} on {trigger}",
+        "style": "shorthand",
+        "slots": [
+          "effect",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} engine {effect}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} value {effect}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "when it {trigger} it {effect}",
+        "style": "natural_language",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "a card that {effect} {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "triggers to {effect} when it {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "looking for {trigger} {effect}",
+        "style": "natural_language",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "something with {trigger} that {effect}",
+        "style": "natural_language",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} whenever {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "I need {trigger} into {effect}",
+        "style": "natural_language",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "card that {effect} on {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      }
+    ],
+    "EFFECT_TARGET": [
+      {
+        "template": "{effect} {target}",
+        "style": "oracle_template",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} {amount} to {target}",
+        "style": "oracle_template",
+        "slots": [
+          "effect",
+          "amount",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} {target} {duration}",
+        "style": "oracle_template",
+        "slots": [
+          "effect",
+          "target",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} {target}. {duration}",
+        "style": "oracle_template",
+        "slots": [
+          "effect",
+          "target",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{target}: {effect}",
+        "style": "oracle_template",
+        "slots": [
+          "target",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} {target}",
+        "style": "shorthand",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} -> {target}",
+        "style": "shorthand",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{target} {effect}",
+        "style": "shorthand",
+        "slots": [
+          "target",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect}/{target}",
+        "style": "shorthand",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{amount} {effect} {target}",
+        "style": "shorthand",
+        "slots": [
+          "amount",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "hit {target} with {effect}",
+        "style": "shorthand",
+        "slots": [
+          "target",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} spell {target}",
+        "style": "shorthand",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "a spell that {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "I want to {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "card that {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "looking for {effect} on {target}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "something to {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} aimed at {target}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "remove/interact: {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "cast to {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      }
+    ],
+    "EFFECT_ONLY": [
+      {
+        "template": "{effect}",
+        "style": "oracle_template",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} {amount}",
+        "style": "oracle_template",
+        "slots": [
+          "effect",
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} {duration}",
+        "style": "oracle_template",
+        "slots": [
+          "effect",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{amount} {effect}",
+        "style": "oracle_template",
+        "slots": [
+          "amount",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "you may {effect}",
+        "style": "oracle_template",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect}",
+        "style": "shorthand",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} effect",
+        "style": "shorthand",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} spell",
+        "style": "shorthand",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} payoff",
+        "style": "shorthand",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{amount} {effect}",
+        "style": "shorthand",
+        "slots": [
+          "amount",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} {duration}",
+        "style": "shorthand",
+        "slots": [
+          "effect",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "pure {effect}",
+        "style": "shorthand",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "a card that {effect}",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "looking for {effect}",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "I need {effect}",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "something with {effect}",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "effect: {effect}",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "show me {effect}",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "cards that {effect}",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "find {effect}",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      }
+    ],
+    "TRIGGER_ONLY": [
+      {
+        "template": "{trigger}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} trigger",
+        "style": "oracle_template",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "ability: {trigger}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "Whenever {trigger}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "When {trigger}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger}",
+        "style": "shorthand",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} trigger",
+        "style": "shorthand",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "on {trigger}",
+        "style": "shorthand",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} matter",
+        "style": "shorthand",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} payoff",
+        "style": "shorthand",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} engine",
+        "style": "shorthand",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} ability",
+        "style": "shorthand",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "a card that {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "looking for {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "something that triggers {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "I need a {trigger} card",
+        "style": "natural_language",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "cards with {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "find {trigger} abilities",
+        "style": "natural_language",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "trigger condition: {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "when does it happen: {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      }
+    ],
+    "SHORTHAND_BAG": [
+      {
+        "template": "{trigger} {effect}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} {trigger}",
+        "style": "shorthand",
+        "slots": [
+          "effect",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} {effect} {target}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} {amount}",
+        "style": "shorthand",
+        "slots": [
+          "effect",
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} {amount} {effect}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "amount",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static} {trigger}",
+        "style": "shorthand",
+        "slots": [
+          "static",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static} {effect}",
+        "style": "shorthand",
+        "slots": [
+          "static",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger}+{effect}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect}+{duration}",
+        "style": "shorthand",
+        "slots": [
+          "effect",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect}/{target}",
+        "style": "shorthand",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger}/{effect}/{amount}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect",
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static}+{effect}",
+        "style": "shorthand",
+        "slots": [
+          "static",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} {effect} EOT",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false,
+        "note": "duration implied as UNTIL_EOT"
+      },
+      {
+        "template": "{effect} ping",
+        "style": "shorthand",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} ramp",
+        "style": "shorthand",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} wipe",
+        "style": "shorthand",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} draw",
+        "style": "shorthand",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} counter",
+        "style": "shorthand",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} buff",
+        "style": "shorthand",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static} {trigger} {effect}",
+        "style": "shorthand",
+        "slots": [
+          "static",
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      }
+    ],
+    "NATURAL_CARD": [
+      {
+        "template": "a creature that {effect} {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "a creature that {trigger} and {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "an instant that {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "a sorcery that {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "a land that {effect}",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "a card that {effect} {target} {duration}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "something that {effect} when it {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "looking for a creature with {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "need a spell that {effect}",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "want a card that {effect} {amount}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "a creature that {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "card that gives {effect} {duration}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "find me something that {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "show creatures that {effect}",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "any card that {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "utility card: {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "removal that {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "ramp card that {effect}",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "draw spell that {effect}",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "combat trick that {effect} {duration}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      }
+    ],
+    "PARTIAL": [
+      {
+        "template": "{trigger}",
+        "style": "shorthand",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect}",
+        "style": "shorthand",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{target}",
+        "style": "shorthand",
+        "slots": [
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static}",
+        "style": "shorthand",
+        "slots": [
+          "static"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} {static}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "static"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} or similar",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} maybe {effect}",
+        "style": "natural_language",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} but not sure about target",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} ... {effect}",
+        "style": "natural_language",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static} and {effect}",
+        "style": "natural_language",
+        "slots": [
+          "static",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "kinda like {effect}",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "sort of {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{amount} {effect}?",
+        "style": "natural_language",
+        "slots": [
+          "amount",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} {duration}?",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "half: {trigger}",
+        "style": "shorthand",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "half: {effect}",
+        "style": "shorthand",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} + ?",
+        "style": "shorthand",
+        "slots": [
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "? + {effect}",
+        "style": "shorthand",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static} / {trigger}",
+        "style": "shorthand",
+        "slots": [
+          "static",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "fragment: {effect} {target}",
+        "style": "shorthand",
+        "slots": [
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      }
+    ],
+    "WITH_DURATION": [
+      {
+        "template": "{effect} {target} {duration}",
+        "style": "oracle_template",
+        "slots": [
+          "effect",
+          "target",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger}, {effect} {duration}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger",
+          "effect",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} {duration}",
+        "style": "oracle_template",
+        "slots": [
+          "effect",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{target} {effect} {duration}",
+        "style": "oracle_template",
+        "slots": [
+          "target",
+          "effect",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} {target}. {duration}",
+        "style": "oracle_template",
+        "slots": [
+          "effect",
+          "target",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} {duration}",
+        "style": "shorthand",
+        "slots": [
+          "effect",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} EOT",
+        "style": "shorthand",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false,
+        "note": "implies UNTIL_EOT"
+      },
+      {
+        "template": "{trigger} {effect} EOT",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "temp {effect}",
+        "style": "shorthand",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} until EOT",
+        "style": "shorthand",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "permanent {effect}",
+        "style": "shorthand",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false,
+        "note": "implies PERMANENT duration"
+      },
+      {
+        "template": "{effect}/{duration}",
+        "style": "shorthand",
+        "slots": [
+          "effect",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} that lasts {duration}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} {target} lasting {duration}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "target",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "temporary {effect}",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "lasting {effect} not EOT",
+        "style": "natural_language",
+        "slots": [
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} only {duration}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "buff {duration}",
+        "style": "natural_language",
+        "slots": [
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} into a {duration} {effect}",
+        "style": "natural_language",
+        "slots": [
+          "trigger",
+          "duration",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "I want {effect} {duration}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "duration"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      }
+    ],
+    "WITH_AMOUNT": [
+      {
+        "template": "{effect} {amount}",
+        "style": "oracle_template",
+        "slots": [
+          "effect",
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} {amount} to {target}",
+        "style": "oracle_template",
+        "slots": [
+          "effect",
+          "amount",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger}, {effect} {amount}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger",
+          "effect",
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{amount} {effect}",
+        "style": "oracle_template",
+        "slots": [
+          "amount",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} equal to {amount}",
+        "style": "oracle_template",
+        "slots": [
+          "effect",
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} {amount}",
+        "style": "shorthand",
+        "slots": [
+          "effect",
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{amount} {effect}",
+        "style": "shorthand",
+        "slots": [
+          "amount",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect}/{amount}",
+        "style": "shorthand",
+        "slots": [
+          "effect",
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} {amount}",
+        "style": "shorthand",
+        "slots": [
+          "trigger",
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{amount} dmg",
+        "style": "shorthand",
+        "slots": [
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{amount} draw",
+        "style": "shorthand",
+        "slots": [
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "+{amount} pump",
+        "style": "shorthand",
+        "slots": [
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} for {amount}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{amount} worth of {effect}",
+        "style": "natural_language",
+        "slots": [
+          "amount",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "deals about {amount}",
+        "style": "natural_language",
+        "slots": [
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} scaled to {amount}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "I need exactly {amount} {effect}",
+        "style": "natural_language",
+        "slots": [
+          "amount",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect} by {amount}",
+        "style": "natural_language",
+        "slots": [
+          "effect",
+          "amount"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "looking for {amount} {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "amount",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger} then {amount} {effect}",
+        "style": "natural_language",
+        "slots": [
+          "trigger",
+          "amount",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      }
+    ],
+    "STATIC_PLUS": [
+      {
+        "template": "{static}. {trigger}, {effect} {target}",
+        "style": "oracle_template",
+        "slots": [
+          "static",
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static}. {trigger}, {effect}",
+        "style": "oracle_template",
+        "slots": [
+          "static",
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static}. {effect} {target}",
+        "style": "oracle_template",
+        "slots": [
+          "static",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static}, {effect}",
+        "style": "oracle_template",
+        "slots": [
+          "static",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static} and {trigger}",
+        "style": "oracle_template",
+        "slots": [
+          "static",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static} {trigger}",
+        "style": "shorthand",
+        "slots": [
+          "static",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static} {effect}",
+        "style": "shorthand",
+        "slots": [
+          "static",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static}+{effect}",
+        "style": "shorthand",
+        "slots": [
+          "static",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static}/{trigger}",
+        "style": "shorthand",
+        "slots": [
+          "static",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static} {trigger} {effect}",
+        "style": "shorthand",
+        "slots": [
+          "static",
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "keyword {static}",
+        "style": "shorthand",
+        "slots": [
+          "static"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static} body",
+        "style": "shorthand",
+        "slots": [
+          "static"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "a {static} creature that {effect}",
+        "style": "natural_language",
+        "slots": [
+          "static",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static} creature with {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "static",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "has {static} and {effect}",
+        "style": "natural_language",
+        "slots": [
+          "static",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "looking for {static} plus {effect}",
+        "style": "natural_language",
+        "slots": [
+          "static",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static} and also {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "static",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "creature with {static} that {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "static",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "I want {static} with {effect}",
+        "style": "natural_language",
+        "slots": [
+          "static",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static} threat that {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "static",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      }
+    ],
+    "NAME_ANCHORED": [
+      {
+        "template": "{trigger}, {effect} {target}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": false,
+        "note": "name may already be inside trigger phrase if uses_name"
+      },
+      {
+        "template": "When {name} {trigger}, {effect} {target}",
+        "style": "oracle_template",
+        "slots": [
+          "name",
+          "trigger",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "Whenever {name} {trigger}, {effect}",
+        "style": "oracle_template",
+        "slots": [
+          "name",
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "{name}: {effect} {target}",
+        "style": "oracle_template",
+        "slots": [
+          "name",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "{name} {trigger} {effect}",
+        "style": "oracle_template",
+        "slots": [
+          "name",
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "{name} {effect}",
+        "style": "shorthand",
+        "slots": [
+          "name",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "{name} {trigger}",
+        "style": "shorthand",
+        "slots": [
+          "name",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "{name} ETB",
+        "style": "shorthand",
+        "slots": [
+          "name"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "{name} attack trigger",
+        "style": "shorthand",
+        "slots": [
+          "name"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "{name} dies",
+        "style": "shorthand",
+        "slots": [
+          "name"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "{name} ping",
+        "style": "shorthand",
+        "slots": [
+          "name"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "{name} ramp",
+        "style": "shorthand",
+        "slots": [
+          "name"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "what does {name} do when it {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "name",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "cards like {name} that {effect}",
+        "style": "natural_language",
+        "slots": [
+          "name",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "{name} style {effect}",
+        "style": "natural_language",
+        "slots": [
+          "name",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "similar to {name}: {trigger} {effect}",
+        "style": "natural_language",
+        "slots": [
+          "name",
+          "trigger",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "find {name}'s mechanic: {effect}",
+        "style": "natural_language",
+        "slots": [
+          "name",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "{name} but for {effect}",
+        "style": "natural_language",
+        "slots": [
+          "name",
+          "effect"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "like {name} with {trigger}",
+        "style": "natural_language",
+        "slots": [
+          "name",
+          "trigger"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      },
+      {
+        "template": "search {name} ability {effect} {target}",
+        "style": "natural_language",
+        "slots": [
+          "name",
+          "effect",
+          "target"
+        ],
+        "optional_slots": [],
+        "uses_name": true
+      }
+    ],
+    "MULTI_BINDING": [
+      {
+        "template": "{trigger1}, {effect1}. {trigger2}, {effect2}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger1",
+          "effect1",
+          "trigger2",
+          "effect2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger1}, {effect1} {target1}. {trigger2}, {effect2}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger1",
+          "effect1",
+          "target1",
+          "trigger2",
+          "effect2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect1} {trigger1} and {effect2} {trigger2}",
+        "style": "oracle_template",
+        "slots": [
+          "effect1",
+          "trigger1",
+          "effect2",
+          "trigger2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{static}. {trigger1}, {effect1}. {trigger2}, {effect2}",
+        "style": "oracle_template",
+        "slots": [
+          "static",
+          "trigger1",
+          "effect1",
+          "trigger2",
+          "effect2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger1} {effect1}; {trigger2} {effect2}",
+        "style": "oracle_template",
+        "slots": [
+          "trigger1",
+          "effect1",
+          "trigger2",
+          "effect2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger1}/{effect1} + {trigger2}/{effect2}",
+        "style": "shorthand",
+        "slots": [
+          "trigger1",
+          "effect1",
+          "trigger2",
+          "effect2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "dual: {trigger1} {effect1} and {trigger2} {effect2}",
+        "style": "shorthand",
+        "slots": [
+          "trigger1",
+          "effect1",
+          "trigger2",
+          "effect2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger1}+{trigger2}",
+        "style": "shorthand",
+        "slots": [
+          "trigger1",
+          "trigger2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{effect1}+{effect2}",
+        "style": "shorthand",
+        "slots": [
+          "effect1",
+          "effect2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "two abilities: {trigger1} and {trigger2}",
+        "style": "shorthand",
+        "slots": [
+          "trigger1",
+          "trigger2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "ETB+dies style {effect1}/{effect2}",
+        "style": "shorthand",
+        "slots": [
+          "effect1",
+          "effect2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "{trigger1} {effect1} / {trigger2} {effect2}",
+        "style": "shorthand",
+        "slots": [
+          "trigger1",
+          "effect1",
+          "trigger2",
+          "effect2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "a creature that {effect1} {trigger1} and also {effect2} {trigger2}",
+        "style": "natural_language",
+        "slots": [
+          "effect1",
+          "trigger1",
+          "effect2",
+          "trigger2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "has both {trigger1} and {trigger2}",
+        "style": "natural_language",
+        "slots": [
+          "trigger1",
+          "trigger2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "double trigger: {trigger1} into {effect1}, {trigger2} into {effect2}",
+        "style": "natural_language",
+        "slots": [
+          "trigger1",
+          "effect1",
+          "trigger2",
+          "effect2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "looking for {effect1} on entry and {effect2} later",
+        "style": "natural_language",
+        "slots": [
+          "effect1",
+          "effect2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "card with two payoffs: {effect1} and {effect2}",
+        "style": "natural_language",
+        "slots": [
+          "effect1",
+          "effect2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "I want {trigger1} {effect1} plus {trigger2} {effect2}",
+        "style": "natural_language",
+        "slots": [
+          "trigger1",
+          "effect1",
+          "trigger2",
+          "effect2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "multi-ability creature {trigger1}/{trigger2}",
+        "style": "natural_language",
+        "slots": [
+          "trigger1",
+          "trigger2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      },
+      {
+        "template": "both {effect1} and {effect2} on different triggers",
+        "style": "natural_language",
+        "slots": [
+          "effect1",
+          "effect2"
+        ],
+        "optional_slots": [],
+        "uses_name": false
+      }
+    ]
+  },
+  "confusion_pairs": [
+    {
+      "a": "FULL_BINDING",
+      "b": "SHORTHAND_BAG",
+      "reason": "full sentence vs bag-of-mechanics same binding"
+    },
+    {
+      "a": "WITH_DURATION",
+      "b": "EFFECT_ONLY",
+      "reason": "duration-sensitive vs bare effect"
+    },
+    {
+      "a": "WITH_AMOUNT",
+      "b": "EFFECT_ONLY",
+      "reason": "amount-sensitive vs bare effect"
+    },
+    {
+      "a": "TRIGGER_EFFECT",
+      "b": "EFFECT_TARGET",
+      "reason": "creature trigger binding vs spell resolve"
+    },
+    {
+      "a": "PARTIAL",
+      "b": "FULL_BINDING",
+      "reason": "incomplete query vs complete binding"
+    },
+    {
+      "a": "NAME_ANCHORED",
+      "b": "NATURAL_CARD",
+      "reason": "name leakage vs mechanic NL"
+    },
+    {
+      "a": "MULTI_BINDING",
+      "b": "FULL_BINDING",
+      "reason": "two bindings vs one"
+    },
+    {
+      "a": "STATIC_PLUS",
+      "b": "EFFECT_ONLY",
+      "reason": "keyword+effect vs effect alone"
+    },
+    {
+      "a": "TRIGGER_ONLY",
+      "b": "EFFECT_ONLY",
+      "reason": "timing-only vs action-only partials"
+    }
+  ]
+}

@@ -1,0 +1,2086 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Generic amount / magnitude phrase library. Slot-level only — no card IDs. Fills {amount}, {p}, {t}, {n} at compose time; effect verbs stay in effects.json.",
+    "composition_rule": "Pick an amount phrase to fill numeric slots on an effect. Prefer N_1..N_5 when the parsed value is known; use FIXED with {n} for other integers.",
+    "card_mapping": "Per-card numeric bindings live in parsed_cards.jsonl (parser output), not in this library.",
+    "phrase_target_per_slot": 20,
+    "phrase_style_balance": "~5 oracle_template, ~7 shorthand, ~8 natural_language per slot",
+    "placeholders": {
+      "n": "integer amount",
+      "word_n": "spelled number (one, two, three, ...)",
+      "p": "power delta",
+      "t": "toughness delta"
+    },
+    "pool_note": "Pool numeric mass is concentrated on 1–5; N_1..N_5 are first-class slots for graded relevance."
+  },
+  "types": {
+    "N_1": {
+      "label": "Amount 1",
+      "kind": "fixed",
+      "value": 1,
+      "confusable_with": [
+        "N_2",
+        "FIXED"
+      ]
+    },
+    "N_2": {
+      "label": "Amount 2",
+      "kind": "fixed",
+      "value": 2,
+      "confusable_with": [
+        "N_1",
+        "N_3",
+        "FIXED"
+      ]
+    },
+    "N_3": {
+      "label": "Amount 3",
+      "kind": "fixed",
+      "value": 3,
+      "confusable_with": [
+        "N_2",
+        "N_4",
+        "FIXED"
+      ]
+    },
+    "N_4": {
+      "label": "Amount 4",
+      "kind": "fixed",
+      "value": 4,
+      "confusable_with": [
+        "N_3",
+        "N_5",
+        "FIXED"
+      ]
+    },
+    "N_5": {
+      "label": "Amount 5",
+      "kind": "fixed",
+      "value": 5,
+      "confusable_with": [
+        "N_4",
+        "FIXED"
+      ]
+    },
+    "FIXED": {
+      "label": "Fixed Amount Template",
+      "kind": "fixed",
+      "placeholders": [
+        "{n}",
+        "{word_n}"
+      ],
+      "note": "Fill {n} / {word_n} at compose time for any integer.",
+      "confusable_with": [
+        "VARIABLE_X",
+        "EQUAL_COUNT"
+      ]
+    },
+    "BUFF_PT": {
+      "label": "Power/Toughness Pair",
+      "kind": "pair",
+      "placeholders": [
+        "{p}",
+        "{t}"
+      ],
+      "confusable_with": [
+        "COUNTERS_N",
+        "FIXED"
+      ]
+    },
+    "COUNTERS_N": {
+      "label": "+1/+1 Counter Count",
+      "kind": "fixed",
+      "placeholders": [
+        "{n}"
+      ],
+      "confusable_with": [
+        "BUFF_PT",
+        "N_1"
+      ]
+    },
+    "EQUAL_POWER": {
+      "label": "Equal to Power",
+      "kind": "scaled",
+      "confusable_with": [
+        "EQUAL_TOUGHNESS",
+        "EQUAL_LIFE",
+        "VARIABLE_X"
+      ]
+    },
+    "EQUAL_TOUGHNESS": {
+      "label": "Equal to Toughness",
+      "kind": "scaled",
+      "confusable_with": [
+        "EQUAL_POWER",
+        "EQUAL_LIFE"
+      ]
+    },
+    "EQUAL_LIFE": {
+      "label": "Equal to Life Total",
+      "kind": "scaled",
+      "confusable_with": [
+        "EQUAL_POWER",
+        "THAT_MUCH"
+      ]
+    },
+    "EQUAL_COUNT": {
+      "label": "Equal to Board Count / For Each",
+      "kind": "scaled",
+      "confusable_with": [
+        "VARIABLE_X",
+        "FIXED"
+      ]
+    },
+    "VARIABLE_X": {
+      "label": "Variable X",
+      "kind": "variable",
+      "confusable_with": [
+        "FIXED",
+        "EQUAL_COUNT"
+      ]
+    },
+    "DIVIDED": {
+      "label": "Divided Among Targets",
+      "kind": "distribution",
+      "confusable_with": [
+        "FIXED",
+        "THAT_MUCH"
+      ]
+    },
+    "THAT_MUCH": {
+      "label": "That Much / Mirrored Amount",
+      "kind": "referential",
+      "confusable_with": [
+        "EQUAL_LIFE",
+        "FIXED"
+      ]
+    }
+  },
+  "phrases": {
+    "N_1": [
+      {
+        "phrase": "1",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a single",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "One",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exactly 1",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "1 amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "single",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one point",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "just 1",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "only one",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one total",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a single point",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "just one",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one of them",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exactly one",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a lone",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one unit",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "the number one",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "N_2": [
+      {
+        "phrase": "2",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "two",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Two",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exactly 2",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "2 total",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "2 amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "two amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "pair",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "double",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "two points",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "just 2",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "only two",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "two total",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a pair of",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exactly two",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "two of them",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "twice one",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "the number two",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "two units",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a couple",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "N_3": [
+      {
+        "phrase": "3",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "three",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Three",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exactly 3",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "3 total",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "3 amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "three amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "triple",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "three points",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "just 3",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "only three",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "3x",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "three total",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exactly three",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "three of them",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "the number three",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "three units",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a trio of",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "three worth",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "three as the amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "N_4": [
+      {
+        "phrase": "4",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "four",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Four",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exactly 4",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "4 total",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "4 amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "four amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "four points",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "just 4",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "only four",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "4x",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "quad",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "four total",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exactly four",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "four of them",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "the number four",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "four units",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "four as the amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "four worth",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a set of four",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "N_5": [
+      {
+        "phrase": "5",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "five",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Five",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exactly 5",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "5 total",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "5 amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "five amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "five points",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "just 5",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "only five",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "5x",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "high five",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "five total",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exactly five",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "five of them",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "the number five",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "five units",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "five as the amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "five worth",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a set of five",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "FIXED": [
+      {
+        "phrase": "{n}",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{n} total",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exactly {n}",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{word_n}",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{n} points",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{n} amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{word_n} amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "amount {n}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "for {n}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{n}x",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "num {n}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "value {n}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "the number {n}",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "amount of {n}",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "exactly {word_n}",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{n} as the amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{word_n} total",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "scaled to {n}",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "set to {n}",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{n} worth",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "BUFF_PT": [
+      {
+        "phrase": "+{p}/+{t}",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "+{p}/+{t} amount",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "+{p}/+{t} to power and toughness",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "+{p}/+{t} gain",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "modify power and toughness by +{p}/+{t}",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "+{p}/+{t} amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "pump +{p}/+{t}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{p}/{t} buff",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "+{p}/+{t} EOT",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "size +{p}/+{t}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "P/T +{p}/+{t}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "buff {p}/{t}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "plus {p} power and {t} toughness",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "boost by +{p}/+{t}",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "grows by +{p}/+{t}",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "temporary +{p}/+{t}",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "stats become higher by {p} and {t}",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "power +{p} toughness +{t}",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "sized up +{p}/+{t}",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "P/T modification +{p}/+{t}",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "COUNTERS_N": [
+      {
+        "phrase": "{n} +1/+1 counters",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "a +1/+1 counter",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{n} +1/+1 counters on it",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{n} +1/+1 counters amount",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "+1/+1 counters equal to {n}",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{n} counters",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "+1/+1 x{n}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{n} +1/+1",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counter stack {n}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{n} growth counters",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "counters {n}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "+1/+1 times {n}",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{n} plus-one counters",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "stack {n} +1/+1 counters",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{n} counters of +1/+1",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "grow by {n} counters",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "place {n} +1/+1 counters",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{n}-counter growth",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "that many +1/+1 counters: {n}",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "{n} permanent +1/+1 counters",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "EQUAL_POWER": [
+      {
+        "phrase": "equal to its power",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal to that creature's power",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal to its power amount",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal to the power of",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "X equal to power",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "= power",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "power-scaled",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "power as amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "amount = P",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "based on power",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "power matters amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "P-linked",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "as much as its power",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "scaled to power",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "amount matches power",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "uses power as the number",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "power determines the amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal to current power",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "power-based amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "whatever its power is",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "EQUAL_TOUGHNESS": [
+      {
+        "phrase": "equal to its toughness",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal to that creature's toughness",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal to the toughness of",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal to toughness",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "X equal to toughness",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "= toughness",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "toughness-scaled",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "toughness as amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "amount = T",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "based on toughness",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "T-linked",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "toughness matters amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "as much as its toughness",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "scaled to toughness",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "amount matches toughness",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "uses toughness as the number",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "toughness determines the amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal to current toughness",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "toughness-based amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "whatever its toughness is",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "EQUAL_LIFE": [
+      {
+        "phrase": "equal to your life total",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal to that player's life total",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal to your life total amount",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "X equal to life total",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal to the number of life you have",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "= life",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "life-scaled",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "life as amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "amount = life",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "based on life",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "life-linked",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "life total amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "as much as your life total",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "scaled to life total",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "amount matches life",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "uses life total as the number",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "life determines the amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal to current life",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "life-based amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "whatever your life is",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "EQUAL_COUNT": [
+      {
+        "phrase": "equal to the number of",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "for each",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal to the number of creatures you control",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal to the number of Mountains you control",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "X equal to the number of",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "for each amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "count-scaled",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "per permanent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "amount = count",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "based on count",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "count-linked",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "board-count amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "scaled to how many you have",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "amount matches the count",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "uses a board count as the number",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "count determines the amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one per matching permanent",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "count-based amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "whatever the count is",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "scales with quantity",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "VARIABLE_X": [
+      {
+        "phrase": "X",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "X as the amount",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "where X is",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "X is the number of",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "X to pay",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "X amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "variable X",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "amount X amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "X cost",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "flexible X",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "X value",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "any X",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "variable amount X",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "choose X",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "X as a flexible number",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "pay any amount X",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "X scales as you choose",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "open-ended X",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "X-based amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "whatever X you set",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "DIVIDED": [
+      {
+        "phrase": "divided as you choose among",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "divided among",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "divided as you choose among any number of targets",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "split among",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "divided between",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "divided",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "split damage",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "divide among",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "split among targets",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "distribution",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "divided amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "split X",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "split the amount among targets",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "divide as you like",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "distribute among chosen targets",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "split across several targets",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "portioned among targets",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "shared out among targets",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "divide the total",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "multi-target split amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "THAT_MUCH": [
+      {
+        "phrase": "that much",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "that much as life",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal to that much",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "the same amount",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "an equal amount",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "that much amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "same amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mirror amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "reflected amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "matching amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "1:1 amount",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "the same quantity",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "as much as was dealt",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "matching that amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "mirror the amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "whatever amount that was",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "equal to the amount taken",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "that same number",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one-for-one amount",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ]
+  },
+  "binding_patterns": [
+    {
+      "amounts": [
+        "BUFF_PT",
+        "N_2"
+      ],
+      "note": "common +2/+2 style pumps"
+    },
+    {
+      "amounts": [
+        "COUNTERS_N",
+        "N_1"
+      ],
+      "note": "single +1/+1 counter"
+    },
+    {
+      "amounts": [
+        "FIXED",
+        "DIVIDED"
+      ],
+      "note": "total then split among targets"
+    },
+    {
+      "amounts": [
+        "EQUAL_POWER",
+        "THAT_MUCH"
+      ],
+      "note": "scaled vs mirrored amounts"
+    },
+    {
+      "amounts": [
+        "VARIABLE_X",
+        "EQUAL_COUNT"
+      ],
+      "note": "chosen X vs counted X"
+    }
+  ],
+  "confusion_pairs": [
+    {
+      "a": "N_1",
+      "b": "N_2",
+      "reason": "off-by-one fixed amounts"
+    },
+    {
+      "a": "N_2",
+      "b": "N_3",
+      "reason": "neighboring fixed amounts"
+    },
+    {
+      "a": "N_3",
+      "b": "N_4",
+      "reason": "neighboring fixed amounts"
+    },
+    {
+      "a": "BUFF_PT",
+      "b": "COUNTERS_N",
+      "reason": "temp +N/+N wording vs +1/+1 counters"
+    },
+    {
+      "a": "FIXED",
+      "b": "EQUAL_POWER",
+      "reason": "literal number vs power-scaled"
+    },
+    {
+      "a": "FIXED",
+      "b": "VARIABLE_X",
+      "reason": "fixed vs open X"
+    },
+    {
+      "a": "EQUAL_POWER",
+      "b": "EQUAL_TOUGHNESS",
+      "reason": "power vs toughness scaling"
+    },
+    {
+      "a": "EQUAL_LIFE",
+      "b": "THAT_MUCH",
+      "reason": "life-total scale vs mirrored amount"
+    },
+    {
+      "a": "EQUAL_COUNT",
+      "b": "VARIABLE_X",
+      "reason": "board count vs chosen X"
+    },
+    {
+      "a": "DIVIDED",
+      "b": "FIXED",
+      "reason": "split total vs single target amount"
+    },
+    {
+      "a": "N_1",
+      "b": "COUNTERS_N",
+      "reason": "amount one vs one counter phrasing"
+    }
+  ]
+}

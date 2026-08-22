@@ -1,0 +1,1399 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Generic duration / timing-window phrase library. Slot-level only — no card IDs. Describes how long an effect lasts; triggers that schedule delays also appear in triggers.json.",
+    "composition_rule": "Attach one duration phrase to a binding when the effect is not one-shot. Do not put effect verbs inside duration phrases.",
+    "card_mapping": "Per-card duration bindings live in parsed_cards.jsonl (parser output), not in this library.",
+    "phrase_target_per_slot": 20,
+    "phrase_style_balance": "~5 oracle_template, ~7 shorthand, ~8 natural_language per slot",
+    "overlap_with_triggers": "NEXT_END_STEP and NEXT_MAIN_PHASE also exist as trigger/delayed slots. Use duration when attaching timing to an effect; use trigger when the clause is the ability's firing condition."
+  },
+  "types": {
+    "UNTIL_EOT": {
+      "label": "Until End of Turn",
+      "kind": "temporary",
+      "confusable_with": [
+        "THIS_TURN",
+        "PERMANENT"
+      ]
+    },
+    "THIS_TURN": {
+      "label": "This Turn",
+      "kind": "temporary",
+      "note": "Restriction or window within the current turn; often overlaps UNTIL_EOT in retrieval.",
+      "confusable_with": [
+        "UNTIL_EOT",
+        "INSTANT"
+      ]
+    },
+    "NEXT_END_STEP": {
+      "label": "Next End Step",
+      "kind": "delayed",
+      "confusable_with": [
+        "UNTIL_EOT",
+        "NEXT_MAIN_PHASE"
+      ]
+    },
+    "DONT_UNTAP_NEXT": {
+      "label": "Skip Next Untap",
+      "kind": "delayed",
+      "confusable_with": [
+        "UNTIL_EOT",
+        "NEXT_END_STEP"
+      ]
+    },
+    "AS_LONG_AS_CONTROL": {
+      "label": "As Long As You Control",
+      "kind": "conditional",
+      "confusable_with": [
+        "UNTIL_LEAVES",
+        "PERMANENT"
+      ]
+    },
+    "UNTIL_LEAVES": {
+      "label": "Until Leaves Battlefield",
+      "kind": "conditional",
+      "confusable_with": [
+        "AS_LONG_AS_CONTROL",
+        "PERMANENT"
+      ]
+    },
+    "PERMANENT": {
+      "label": "Permanent / No Expiry",
+      "kind": "permanent",
+      "confusable_with": [
+        "UNTIL_EOT",
+        "THIS_TURN"
+      ]
+    },
+    "INSTANT": {
+      "label": "Immediate / One-Shot",
+      "kind": "instant",
+      "confusable_with": [
+        "THIS_TURN",
+        "UNTIL_EOT"
+      ]
+    },
+    "NEXT_MAIN_PHASE": {
+      "label": "Next Main Phase",
+      "kind": "delayed",
+      "confusable_with": [
+        "NEXT_END_STEP"
+      ]
+    },
+    "EXTRA_TURN": {
+      "label": "Extra Turn Timing",
+      "kind": "turn_structure",
+      "confusable_with": [
+        "THIS_TURN",
+        "NEXT_MAIN_PHASE"
+      ]
+    }
+  },
+  "phrases": {
+    "UNTIL_EOT": [
+      {
+        "phrase": "until end of turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "Until end of turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "until end of this turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "for the rest of the turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "until the end of the turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "until EOT",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "EOT",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "temp until EOT",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "end of turn expiry",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "this turn only",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "UEOT",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "turn-limited",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "for the rest of this turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "goes away at end of turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "lasts until end of turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "temporary for this turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "expires at end of turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "only until the turn ends",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "turn-end duration",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "clears at end of turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "THIS_TURN": [
+      {
+        "phrase": "this turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "This turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "during this turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "for this turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "on this turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "this turn",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "current turn",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "same turn",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "in this turn",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "turn scope",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "now this turn",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "for now",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "during the current turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "only this turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "while this turn is going",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "in the present turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "for the ongoing turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "same-turn effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "applies this turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "restricted to this turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "NEXT_END_STEP": [
+      {
+        "phrase": "at the beginning of the next end step",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "at the start of the next end step",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "until the beginning of the next end step",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "beginning of the next end step",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "during the next end step",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "next end step",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "at next end step",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "end step delay",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "delayed end step",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "until next end step",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "end-step timing",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "NES",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "on the next end step",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "when the next end step begins",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "lasting until next end step",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "cleans up at next end step",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "delayed until end step",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "end step window",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "comes due at next end step",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "scheduled for next end step",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "DONT_UNTAP_NEXT": [
+      {
+        "phrase": "doesn't untap during its controller's next untap step",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "It doesn't untap during its controller's next untap step",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "that creature doesn't untap during its controller's next untap step",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "skips its next untap step",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "remains tapped during its controller's next untap step",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "skip next untap",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "no untap next",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "stay tapped next untap",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "frozen through untap",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tap lock next",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "doesn't untap next",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "next untap skip",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "won't untap next turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "stays tapped through next untap",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "misses its next untap",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "locked tapped until after next untap",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "skip untapping next time",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "can't untap on next untap step",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "held tapped past next untap",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "next untap step is skipped",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "AS_LONG_AS_CONTROL": [
+      {
+        "phrase": "for as long as you control {name}",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": null
+      },
+      {
+        "phrase": "for as long as you control this permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "as long as you control it",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "for as long as you control that permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "while you control this permanent",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "as long as you control",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "while you control it",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "control-linked",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "while controlled",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "duration while you control",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "control dependent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "while under your control",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "lasts while you still control it",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "ends when you lose control",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tied to your control",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "only while you control the source",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "control-duration link",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "as long as it stays yours",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "while you keep control",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "control-conditioned duration",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "UNTIL_LEAVES": [
+      {
+        "phrase": "until {name} leaves the battlefield",
+        "style": "oracle_template",
+        "uses_name": true,
+        "wording": null
+      },
+      {
+        "phrase": "until this permanent leaves the battlefield",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "until it leaves the battlefield",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "until this creature leaves the battlefield",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "as long as this remains on the battlefield",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "until leaves BF",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "until leaves",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "while on battlefield",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "leaves-BF duration",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "until LTB",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "phase-out style",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "while this stays",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "lasts until this leaves play",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "ends when this leaves the field",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "while this is still on the board",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "until the source leaves",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "tied to leaving the battlefield",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "duration until departure",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "as long as this stays in play",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "clears when this leaves",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "PERMANENT": [
+      {
+        "phrase": "permanently",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "for the rest of the game",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "with no duration limit",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "as a lasting effect",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "without end of turn expiry",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "permanent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "lasting",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "no EOT",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "sticky",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "doesn't expire EOT",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "ongoing",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "persistent",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "stays indefinitely",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "does not wear off at end of turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "lasting change",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "permanent modification",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "no temporary expiry",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "keeps going after the turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "not a turn buff",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "endures beyond this turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "INSTANT": [
+      {
+        "phrase": "immediately",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "as this spell resolves",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "when this spell resolves",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "on resolution",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "with no lasting duration",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "instant timing",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one-shot",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "resolves now",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "no duration",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "fire and forget",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "immediate",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "point effect",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "happens right away",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "no lingering effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "one-time resolution",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "instantaneous effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "resolves then done",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "no ongoing duration",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "single-shot effect",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "applies once on resolve",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "NEXT_MAIN_PHASE": [
+      {
+        "phrase": "at the beginning of your next main phase",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "at the start of your next main phase",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "at the beginning of the next main phase",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "during your next main phase",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "at the start of the next main phase",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "next main phase",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "at next main",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "main phase delay",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "delayed to main",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "next main timing",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "main-phase delay",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "until next main",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "on your next main phase",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "when your next main phase begins",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "delayed until next main phase",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "main phase window",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "scheduled for next main",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "comes due next main phase",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "next main phase timing",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "held until next main",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ],
+    "EXTRA_TURN": [
+      {
+        "phrase": "after this turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "an extra turn after this one",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "an extra turn after this one",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "following this turn",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "after the current turn ends",
+        "style": "oracle_template",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "extra turn timing",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "after this turn",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "bonus turn after",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "next turn grant",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "post-turn extra",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "turn after this",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "extra turn window",
+        "style": "shorthand",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "right after this turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "once this turn finishes",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "extra turn follows this one",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "bonus turn afterward",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "after the present turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "subsequent extra turn",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "turn inserted after this",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      },
+      {
+        "phrase": "extra turn timing window",
+        "style": "natural_language",
+        "uses_name": false,
+        "wording": null
+      }
+    ]
+  },
+  "binding_patterns": [
+    {
+      "durations": [
+        "UNTIL_EOT",
+        "THIS_TURN"
+      ],
+      "note": "temp buff / combat trick window"
+    },
+    {
+      "durations": [
+        "PERMANENT",
+        "UNTIL_EOT"
+      ],
+      "note": "counter growth vs turn buff"
+    },
+    {
+      "durations": [
+        "NEXT_END_STEP",
+        "UNTIL_LEAVES"
+      ],
+      "note": "delayed return vs exile-until-leaves"
+    },
+    {
+      "durations": [
+        "DONT_UNTAP_NEXT",
+        "UNTIL_EOT"
+      ],
+      "note": "tap-down lock vs short freeze"
+    },
+    {
+      "durations": [
+        "AS_LONG_AS_CONTROL",
+        "UNTIL_LEAVES"
+      ],
+      "note": "control-linked vs source-linked"
+    }
+  ],
+  "confusion_pairs": [
+    {
+      "a": "UNTIL_EOT",
+      "b": "PERMANENT",
+      "reason": "temp buff vs lasting / counters"
+    },
+    {
+      "a": "UNTIL_EOT",
+      "b": "THIS_TURN",
+      "reason": "expiry wording vs turn restriction"
+    },
+    {
+      "a": "NEXT_END_STEP",
+      "b": "UNTIL_EOT",
+      "reason": "delayed end-step vs end-of-turn expiry"
+    },
+    {
+      "a": "NEXT_END_STEP",
+      "b": "NEXT_MAIN_PHASE",
+      "reason": "different delayed phase"
+    },
+    {
+      "a": "DONT_UNTAP_NEXT",
+      "b": "UNTIL_EOT",
+      "reason": "skip untap vs turn-end clear"
+    },
+    {
+      "a": "AS_LONG_AS_CONTROL",
+      "b": "UNTIL_LEAVES",
+      "reason": "your control vs source leaving"
+    },
+    {
+      "a": "UNTIL_LEAVES",
+      "b": "PERMANENT",
+      "reason": "conditional exile duration vs permanent removal"
+    },
+    {
+      "a": "INSTANT",
+      "b": "UNTIL_EOT",
+      "reason": "one-shot vs lasting turn effect"
+    },
+    {
+      "a": "EXTRA_TURN",
+      "b": "THIS_TURN",
+      "reason": "bonus turn vs current turn window"
+    }
+  ]
+}
