@@ -1,0 +1,60 @@
+# Trainable 2D-to-3D body lifting training config.
+log_dir: "text_encoder/text_encoder_v1"
+fps: 30
+seed: 1234
+
+dataset_root: /home/a123456/Desktop/Magic/data/text_data
+dataset_paths:
+  - path: card_data_v2_20260823
+    weight: 3
+  - path: fake_data_1bind_v1_20260823
+    weight: 1
+  - path: fake_data_3bind_v1_20260823
+    weight: 0.3
+  - path: fake_data_2bind_v1_20260823
+    weight: 0.8
+dataset_class_name: "game.rlearning.datasets.state_space.CVAE.CVAEDataset"
+dataset_multiple: 1
+
+
+dataloader:
+  batch_size: 2
+  num_workers: 4
+
+
+trainer: "game.rlearning.module.state_space.CVAE.CVAETrainer"
+
+total_step: 200000
+log_step: 20
+save_step: 5000
+eval_step: 5000
+synthesis_step: 5000
+test_items: 30
+synthesis_items: 4
+
+optimizer:
+  learning_rate: 1.0e-4
+  betas: [0.9, 0.999]
+  eps: 1.0e-8
+  weight_decay: 1.0e-2
+  grad_clip_thresh: 1.0
+  n_warmup_steps: 10000
+
+scheduler:
+  step_size: 100
+  gamma: 0.999
+
+model:
+  
+  TextEncoder:
+    class_name: "game.rlearning.net.state_space.jina_text_encoder.JinaTextEncoder"
+    model_name: "jinaai/jina-embeddings-v5-text-small"
+    local_model_path: "models/jina-embeddings-v5-text-small"
+    cache_dir: "models"
+    task: "text-matching"
+    truncate_dim: 128
+    normalize: True
+    trust_remote_code: True
+    local_files_only: False
+    lazy_load: True
+    trainable: True

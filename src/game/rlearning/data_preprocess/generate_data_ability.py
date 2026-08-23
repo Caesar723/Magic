@@ -91,7 +91,7 @@ def _write_split_files(folder, binding_number, num_data, width, ratios, split_se
     random.Random(split_seed).shuffle(sample_indices)
     start = 0
     for name, count in zip(split_names, counts):
-        with (folder / f"{name}.txt").open("w", encoding="utf-8") as file:
+        with (folder / f"{name}.meta").open("w", encoding="utf-8") as file:
             file.write("index|binding_number\n")
             for position in range(start, start + count):
                 sample_index = sample_indices[position]
@@ -154,7 +154,7 @@ def generate_card_data(
     width = max(8, len(str(num_data)))
     binding_numbers = []
 
-    with (folder / "total.txt").open("w", encoding="utf-8") as total_file:
+    with (folder / "total.meta").open("w", encoding="utf-8") as total_file:
         total_file.write("index|binding_number\n")
         for index in range(1, num_data + 1):
             card, card_bindings = random.choice(card_pool)
@@ -201,7 +201,7 @@ def generate_fake_data(
     valid_binding_pool = build_valid_binding_pool(load_cards(), library)
     width = max(8, len(str(num_data)))
 
-    with (folder / "total.txt").open("w", encoding="utf-8") as total_file:
+    with (folder / "total.meta").open("w", encoding="utf-8") as total_file:
         total_file.write("index|binding_number\n")
         for index in range(1, num_data + 1):
             sample_name = f"sample_{index:0{width}d}"
@@ -220,20 +220,21 @@ if __name__ == "__main__":
     output_root="/home/a123456/Desktop/Magic/data/text_data"
     if 1:
         generate_fake_data(
-            folder_name="fake_data_1bind_v1_20260823",
-            binding_number=1,
-            num_data=100000,
-            output_root=output_root,
-        )
-    if 1:
-        generate_fake_data(
             folder_name="fake_data_3bind_v1_20260823",
             binding_number=3,
             num_data=10000,
             output_root=output_root,
         )
+    if 1:
+        generate_fake_data(
+            folder_name="fake_data_1bind_v1_20260823",
+            binding_number=1,
+            num_data=100000,
+            output_root=output_root,
+        )
+    
 
-    if 0:
+    if 1:
         generate_fake_data(
             folder_name="fake_data_2bind_v1_20260823",
             binding_number=2,

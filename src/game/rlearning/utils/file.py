@@ -1,6 +1,8 @@
 import yaml, os 
 import numpy as np
 
+import hashlib
+import base64
 
 
 def read_yaml(file):
@@ -27,12 +29,51 @@ def set_symbol_link(link_file, symbol, overwrite=True):
         os.remove(link_path)
     os.symlink(fn, link_path) 
 
+def save_metadata(data, file, header=None):
+    ''' 保存metadata数据到文件  
+
+    Args:
+        data (list): metadata数据
+        file (str): 保存文件名
+        header (list): 保存的 列名顺序  
+    '''
+    if header is None:
+        header = data[0].keys()
+    with open(file, "w", encoding="utf-8") as f:
+        f.write( '|'.join(header) + "\n" ) 
+        for d in data:
+            d = [ str( d.get(k, "") ) for k in header ]
+            line = "|".join([ v.replace("|"," ") for v in d ])
+            f.write( line + "\n" ) 
+
+
+def read_metadata(file,header=None):
+    ''' 读取metadata  
+
+    Args:
+        file (str): metadata文件  
+        
+    Returns:
+        list[ dict ]: metadata数据，
+        list: 列名
+    '''
+    with open(file, "r", encoding="utf-8") as f:
+        lines = f.readlines() 
+
+    data = []
+    if header is None:
+        header = lines[0].strip().split("|") 
+        lines = lines[1:]
+
+    for line in lines:
+        line = line.strip()
+        if line == "": continue
+        d = line.split("|") 
+        data.append( {k:v for k,v in zip(header, d)} ) 
+    return data, header 
 
 
 
-
-import hashlib
-import base64
 
 def hash_string(string, length=10):
     # Generate a SHA-256 hash
