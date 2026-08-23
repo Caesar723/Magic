@@ -157,6 +157,22 @@
         "EFFECT_ONLY"
       ]
     },
+    "CREATE_TOKEN": {
+      "label": "Token Creation Constraints",
+      "query_role": "token_semantic",
+      "required_slots": [
+        "effect"
+      ],
+      "optional_slots": [
+        "amount",
+        "token_power",
+        "token_toughness",
+        "token_keywords",
+        "token_variants"
+      ],
+      "typical_relevance": 3,
+      "note": "Every listed token slot is optional: a partial query only constrains fields it supplies."
+    },
     "STATIC_PLUS": {
       "label": "Static Keyword Plus Binding",
       "query_role": "keyword_plus",
@@ -212,7 +228,18 @@
     "effect1": "effects.json",
     "effect2": "effects.json",
     "target1": "targets.json",
-    "target2": "targets.json"
+    "target2": "targets.json",
+    "token_power": "binding",
+    "token_toughness": "binding",
+    "token_keywords": "statics.json",
+    "token_variants": "binding"
+  },
+  "create_token_render": {
+    "prefix": "find a card that creates",
+    "unknown": "creature tokens",
+    "equal_count": "creature tokens equal to the relevant count",
+    "fixed_unknown": "a fixed number of creature tokens",
+    "variant_joiner": " and "
   },
   "connectors": {
     "sequence": [

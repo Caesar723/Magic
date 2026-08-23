@@ -3,9 +3,10 @@ import json
 import random
 from pathlib import Path
 
-from candidate import get_random_bindings,build_valid_binding_pool,generate_exact_spec, generate_near_spec, generate_hard_spec, generate_random_spec, normalize_candidate_spec
+from candidate import get_random_bindings,build_valid_binding_pool,generate_exact_spec, generate_near_spec, generate_hard_spec, generate_random_spec, normalize_candidate_spec, validate_candidate_spec
 from similarity import compute_binding_relevance
 from spec_render import render_candidate_card
+from query_render import render_query_card
 
 
 def load_library():
@@ -17,6 +18,7 @@ def load_library():
         "amounts":json.loads((LIB_DIR / "amounts.json").read_text(encoding="utf-8")),
         "effects":json.loads((LIB_DIR / "effects.json").read_text(encoding="utf-8")),
         "targets":json.loads((LIB_DIR / "targets.json").read_text(encoding="utf-8")),
+        "query_templates":json.loads((LIB_DIR / "query_templates.json").read_text(encoding="utf-8")),
     }
     return result
 
@@ -48,9 +50,9 @@ def get_binding_from_card(card: dict):
     return card["bindings"]
 
 
-def build_candidate_group(bindings,library,n_exact=2,n_near=3,n_hard=2,n_random=1,card_info:dict=None):
+def build_candidate_group(bindings,library,n_exact=2,n_near=3,n_hard=2,n_random=1,card_info:dict=None,valid_binding_pool=None):
     
-    query_message = render_candidate_card(bindings,library)
+    query_message = render_query_card(bindings,library)
     result={
         "query_bindings":bindings,
         "query_message":query_message,
@@ -68,8 +70,7 @@ def build_candidate_group(bindings,library,n_exact=2,n_near=3,n_hard=2,n_random=
             new_bindings = []
             avg_relevance = 0.0
             for query_spec in bindings:
-                new_query_spec=generate_candidate_from_query(query_spec, type_name)
-                print(query_spec,new_query_spec)
+                new_query_spec=generate_candidate_from_query(query_spec, type_name, library, valid_binding_pool)
                 relevance=compute_binding_relevance(query_spec, new_query_spec,missing_policy="zero")
                 avg_relevance += relevance
                 new_bindings.append(new_query_spec)
@@ -90,6 +91,8 @@ def build_candidate_group(bindings,library,n_exact=2,n_near=3,n_hard=2,n_random=
 def generate_candidate_from_query(
         query_spec: Mapping[str, Any],
         candidate_type: str,
+        library=None,
+        valid_binding_pool=None,
     ):
     """
     type:
@@ -99,27 +102,25 @@ def generate_candidate_from_query(
     ④random: Random negatives
     """
     if candidate_type == "exact":
-        spec = generate_exact_spec(
-            query_spec
-        )
+        spec = generate_exact_spec(query_spec)
 
     elif candidate_type == "near":
-        spec = generate_near_spec(
-            query_spec
-        )
+        spec = generate_near_spec(query_spec, library, valid_binding_pool)
 
     elif candidate_type == "hard":
         spec = generate_hard_spec(
-            query_spec
+            query_spec, valid_binding_pool
         )
 
     else:
         spec = generate_random_spec(
-            query_spec
+            query_spec, valid_binding_pool
         )
 
 
     spec = normalize_candidate_spec(spec)
+    if library is not None:
+        validate_candidate_spec(spec, library)
 
     return spec
 
@@ -139,21 +140,21 @@ if __name__ == "__main__":
     library = load_library()
     cards = load_cards()
 
-    #while True:
+    while True:
         
         
-    valid_binding_pool = build_valid_binding_pool(
-        cards,
-        library,
-    )
-    bindings = get_random_bindings(
-        valid_binding_pool,
-        library,
-    )
+        valid_binding_pool = build_valid_binding_pool(
+            cards,
+            library,
+        )
+        bindings = get_random_bindings(
+            valid_binding_pool,
+            library,
+        )
 
-    print(bindings)
-    
-    result = build_candidate_group(bindings,library)
-
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+        print(bindings)
         
+        result = build_candidate_group(bindings,library,valid_binding_pool=valid_binding_pool)
+
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+            

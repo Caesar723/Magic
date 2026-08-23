@@ -13,6 +13,7 @@ ALL_EFFECTS = [
     "TEMP_BUFF", "PLUS1_COUNTER", "GRANT_KEYWORD", "CREATE_TOKEN",
     "SCRY", "PREVENT_DAMAGE", "TAP", "ADD_MANA", "SACRIFICE", "EXTRA_TURN", "MILL",
 ]
+CREATE_TOKEN_FIELDS = ("token_power", "token_toughness", "token_keywords", "token_variants")
 
 
 # near:
@@ -114,12 +115,43 @@ def generate_exact_spec(
     return deepcopy(dict(query_spec))
 
 
+def _mutate_number(value: int) -> int:
+    return random.choice([value + 1, value - 1] if value > 0 else [value + 1])
+
+
+def _mutate_token_keywords(keywords, libraries) -> list[str]:
+    static_types = list((libraries or {}).get("statics", {}).get("types", {}))
+    if not static_types:
+        return list(keywords)
+    index = random.randrange(len(keywords))
+    choices = [keyword for keyword in static_types if keyword != keywords[index]]
+    result = list(keywords)
+    result[index] = random.choice(choices)
+    return result
+
+
+def _mutate_token_variant(variants, libraries) -> list[dict[str, Any]]:
+    result = deepcopy(variants)
+    candidates = [
+        (index, field) for index, variant in enumerate(result)
+        for field in ("token_power", "token_toughness", "token_keywords")
+        if isinstance(variant.get(field), int) or (field == "token_keywords" and variant.get(field))
+    ]
+    index, field = random.choice(candidates)
+    if field == "token_keywords":
+        result[index][field] = _mutate_token_keywords(result[index][field], libraries)
+    else:
+        result[index][field] = _mutate_number(result[index][field])
+    return result
+
+
 def generate_near_spec(
-    query_spec: Mapping[str, Any],
+    query_spec: Mapping[str, Any], libraries=None, valid_binding_pool=None,
 ) -> dict[str, Any]:
     """保持核心 effect，只随机改动一个辅助字段。"""
     spec = deepcopy(dict(query_spec))
-    mutation_options = ["amount"] if isinstance(spec.get("amount_value"), (int, float)) else []
+    can_change_amount = isinstance(spec.get("amount_value"), (int, float)) and not spec.get("token_variants")
+    mutation_options = ["amount"] if can_change_amount else []
     neighbor_maps = {
         "target": TARGET_NEIGHBORS,
         "duration": DURATION_NEIGHBORS,
@@ -129,8 +161,17 @@ def generate_near_spec(
         if spec.get(field) in neighbors and neighbors[spec[field]]:
             mutation_options.append(field)
 
+    if spec.get("effect") == "CREATE_TOKEN":
+        mutation_options += [
+            field for field in ("token_power", "token_toughness") if isinstance(spec.get(field), int)
+        ]
+        if spec.get("token_keywords") and (libraries or {}).get("statics", {}).get("types"):
+            mutation_options.append("token_keywords")
+        if spec.get("token_variants"):
+            mutation_options.append("token_variants")
+
     if not mutation_options:
-        return generate_hard_spec(spec)
+        return generate_hard_spec(spec, valid_binding_pool)
     mutation = random.choice(mutation_options)
     if mutation == "amount":
         value = spec["amount_value"]
@@ -143,14 +184,27 @@ def generate_near_spec(
             spec["amount"] = f"N_{new_value}"
         else:
             spec["amount"] = "FIXED"
+    elif mutation in {"token_power", "token_toughness"}:
+        spec[mutation] = _mutate_number(spec[mutation])
+    elif mutation == "token_keywords":
+        spec[mutation] = _mutate_token_keywords(spec[mutation], libraries)
+    elif mutation == "token_variants":
+        spec[mutation] = _mutate_token_variant(spec[mutation], libraries)
     else:
-        spec[mutation] = random.choice(neighbor_maps[mutation][spec[mutation]])
+        choices = neighbor_maps[mutation][spec[mutation]]
+        if mutation == "target" and spec.get("effect") == "DAMAGE_EACH":
+            choices = [target for target in choices if target in {
+                "EACH_CREATURE", "ALL_CREATURES", "EACH_OPPONENT", "CREATURES_YOU_CONTROL"
+            }]
+        if not choices:
+            return generate_hard_spec(spec, valid_binding_pool)
+        spec[mutation] = random.choice(choices)
 
     return spec
 
 
 def generate_hard_spec(
-    query_spec: Mapping[str, Any],
+    query_spec: Mapping[str, Any], valid_binding_pool=None,
 ) -> dict[str, Any]:
     """把 effect 改为容易混淆的机制，并同步修正相关字段。"""
 
@@ -159,55 +213,27 @@ def generate_hard_spec(
     current_effect = spec.get("effect")
 
     if current_effect not in EFFECT_HARD_NEIGHBORS:
-        return generate_random_spec(spec)
+        return generate_random_spec(spec, valid_binding_pool)
 
-    choices = EFFECT_HARD_NEIGHBORS[current_effect]
+    choices = list(EFFECT_HARD_NEIGHBORS[current_effect])
+    token_donors = [
+        binding for binding in valid_binding_pool or [] if binding.get("effect") == "CREATE_TOKEN"
+    ]
+    if "CREATE_TOKEN" in choices and not token_donors:
+        choices.remove("CREATE_TOKEN")
 
     if not choices:
-        return generate_random_spec(spec)
+        return generate_random_spec(spec, valid_binding_pool)
 
     new_effect = random.choice(choices)
-
-    spec["effect"] = new_effect
-
-    if new_effect == "DAMAGE_EACH":
-        spec["target"] = random.choice(
-            [
-                "EACH_CREATURE",
-                "ALL_CREATURES",
-            ]
-        )
-
-    elif new_effect in {"PREVENT_DAMAGE", "DRAW", "SCRY", "ADD_MANA"}:
-        spec.pop("target", None)
-    elif new_effect == "MILL":
-        if spec.get("target") not in {
-            "YOU",
-            "PLAYER",
-            "OPPONENT",
-        }:
-            spec.pop("target", None)
-
-    elif new_effect == "COUNTER_SPELL":
-        spec["target"] = "SPELL"
-    elif new_effect in {"SEARCH_LIBRARY", "SEARCH_TO_HAND"}:
-        spec["target"] = "LIBRARY_CARD"
-    elif new_effect == "REANIMATE":
-        spec["target"] = "GRAVEYARD_CREATURE"
-    elif new_effect == "PLUS1_COUNTER":
-        spec["duration"] = "PERMANENT"
-    elif new_effect == "TEMP_BUFF":
-        if spec.get("duration") is None:
-            spec["duration"] = "UNTIL_EOT"
-    elif new_effect == "EXTRA_TURN":
-        for field in ("target", "amount", "amount_value", "p", "t"):
-            spec.pop(field, None)
-
-    return spec
+    effect_donors = [binding for binding in valid_binding_pool or [] if binding.get("effect") == new_effect]
+    if effect_donors:
+        return deepcopy(random.choice(effect_donors))
+    return generate_valid_spec_for_effect(new_effect)
 
 
 def generate_random_spec(
-    query_spec: Mapping[str, Any],
+    query_spec: Mapping[str, Any], valid_binding_pool=None,
 ) -> dict[str, Any]:
     """选择与 query 明显不同的 effect，生成随机合法候选。"""
     query_effect = query_spec.get("effect")
@@ -216,6 +242,11 @@ def generate_random_spec(
     candidate_effects = [effect for effect in ALL_EFFECTS if effect not in excluded]
     if not candidate_effects:
         candidate_effects = [effect for effect in ALL_EFFECTS if effect != query_effect]
+    real_candidates = [
+        binding for binding in valid_binding_pool or [] if binding.get("effect") in candidate_effects
+    ]
+    if real_candidates:
+        return deepcopy(random.choice(real_candidates))
     return generate_valid_spec_for_effect(random.choice(candidate_effects))
 
 
@@ -305,7 +336,7 @@ def generate_valid_spec_for_effect(
     elif effect == "TAP":
         spec["target"] = random.choice(["CREATURE", "CREATURE_OPPONENT", "PERMANENT"])
     elif effect == "ADD_MANA":
-        spec.update(random_fixed_amount(1, 3))
+        spec.update(random_fixed_amount(1, 3), color=random.choice(["white", "blue", "black", "red", "green"]))
     elif effect == "EXTRA_TURN":
         spec["duration"] = "EXTRA_TURN"
 
@@ -355,6 +386,28 @@ def normalize_candidate_spec(
     if effect != "TEMP_BUFF":
         for key in ("p", "t"):
             spec.pop(key, None)
+    if effect != "CREATE_TOKEN":
+        for key in CREATE_TOKEN_FIELDS:
+            spec.pop(key, None)
+    elif isinstance(spec.get("token_variants"), list):
+        variants = []
+        for variant in spec["token_variants"]:
+            if not isinstance(variant, Mapping):
+                variants.append(variant)
+                continue
+            normalized = dict(variant)
+            if isinstance(normalized.get("token_keywords"), list):
+                normalized["token_keywords"] = sorted(set(normalized["token_keywords"]))
+                if not normalized["token_keywords"]:
+                    normalized.pop("token_keywords")
+            variants.append(normalized)
+        spec["token_variants"] = variants
+        for key in ("token_power", "token_toughness", "token_keywords"):
+            spec.pop(key, None)
+    elif isinstance(spec.get("token_keywords"), list):
+        spec["token_keywords"] = sorted(set(spec["token_keywords"]))
+        if not spec["token_keywords"]:
+            spec.pop("token_keywords")
     amount_value = spec.get("amount_value")
     if isinstance(amount_value, int):
         if 1 <= amount_value <= 5:
@@ -382,6 +435,8 @@ def get_required_candidate_slots(
     libraries,
 ) -> set[str]:
     """从 effect 模板和 required_slots 推导渲染所需字段。"""
+    if effect == "CREATE_TOKEN":
+        return set()
     effect_configs = libraries["effects"]["candidate_render"]
     if effect not in effect_configs:
         raise ValueError(f"Unknown candidate effect: {effect}")
@@ -495,6 +550,46 @@ def validate_candidate_spec(
         valid_colors = {"white", "blue", "black", "red", "green", "colorless"}
         if spec.get("color") not in valid_colors:
             raise ValueError(f"Invalid mana color {spec.get('color')!r}: {spec}")
+
+    if effect == "CREATE_TOKEN":
+        _validate_create_token_spec(spec, libraries)
+
+
+def _validate_token_profile(profile: Mapping[str, Any], static_types, *, variant=False) -> None:
+    if variant and "count" in profile:
+        count = profile["count"]
+        if not isinstance(count, int) or isinstance(count, bool) or count < 1:
+            raise ValueError(f"Token variant count must be a positive int: {profile}")
+    for field in ("token_power", "token_toughness"):
+        if field in profile and (not isinstance(profile[field], int) or isinstance(profile[field], bool)):
+            raise ValueError(f"{field} must be int: {profile}")
+    if "token_keywords" in profile:
+        keywords = profile["token_keywords"]
+        if not isinstance(keywords, list) or any(keyword not in static_types for keyword in keywords):
+            raise ValueError(f"Unknown token keyword: {profile}")
+
+
+def _validate_create_token_spec(spec: Mapping[str, Any], libraries) -> None:
+    amount_value = spec.get("amount_value")
+    if amount_value is not None and (not isinstance(amount_value, int) or isinstance(amount_value, bool) or amount_value < 1):
+        raise ValueError(f"CREATE_TOKEN amount_value must be a positive int: {spec}")
+
+    static_types = libraries["statics"]["types"]
+    _validate_token_profile(spec, static_types)
+    variants = spec.get("token_variants")
+    if variants is None:
+        return
+    if not isinstance(variants, list) or not variants:
+        raise ValueError(f"token_variants must be a non-empty list: {spec}")
+    if any(field in spec for field in ("token_power", "token_toughness", "token_keywords")):
+        raise ValueError(f"Flat token fields cannot be mixed with token_variants: {spec}")
+    if any(not isinstance(variant, Mapping) for variant in variants):
+        raise ValueError(f"Every token variant must be a mapping: {spec}")
+    for variant in variants:
+        _validate_token_profile(variant, static_types, variant=True)
+    if isinstance(amount_value, int) and all("count" in variant for variant in variants):
+        if sum(variant["count"] for variant in variants) != amount_value:
+            raise ValueError(f"Token variant counts must equal amount_value: {spec}")
 
 
 # 5. 从 parsed cards 建立真正合法的 binding pool

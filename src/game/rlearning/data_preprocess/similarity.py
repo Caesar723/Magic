@@ -567,6 +567,86 @@ def static_set_similarity(
     return sum(vals) / len(vals)
 
 
+TOKEN_PROFILE_FIELDS = ("token_power", "token_toughness", "token_keywords")
+
+
+def _token_profiles(binding: Mapping[str, Any]) -> list[Mapping[str, Any]]:
+    variants = binding.get("token_variants")
+    if isinstance(variants, list):
+        return [variant for variant in variants if isinstance(variant, Mapping)]
+    fields = {field: binding[field] for field in TOKEN_PROFILE_FIELDS if field in binding}
+    if fields or isinstance(binding.get("amount_value"), int):
+        if isinstance(binding.get("amount_value"), int):
+            fields["count"] = binding["amount_value"]
+        return [fields]
+    return []
+
+
+def _token_profile_scores(
+    query: Mapping[str, Any], candidate: Mapping[str, Any]
+) -> Optional[dict[str, Optional[float]]]:
+    required = [field for field in TOKEN_PROFILE_FIELDS if field in query]
+    profiles = _token_profiles(candidate)
+    if not required or not profiles:
+        return None
+
+    def score(profile: Mapping[str, Any]) -> dict[str, Optional[float]]:
+        values: dict[str, Optional[float]] = {}
+        if "token_power" in required:
+            q_value, c_value = _coerce_number(query.get("token_power")), _coerce_number(profile.get("token_power"))
+            values["token_power"] = numeric_similarity(q_value, c_value) if None not in (q_value, c_value) else None
+        if "token_toughness" in required:
+            q_value, c_value = _coerce_number(query.get("token_toughness")), _coerce_number(profile.get("token_toughness"))
+            values["token_toughness"] = numeric_similarity(q_value, c_value) if None not in (q_value, c_value) else None
+        if "token_keywords" in required:
+            values["token_keywords"] = static_set_similarity(
+                query.get("token_keywords") or [], profile.get("token_keywords") or []
+            )
+        return values
+
+    scores = [score(profile) for profile in profiles]
+    return max(scores, key=lambda values: sum(value or 0.0 for value in values.values()))
+
+
+def _variant_similarity(query_variant: Mapping[str, Any], candidate_variant: Mapping[str, Any]) -> Optional[float]:
+    scores = _token_profile_scores(query_variant, candidate_variant)
+    values = list(scores.values()) if scores is not None else []
+    if "count" in query_variant:
+        q_count, c_count = _coerce_number(query_variant.get("count")), _coerce_number(candidate_variant.get("count"))
+        values.append(numeric_similarity(q_count, c_count) if None not in (q_count, c_count) else None)
+    if not values or any(value is None for value in values):
+        return None
+    return sum(values) / len(values)
+
+
+def token_variants_similarity(
+    query_variants: Any, candidate: Mapping[str, Any]
+) -> Optional[float]:
+    """Greedily match query variants to candidate variants, independent of list order."""
+    if not isinstance(query_variants, list) or not all(isinstance(item, Mapping) for item in query_variants):
+        return None
+    candidate_variants = _token_profiles(candidate)
+    if not query_variants:
+        return 1.0
+    if not candidate_variants:
+        return None
+
+    available = set(range(len(candidate_variants)))
+    scores = []
+    for query_variant in query_variants:
+        pairs = [
+            (_variant_similarity(query_variant, candidate_variants[index]), index)
+            for index in available
+        ]
+        known_pairs = [(score, index) for score, index in pairs if score is not None]
+        if not known_pairs:
+            return None if available else 0.0
+        score, index = max(known_pairs)
+        available.remove(index)
+        scores.append(score)
+    return sum(scores) / len(scores)
+
+
 # AMOUNT type similarity: 15 x 15 = 225 complete combinations
 # Plus numeric / P-T continuous comparison when values are available.
 
@@ -766,6 +846,10 @@ def compute_binding_relevance(
         "duration": 0.08,
         "keyword": 0.12,
         "static": 0.12,
+        "token_power": 0.10,
+        "token_toughness": 0.10,
+        "token_keywords": 0.14,
+        "token_variants": 0.24,
     }
     if missing_policy not in {"unknown", "zero"}:
         raise ValueError("missing_policy must be 'unknown' or 'zero'")
@@ -833,6 +917,22 @@ def compute_binding_relevance(
             parts["static"] = 0.0
         else:
             parts["static"] = max(static_similarity(q_static, c) or 0.0 for c in candidate_statics)
+
+    token_scores = _token_profile_scores(query_spec, candidate_binding)
+    if token_scores is not None:
+        for field, value in token_scores.items():
+            if not add_part(field, value):
+                return None
+    elif any(field in query_spec for field in TOKEN_PROFILE_FIELDS):
+        for field in TOKEN_PROFILE_FIELDS:
+            if field in query_spec and not add_part(field, None):
+                return None
+
+    if "token_variants" in query_spec:
+        if not add_part(
+            "token_variants", token_variants_similarity(query_spec["token_variants"], candidate_binding)
+        ):
+            return None
 
     if not parts:
         return None

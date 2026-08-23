@@ -513,19 +513,31 @@
       "note": "The keyword placeholder must be filled from the static-ability spec; duration rendering owns any until-end-of-turn wording."
     },
     "CREATE_TOKEN": {
-      "templates": [
-        "Create {amount} 1/1 white Soldier creature tokens",
-        "Create {amount} white Soldier creature tokens with base power and toughness 1/1",
-        "Create {amount} 1/1 Soldier creature tokens that are white",
-        "Create {amount} white 1/1 Soldier tokens",
-        "Create {amount} 1/1 white Soldier tokens",
-        "Create {amount} 1/1 creature tokens that are white Soldiers",
-        "Create {amount} white Soldier creature tokens, each 1/1",
-        "Create {amount} 1/1 white Soldier creature tokens under your control",
-        "Create {amount} white Soldier tokens with base power and toughness 1/1",
-        "Create {amount} tokens that are 1/1 white Soldiers"
-      ],
-      "note": "The current candidate spec supplies quantity but not token identity; use this stable Oracle-like fallback rather than leaving a token placeholder unresolved."
+      "templates": ["Create creature tokens"],
+      "create_token": {
+        "unknown": "Create creature tokens",
+        "unknown_stats": "Create {token_power}/{token_toughness} creature tokens",
+        "unknown_keywords": "Create creature tokens with {token_keywords}",
+        "unknown_stats_keywords": "Create {token_power}/{token_toughness} creature tokens with {token_keywords}",
+        "count": "Create {count} creature tokens",
+        "count_stats": "Create {count} {token_power}/{token_toughness} creature tokens",
+        "count_keywords": "Create {count} creature tokens with {token_keywords}",
+        "count_stats_keywords": "Create {count} {token_power}/{token_toughness} creature tokens with {token_keywords}",
+        "equal_count": "Create creature tokens equal to the relevant count",
+        "equal_count_stats": "Create {token_power}/{token_toughness} creature tokens equal to the relevant count",
+        "equal_count_keywords": "Create creature tokens with {token_keywords} equal to the relevant count",
+        "equal_count_stats_keywords": "Create {token_power}/{token_toughness} creature tokens with {token_keywords} equal to the relevant count",
+        "fixed_unknown": "Create a fixed number of creature tokens",
+        "fixed_unknown_stats": "Create a fixed number of {token_power}/{token_toughness} creature tokens",
+        "fixed_unknown_keywords": "Create a fixed number of creature tokens with {token_keywords}",
+        "fixed_unknown_stats_keywords": "Create a fixed number of {token_power}/{token_toughness} creature tokens with {token_keywords}",
+        "power_clause": "base power {token_power}",
+        "toughness_clause": "base toughness {token_toughness}",
+        "keywords_clause": "{token_keywords}",
+        "variant_prefix": "Create ",
+        "variant_joiner": " and "
+      },
+      "note": "The CREATE_TOKEN renderer selects a template from fields actually present in the binding; it never supplies color, subtype, P/T, or keywords."
     },
     "SCRY": {
       "templates": [

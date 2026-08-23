@@ -290,6 +290,101 @@ def render_candidate_amount(
     raise ValueError(f"No candidate rendering for amount={amount_type!r}: {spec}")
 
 
+def _join_text(parts) -> str:
+    if len(parts) < 2:
+        return "".join(parts)
+    if len(parts) == 2:
+        return " and ".join(parts)
+    return ", ".join(parts[:-1]) + f", and {parts[-1]}"
+
+
+def _token_keywords_text(keywords, libraries) -> str:
+    labels = libraries["statics"]["types"]
+    return _join_text([labels[keyword]["label"].casefold() for keyword in keywords])
+
+
+def _known_token_count(spec, libraries):
+    value = spec.get("amount_value")
+    if isinstance(value, int) and not isinstance(value, bool):
+        return value
+    config = libraries["amounts"]["types"].get(spec.get("amount"), {})
+    value = config.get("value")
+    return value if isinstance(value, int) else None
+
+
+def _token_template_key(spec, count) -> str:
+    if spec.get("amount") == "EQUAL_COUNT":
+        return "equal_count"
+    if spec.get("amount") == "FIXED" and count is None:
+        return "fixed_unknown"
+    return "count" if count is not None or spec.get("amount") == "VARIABLE_X" else "unknown"
+
+
+def _render_token_fragment(profile, libraries) -> str:
+    count = profile.get("count")
+    prefix = "a" if count == 1 else str(count) if isinstance(count, int) else ""
+    noun = "creature token" if count == 1 else "creature tokens"
+    text = " ".join(part for part in (prefix, noun) if part)
+    if "token_power" in profile and "token_toughness" in profile:
+        text = text.replace(noun, f"{profile['token_power']}/{profile['token_toughness']} {noun}")
+    else:
+        clauses = []
+        if "token_power" in profile:
+            clauses.append(f"base power {profile['token_power']}")
+        if "token_toughness" in profile:
+            clauses.append(f"base toughness {profile['token_toughness']}")
+        if clauses:
+            text += f" with {_join_text(clauses)}"
+    if keywords := profile.get("token_keywords"):
+        text += f" with {_token_keywords_text(keywords, libraries)}" if " with " not in text else f" and {_token_keywords_text(keywords, libraries)}"
+    return text
+
+
+def render_create_token_candidate(spec, libraries):
+    """Render only CREATE_TOKEN fields present in spec; unknown fields remain unspoken."""
+    config = libraries["effects"]["candidate_render"]["CREATE_TOKEN"]["create_token"]
+    variants = spec.get("token_variants")
+    if variants:
+        parts = [_render_token_fragment(variant, libraries) for variant in variants]
+        return config["variant_prefix"] + _join_text(parts)
+
+    count = _known_token_count(spec, libraries)
+    if spec.get("amount") == "VARIABLE_X":
+        count_text = "X"
+    elif count == 1:
+        count_text = "a"
+    elif count is not None:
+        count_text = str(count)
+    else:
+        count_text = None
+
+    key = _token_template_key(spec, count)
+    has_power, has_toughness = "token_power" in spec, "token_toughness" in spec
+    has_stats, has_keywords = has_power and has_toughness, bool(spec.get("token_keywords"))
+    if has_stats:
+        key += "_stats"
+    if has_keywords and (has_stats or not (has_power or has_toughness)):
+        key += "_keywords"
+    text = config[key].replace("{count}", count_text or "")
+    text = text.replace("{token_power}", str(spec.get("token_power", "")))
+    text = text.replace("{token_toughness}", str(spec.get("token_toughness", "")))
+    text = text.replace("{token_keywords}", _token_keywords_text(spec["token_keywords"], libraries) if has_keywords else "")
+    if count == 1:
+        text = text.replace("creature tokens", "creature token")
+    if has_power != has_toughness:
+        clauses = []
+        if has_power:
+            clauses.append(config["power_clause"].replace("{token_power}", str(spec["token_power"])))
+        if has_toughness:
+            clauses.append(config["toughness_clause"].replace("{token_toughness}", str(spec["token_toughness"])))
+        if has_keywords:
+            clauses.append(config["keywords_clause"].replace(
+                "{token_keywords}", _token_keywords_text(spec["token_keywords"], libraries)
+            ))
+        text += f" with {_join_text(clauses)}"
+    return text
+
+
 def render_candidate_spec(
     spec,
     libraries,
@@ -304,9 +399,12 @@ def render_candidate_spec(
             trigger_template = random.choice(trigger_config["templates"])
             trigger = fill_placeholders(trigger_template, spec, libraries)
 
-    config = libraries["effects"]["candidate_render"][spec["effect"]]
-    templates = config.get("templates_by_target", {}).get(spec.get("target"), config["templates"])
-    body = fill_candidate_placeholders(random.choice(templates), spec, libraries)
+    if spec["effect"] == "CREATE_TOKEN":
+        body = render_create_token_candidate(spec, libraries)
+    else:
+        config = libraries["effects"]["candidate_render"][spec["effect"]]
+        templates = config.get("templates_by_target", {}).get(spec.get("target"), config["templates"])
+        body = fill_candidate_placeholders(random.choice(templates), spec, libraries)
     body = render_candidate_duration(body, spec.get("duration"), libraries)
 
     if trigger:
