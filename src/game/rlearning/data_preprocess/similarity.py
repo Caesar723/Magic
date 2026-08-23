@@ -822,7 +822,7 @@ def amount_similarity(
 
 
 
-def compute_binding_relevance(
+def compute_query_relevance(
     query_spec: Mapping[str, Any],
     candidate_binding: Mapping[str, Any],
     *,
@@ -949,6 +949,20 @@ def compute_binding_relevance(
         base *= 0.35 + 0.65 * parts["trigger"]
 
     return max(0.0, min(1.0, base))
+
+def compute_binding_relevance(
+    query_bindings: list[Mapping[str, Any]],
+    candidate_bindings: list[Mapping[str, Any]],
+) -> Optional[float]:
+    relevances=[]
+    for query_binding in query_bindings:
+        relevances.append(
+            max([
+                compute_query_relevance(query_binding, candidate_binding, missing_policy="zero") 
+                for candidate_binding in candidate_bindings])
+        )
+    return sum(relevances) / len(relevances)
+            
 
 
 def card_relevance(
