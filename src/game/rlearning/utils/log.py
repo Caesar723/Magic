@@ -25,6 +25,25 @@ def sw_loss(tag, loss_dict, global_step,name=""):
     for k in loss_dict:
         SW.add_scalar( f"{name}/{tag}/{k}", loss_dict[k], global_step) 
 
+def sw_scalar(tag, value, global_step):
+    if SW is None:
+        return
+    if hasattr(value, "detach"):
+        value = value.detach()
+    SW.add_scalar(tag, value, global_step)
+
+def sw_curve(tag, x, y, global_step, xlabel=None, ylabel=None):
+    if SW is None:
+        return
+    fig, axis = plt.subplots()
+    axis.plot(x, y)
+    if xlabel:
+        axis.set_xlabel(xlabel)
+    if ylabel:
+        axis.set_ylabel(ylabel)
+    SW.add_figure(tag, fig, global_step=global_step)
+    plt.close(fig)
+
 def sw_audio(tag, audio, sample_rate, global_step=None):
     global SW 
     SW.add_audio(tag, audio, sample_rate=sample_rate, 
@@ -56,4 +75,3 @@ debug = logger.debug
 info = logger.info 
 warn = logger.warning
 error = logger.error 
-

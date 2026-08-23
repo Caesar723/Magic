@@ -1,9 +1,16 @@
 import traceback
+import sys
+from pathlib import Path
 
 import torch 
 
-from utils.file import read_yaml
-from utils.model import get_class_by_name 
+
+src_root = Path(__file__).resolve().parents[2]
+if str(src_root) not in sys.path:
+    sys.path.insert(0, str(src_root))
+
+from game.rlearning.utils.file import read_yaml
+from game.rlearning.utils.model import get_class_by_name
 
 
 def main(args):

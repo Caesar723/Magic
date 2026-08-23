@@ -5,7 +5,7 @@ import random
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
-from utils.file import read_metadata
+from game.rlearning.utils.file import read_metadata
 import game.rlearning.utils.log as log
 from game.rlearning.utils.common import CHECKPOINT_ROOT_PATH
 from game.game_function_tool import ORGPATH

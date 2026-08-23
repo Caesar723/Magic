@@ -13,16 +13,20 @@ dataset_paths:
     weight: 0.3
   - path: fake_data_2bind_v1_20260823
     weight: 0.8
-dataset_class_name: "game.rlearning.datasets.state_space.CVAE.CVAEDataset"
+dataset_class_name: "game.rlearning.datasets.state_space.jina_text_encoder.JinaTextEncoder"
 dataset_multiple: 1
 
+w_ranking_loss: 1.0
+ranking_temperature: 0.1
+min_relevance_gap: 1.0e-6
+relevance_gap_power: 1.0
 
 dataloader:
   batch_size: 2
   num_workers: 4
 
 
-trainer: "game.rlearning.module.state_space.CVAE.CVAETrainer"
+trainer: "game.rlearning.module.state_space.jina_text_encoder.JinaTextEncoder"
 
 total_step: 200000
 log_step: 20
@@ -43,6 +47,11 @@ optimizer:
 scheduler:
   step_size: 100
   gamma: 0.999
+
+
+TextTokenizer:
+  raw_text: True
+
 
 model:
   

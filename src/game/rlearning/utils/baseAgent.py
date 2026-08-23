@@ -860,7 +860,7 @@ class ModelTrainer:
             for key, value in losses.items():
                 if key == "total_loss":
                     totals.append(value)
-                if single_group and BaseTrainer._tensorboard_only_metric(key):
+                if single_group and ModelTrainer._tensorboard_only_metric(key):
                     merged[key] = value
                 else:
                     merged[f"{group_name}/{key}"] = value
@@ -1343,4 +1343,3 @@ class ModelTrainer:
 
     #     state_dict = { k: self.mbert_models[k].state_dict() for k in self.mbert_models } 
     #     torch.save({ k: state_dict[k] for k in state_dict}, save_file) 
-
