@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import math
-from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple
+from pathlib import Path
+from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
 
-# ============================================================
 # Semantic taxonomies
-# ============================================================
 LIB_DIR = Path(__file__).resolve().parents[1] / "data/retrieval/libraries"
+
+
 def _load_type_keys(name: str) -> list[str]:
     data = json.loads((LIB_DIR / f"{name}.json").read_text(encoding="utf-8"))
     return list(data["types"].keys())
+
 
 def _load_n_value() -> dict[str, float]:
     data = json.loads((LIB_DIR / "amounts.json").read_text(encoding="utf-8"))
@@ -20,6 +21,7 @@ def _load_n_value() -> dict[str, float]:
         for k, v in data["types"].items()
         if k.startswith("N_") and "value" in v
     }
+
 
 EFFECT_TYPES = _load_type_keys("effects")
 TARGET_TYPES = _load_type_keys("targets")
@@ -47,14 +49,21 @@ def _sym(m: Dict[Tuple[str, str], float], a: str, b: str, score: float) -> None:
     _set(m, b, a, score)
 
 
-# ============================================================
+def _type_similarity(query, candidate, types, matrix, label: str) -> Optional[float]:
+    if query is None or candidate is None:
+        return None
+    if query not in types or candidate not in types:
+        raise KeyError(f"unknown {label}: query={query!r}, candidate={candidate!r}")
+    return matrix[(query, candidate)]
+
+
 # EFFECT similarity: 26 x 26 = 676 complete combinations
 #
 # Meaning:
 #   EFFECT_SIM[(query_effect, candidate_effect)]
 # measures how well candidate_effect satisfies query_effect.
 # Unspecified semantic relations remain 0.0, but no key is missing.
-# ============================================================
+
 
 def build_effect_sim() -> Dict[Tuple[str, str], float]:
     m = _full_matrix(EFFECT_TYPES)
@@ -156,20 +165,15 @@ def build_effect_sim() -> Dict[Tuple[str, str], float]:
 EFFECT_SIM = build_effect_sim()
 
 
-def effect_similarity(query_effect: Optional[str], candidate_effect: Optional[str]) -> Optional[float]:
-    if query_effect is None:
-        return None
-    if candidate_effect is None:
-        return None
-    if query_effect not in EFFECT_TYPES or candidate_effect not in EFFECT_TYPES:
-        raise KeyError(f"unknown effect: query={query_effect!r}, candidate={candidate_effect!r}")
-    return EFFECT_SIM[(query_effect, candidate_effect)]
+def effect_similarity(
+    query_effect: Optional[str], candidate_effect: Optional[str]
+) -> Optional[float]:
+    return _type_similarity(query_effect, candidate_effect, EFFECT_TYPES, EFFECT_SIM, "effect")
 
 
-# ============================================================
 # TARGET similarity: 20 x 20 = 400 complete combinations
 # Directional "satisfaction" relation.
-# ============================================================
+
 
 def build_target_sim() -> Dict[Tuple[str, str], float]:
     m = _full_matrix(TARGET_TYPES)
@@ -340,27 +344,22 @@ def build_target_sim() -> Dict[Tuple[str, str], float]:
 TARGET_SIM = build_target_sim()
 
 
-def target_similarity(query_target: Optional[str], candidate_target: Optional[str]) -> Optional[float]:
-    if query_target is None:
-        return None
-    if candidate_target is None:
-        return None
-    if query_target not in TARGET_TYPES or candidate_target not in TARGET_TYPES:
-        raise KeyError(f"unknown target: query={query_target!r}, candidate={candidate_target!r}")
-    return TARGET_SIM[(query_target, candidate_target)]
+def target_similarity(
+    query_target: Optional[str], candidate_target: Optional[str]
+) -> Optional[float]:
+    return _type_similarity(query_target, candidate_target, TARGET_TYPES, TARGET_SIM, "target")
 
 
-# ============================================================
 # TRIGGER similarity: 20 x 20 = 400 complete combinations
 # Directional where one trigger is a semantic superset/subset.
-# ============================================================
+
 
 def build_trigger_sim() -> Dict[Tuple[str, str], float]:
     m = _full_matrix(TRIGGER_TYPES)
 
     # ETB family
-    _set(m, "ETB", "ETB_OR_ATTACK", 0.95)   # candidate also triggers on ETB
-    _set(m, "ETB_OR_ATTACK", "ETB", 0.65)   # misses attack half
+    _set(m, "ETB", "ETB_OR_ATTACK", 0.95)  # candidate also triggers on ETB
+    _set(m, "ETB_OR_ATTACK", "ETB", 0.65)  # misses attack half
     _set(m, "ATTACK", "ETB_OR_ATTACK", 0.95)
     _set(m, "ETB_OR_ATTACK", "ATTACK", 0.65)
 
@@ -423,19 +422,14 @@ def build_trigger_sim() -> Dict[Tuple[str, str], float]:
 TRIGGER_SIM = build_trigger_sim()
 
 
-def trigger_similarity(query_trigger: Optional[str], candidate_trigger: Optional[str]) -> Optional[float]:
-    if query_trigger is None:
-        return None
-    if candidate_trigger is None:
-        return None
-    if query_trigger not in TRIGGER_TYPES or candidate_trigger not in TRIGGER_TYPES:
-        raise KeyError(f"unknown trigger: query={query_trigger!r}, candidate={candidate_trigger!r}")
-    return TRIGGER_SIM[(query_trigger, candidate_trigger)]
+def trigger_similarity(
+    query_trigger: Optional[str], candidate_trigger: Optional[str]
+) -> Optional[float]:
+    return _type_similarity(query_trigger, candidate_trigger, TRIGGER_TYPES, TRIGGER_SIM, "trigger")
 
 
-# ============================================================
 # DURATION similarity: 10 x 10 = 100 complete combinations
-# ============================================================
+
 
 def build_duration_sim() -> Dict[Tuple[str, str], float]:
     m = _full_matrix(DURATION_TYPES)
@@ -483,19 +477,16 @@ def build_duration_sim() -> Dict[Tuple[str, str], float]:
 DURATION_SIM = build_duration_sim()
 
 
-def duration_similarity(query_duration: Optional[str], candidate_duration: Optional[str]) -> Optional[float]:
-    if query_duration is None:
-        return None
-    if candidate_duration is None:
-        return None
-    if query_duration not in DURATION_TYPES or candidate_duration not in DURATION_TYPES:
-        raise KeyError(f"unknown duration: query={query_duration!r}, candidate={candidate_duration!r}")
-    return DURATION_SIM[(query_duration, candidate_duration)]
+def duration_similarity(
+    query_duration: Optional[str], candidate_duration: Optional[str]
+) -> Optional[float]:
+    return _type_similarity(
+        query_duration, candidate_duration, DURATION_TYPES, DURATION_SIM, "duration"
+    )
 
 
-# ============================================================
 # STATIC / KEYWORD similarity: 20 x 20 = 400 combinations
-# ============================================================
+
 
 def build_static_sim() -> Dict[Tuple[str, str], float]:
     m = _full_matrix(STATIC_TYPES)
@@ -555,36 +546,30 @@ def build_static_sim() -> Dict[Tuple[str, str], float]:
 STATIC_SIM = build_static_sim()
 
 
-def static_similarity(query_static: Optional[str], candidate_static: Optional[str]) -> Optional[float]:
-    if query_static is None:
-        return None
-    if candidate_static is None:
-        return None
-    if query_static not in STATIC_TYPES or candidate_static not in STATIC_TYPES:
-        raise KeyError(f"unknown static: query={query_static!r}, candidate={candidate_static!r}")
-    return STATIC_SIM[(query_static, candidate_static)]
+def static_similarity(
+    query_static: Optional[str], candidate_static: Optional[str]
+) -> Optional[float]:
+    return _type_similarity(query_static, candidate_static, STATIC_TYPES, STATIC_SIM, "static")
 
 
-def static_set_similarity(query_statics: Sequence[str], candidate_statics: Sequence[str]) -> Optional[float]:
-    """
-    Query-side coverage:
-    for every requested static keyword, take its best match in candidate statics,
-    then average. Extra candidate statics do not hurt.
-    """
+def static_set_similarity(
+    query_statics: Sequence[str], candidate_statics: Sequence[str]
+) -> Optional[float]:
+    """计算 query 关键词的最佳匹配均值，额外候选关键词不扣分。"""
     if not query_statics:
         return None
     if not candidate_statics:
         return None
-    vals = []
-    for q in query_statics:
-        vals.append(max(static_similarity(q, c) or 0.0 for c in candidate_statics))
+    vals = [
+        max(static_similarity(query, candidate) or 0.0 for candidate in candidate_statics)
+        for query in query_statics
+    ]
     return sum(vals) / len(vals)
 
 
-# ============================================================
 # AMOUNT type similarity: 15 x 15 = 225 complete combinations
 # Plus numeric / P-T continuous comparison when values are available.
-# ============================================================
+
 
 def build_amount_type_sim() -> Dict[Tuple[str, str], float]:
     m = _full_matrix(AMOUNT_TYPES)
@@ -700,9 +685,7 @@ def numeric_similarity(q: float, c: float, alpha: float = 0.35) -> float:
     return math.exp(-alpha * abs(float(q) - float(c)))
 
 
-def pt_similarity(
-    q_p: float, q_t: float, c_p: float, c_t: float, alpha: float = 0.35
-) -> float:
+def pt_similarity(q_p: float, q_t: float, c_p: float, c_t: float, alpha: float = 0.35) -> float:
     # Average L1 distance over power/toughness dimensions.
     d = (abs(q_p - c_p) + abs(q_t - c_t)) / 2.0
     return math.exp(-alpha * d)
@@ -728,9 +711,7 @@ def amount_similarity(
     q_type = query.get("amount")
     c_type = candidate.get("amount")
 
-    if q_type is None:
-        return None
-    if c_type is None:
+    if q_type is None or c_type is None:
         return None
 
     if q_type not in AMOUNT_TYPES or c_type not in AMOUNT_TYPES:
@@ -756,19 +737,9 @@ def amount_similarity(
     return AMOUNT_TYPE_SIM[(q_type, c_type)]
 
 
-# ============================================================
 # Aggregate relevance
-# ============================================================
 
-SLOT_WEIGHTS = {
-    "effect": 0.40,
-    "target": 0.18,
-    "amount": 0.14,
-    "trigger": 0.16,
-    "duration": 0.08,
-    "keyword": 0.12,
-    "static": 0.12,
-}
+
 
 
 def compute_binding_relevance(
@@ -786,6 +757,16 @@ def compute_binding_relevance(
                    return None rather than inventing a negative label.
       "zero"    -> missing required candidate slot contributes 0.0.
     """
+
+    SLOT_WEIGHTS = {
+        "effect": 0.40,
+        "target": 0.18,
+        "amount": 0.14,
+        "trigger": 0.16,
+        "duration": 0.08,
+        "keyword": 0.12,
+        "static": 0.12,
+    }
     if missing_policy not in {"unknown", "zero"}:
         raise ValueError("missing_policy must be 'unknown' or 'zero'")
 
@@ -851,9 +832,7 @@ def compute_binding_relevance(
                 return None
             parts["static"] = 0.0
         else:
-            parts["static"] = max(
-                static_similarity(q_static, c) or 0.0 for c in candidate_statics
-            )
+            parts["static"] = max(static_similarity(q_static, c) or 0.0 for c in candidate_statics)
 
     if not parts:
         return None
@@ -905,9 +884,8 @@ def card_relevance(
     return max(scores)
 
 
-# ============================================================
 # Validation helpers
-# ============================================================
+
 
 def validate_matrices() -> Dict[str, int]:
     expected = {
@@ -974,4 +952,3 @@ if __name__ == "__main__":
     print("near amount:", compute_binding_relevance(q, near_amount))
     print("near target:", compute_binding_relevance(q, near_target))
     print("unrelated:", compute_binding_relevance(q, unrelated, missing_policy="zero"))
-

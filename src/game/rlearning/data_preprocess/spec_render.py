@@ -7,14 +7,11 @@ def render_candidate_duration(
     duration_type,
     libraries,
 ):
+    """按 duration 配置为候选文本追加可安全渲染的时限描述。"""
     if not duration_type:
         return body
 
-    config = (
-        libraries["durations"]
-        ["candidate_render"]
-        [duration_type]
-    )
+    config = libraries["durations"]["candidate_render"][duration_type]
 
     mode = config["mode"]
     phrases = config.get("phrases", [])
@@ -40,179 +37,72 @@ def render_candidate_duration(
     if mode == "delayed":
         return body
 
-    raise ValueError(
-        f"Unknown duration mode: {mode}"
-    )
+    raise ValueError(f"Unknown duration mode: {mode}")
+
 
 def fill_candidate_placeholders(
     text,
     spec,
     libraries,
 ):
+    """用 spec 填充候选模板，并校验模板实际使用的字段。"""
     if "{target}" in text:
         target_type = spec.get("target")
-
         if target_type is None:
-            raise ValueError(
-                f"Missing target: {spec}"
-            )
-
-        target_config = (
-            libraries["targets"]
-            ["candidate_render"]
-            [target_type]
-        )
-
-        if isinstance(target_config, dict):
-            phrases = target_config["phrases"]
-        else:
-            phrases = target_config
-
-        target = random.choice(phrases)
-
-        text = text.replace(
-            "{target}",
-            target,
-        )
+            raise ValueError(f"Missing target: {spec}")
+        target_config = libraries["targets"]["candidate_render"][target_type]
+        phrases = target_config["phrases"] if isinstance(target_config, dict) else target_config
+        text = text.replace("{target}", random.choice(phrases))
 
     if "{amount}" in text:
-
-        amount_text = (
-            render_candidate_amount(
-                spec,
-                libraries,
-            )
-        )
-
-        text = text.replace(
-            "{amount}",
-            amount_text,
-        )
-
+        text = text.replace("{amount}", render_candidate_amount(spec, libraries))
         amount = spec.get("amount_value")
-
         if amount is None:
-            amount_config = (
-                libraries["amounts"]
-                ["types"]
-                .get(spec.get("amount"), {})
-            )
-            amount = amount_config.get(
-                "value"
-            )
+            amount = libraries["amounts"]["types"].get(spec.get("amount"), {}).get("value")
 
         if amount == 1:
-            text = text.replace(
-                "tokens",
-                "token",
-            )
-            text = text.replace(
-                "cards",
-                "card",
-            )
-            text = text.replace(
-                "counters",
-                "counter",
-            )
-            text = text.replace(
-                "points",
-                "point",
-            )
-            text = text.replace(
-                "that are",
-                "that is",
-            )
+            for plural, singular in (
+                ("tokens", "token"),
+                ("cards", "card"),
+                ("counters", "counter"),
+                ("points", "point"),
+                ("that are", "that is"),
+            ):
+                text = text.replace(plural, singular)
 
-    # p / t
-    if "{p}" in text:
-        p = spec.get("p")
-
-        if p is None:
-            raise ValueError(
-                f"Missing p: {spec}"
-            )
-
-        text = text.replace(
-            "{p}",
-            format_signed(p),
-        )
-
-    if "{t}" in text:
-        t = spec.get("t")
-
-        if t is None:
-            raise ValueError(
-                f"Missing t: {spec}"
-            )
-
-        text = text.replace(
-            "{t}",
-            format_signed(t),
-        )
+    for field in ("p", "t"):
+        placeholder = f"{{{field}}}"
+        if placeholder in text:
+            value = spec.get(field)
+            if value is None:
+                raise ValueError(f"Missing {field}: {spec}")
+            text = text.replace(placeholder, format_signed(value))
 
     if "{stat}" in text:
-        amount_type = spec.get("amount")
-
         stat = {
             "EQUAL_POWER": "its power",
             "EQUAL_TOUGHNESS": "its toughness",
-        }.get(amount_type)
-
+        }.get(spec.get("amount"))
         if stat is None:
-            raise ValueError(
-                f"Missing stat selector: {spec}"
-            )
-
-        text = text.replace(
-            "{stat}",
-            stat,
-        )
+            raise ValueError(f"Missing stat selector: {spec}")
+        text = text.replace("{stat}", stat)
 
     if "{keyword}" in text:
         keyword_type = spec.get("keyword")
-
         if keyword_type is None:
-            raise ValueError(
-                f"Missing keyword: {spec}"
-            )
+            raise ValueError(f"Missing keyword: {spec}")
+        text = text.replace("{keyword}", pick_phrase(libraries["statics"], keyword_type)["phrase"])
 
-        keyword_item = pick_phrase(
-            libraries["statics"],
-            keyword_type,
-        )
-
-        text = text.replace(
-            "{keyword}",
-            keyword_item["phrase"],
-        )
-
-    if "{token}" in text:
-        token = spec.get("token")
-
-        if token is None:
-            raise ValueError(
-                f"Missing token: {spec}"
-            )
-
-        text = text.replace(
-            "{token}",
-            str(token),
-        )
-
-    if "{color}" in text:
-        color = spec.get("color")
-
-        if color is None:
-            raise ValueError(
-                f"Missing color: {spec}"
-            )
-
-        text = text.replace(
-            "{color}",
-            str(color),
-        )
+    for field in ("token", "color"):
+        placeholder = f"{{{field}}}"
+        if placeholder in text:
+            value = spec.get(field)
+            if value is None:
+                raise ValueError(f"Missing {field}: {spec}")
+            text = text.replace(placeholder, str(value))
 
     return text
+
 
 def format_signed(value: int) -> str:
     if value > 0:
@@ -288,66 +178,21 @@ def number_to_words(value) -> str:
 
     return str(value)
 
+
 def phrase_is_compatible(
     item: dict,
     spec: Mapping[str, Any],
 ) -> bool:
-
     phrase = item["phrase"]
-
-    # =========================================
-    # amount
-    # =========================================
-
     amount_value = spec.get("amount_value")
+    if amount_value is not None and amount_value != 1 and "{amount}" not in phrase:
+        return False
+    if any(
+        f"{{{field}}}" in phrase and not spec.get(field) for field in ("token", "keyword", "color")
+    ):
+        return False
+    return all(f"{{{field}}}" not in phrase or spec.get(field) is not None for field in ("p", "t"))
 
-    if amount_value is not None:
-
-        # 数量不是 1：
-        # 必须使用能够表达 amount 的模板
-        if amount_value != 1:
-            if "{amount}" not in phrase:
-                return False
-
-    # =========================================
-    # token
-    # =========================================
-
-    # phrase 需要 token 信息，
-    # 但 spec 没提供 token
-    if "{token}" in phrase:
-        if not spec.get("token"):
-            return False
-
-    # =========================================
-    # p / t
-    # =========================================
-
-    if "{p}" in phrase:
-        if spec.get("p") is None:
-            return False
-
-    if "{t}" in phrase:
-        if spec.get("t") is None:
-            return False
-
-    # =========================================
-    # keyword
-    # =========================================
-
-    if "{keyword}" in phrase:
-        if not spec.get("keyword"):
-            return False
-
-    # =========================================
-    # color
-    # =========================================
-
-    if "{color}" in phrase:
-        if not spec.get("color"):
-            return False
-
-    return True
 
 def pick_phrase(
     library,
@@ -356,39 +201,12 @@ def pick_phrase(
     style="oracle_template",
 ):
     items = library["phrases"][key]
-
-    # 先筛 style
-    pool = [
-        item
-        for item in items
-        if item.get("style") == style
-    ]
-
-    if not pool:
-        pool = items
-
-    # 再根据 spec 筛兼容性
+    pool = [item for item in items if item.get("style") == style] or items
     if spec is not None:
-        compatible = [
-            item
-            for item in pool
-            if phrase_is_compatible(
-                item,
-                spec,
-            )
-        ]
-
-        if compatible:
-            pool = compatible
-
+        pool = [item for item in pool if phrase_is_compatible(item, spec)] or pool
     if not pool:
-        raise ValueError(
-            f"No compatible phrase "
-            f"for {key}: {spec}"
-        )
-
+        raise ValueError(f"No compatible phrase for {key}: {spec}")
     return random.choice(pool)
-
 
 
 def fill_placeholders(
@@ -396,353 +214,120 @@ def fill_placeholders(
     spec,
     libraries,
 ):
-    # amount
     if "{amount}" in text:
         amount_type = spec.get("amount")
-
-        if spec.get("amount_value") is not None:
-            amount = str(
-                spec["amount_value"]
-            )
-        else:
-            amount_item = pick_phrase(
-                libraries["amounts"],
-                amount_type,
-            )
-            amount = amount_item["phrase"]
-
-        text = text.replace(
-            "{amount}",
-            amount,
+        amount = (
+            str(spec["amount_value"])
+            if spec.get("amount_value") is not None
+            else pick_phrase(libraries["amounts"], amount_type)["phrase"]
         )
+        text = text.replace("{amount}", amount)
 
-    # p / t
-    if "{p}" in text:
-        p = spec.get("p")
+    for field in ("p", "t"):
+        placeholder = f"{{{field}}}"
+        if placeholder in text:
+            value = spec.get(field)
+            if value is None:
+                raise ValueError(f"Missing {field}: {spec}")
+            text = text.replace(placeholder, format_signed(value))
 
-        if p is None:
-            raise ValueError(
-                f"Missing p: {spec}"
-            )
-
-        text = text.replace(
-            "{p}",
-            format_signed(p),
-        )
-
-    if "{t}" in text:
-        t = spec.get("t")
-
-        if t is None:
-            raise ValueError(
-                f"Missing t: {spec}"
-            )
-
-        text = text.replace(
-            "{t}",
-            format_signed(t),
-        )
-
-    # keyword
     if "{keyword}" in text:
-        keyword = spec.get("keyword")
-
-        keyword_item = pick_phrase(
-            libraries["statics"],
-            keyword,
-        )
-
         text = text.replace(
-            "{keyword}",
-            keyword_item["phrase"],
+            "{keyword}", pick_phrase(libraries["statics"], spec.get("keyword"))["phrase"]
         )
 
-    # token
-    text = text.replace(
-        "{token}",
-        str(spec.get("token", "")),
-    )
-
-    # color
-    text = text.replace(
-        "{color}",
-        str(spec.get("color", "")),
-    )
-
-    # name
-    text = text.replace(
-        "{name}",
-        str(
-            spec.get(
-                "name",
-                "this permanent",
-            )
-        ),
-    )
-
+    text = text.replace("{token}", str(spec.get("token", "")))
+    text = text.replace("{color}", str(spec.get("color", "")))
+    text = text.replace("{name}", str(spec.get("name", "this permanent")))
     return text
+
 
 def render_candidate_amount(
     spec: dict,
     libraries,
 ) -> str:
-
+    """将 amount 配置渲染为候选文本，必要时使用库中的固定值。"""
     amount_type = spec.get("amount")
-    amount_value = spec.get(
-        "amount_value"
-    )
+    amount_value = spec.get("amount_value")
 
     if amount_type is None:
-        raise ValueError(
-            f"Missing amount: {spec}"
-        )
+        raise ValueError(f"Missing amount: {spec}")
 
-    amount_types = (
-        libraries["amounts"]["types"]
-    )
-
+    amount_types = libraries["amounts"]["types"]
     if amount_type not in amount_types:
-        raise ValueError(
-            f"Unknown amount type "
-            f"{amount_type!r}: {spec}"
-        )
-
-    amount_config = (
-        amount_types[amount_type]
-    )
-
-    # -----------------------------------------
-    # N_1 ~ N_5 can carry their value in the
-    # library even when the parser omitted it.
-    # -----------------------------------------
-
+        raise ValueError(f"Unknown amount type {amount_type!r}: {spec}")
+    amount_config = amount_types[amount_type]
     if amount_value is None:
-        amount_value = amount_config.get(
-            "value"
-        )
+        amount_value = amount_config.get("value")
 
-    # -----------------------------------------
-    # Candidate amount templates
-    # -----------------------------------------
-
-    candidate_render = (
-        libraries["amounts"]
-        .get(
-            "candidate_render",
-            {}
-        )
-    )
-
-    render_config = (
-        candidate_render.get(
-            amount_type
-        )
-    )
+    render_config = libraries["amounts"].get("candidate_render", {}).get(amount_type)
 
     if render_config is not None:
-
-        templates = render_config.get(
-            "templates"
-        )
-
+        templates = render_config.get("templates")
         if templates is None:
-            text = render_config.get(
-                "text"
-            )
-            templates = (
-                [text]
-                if text
-                else []
-            )
-
+            text = render_config.get("text")
+            templates = [text] if text else []
         if templates:
-            text = random.choice(
-                templates
-            )
-
-            if amount_value is None and (
-                "{n}" in text
-                or "{word_n}" in text
-            ):
-                raise ValueError(
-                    f"Amount template requires "
-                    f"amount_value: {spec}"
-                )
-
+            text = random.choice(templates)
+            if amount_value is None and ("{n}" in text or "{word_n}" in text):
+                raise ValueError(f"Amount template requires amount_value: {spec}")
             if amount_value is not None:
-                text = text.replace(
-                    "{n}",
-                    str(amount_value),
-                )
-                text = text.replace(
-                    "{word_n}",
-                    number_to_words(
-                        amount_value
-                    ),
-                )
+                text = text.replace("{n}", str(amount_value))
+                text = text.replace("{word_n}", number_to_words(amount_value))
 
-            if "{p}" in text:
-                p = spec.get("p")
-                if p is None:
-                    raise ValueError(
-                        f"Missing p: {spec}"
-                    )
-                text = text.replace(
-                    "{p}",
-                    format_signed(p),
-                )
-
-            if "{t}" in text:
-                t = spec.get("t")
-                if t is None:
-                    raise ValueError(
-                        f"Missing t: {spec}"
-                    )
-                text = text.replace(
-                    "{t}",
-                    format_signed(t),
-                )
-
+            for field in ("p", "t"):
+                placeholder = f"{{{field}}}"
+                if placeholder in text:
+                    value = spec.get(field)
+                    if value is None:
+                        raise ValueError(f"Missing {field}: {spec}")
+                    text = text.replace(placeholder, format_signed(value))
             return text
 
-    # -----------------------------------------
-    # FIXED 没数字不完整
-    # -----------------------------------------
-
     if amount_type == "FIXED":
-        raise ValueError(
-            f"FIXED amount requires "
-            f"amount_value: {spec}"
-        )
+        raise ValueError(f"FIXED amount requires amount_value: {spec}")
 
-    raise ValueError(
-        f"No candidate rendering for "
-        f"amount={amount_type!r}: {spec}"
-    )
+    raise ValueError(f"No candidate rendering for amount={amount_type!r}: {spec}")
+
 
 def render_candidate_spec(
     spec,
     libraries,
 ):
-    parts = []
-
-    # =================================
-    # 1. Trigger
-    # =================================
-
-    trigger_type = spec.get("trigger")
-
-    if trigger_type:
-        trigger_config = (
-            libraries["triggers"]
-            ["candidate_render"]
-            [trigger_type]
-        )
-
+    """把一个规范化 binding 渲染成完整的候选规则句。"""
+    trigger = None
+    if trigger_type := spec.get("trigger"):
+        trigger_config = libraries["triggers"]["candidate_render"][trigger_type]
         if trigger_config.get("mode") == "omit":
-            trigger = None
+            pass
         else:
-            trigger_template = random.choice(
-                trigger_config["templates"]
-            )
+            trigger_template = random.choice(trigger_config["templates"])
+            trigger = fill_placeholders(trigger_template, spec, libraries)
 
-            trigger = fill_placeholders(
-                trigger_template,
-                spec,
-                libraries,
-            )
+    config = libraries["effects"]["candidate_render"][spec["effect"]]
+    templates = config.get("templates_by_target", {}).get(spec.get("target"), config["templates"])
+    body = fill_candidate_placeholders(random.choice(templates), spec, libraries)
+    body = render_candidate_duration(body, spec.get("duration"), libraries)
 
-        if trigger:
-            parts.append(trigger)
-
-    # =================================
-    # 2. Effect
-    # =================================
-
-    effect_type = spec["effect"]
-
-    config = (
-        libraries["effects"]
-        ["candidate_render"]
-        [effect_type]
-    )
-
-    templates = config.get(
-        "templates_by_target",
-        {},
-    ).get(
-        spec.get("target"),
-        config["templates"],
-    )
-
-    template = random.choice(
-        templates
-    )
-
-    body = fill_candidate_placeholders(
-        template,
-        spec,
-        libraries,
-    )
-
-    # =================================
-    # 4. Duration
-    # =================================
-
-    body = render_candidate_duration(
-        body,
-        spec.get("duration"),
-        libraries,
-    )
-
-    # =================================
-    # 5. Trigger + body
-    # =================================
-
-    if parts:
-        body = (
-            body[0].lower()
-            + body[1:]
-        )
-        text = (
-            f"{parts[0]}, "
-            f"{body}"
-        )
+    if trigger:
+        body = body[0].lower() + body[1:]
+        text = f"{trigger}, {body}"
     else:
         text = body
-
     text = text.strip()
-
     if not text.endswith("."):
         text += "."
+    return text[0].upper() + text[1:]
 
-    return (
-        text[0].upper()
-        + text[1:]
-    )
 
 def render_candidate_card(
     bindings,
     libraries,
     shuffle=False,
 ):
+    """把多个 binding 拼成一段卡牌规则文本。"""
     bindings = list(bindings)
-
     if shuffle:
         random.shuffle(bindings)
-
-    rendered_parts = []
-
-    for binding in bindings:
-        text = render_candidate_spec(
-            binding,
-            libraries,
-        )
-
-        rendered_parts.append(
-            text.rstrip(".")
-        )
-
-    return ". ".join(
-        rendered_parts
-    ) + "."
+    rendered_parts = [render_candidate_spec(binding, libraries).rstrip(".") for binding in bindings]
+    return ". ".join(rendered_parts) + "."
