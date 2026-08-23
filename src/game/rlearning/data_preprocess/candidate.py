@@ -16,7 +16,6 @@ ALL_EFFECTS = [
 
 
 # near:
-# effect 不变，只改变 target / amount / duration / trigger 等
 TARGET_NEIGHBORS = {
     "ANY": ["CREATURE", "PLAYER", "OPPONENT"],
     "CREATURE": ["ANY", "CREATURE_YOU_CONTROL", "CREATURE_OPPONENT", "RANDOM_CREATURE"],

@@ -48,8 +48,43 @@ def get_binding_from_card(card: dict):
     return card["bindings"]
 
 
-def build_candidate_group(bindings,cards,n_exact=2,n_near=3,n_hard=2,n_random=1):
-    pass
+def build_candidate_group(bindings,library,n_exact=2,n_near=3,n_hard=2,n_random=1,card_info:dict=None):
+    
+    query_message = render_candidate_card(bindings,library)
+    result={
+        "query_bindings":bindings,
+        "query_message":query_message,
+        "candidates":[],
+    }
+    if card_info is not None:
+        result["candidates"].append({
+            "type": "card",
+            "bindings": card_info["bindings"],
+            "card_ability": card_info["ability"],
+            "relevance": card_info["relevance"],
+        })
+    for type_name,num in [("exact",n_exact),("near",n_near),("hard",n_hard),("random",n_random)]:
+        for _ in range(num):
+            new_bindings = []
+            avg_relevance = 0.0
+            for query_spec in bindings:
+                new_query_spec=generate_candidate_from_query(query_spec, type_name)
+                print(query_spec,new_query_spec)
+                relevance=compute_binding_relevance(query_spec, new_query_spec,missing_policy="zero")
+                avg_relevance += relevance
+                new_bindings.append(new_query_spec)
+            avg_relevance /= len(bindings)
+
+            new_card_ability=render_candidate_card(new_bindings,library)
+            
+            result["candidates"].append({
+                "type": type_name,
+                "bindings": new_bindings,
+                "card_ability": new_card_ability,
+                "relevance": avg_relevance,
+            })
+    return result
+            
 
 
 def generate_candidate_from_query(
@@ -104,24 +139,21 @@ if __name__ == "__main__":
     library = load_library()
     cards = load_cards()
 
-    while True:
-        valid_binding_pool = build_valid_binding_pool(
-            cards,
-            library,
-        )
+    #while True:
         
-
-        bindings = get_random_bindings(
-            valid_binding_pool,
-            library,
-        )
-
-        print(bindings)
         
-        rendered_card = render_candidate_card(
-            bindings,
-            library,
-        )
+    valid_binding_pool = build_valid_binding_pool(
+        cards,
+        library,
+    )
+    bindings = get_random_bindings(
+        valid_binding_pool,
+        library,
+    )
 
-        print(rendered_card)
+    print(bindings)
+    
+    result = build_candidate_group(bindings,library)
+
+    print(json.dumps(result, ensure_ascii=False, indent=2))
         
