@@ -6,7 +6,7 @@ from typing import Any, Mapping
 from candidate import (
     build_valid_binding_pool, generate_exact_spec, generate_hard_spec,
     generate_near_spec, generate_random_spec, get_random_bindings,
-    normalize_candidate_spec, validate_candidate_spec,
+    normalize_candidate_spec, prepare_candidate_binding, validate_candidate_spec,
 )
 from query_render import render_query_card
 from similarity import compute_binding_relevance
@@ -94,8 +94,70 @@ def _write_split_files(folder, binding_number, num_data, width, ratios, split_se
     return dict(zip(split_names, counts))
 
 
-def generate_card_data():
-    pass
+def _get_card_binding_pool(cards, library):
+    """保留至少含一个可作为 query 的 binding 的真实卡牌。"""
+    card_pool = []
+    for card in cards:
+        bindings = []
+        for binding in get_binding_from_card(card):
+            try:
+                binding = prepare_candidate_binding(binding, card)
+                validate_candidate_spec(binding, library)
+                bindings.append(binding)
+            except (KeyError, TypeError, ValueError):
+                continue
+        if bindings:
+            card_pool.append((card, bindings))
+    return card_pool
+
+
+def generate_card_data(
+    folder_name="card_data_1bind_v1_20260823", num_data=1_000_000,
+    query_types=("exact", "near", "hard", "random"),
+    train_ratio=0.8, test_ratio=0.1, synthesis_ratio=0.1, split_seed=42, output_root=None,
+):
+    """以真实卡牌为候选，随机变换其中一个 binding 作为 query。"""
+    if not isinstance(num_data, int) or num_data < 1:
+        raise ValueError("num_data must be a positive integer")
+    if not folder_name or Path(folder_name).name != folder_name:
+        raise ValueError("folder_name must be a single folder name")
+    if isinstance(query_types, str):
+        query_types = (query_types,)
+    query_types = tuple(query_types)
+    valid_types = {"exact", "near", "hard", "random"}
+    if not query_types or not set(query_types) <= valid_types:
+        raise ValueError(f"query_types must only contain {sorted(valid_types)}")
+
+    root = Path(output_root) if output_root is not None else Path(__file__).resolve().parents[4] / "data/text_data"
+    folder = root / folder_name
+    if folder.exists():
+        raise FileExistsError(f"Output folder already exists: {folder}")
+
+    library, cards = load_library(), load_cards()
+    valid_binding_pool = build_valid_binding_pool(cards, library)
+    card_pool = _get_card_binding_pool(cards, library)
+    if not card_pool:
+        raise ValueError("No cards contain a valid binding")
+    query_dir, candidates_dir = folder / "query", folder / "candidates"
+    query_dir.mkdir(parents=True)
+    candidates_dir.mkdir()
+    width = max(8, len(str(num_data)))
+
+    with (folder / "total.txt").open("w", encoding="utf-8") as total_file:
+        total_file.write("index|binding_number\n")
+        for index in range(1, num_data + 1):
+            card, card_bindings = random.choice(card_pool)
+            source_binding = random.choice(card_bindings)
+            query_type = random.choice(query_types)
+            query_binding = generate_candidate_from_query(source_binding, query_type, library, valid_binding_pool)
+            card_info = {"bindings": get_binding_from_card(card), "ability": card["ability"], "relevance": compute_binding_relevance([query_binding], [source_binding])}
+            group = build_candidate_group([query_binding], library, card_info=card_info, valid_binding_pool=valid_binding_pool)
+            sample_name = f"sample_{index:0{width}d}"
+            _write_json(query_dir / f"{sample_name}.json", {"id": sample_name, "binding_number": 1, "query_type": query_type, "source_card_id": card["card_id"], "source_card_name": card["name"], "source_binding": source_binding, "query_bindings": group["query_bindings"], "query_message": group["query_message"]})
+            _write_json(candidates_dir / f"{sample_name}.json", {"id": sample_name, "binding_number": 1, "candidates": group["candidates"]})
+            total_file.write(f"{sample_name}|1\n")
+    split_counts = _write_split_files(folder, 1, num_data, width, (train_ratio, test_ratio, synthesis_ratio), split_seed)
+    return {"folder": str(folder), "binding_number": 1, "num_data": num_data, "splits": split_counts}
 
 
 def generate_fake_data(
@@ -147,10 +209,18 @@ if __name__ == "__main__":
             output_root=output_root,
         )
 
-    if 1:
+    if 0:
         generate_fake_data(
             folder_name="fake_data_2bind_v1_20260823",
             binding_number=2,
             num_data=100000,
             output_root=output_root,
         )
+
+    if 1:
+        generate_card_data(
+            folder_name="card_data_v1_20260823",
+            num_data=10,
+            output_root=output_root,
+        )
+
