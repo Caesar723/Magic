@@ -75,6 +75,12 @@ def _write_split_files(folder, binding_number, num_data, width, ratios, split_se
     ratio_sum = sum(ratios)
     if ratio_sum == 0:
         raise ValueError("at least one split ratio must be positive")
+    if isinstance(binding_number, int):
+        get_binding_number = lambda _: binding_number
+    elif len(binding_number) == num_data:
+        get_binding_number = lambda index: binding_number[index - 1]
+    else:
+        raise ValueError("binding_number count must match num_data")
 
     raw_counts = [num_data * ratio / ratio_sum for ratio in ratios]
     counts = [int(count) for count in raw_counts]
@@ -88,8 +94,9 @@ def _write_split_files(folder, binding_number, num_data, width, ratios, split_se
         with (folder / f"{name}.txt").open("w", encoding="utf-8") as file:
             file.write("index|binding_number\n")
             for position in range(start, start + count):
-                sample_name = f"sample_{sample_indices[position]:0{width}d}"
-                file.write(f"{sample_name}|{binding_number}\n")
+                sample_index = sample_indices[position]
+                sample_name = f"sample_{sample_index:0{width}d}"
+                file.write(f"{sample_name}|{get_binding_number(sample_index)}\n")
         start += count
     return dict(zip(split_names, counts))
 
@@ -114,9 +121,10 @@ def _get_card_binding_pool(cards, library):
 def generate_card_data(
     folder_name="card_data_1bind_v1_20260823", num_data=1_000_000,
     query_types=("exact", "near", "hard", "random"),
+    card_query_probability=0.5,
     train_ratio=0.8, test_ratio=0.1, synthesis_ratio=0.1, split_seed=42, output_root=None,
 ):
-    """以真实卡牌为候选，随机变换其中一个 binding 作为 query。"""
+    """以真实卡牌为候选，按概率直接使用卡牌或变换其 binding 作为 query。"""
     if not isinstance(num_data, int) or num_data < 1:
         raise ValueError("num_data must be a positive integer")
     if not folder_name or Path(folder_name).name != folder_name:
@@ -127,6 +135,8 @@ def generate_card_data(
     valid_types = {"exact", "near", "hard", "random"}
     if not query_types or not set(query_types) <= valid_types:
         raise ValueError(f"query_types must only contain {sorted(valid_types)}")
+    if not isinstance(card_query_probability, (int, float)) or not 0 <= card_query_probability <= 1:
+        raise ValueError("card_query_probability must be between 0 and 1")
 
     root = Path(output_root) if output_root is not None else Path(__file__).resolve().parents[4] / "data/text_data"
     folder = root / folder_name
@@ -142,22 +152,29 @@ def generate_card_data(
     query_dir.mkdir(parents=True)
     candidates_dir.mkdir()
     width = max(8, len(str(num_data)))
+    binding_numbers = []
 
     with (folder / "total.txt").open("w", encoding="utf-8") as total_file:
         total_file.write("index|binding_number\n")
         for index in range(1, num_data + 1):
             card, card_bindings = random.choice(card_pool)
-            source_binding = random.choice(card_bindings)
-            query_type = random.choice(query_types)
-            query_binding = generate_candidate_from_query(source_binding, query_type, library, valid_binding_pool)
-            card_info = {"bindings": get_binding_from_card(card), "ability": card["ability"], "relevance": compute_binding_relevance([query_binding], [source_binding])}
-            group = build_candidate_group([query_binding], library, card_info=card_info, valid_binding_pool=valid_binding_pool)
+            if random.random() < card_query_probability:
+                query_type, source_bindings, query_bindings = "card", card_bindings, card_bindings
+            else:
+                source_binding = random.choice(card_bindings)
+                query_type = random.choice(query_types)
+                query_bindings = [generate_candidate_from_query(source_binding, query_type, library, valid_binding_pool)]
+                source_bindings = [source_binding]
+            binding_number = len(query_bindings)
+            card_info = {"bindings": get_binding_from_card(card), "ability": card["ability"], "relevance": compute_binding_relevance(query_bindings, source_bindings)}
+            group = build_candidate_group(query_bindings, library, card_info=card_info, valid_binding_pool=valid_binding_pool)
             sample_name = f"sample_{index:0{width}d}"
-            _write_json(query_dir / f"{sample_name}.json", {"id": sample_name, "binding_number": 1, "query_type": query_type, "source_card_id": card["card_id"], "source_card_name": card["name"], "source_binding": source_binding, "query_bindings": group["query_bindings"], "query_message": group["query_message"]})
-            _write_json(candidates_dir / f"{sample_name}.json", {"id": sample_name, "binding_number": 1, "candidates": group["candidates"]})
-            total_file.write(f"{sample_name}|1\n")
-    split_counts = _write_split_files(folder, 1, num_data, width, (train_ratio, test_ratio, synthesis_ratio), split_seed)
-    return {"folder": str(folder), "binding_number": 1, "num_data": num_data, "splits": split_counts}
+            _write_json(query_dir / f"{sample_name}.json", {"id": sample_name, "binding_number": binding_number, "query_type": query_type, "source_card_id": card["card_id"], "source_card_name": card["name"], "source_bindings": source_bindings, "query_bindings": group["query_bindings"], "query_message": group["query_message"]})
+            _write_json(candidates_dir / f"{sample_name}.json", {"id": sample_name, "binding_number": binding_number, "candidates": group["candidates"]})
+            binding_numbers.append(binding_number)
+            total_file.write(f"{sample_name}|{binding_number}\n")
+    split_counts = _write_split_files(folder, binding_numbers, num_data, width, (train_ratio, test_ratio, synthesis_ratio), split_seed)
+    return {"folder": str(folder), "num_data": num_data, "splits": split_counts}
 
 
 def generate_fake_data(
@@ -201,11 +218,18 @@ def generate_fake_data(
 
 if __name__ == "__main__":
     output_root="/home/a123456/Desktop/Magic/data/text_data"
-    if 0:
+    if 1:
         generate_fake_data(
             folder_name="fake_data_1bind_v1_20260823",
             binding_number=1,
-            num_data=10,
+            num_data=100000,
+            output_root=output_root,
+        )
+    if 1:
+        generate_fake_data(
+            folder_name="fake_data_3bind_v1_20260823",
+            binding_number=3,
+            num_data=10000,
             output_root=output_root,
         )
 
@@ -219,8 +243,8 @@ if __name__ == "__main__":
 
     if 1:
         generate_card_data(
-            folder_name="card_data_v1_20260823",
-            num_data=10,
+            folder_name="card_data_v2_20260823",
+            num_data=100000,
             output_root=output_root,
+            card_query_probability=0.2
         )
-
