@@ -1,7 +1,7 @@
 import random
 from copy import deepcopy
 from typing import Mapping, Any
-
+import re
 
 # ============================================================
 # Basic Definitions
@@ -1177,3 +1177,655 @@ def normalize_candidate_spec(
             spec["amount"] = "FIXED"
 
     return spec
+
+
+PLACEHOLDER_RE = re.compile(
+    r"\{([a-zA-Z_][a-zA-Z0-9_]*)\}"
+)
+
+
+# ============================================================
+# 1. 从 candidate templates 自动判断需要哪些 slot
+# ============================================================
+
+def get_required_candidate_slots(
+    effect: str,
+    libraries,
+) -> set[str]:
+    """
+    根据 effects.candidate_render 中的 templates
+    自动得到这个 effect 渲染时需要的 slot。
+
+    例如：
+
+    LOSE_LIFE:
+        "{target} loses {amount} life"
+        -> {"target", "amount"}
+
+    STAT_EQUAL_DAMAGE:
+        "Deal damage equal to {stat} to {target}"
+        -> {"stat", "target"}
+
+    DRAW:
+        "Draw {amount} cards"
+        -> {"amount"}
+    """
+
+    effect_configs = (
+        libraries["effects"]
+        ["candidate_render"]
+    )
+
+    if effect not in effect_configs:
+        raise ValueError(
+            f"Unknown candidate effect: {effect}"
+        )
+
+    config = effect_configs[effect]
+
+    templates = config.get(
+        "templates",
+        [],
+    )
+
+    if not templates:
+        raise ValueError(
+            f"No candidate templates for effect: {effect}"
+        )
+
+    slots = set()
+
+    for template in templates:
+        slots.update(
+            PLACEHOLDER_RE.findall(
+                template
+            )
+        )
+
+    # 如果 JSON 里已经手动写了 required_slots，
+    # 也一起算进去。
+    #
+    # 这样 ADD_MANA 现在的
+    # required_slots = ["amount", "color"]
+    # 仍然有效。
+    slots.update(
+        config.get(
+            "required_slots",
+            []
+        )
+    )
+
+    return slots
+
+
+# ============================================================
+# 2. 判断一个 slot 在 spec 里是否真的存在
+# ============================================================
+
+def candidate_slot_exists(
+    spec: Mapping[str, Any],
+    slot: str,
+) -> bool:
+
+    # amount 可以由 amount 或 amount_value 表示
+    if slot == "amount":
+        return (
+            spec.get("amount") is not None
+            or
+            spec.get("amount_value") is not None
+        )
+
+    # keyword 兼容你 parser 以前的 static 字段
+    if slot == "keyword":
+        return (
+            spec.get("keyword") is not None
+            or
+            spec.get("static") is not None
+        )
+
+    return spec.get(slot) is not None
+
+
+# ============================================================
+# 3. 对 parsed binding 做保守的 canonicalize
+# ============================================================
+
+def prepare_candidate_binding(
+    binding: Mapping[str, Any],
+    card: Mapping[str, Any] = None,
+) -> dict[str, Any]:
+    """
+    这里只做确定性的字段统一。
+    不凭空猜语义。
+    """
+
+    if not isinstance(
+        binding,
+        Mapping,
+    ):
+        raise TypeError(
+            f"binding must be Mapping, "
+            f"got {type(binding)}"
+        )
+
+    spec = deepcopy(
+        dict(binding)
+    )
+
+    # --------------------------------------------------------
+    # static -> keyword
+    # --------------------------------------------------------
+
+    if (
+        spec.get("effect")
+        == "GRANT_KEYWORD"
+    ):
+        if (
+            spec.get("keyword") is None
+            and
+            spec.get("static") is not None
+        ):
+            spec["keyword"] = (
+                spec.pop("static")
+            )
+
+        # 有些 parser 把 keyword 放到了 card["statics"]
+        # 如果而且只有一个 static，可以安全恢复。
+        if (
+            spec.get("keyword") is None
+            and
+            card is not None
+        ):
+            statics = card.get(
+                "statics",
+                [],
+            )
+
+            if len(statics) == 1:
+                spec["keyword"] = (
+                    statics[0]
+                )
+
+    # --------------------------------------------------------
+    # STAT_EQUAL_DAMAGE
+    #
+    # 如果 parser 已经给了 amount=EQUAL_POWER /
+    # EQUAL_TOUGHNESS，可以确定性转成 stat。
+    # 如果完全没信息，就不猜。
+    # --------------------------------------------------------
+
+    if (
+        spec.get("effect")
+        == "STAT_EQUAL_DAMAGE"
+        and
+        spec.get("stat") is None
+    ):
+        amount_type = spec.get(
+            "amount"
+        )
+
+        stat_map = {
+            "EQUAL_POWER":
+                "its power",
+
+            "EQUAL_TOUGHNESS":
+                "its toughness",
+
+            "EQUAL_LIFE":
+                "your life total",
+        }
+
+        if amount_type in stat_map:
+            spec["stat"] = (
+                stat_map[amount_type]
+            )
+
+    # --------------------------------------------------------
+    # 你原来的 normalize
+    # --------------------------------------------------------
+
+    spec = normalize_candidate_spec(
+        spec
+    )
+
+    return spec
+
+
+# ============================================================
+# 4. validate
+# ============================================================
+
+def validate_candidate_spec(
+    spec: dict[str, Any],
+    libraries,
+) -> None:
+    """
+    不合法直接 raise。
+
+    这里的 invariant 是：
+
+        validate_candidate_spec(spec)
+        没有抛异常
+        =>
+        spec 至少具备 candidate renderer
+        所要求的所有字段。
+    """
+
+    effect = spec.get(
+        "effect"
+    )
+
+    if effect is None:
+        raise ValueError(
+            f"Missing effect: {spec}"
+        )
+
+    effect_configs = (
+        libraries["effects"]
+        ["candidate_render"]
+    )
+
+    if effect not in effect_configs:
+        raise ValueError(
+            f"Unknown effect: "
+            f"{effect!r}"
+        )
+
+    # --------------------------------------------------------
+    # 自动根据 templates 判断 required slots
+    # --------------------------------------------------------
+
+    required_slots = (
+        get_required_candidate_slots(
+            effect,
+            libraries,
+        )
+    )
+
+    missing = []
+
+    for slot in required_slots:
+
+        if not candidate_slot_exists(
+            spec,
+            slot,
+        ):
+            missing.append(
+                slot
+            )
+
+    if missing:
+        raise ValueError(
+            f"Incomplete candidate spec: "
+            f"effect={effect}, "
+            f"missing={sorted(missing)}, "
+            f"spec={spec}"
+        )
+
+    # --------------------------------------------------------
+    # target 必须存在于 target taxonomy
+    # --------------------------------------------------------
+
+    target = spec.get(
+        "target"
+    )
+
+    if target is not None:
+
+        target_types = (
+            libraries["targets"]
+            ["types"]
+        )
+
+        if target not in target_types:
+            raise ValueError(
+                f"Unknown target "
+                f"{target!r} "
+                f"for effect={effect}"
+            )
+
+    # --------------------------------------------------------
+    # duration
+    # --------------------------------------------------------
+
+    duration = spec.get(
+        "duration"
+    )
+
+    if duration is not None:
+
+        duration_types = (
+            libraries["durations"]
+            ["types"]
+        )
+
+        if duration not in duration_types:
+            raise ValueError(
+                f"Unknown duration "
+                f"{duration!r} "
+                f"for effect={effect}"
+            )
+
+    # --------------------------------------------------------
+    # keyword
+    # --------------------------------------------------------
+
+    keyword = (
+        spec.get("keyword")
+        or
+        spec.get("static")
+    )
+
+    if keyword is not None:
+
+        static_types = (
+            libraries["statics"]
+            ["types"]
+        )
+
+        if keyword not in static_types:
+            raise ValueError(
+                f"Unknown keyword "
+                f"{keyword!r} "
+                f"for effect={effect}"
+            )
+
+    # --------------------------------------------------------
+    # amount taxonomy
+    # --------------------------------------------------------
+
+    amount = spec.get(
+        "amount"
+    )
+
+    if amount is not None:
+
+        amount_types = (
+            libraries["amounts"]
+            ["types"]
+        )
+
+        if amount not in amount_types:
+            raise ValueError(
+                f"Unknown amount "
+                f"{amount!r} "
+                f"for effect={effect}"
+            )
+
+    # --------------------------------------------------------
+    # p / t
+    # --------------------------------------------------------
+
+    if "p" in required_slots:
+        if not isinstance(
+            spec.get("p"),
+            int,
+        ):
+            raise ValueError(
+                f"p must be int: {spec}"
+            )
+
+    if "t" in required_slots:
+        if not isinstance(
+            spec.get("t"),
+            int,
+        ):
+            raise ValueError(
+                f"t must be int: {spec}"
+            )
+
+    # --------------------------------------------------------
+    # ADD_MANA color
+    # --------------------------------------------------------
+
+    if "color" in required_slots:
+
+        valid_colors = {
+            "white",
+            "blue",
+            "black",
+            "red",
+            "green",
+            "colorless",
+        }
+
+        color = spec.get(
+            "color"
+        )
+
+        if color not in valid_colors:
+            raise ValueError(
+                f"Invalid mana color "
+                f"{color!r}: {spec}"
+            )
+
+
+# ============================================================
+# 5. 从 parsed cards 建立真正合法的 binding pool
+# ============================================================
+
+def build_valid_binding_pool(
+    cards,
+    libraries,
+) -> list[dict[str, Any]]:
+    """
+    cards:
+        parsed_cards.jsonl 读出来的 card list
+
+    这里只留下：
+        1. 有 effect
+        2. normalize 后完整
+        3. candidate renderer 所需 slot 全部存在
+        4. taxonomy 合法
+
+    的 bindings。
+    """
+
+    pool = []
+
+    rejected = []
+
+    for card in cards:
+
+        bindings = card.get(
+            "bindings",
+            [],
+        )
+
+        for binding_idx, binding in enumerate(
+            bindings
+        ):
+
+            if not isinstance(
+                binding,
+                Mapping,
+            ):
+                continue
+
+            if not binding.get(
+                "effect"
+            ):
+                continue
+
+            try:
+                spec = prepare_candidate_binding(
+                    binding,
+                    card=card,
+                )
+
+                validate_candidate_spec(
+                    spec,
+                    libraries,
+                )
+
+            except (
+                ValueError,
+                KeyError,
+                TypeError,
+            ) as exc:
+
+                rejected.append({
+                    "card_id":
+                        card.get("card_id"),
+
+                    "binding_idx":
+                        binding_idx,
+
+                    "binding":
+                        deepcopy(binding),
+
+                    "reason":
+                        str(exc),
+                })
+
+                continue
+
+            pool.append(
+                spec
+            )
+
+    return pool
+
+
+# ============================================================
+# 6. 随机生成一个 binding
+# ============================================================
+
+def generate_random_binding(
+    valid_binding_pool,
+    libraries,
+) -> dict[str, Any]:
+    """
+    不再随机 effect 然后猜 slots。
+
+    直接从已经验证过的真实 binding pool 中抽。
+    """
+
+    if not valid_binding_pool:
+        raise ValueError(
+            "valid_binding_pool is empty"
+        )
+
+    spec = deepcopy(
+        random.choice(
+            valid_binding_pool
+        )
+    )
+
+    # 理论上 pool 中都 valid，
+    # 这里再做最后一道 invariant 检查。
+    validate_candidate_spec(
+        spec,
+        libraries,
+    )
+
+    return spec
+
+
+
+
+def get_random_bindings(
+    valid_binding_pool,
+    libraries,
+    min_bindings: int = 1,
+    max_bindings: int = 3,
+    unique_effects: bool = True,
+) -> list[dict[str, Any]]:
+
+    if not valid_binding_pool:
+        raise ValueError(
+            "valid_binding_pool is empty"
+        )
+
+    if min_bindings < 1:
+        raise ValueError(
+            "min_bindings must be >= 1"
+        )
+
+    if max_bindings < min_bindings:
+        raise ValueError(
+            "max_bindings must be >= "
+            "min_bindings"
+        )
+
+    n = random.randint(
+        min_bindings,
+        max_bindings,
+    )
+
+    # --------------------------------------------------------
+    # 不要求 effect 唯一
+    # --------------------------------------------------------
+
+    if not unique_effects:
+
+        return [
+            generate_random_binding(
+                valid_binding_pool,
+                libraries,
+            )
+            for _ in range(n)
+        ]
+
+    # --------------------------------------------------------
+    # 默认：一张随机卡里尽量不要重复 effect
+    # --------------------------------------------------------
+
+    by_effect = {}
+
+    for spec in valid_binding_pool:
+
+        effect = spec.get(
+            "effect"
+        )
+
+        if effect is None:
+            continue
+
+        by_effect.setdefault(
+            effect,
+            []
+        ).append(
+            spec
+        )
+
+    effects = list(
+        by_effect.keys()
+    )
+
+    if not effects:
+        raise ValueError(
+            "No valid effects in "
+            "valid_binding_pool"
+        )
+
+    n = min(
+        n,
+        len(effects),
+    )
+
+    chosen_effects = random.sample(
+        effects,
+        k=n,
+    )
+
+    result = []
+
+    for effect in chosen_effects:
+
+        spec = deepcopy(
+            random.choice(
+                by_effect[effect]
+            )
+        )
+
+        validate_candidate_spec(
+            spec,
+            libraries,
+        )
+
+        result.append(
+            spec
+        )
+
+    return result

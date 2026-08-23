@@ -76,17 +76,30 @@ def fill_candidate_placeholders(
         )
 
     if "{amount}" in text:
-        amount = spec.get("amount_value")
 
-        if amount is None:
-            raise ValueError(
-                f"Missing amount: {spec}"
+        amount_text = (
+            render_candidate_amount(
+                spec,
+                libraries,
             )
+        )
 
         text = text.replace(
             "{amount}",
-            str(amount),
+            amount_text,
         )
+
+        amount = spec.get("amount_value")
+
+        if amount is None:
+            amount_config = (
+                libraries["amounts"]
+                ["types"]
+                .get(spec.get("amount"), {})
+            )
+            amount = amount_config.get(
+                "value"
+            )
 
         if amount == 1:
             text = text.replace(
@@ -96,6 +109,14 @@ def fill_candidate_placeholders(
             text = text.replace(
                 "cards",
                 "card",
+            )
+            text = text.replace(
+                "counters",
+                "counter",
+            )
+            text = text.replace(
+                "points",
+                "point",
             )
             text = text.replace(
                 "that are",
@@ -201,6 +222,71 @@ def format_signed(value: int) -> str:
         return str(value)
 
     return "0"
+
+
+def number_to_words(value) -> str:
+    """Render common integer amounts without leaving a placeholder behind."""
+
+    if not isinstance(value, int) or isinstance(value, bool):
+        return str(value)
+
+    ones = [
+        "zero",
+        "one",
+        "two",
+        "three",
+        "four",
+        "five",
+        "six",
+        "seven",
+        "eight",
+        "nine",
+        "ten",
+        "eleven",
+        "twelve",
+        "thirteen",
+        "fourteen",
+        "fifteen",
+        "sixteen",
+        "seventeen",
+        "eighteen",
+        "nineteen",
+    ]
+
+    if 0 <= value < len(ones):
+        return ones[value]
+
+    if value < 0:
+        return f"negative {number_to_words(-value)}"
+
+    tens = [
+        "",
+        "",
+        "twenty",
+        "thirty",
+        "forty",
+        "fifty",
+        "sixty",
+        "seventy",
+        "eighty",
+        "ninety",
+    ]
+
+    if value < 100:
+        prefix = tens[value // 10]
+        remainder = value % 10
+        if remainder == 0:
+            return prefix
+        return f"{prefix}-{ones[remainder]}"
+
+    if value < 1000:
+        hundreds = f"{ones[value // 100]} hundred"
+        remainder = value % 100
+        if remainder == 0:
+            return hundreds
+        return f"{hundreds} {number_to_words(remainder)}"
+
+    return str(value)
 
 def phrase_is_compatible(
     item: dict,
@@ -396,6 +482,143 @@ def fill_placeholders(
 
     return text
 
+def render_candidate_amount(
+    spec: dict,
+    libraries,
+) -> str:
+
+    amount_type = spec.get("amount")
+    amount_value = spec.get(
+        "amount_value"
+    )
+
+    if amount_type is None:
+        raise ValueError(
+            f"Missing amount: {spec}"
+        )
+
+    amount_types = (
+        libraries["amounts"]["types"]
+    )
+
+    if amount_type not in amount_types:
+        raise ValueError(
+            f"Unknown amount type "
+            f"{amount_type!r}: {spec}"
+        )
+
+    amount_config = (
+        amount_types[amount_type]
+    )
+
+    # -----------------------------------------
+    # N_1 ~ N_5 can carry their value in the
+    # library even when the parser omitted it.
+    # -----------------------------------------
+
+    if amount_value is None:
+        amount_value = amount_config.get(
+            "value"
+        )
+
+    # -----------------------------------------
+    # Candidate amount templates
+    # -----------------------------------------
+
+    candidate_render = (
+        libraries["amounts"]
+        .get(
+            "candidate_render",
+            {}
+        )
+    )
+
+    render_config = (
+        candidate_render.get(
+            amount_type
+        )
+    )
+
+    if render_config is not None:
+
+        templates = render_config.get(
+            "templates"
+        )
+
+        if templates is None:
+            text = render_config.get(
+                "text"
+            )
+            templates = (
+                [text]
+                if text
+                else []
+            )
+
+        if templates:
+            text = random.choice(
+                templates
+            )
+
+            if amount_value is None and (
+                "{n}" in text
+                or "{word_n}" in text
+            ):
+                raise ValueError(
+                    f"Amount template requires "
+                    f"amount_value: {spec}"
+                )
+
+            if amount_value is not None:
+                text = text.replace(
+                    "{n}",
+                    str(amount_value),
+                )
+                text = text.replace(
+                    "{word_n}",
+                    number_to_words(
+                        amount_value
+                    ),
+                )
+
+            if "{p}" in text:
+                p = spec.get("p")
+                if p is None:
+                    raise ValueError(
+                        f"Missing p: {spec}"
+                    )
+                text = text.replace(
+                    "{p}",
+                    format_signed(p),
+                )
+
+            if "{t}" in text:
+                t = spec.get("t")
+                if t is None:
+                    raise ValueError(
+                        f"Missing t: {spec}"
+                    )
+                text = text.replace(
+                    "{t}",
+                    format_signed(t),
+                )
+
+            return text
+
+    # -----------------------------------------
+    # FIXED 没数字不完整
+    # -----------------------------------------
+
+    if amount_type == "FIXED":
+        raise ValueError(
+            f"FIXED amount requires "
+            f"amount_value: {spec}"
+        )
+
+    raise ValueError(
+        f"No candidate rendering for "
+        f"amount={amount_type!r}: {spec}"
+    )
 
 def render_candidate_spec(
     spec,
@@ -497,3 +720,29 @@ def render_candidate_spec(
         text[0].upper()
         + text[1:]
     )
+
+def render_candidate_card(
+    bindings,
+    libraries,
+    shuffle=False,
+):
+    bindings = list(bindings)
+
+    if shuffle:
+        random.shuffle(bindings)
+
+    rendered_parts = []
+
+    for binding in bindings:
+        text = render_candidate_spec(
+            binding,
+            libraries,
+        )
+
+        rendered_parts.append(
+            text.rstrip(".")
+        )
+
+    return ". ".join(
+        rendered_parts
+    ) + "."

@@ -12,7 +12,8 @@
       "p": "power delta",
       "t": "toughness delta"
     },
-    "pool_note": "Pool numeric mass is concentrated on 1–5; N_1..N_5 are first-class slots for graded relevance."
+    "pool_note": "Pool numeric mass is concentrated on 1–5; N_1..N_5 are first-class slots for graded relevance.",
+    "candidate_render_note": "candidate_render is for synthetic card text, not query shorthand. Numeric candidates use complete amount expressions that remain grammatical before damage, life, cards, tokens, mana, and counters; semantic candidates are restricted to their own amount meaning and keep distribution or reference wording explicit."
   },
   "types": {
     "N_1": {
@@ -155,6 +156,233 @@
         "EQUAL_LIFE",
         "FIXED"
       ]
+    }
+  },
+  "candidate_render": {
+    "N_1": {
+      "templates": [
+        "{n}",
+        "{word_n}",
+        "exactly {n}",
+        "exactly {word_n}",
+        "a total of {n}",
+        "a total of {word_n}",
+        "just {n}",
+        "just {word_n}",
+        "only {n}",
+        "only {word_n}"
+      ],
+      "note": "All variants resolve to the fixed value 1; the renderer singularizes count nouns where needed."
+    },
+    "N_2": {
+      "templates": [
+        "{n}",
+        "{word_n}",
+        "exactly {n}",
+        "exactly {word_n}",
+        "a total of {n}",
+        "a total of {word_n}",
+        "just {n}",
+        "just {word_n}",
+        "only {n}",
+        "only {word_n}"
+      ],
+      "note": "All variants resolve to the fixed value 2 without changing the amount semantics."
+    },
+    "N_3": {
+      "templates": [
+        "{n}",
+        "{word_n}",
+        "exactly {n}",
+        "exactly {word_n}",
+        "a total of {n}",
+        "a total of {word_n}",
+        "just {n}",
+        "just {word_n}",
+        "only {n}",
+        "only {word_n}"
+      ],
+      "note": "All variants resolve to the fixed value 3 without changing the amount semantics."
+    },
+    "N_4": {
+      "templates": [
+        "{n}",
+        "{word_n}",
+        "exactly {n}",
+        "exactly {word_n}",
+        "a total of {n}",
+        "a total of {word_n}",
+        "just {n}",
+        "just {word_n}",
+        "only {n}",
+        "only {word_n}"
+      ],
+      "note": "All variants resolve to the fixed value 4 without changing the amount semantics."
+    },
+    "N_5": {
+      "templates": [
+        "{n}",
+        "{word_n}",
+        "exactly {n}",
+        "exactly {word_n}",
+        "a total of {n}",
+        "a total of {word_n}",
+        "just {n}",
+        "just {word_n}",
+        "only {n}",
+        "only {word_n}"
+      ],
+      "note": "All variants resolve to the fixed value 5 without changing the amount semantics."
+    },
+    "FIXED": {
+      "templates": [
+        "{n}",
+        "{word_n}",
+        "exactly {n}",
+        "exactly {word_n}",
+        "a total of {n}",
+        "a total of {word_n}",
+        "just {n}",
+        "just {word_n}",
+        "only {n}",
+        "only {word_n}"
+      ],
+      "note": "Requires a resolved integer amount_value; the renderer fills both numeric and spelled-number forms."
+    },
+    "BUFF_PT": {
+      "templates": [
+        "{p}/{t}",
+        "a {p}/{t} modification",
+        "power {p} and toughness {t}",
+        "{p} power and {t} toughness",
+        "a power change of {p} and a toughness change of {t}",
+        "a power-and-toughness change of {p}/{t}",
+        "power changed by {p} and toughness changed by {t}",
+        "a P/T change of {p}/{t}",
+        "the power adjustment {p} and toughness adjustment {t}",
+        "a modification of {p} to power and {t} to toughness"
+      ],
+      "note": "Requires p and t; every variant preserves the signed power/toughness pair."
+    },
+    "COUNTERS_N": {
+      "templates": [
+        "{n}",
+        "{word_n}",
+        "exactly {n}",
+        "exactly {word_n}",
+        "a total of {n}",
+        "a total of {word_n}",
+        "just {n}",
+        "just {word_n}",
+        "only {n}",
+        "only {word_n}"
+      ],
+      "note": "The count is kept separate from the +1/+1 counter noun so the renderer can handle singular counter wording."
+    },
+    "EQUAL_POWER": {
+      "templates": [
+        "an amount equal to its power",
+        "a quantity equal to its power",
+        "the amount equal to its power",
+        "a value equal to its power",
+        "exactly its power",
+        "the same amount as its power",
+        "the same quantity as its power",
+        "an amount matching its power",
+        "its current power as the amount",
+        "the amount represented by its power"
+      ],
+      "note": "Use only when the surrounding effect identifies the object whose power is being referenced."
+    },
+    "EQUAL_TOUGHNESS": {
+      "templates": [
+        "an amount equal to its toughness",
+        "a quantity equal to its toughness",
+        "the amount equal to its toughness",
+        "a value equal to its toughness",
+        "exactly its toughness",
+        "the same amount as its toughness",
+        "the same quantity as its toughness",
+        "an amount matching its toughness",
+        "its current toughness as the amount",
+        "the amount represented by its toughness"
+      ],
+      "note": "Use only when the surrounding effect identifies the object whose toughness is being referenced."
+    },
+    "EQUAL_LIFE": {
+      "templates": [
+        "an amount equal to your life total",
+        "a quantity equal to your life total",
+        "the amount equal to your life total",
+        "a value equal to your life total",
+        "exactly your life total",
+        "the same amount as your life total",
+        "the same quantity as your life total",
+        "an amount matching your life total",
+        "your current life total as the amount",
+        "the amount represented by your life total"
+      ],
+      "note": "Every variant preserves equality with your life total; it does not mean life gained or life lost."
+    },
+    "EQUAL_COUNT": {
+      "templates": [
+        "an amount equal to the relevant count",
+        "a quantity equal to the number counted",
+        "the amount equal to the counted number",
+        "a value equal to the relevant count",
+        "exactly the counted amount",
+        "the current relevant count",
+        "the number counted by this effect",
+        "an amount matching the relevant count",
+        "the count used as the amount",
+        "the number of matching objects"
+      ],
+      "note": "The surrounding effect must identify what is being counted; no object type is invented here."
+    },
+    "VARIABLE_X": {
+      "templates": [
+        "X",
+        "the value of X",
+        "the chosen value of X",
+        "the amount represented by X",
+        "exactly X",
+        "a value of X",
+        "a quantity of X",
+        "the chosen amount X",
+        "the value chosen for X",
+        "the amount chosen for X"
+      ],
+      "note": "All variants retain an open variable X rather than turning it into a fixed number."
+    },
+    "DIVIDED": {
+      "templates": [
+        "divided among the targets",
+        "split among the targets",
+        "distributed among the targets",
+        "divided as evenly as possible among the targets",
+        "assigned among the targets",
+        "shared among the targets",
+        "distributed across the targets",
+        "allocated among the targets",
+        "divided among those targets",
+        "split as evenly as possible among the targets"
+      ],
+      "note": "This is a distribution instruction, not an extra amount; the total and target set must come from the surrounding effect."
+    },
+    "THAT_MUCH": {
+      "templates": [
+        "that much",
+        "the same amount",
+        "an equal amount",
+        "the same quantity",
+        "that exact amount",
+        "the amount already determined",
+        "the amount just dealt",
+        "the amount just gained",
+        "the matching amount",
+        "the corresponding amount"
+      ],
+      "note": "The surrounding effect must provide the earlier amount or event being referenced."
     }
   },
   "phrases": {
