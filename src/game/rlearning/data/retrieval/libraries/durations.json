@@ -96,8 +96,15 @@
       "mode": "suffix",
       "phrases": [
         "until end of turn",
-        "until end of this turn",
-        "until the end of the turn"
+        "until the end of this turn",
+        "until this turn ends",
+        "for the rest of this turn",
+        "until the end of the turn",
+        "through the end of this turn",
+        "until the current turn ends",
+        "until the turn ends",
+        "for the remainder of the turn",
+        "until the end of the current turn"
       ],
       "note": "Use only as a duration suffix when the effect does not already express an end-of-turn expiry."
     },
@@ -105,7 +112,15 @@
       "mode": "suffix",
       "phrases": [
         "this turn",
-        "during this turn"
+        "during this turn",
+        "for this turn",
+        "during the current turn",
+        "for the current turn",
+        "while this turn lasts",
+        "while the current turn continues",
+        "during the remainder of this turn",
+        "for the remainder of this turn",
+        "through this turn"
       ],
       "note": "Use only when the effect is a current-turn restriction or window; do not append it to an effect that already states its timing."
     },
@@ -113,7 +128,15 @@
       "mode": "delayed",
       "phrases": [
         "at the beginning of the next end step",
-        "at the start of the next end step"
+        "at the start of the next end step",
+        "when the next end step begins",
+        "as the next end step begins",
+        "at the beginning of the following end step",
+        "when the following end step starts",
+        "at the next end step",
+        "during the next end step",
+        "at the beginning of the next end step of this turn",
+        "when the next end step starts"
       ],
       "note": "Pass to a delayed-trigger or timing renderer; do not append as an ordinary duration suffix to the effect."
     },
@@ -121,7 +144,15 @@
       "mode": "clause",
       "phrases": [
         "It doesn't untap during its controller's next untap step.",
-        "It skips its next untap step."
+        "It doesn't untap during the next untap step of its controller.",
+        "It remains tapped through its controller's next untap step.",
+        "It skips untapping during its controller's next untap step.",
+        "It stays tapped during its controller's next untap step.",
+        "It doesn't untap at its controller's next untap step.",
+        "It fails to untap during its controller's next untap step.",
+        "It remains tapped as its controller takes its next untap step.",
+        "It won't untap during its controller's next untap step.",
+        "It stays tapped through its controller's next untap step."
       ],
       "note": "Emit as a complete follow-up clause, with the subject resolved from the target; do not treat it as a simple suffix."
     },
@@ -129,7 +160,15 @@
       "mode": "suffix",
       "phrases": [
         "as long as you control it",
-        "while you control this permanent"
+        "while you control it",
+        "for as long as you control it",
+        "as long as you control this permanent",
+        "while you control this permanent",
+        "for as long as you control this permanent",
+        "as long as it remains under your control",
+        "while it remains under your control",
+        "as long as this permanent remains under your control",
+        "while this permanent is under your control"
       ],
       "note": "Resolve the pronoun and subject against the candidate target or permanent name before rendering."
     },
@@ -137,7 +176,15 @@
       "mode": "suffix",
       "phrases": [
         "until it leaves the battlefield",
-        "until this permanent leaves the battlefield"
+        "until this permanent leaves the battlefield",
+        "until that permanent leaves the battlefield",
+        "until the permanent leaves the battlefield",
+        "until the affected permanent leaves the battlefield",
+        "until it leaves play",
+        "until this permanent leaves play",
+        "while it remains on the battlefield",
+        "as long as it remains on the battlefield",
+        "until it is no longer on the battlefield"
       ],
       "note": "Resolve it or this permanent against the candidate subject; use as a suffix only when the effect lasts until that subject leaves the battlefield."
     },
@@ -155,7 +202,15 @@
       "mode": "delayed",
       "phrases": [
         "at the beginning of your next main phase",
-        "at the start of your next main phase"
+        "at the start of your next main phase",
+        "when your next main phase begins",
+        "as your next main phase begins",
+        "at the beginning of the next main phase",
+        "at the start of the next main phase",
+        "when the next main phase begins",
+        "as the next main phase starts",
+        "at the beginning of your following main phase",
+        "when your following main phase begins"
       ],
       "note": "Pass to a delayed-trigger or timing renderer; do not append as an ordinary duration suffix to the effect."
     },

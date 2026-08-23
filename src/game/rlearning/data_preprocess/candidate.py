@@ -1020,16 +1020,9 @@ def generate_valid_spec_for_effect(
 
     return spec
 
-
 def normalize_candidate_spec(
     spec: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """
-    清理 candidate spec：
-    1. 删除和 effect 不兼容的 slot
-    2. 补充必要 slot
-    3. 保持 amount / amount_value 一致
-    """
 
     spec = deepcopy(dict(spec))
 
@@ -1039,14 +1032,13 @@ def normalize_candidate_spec(
         return spec
 
     # ========================================================
-    # 完全不需要 target 的 effects
+    # 1. 真正没有 target semantic slot 的 effects
     # ========================================================
 
     NO_TARGET_EFFECTS = {
         "DRAW",
         "SCRY",
         "CREATE_TOKEN",
-        "PREVENT_DAMAGE",
         "ADD_MANA",
         "EXTRA_TURN",
     }
@@ -1055,14 +1047,15 @@ def normalize_candidate_spec(
         spec.pop("target", None)
 
     # ========================================================
-    # spell target
+    # 2. COUNTER_SPELL
+    # target 固定为 SPELL
     # ========================================================
 
     if effect == "COUNTER_SPELL":
         spec["target"] = "SPELL"
 
     # ========================================================
-    # library
+    # 3. Search family
     # ========================================================
 
     if effect in {
@@ -1073,50 +1066,64 @@ def normalize_candidate_spec(
         spec["target"] = "LIBRARY_CARD"
 
     # ========================================================
-    # graveyard
+    # 4. Reanimate
     # ========================================================
 
     if effect == "REANIMATE":
         spec["target"] = "GRAVEYARD_CREATURE"
 
     # ========================================================
-    # damage each
+    # 5. DAMAGE_EACH
+    # 不要静默改变已有语义
     # ========================================================
 
     if effect == "DAMAGE_EACH":
 
-        if spec.get("target") not in {
+        valid_targets = {
             "EACH_CREATURE",
             "ALL_CREATURES",
             "EACH_OPPONENT",
             "CREATURES_YOU_CONTROL",
-        }:
+        }
+
+        target = spec.get("target")
+
+        # 只有完全缺失时才补默认值
+        if target is None:
             spec["target"] = "EACH_CREATURE"
 
+        # 有值但是非法，直接报错
+        elif target not in valid_targets:
+            raise ValueError(
+                f"Invalid target {target!r} "
+                f"for DAMAGE_EACH: {spec}"
+            )
+
     # ========================================================
-    # temporary buff
+    # 6. TEMP_BUFF
     # ========================================================
 
     if effect == "TEMP_BUFF":
-
         if "duration" not in spec:
             spec["duration"] = "UNTIL_EOT"
 
     # ========================================================
-    # counters
+    # 7. PLUS1_COUNTER
     # ========================================================
 
     if effect == "PLUS1_COUNTER":
-
         spec["duration"] = "PERMANENT"
 
     # ========================================================
-    # extra turn
+    # 8. EXTRA_TURN
     # ========================================================
 
     if effect == "EXTRA_TURN":
 
-        spec["duration"] = "EXTRA_TURN"
+        # 我更建议不要强制 duration=EXTRA_TURN
+        # effect 本身已经表达 extra turn
+
+        spec.pop("duration", None)
 
         for key in [
             "target",
@@ -1129,25 +1136,22 @@ def normalize_candidate_spec(
             spec.pop(key, None)
 
     # ========================================================
-    # keyword 只有 GRANT_KEYWORD 需要
+    # 9. keyword
     # ========================================================
 
     if effect != "GRANT_KEYWORD":
         spec.pop("keyword", None)
 
     # ========================================================
-    # p/t 通常只对 buff/counter 有意义
+    # 10. p / t
     # ========================================================
 
-    if effect not in {
-        "TEMP_BUFF",
-        "PLUS1_COUNTER",
-    }:
+    if effect != "TEMP_BUFF":
         spec.pop("p", None)
         spec.pop("t", None)
 
     # ========================================================
-    # amount consistency
+    # 11. amount consistency
     # ========================================================
 
     amount_value = spec.get(
@@ -1157,6 +1161,7 @@ def normalize_candidate_spec(
     if isinstance(amount_value, int):
 
         if 1 <= amount_value <= 5:
+
             spec["amount"] = (
                 f"N_{amount_value}"
             )
@@ -1168,8 +1173,7 @@ def normalize_candidate_spec(
             "N_4",
             "N_5",
         }:
+
             spec["amount"] = "FIXED"
 
     return spec
-
-

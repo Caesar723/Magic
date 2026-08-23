@@ -237,122 +237,301 @@
   "candidate_render": {
     "CREATURE": {
       "phrases": [
-        "target creature"
+        "target creature",
+        "one target creature",
+        "target creature of your choice",
+        "target creature you choose",
+        "the target creature",
+        "that target creature",
+        "target creature on the battlefield",
+        "target creature on the field",
+        "a creature you choose",
+        "a creature of your choice"
       ],
       "note": "Use as a direct object after to, or after an effect verb such as destroy."
     },
     "CREATURE_YOU_CONTROL": {
       "phrases": [
-        "target creature you control"
+        "target creature you control",
+        "one target creature you control",
+        "target creature under your control",
+        "a target creature you control",
+        "a creature controlled by you",
+        "a creature you control",
+        "a creature under your control",
+        "one of your creatures",
+        "one creature you control",
+        "a creature on your side"
       ],
       "note": "Keep target and controller restriction together so effect templates do not duplicate either phrase."
     },
     "CREATURE_OPPONENT": {
       "phrases": [
-        "target creature an opponent controls"
+        "target creature an opponent controls",
+        "one target creature an opponent controls",
+        "target creature controlled by an opponent",
+        "a target creature an opponent controls",
+        "target opposing creature",
+        "an opposing creature",
+        "a creature controlled by an opponent",
+        "one of an opponent's creatures",
+        "a creature an opponent controls",
+        "target creature on an opponent's side"
       ],
       "note": "Use the complete opponent-control restriction as the target fragment."
     },
     "CREATURES_YOU_CONTROL": {
       "phrases": [
-        "each creature you control"
+        "each creature you control",
+        "each creature under your control",
+        "each creature on your side",
+        "each of your creatures",
+        "each creature you control on the battlefield",
+        "each creature under your control on the battlefield",
+        "each creature you control that is on the battlefield",
+        "each of the creatures you control",
+        "each creature on your battlefield",
+        "each creature you control in play"
       ],
       "note": "Use each rather than all so templates such as each creature you control gets remain grammatical."
     },
     "ANY": {
       "phrases": [
-        "any target"
+        "any target",
+        "a legal target",
+        "any legal target",
+        "one target of your choice",
+        "any target of your choice",
+        "a target of your choice",
+        "one legal target",
+        "any target you choose",
+        "a target you choose",
+        "one target you choose"
       ],
       "note": "This phrase already contains target; effect templates must not add another target word."
     },
     "PLAYER": {
       "phrases": [
-        "target player"
+        "target player",
+        "one target player",
+        "a target player",
+        "target player of your choice",
+        "a player of your choice",
+        "one player of your choice",
+        "target player you choose",
+        "a player you choose",
+        "the target player",
+        "that target player"
       ],
       "note": "Use as a complete player target fragment."
     },
     "OPPONENT": {
       "phrases": [
-        "target opponent"
+        "target opponent",
+        "one target opponent",
+        "a target opponent",
+        "target opponent of your choice",
+        "an opponent of your choice",
+        "one opponent of your choice",
+        "target opponent you choose",
+        "an opponent you choose",
+        "the target opponent",
+        "that target opponent"
       ],
       "note": "Use as a complete opponent target fragment or as the subject of an opponent-directed effect."
     },
     "EACH_OPPONENT": {
       "phrases": [
-        "each opponent"
+        "each opponent",
+        "each one of your opponents",
+        "each opponent you have",
+        "each opposing player",
+        "each opponent in the game",
+        "each opponent currently in the game",
+        "each opponent who can be affected",
+        "every opponent",
+        "every one of your opponents",
+        "each opponent who is still in the game"
       ],
       "note": "The mass quantifier belongs here; effect templates should not add another each."
     },
     "EACH_CREATURE": {
       "phrases": [
-        "each creature"
+        "each creature",
+        "all creatures",
+        "each creature on the battlefield",
+        "all creatures on the battlefield",
+        "each creature in play",
+        "each creature currently on the battlefield",
+        "every creature",
+        "every creature on the battlefield",
+        "each creature that can be affected",
+        "all affected creatures"
       ],
       "note": "Use as a complete mass target fragment."
     },
     "ALL_CREATURES": {
       "phrases": [
-        "all creatures"
+        "all creatures",
+        "each creature",
+        "all creatures on the battlefield",
+        "each creature on the battlefield",
+        "all creatures in play",
+        "every creature",
+        "every creature on the battlefield",
+        "all creatures currently on the battlefield",
+        "all affected creatures",
+        "each creature that can be affected"
       ],
       "note": "Use only where the effect semantics support an all-creatures scope."
     },
     "SELF": {
       "phrases": [
         "this permanent",
-        "it"
+        "it",
+        "this object",
+        "the permanent itself",
+        "this permanent itself",
+        "the permanent",
+        "the object",
+        "this object itself",
+        "itself",
+        "the affected permanent"
       ],
       "note": "The renderer should choose the subject form that agrees with the effect template and surrounding sentence."
     },
     "YOU": {
       "phrases": [
-        "you"
+        "you",
+        "yourself",
+        "you, the controller",
+        "you as the controller",
+        "the controller",
+        "the controller of this spell",
+        "the controller of this ability",
+        "the player controlling this effect",
+        "the player controlling this spell",
+        "the player who controls this permanent"
       ],
       "note": "Use as a subject or direct object without adding target."
     },
     "PERMANENT": {
       "phrases": [
-        "target permanent"
+        "target permanent",
+        "one target permanent",
+        "a target permanent",
+        "target permanent of your choice",
+        "target permanent you choose",
+        "the target permanent",
+        "that target permanent",
+        "target permanent on the battlefield",
+        "a permanent of your choice",
+        "one permanent you choose"
       ],
       "note": "Use as a complete permanent target fragment."
     },
     "NONLAND_PERMANENT": {
       "phrases": [
-        "target nonland permanent"
+        "target nonland permanent",
+        "one target nonland permanent",
+        "a target nonland permanent",
+        "target nonland permanent of your choice",
+        "target nonland permanent you choose",
+        "the target nonland permanent",
+        "that target nonland permanent",
+        "target nonland permanent on the battlefield",
+        "a nonland permanent of your choice",
+        "one nonland permanent you choose"
       ],
       "note": "Keep the nonland restriction in the target fragment."
     },
     "SPELL": {
       "phrases": [
-        "target spell"
+        "target spell",
+        "one target spell",
+        "a target spell",
+        "target spell of your choice",
+        "target spell you choose",
+        "the target spell",
+        "that target spell",
+        "target spell on the stack",
+        "a spell of your choice",
+        "one spell you choose"
       ],
       "note": "Use as a complete spell target fragment."
     },
     "ARTIFACT_OR_ENCHANTMENT": {
       "phrases": [
-        "target artifact or enchantment"
+        "target artifact or enchantment",
+        "one target artifact or enchantment",
+        "a target artifact or enchantment",
+        "target artifact or enchantment of your choice",
+        "target artifact or enchantment you choose",
+        "the target artifact or enchantment",
+        "that target artifact or enchantment",
+        "target artifact or enchantment on the battlefield",
+        "an artifact or enchantment of your choice",
+        "one artifact or enchantment you choose"
       ],
       "note": "Use as a complete artifact-or-enchantment target fragment."
     },
     "RANDOM_CREATURE": {
       "phrases": [
-        "a random creature"
+        "a random creature",
+        "one random creature",
+        "a randomly chosen creature",
+        "a creature chosen at random",
+        "one creature chosen at random",
+        "a random creature on the battlefield",
+        "a random creature in play",
+        "a random legal creature",
+        "a randomly selected creature",
+        "one randomly selected creature"
       ],
       "note": "Do not add target; random selection is expressed by the fragment itself."
     },
     "RANDOM_PERMANENT": {
       "phrases": [
-        "a random permanent"
+        "a random permanent",
+        "one random permanent",
+        "a randomly chosen permanent",
+        "a permanent chosen at random",
+        "one permanent chosen at random",
+        "a random permanent on the battlefield",
+        "a random permanent in play",
+        "a random legal permanent",
+        "a randomly selected permanent",
+        "one randomly selected permanent"
       ],
       "note": "Do not add target; random selection is expressed by the fragment itself."
     },
     "GRAVEYARD_CREATURE": {
       "phrases": [
-        "target creature card"
+        "target creature card",
+        "one target creature card",
+        "a target creature card",
+        "the target creature card",
+        "that target creature card",
+        "target creature card of your choice",
+        "target creature card you choose",
+        "a creature card of your choice",
+        "one creature card you choose",
+        "the chosen creature card"
       ],
       "note": "The reanimation effect template supplies the graveyard zone, avoiding duplicate wording such as from your graveyard twice."
     },
     "LIBRARY_CARD": {
       "phrases": [
-        "a card"
+        "a card",
+        "one card",
+        "a card of your choice",
+        "one card of your choice",
+        "a card you choose",
+        "one card you choose",
+        "a card that meets the stated criteria",
+        "one card that meets the stated criteria",
+        "a card of the chosen type",
+        "a card with the chosen characteristics"
       ],
       "note": "Search and put-onto-battlefield effect templates supply the library context; do not use a query fragment such as card you tutor."
     }

@@ -223,137 +223,302 @@
     "ETB": {
       "templates": [
         "When this permanent enters the battlefield",
-        "Whenever this permanent enters the battlefield"
+        "Whenever this permanent enters the battlefield",
+        "When this permanent enters play",
+        "Whenever this permanent enters play",
+        "When it enters the battlefield",
+        "Whenever it enters the battlefield",
+        "When this permanent enters the battlefield under your control",
+        "Whenever this permanent enters the battlefield under your control",
+        "When this permanent comes onto the battlefield",
+        "Upon this permanent entering the battlefield"
       ],
       "note": "Complete self-entry trigger prefix; effect text is supplied separately."
     },
     "ETB_OR_ATTACK": {
       "templates": [
         "When this creature enters the battlefield or attacks",
-        "Whenever this creature enters the battlefield or attacks"
+        "Whenever this creature enters the battlefield or attacks",
+        "When this creature enters play or attacks",
+        "Whenever this creature enters play or attacks",
+        "When this creature enters the battlefield or declares an attack",
+        "Whenever this creature enters the battlefield or declares an attack",
+        "When this creature enters the battlefield or becomes an attacker",
+        "Whenever this creature enters the battlefield or becomes an attacker",
+        "When this creature comes onto the battlefield or attacks",
+        "Whenever this creature comes onto the battlefield or attacks"
       ],
       "note": "Keep both events in the trigger prefix and do not add effect wording."
     },
     "ATTACK": {
       "templates": [
         "When this creature attacks",
-        "Whenever this creature attacks"
+        "Whenever this creature attacks",
+        "When this creature declares an attack",
+        "Whenever this creature declares an attack",
+        "When this creature is declared as an attacker",
+        "Whenever this creature is declared as an attacker",
+        "As this creature attacks",
+        "As this creature declares an attack",
+        "Upon this creature attacking",
+        "Whenever this creature becomes an attacker"
       ],
       "note": "Use as a complete attack trigger prefix."
     },
     "DEFEND": {
       "templates": [
         "When this creature blocks",
-        "Whenever this creature blocks"
+        "Whenever this creature blocks",
+        "When this creature becomes a blocker",
+        "Whenever this creature becomes a blocker",
+        "When this creature is declared as a blocker",
+        "Whenever this creature is declared as a blocker",
+        "As this creature blocks",
+        "As this creature becomes a blocker",
+        "Upon this creature blocking",
+        "When this creature blocks during combat"
       ],
       "note": "Use Oracle-like blocks wording rather than the query synonym defends."
     },
     "DIES": {
       "templates": [
         "When this creature dies",
-        "Whenever this creature dies"
+        "Whenever this creature dies",
+        "When this creature is put into a graveyard from the battlefield",
+        "Whenever this creature is put into a graveyard from the battlefield",
+        "When this creature is put into a graveyard",
+        "Whenever this creature is put into a graveyard",
+        "When this creature is put into a graveyard from play",
+        "Whenever this creature is put into a graveyard from play",
+        "When this creature moves from the battlefield to a graveyard",
+        "Whenever this creature moves from the battlefield to a graveyard"
       ],
       "note": "Use as a complete self-dies trigger prefix."
     },
     "CREATURE_DIES": {
       "templates": [
         "When a creature dies",
-        "Whenever a creature dies"
+        "Whenever a creature dies",
+        "When a creature is put into a graveyard from the battlefield",
+        "Whenever a creature is put into a graveyard from the battlefield",
+        "When any creature dies",
+        "Whenever any creature dies",
+        "When a creature is put into a graveyard from play",
+        "Whenever a creature is put into a graveyard from play",
+        "When a creature moves from the battlefield to a graveyard",
+        "Whenever a creature moves from the battlefield to a graveyard"
       ],
       "note": "The any-creature scope is expressed directly in the trigger prefix."
     },
     "SELF_DEALT_DAMAGE": {
       "templates": [
         "When this creature is dealt damage",
-        "Whenever this creature is dealt damage"
+        "Whenever this creature is dealt damage",
+        "When damage is dealt to this creature",
+        "Whenever damage is dealt to this creature",
+        "When this creature takes damage",
+        "Whenever this creature takes damage",
+        "When this creature is damaged",
+        "Whenever this creature is damaged",
+        "When this creature receives damage",
+        "Whenever this creature receives damage"
       ],
       "note": "Use incoming-damage wording; do not confuse it with this source dealing damage."
     },
     "DEALS_DAMAGE": {
       "templates": [
         "When this creature deals damage",
-        "Whenever this creature deals damage"
+        "Whenever this creature deals damage",
+        "When this creature deals combat damage",
+        "Whenever this creature deals combat damage",
+        "When damage is dealt by this creature",
+        "Whenever damage is dealt by this creature",
+        "When this creature deals any damage",
+        "Whenever this creature deals any damage",
+        "When this creature deals damage to something",
+        "Whenever this creature deals damage to something"
       ],
       "note": "Use outgoing-damage wording; this is broader than attacking."
     },
     "UPKEEP": {
       "templates": [
-        "At the beginning of your upkeep"
+        "At the beginning of your upkeep",
+        "At the start of your upkeep",
+        "At the beginning of your upkeep step",
+        "At the start of your upkeep step",
+        "At the beginning of each of your upkeeps",
+        "At the start of each of your upkeeps",
+        "When your upkeep begins",
+        "Whenever your upkeep begins",
+        "As your upkeep begins",
+        "As each of your upkeeps begins"
       ],
       "note": "Complete upkeep timing prefix."
     },
     "END_STEP": {
       "templates": [
-        "At the beginning of the next end step"
+        "At the beginning of the next end step",
+        "At the start of the next end step",
+        "When the next end step begins",
+        "As the next end step begins",
+        "At the beginning of the following end step",
+        "At the start of the following end step",
+        "When the following end step begins",
+        "At the next end step",
+        "As the next end step starts",
+        "When the next end step starts"
       ],
       "note": "This is a delayed timing prefix, not an effect suffix."
     },
     "MAIN_PHASE": {
       "templates": [
-        "At the beginning of your next main phase"
+        "At the beginning of your next main phase",
+        "At the start of your next main phase",
+        "When your next main phase begins",
+        "As your next main phase begins",
+        "At the beginning of the next main phase",
+        "At the start of the next main phase",
+        "When the next main phase begins",
+        "As the next main phase starts",
+        "At the beginning of your following main phase",
+        "When your following main phase begins"
       ],
       "note": "This is a delayed timing prefix, not an effect suffix."
     },
     "CAST_SPELL": {
       "templates": [
         "When you cast a spell",
-        "Whenever you cast a spell"
+        "Whenever you cast a spell",
+        "When you cast any spell",
+        "Whenever you cast any spell",
+        "When a spell is cast by you",
+        "Whenever a spell is cast by you",
+        "When you cast a spell from anywhere",
+        "Whenever you cast a spell from anywhere",
+        "When you cast any type of spell",
+        "Whenever you cast any type of spell"
       ],
       "note": "Use complete cast-event wording without adding the spell effect."
     },
     "CAST_INSTANT_SORCERY": {
       "templates": [
         "When you cast an instant or sorcery spell",
-        "Whenever you cast an instant or sorcery spell"
+        "Whenever you cast an instant or sorcery spell",
+        "When you cast an instant or a sorcery spell",
+        "Whenever you cast an instant or a sorcery spell",
+        "When you cast an instant or sorcery",
+        "Whenever you cast an instant or sorcery",
+        "When an instant or sorcery spell is cast by you",
+        "Whenever an instant or sorcery spell is cast by you",
+        "When you cast a noncreature spell that is an instant or sorcery",
+        "Whenever you cast a noncreature spell that is an instant or sorcery"
       ],
       "note": "Keep the instant-or-sorcery restriction in the trigger prefix."
     },
     "CAST_CREATURE_SPELL": {
       "templates": [
         "When you cast a creature spell",
-        "Whenever you cast a creature spell"
+        "Whenever you cast a creature spell",
+        "When you cast any creature spell",
+        "Whenever you cast any creature spell",
+        "When a creature spell is cast by you",
+        "Whenever a creature spell is cast by you",
+        "When you cast a creature card as a spell",
+        "Whenever you cast a creature card as a spell",
+        "When you cast a creature spell this way",
+        "Whenever you cast a creature spell this way"
       ],
       "note": "Use complete creature-spell cast wording."
     },
     "CAST_COLORED_SPELL": {
       "templates": [
         "When you cast a colored spell",
-        "Whenever you cast a colored spell"
+        "Whenever you cast a colored spell",
+        "When you cast a spell with a color",
+        "Whenever you cast a spell with a color",
+        "When a colored spell is cast by you",
+        "Whenever a colored spell is cast by you",
+        "When you cast a spell that is colored",
+        "Whenever you cast a spell that is colored",
+        "When you cast any colored spell",
+        "Whenever you cast any colored spell"
       ],
       "note": "Use colored spell as the event restriction; do not insert a color query phrase."
     },
     "CONSTELLATION": {
       "templates": [
         "When an enchantment enters the battlefield under your control",
-        "Whenever an enchantment enters the battlefield under your control"
+        "Whenever an enchantment enters the battlefield under your control",
+        "When an enchantment enters the battlefield that you control",
+        "Whenever an enchantment enters the battlefield that you control",
+        "When an enchantment enters play under your control",
+        "Whenever an enchantment enters play under your control",
+        "When you control an enchantment that enters the battlefield",
+        "Whenever you control an enchantment that enters the battlefield",
+        "When an enchantment comes onto the battlefield under your control",
+        "Whenever an enchantment comes onto the battlefield under your control"
       ],
       "note": "Expand the constellation shorthand into its enchantment-entry event."
     },
     "OPPONENT_PROLIFERATES": {
       "templates": [
         "When an opponent proliferates",
-        "Whenever an opponent proliferates"
+        "Whenever an opponent proliferates",
+        "When your opponent proliferates",
+        "Whenever your opponent proliferates",
+        "When an opponent chooses to proliferate",
+        "Whenever an opponent chooses to proliferate",
+        "When proliferation by an opponent occurs",
+        "Whenever proliferation by an opponent occurs",
+        "When an opposing player proliferates",
+        "Whenever an opposing player proliferates"
       ],
       "note": "Use opponent proliferates as the complete event."
     },
     "LAND_ENTERS": {
       "templates": [
         "When this land enters the battlefield",
-        "Whenever this land enters the battlefield"
+        "Whenever this land enters the battlefield",
+        "When this land enters play",
+        "Whenever this land enters play",
+        "When it enters the battlefield as a land",
+        "Whenever it enters the battlefield as a land",
+        "When this land comes onto the battlefield",
+        "Whenever this land comes onto the battlefield",
+        "Upon this land entering the battlefield",
+        "Whenever this land enters the battlefield under your control"
       ],
       "note": "Keep land-entry wording distinct from creature ETB."
     },
     "LAND_MANA": {
       "mode": "omit",
       "templates": [
-        "Tap this land: Add one mana of any color"
+        "Tap this land: Add one mana of any color",
+        "Tap this land: Add one mana of any color to your mana pool",
+        "Tap this land: Add one mana of a chosen color",
+        "Tap: Add one mana of any color",
+        "Tap this land to add one mana of any color",
+        "Tap this land for one mana of any color",
+        "Tap this land: Add one mana of a color of your choice",
+        "Tap this land: Add one mana of a color you choose",
+        "Tap this land: Add one mana of any color you choose",
+        "Tap this land to produce one mana of any color"
       ],
       "note": "This is a mana ability, not a triggered prefix; omit it from trigger-plus-effect composition."
     },
     "LAND_ACTIVATED": {
       "mode": "omit",
       "templates": [
-        "Tap this land:"
+        "Tap this land:",
+        "Tap this land to activate its ability:",
+        "Pay the activation cost and tap this land:",
+        "Tap this land and pay the activation cost:",
+        "Activate this land's ability:",
+        "Tap this land to activate its ability:",
+        "Pay the activation cost, then tap this land:",
+        "Tap this land as an activation cost:",
+        "Use this land's activated ability:",
+        "Activate this land by tapping it:"
       ],
       "note": "This is an activated ability, not a triggered prefix; omit it from trigger-plus-effect composition."
     }

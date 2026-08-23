@@ -88,26 +88,63 @@ def fill_candidate_placeholders(
             str(amount),
         )
 
+        if amount == 1:
+            text = text.replace(
+                "tokens",
+                "token",
+            )
+            text = text.replace(
+                "cards",
+                "card",
+            )
+            text = text.replace(
+                "that are",
+                "that is",
+            )
+
+    # p / t
     if "{p}" in text:
-        if spec.get("p") is None:
+        p = spec.get("p")
+
+        if p is None:
             raise ValueError(
                 f"Missing p: {spec}"
             )
 
         text = text.replace(
             "{p}",
-            str(spec["p"]),
+            format_signed(p),
         )
 
     if "{t}" in text:
-        if spec.get("t") is None:
+        t = spec.get("t")
+
+        if t is None:
             raise ValueError(
                 f"Missing t: {spec}"
             )
 
         text = text.replace(
             "{t}",
-            str(spec["t"]),
+            format_signed(t),
+        )
+
+    if "{stat}" in text:
+        amount_type = spec.get("amount")
+
+        stat = {
+            "EQUAL_POWER": "its power",
+            "EQUAL_TOUGHNESS": "its toughness",
+        }.get(amount_type)
+
+        if stat is None:
+            raise ValueError(
+                f"Missing stat selector: {spec}"
+            )
+
+        text = text.replace(
+            "{stat}",
+            stat,
         )
 
     if "{keyword}" in text:
@@ -407,8 +444,16 @@ def render_candidate_spec(
         [effect_type]
     )
 
+    templates = config.get(
+        "templates_by_target",
+        {},
+    ).get(
+        spec.get("target"),
+        config["templates"],
+    )
+
     template = random.choice(
-        config["templates"]
+        templates
     )
 
     body = fill_candidate_placeholders(

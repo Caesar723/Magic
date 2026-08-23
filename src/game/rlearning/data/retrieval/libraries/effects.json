@@ -8,6 +8,7 @@
     "phrase_style_balance": "~5 oracle_template, ~7 shorthand, ~8 natural_language per slot",
     "placeholders": {
       "amount": "numeric magnitude (damage, life, cards, counters)",
+      "stat": "source statistic phrase selected from EQUAL_POWER or EQUAL_TOUGHNESS",
       "p": "power component of buff",
       "t": "toughness component of buff",
       "keyword": "static ability name (flying, lifelink, ...)",
@@ -243,158 +244,405 @@
   "candidate_render": {
     "DEAL_DAMAGE": {
       "templates": [
-        "Deal {amount} damage to {target}"
+        "Deal {amount} damage to {target}",
+        "Deal {amount} damage directly to {target}",
+        "Deal {amount} damage to {target} of your choice",
+        "Deal {amount} damage to {target} you choose",
+        "Have {target} take {amount} damage",
+        "Cause {target} to take {amount} damage",
+        "{target} takes {amount} damage",
+        "{target} is dealt {amount} damage",
+        "Deal {amount} points of damage to {target}",
+        "Assign {amount} damage to {target}"
       ],
       "note": "The target placeholder supplies the target phrase; keep the damage action here and do not add duration wording."
     },
     "DAMAGE_EACH": {
       "templates": [
-        "Deal {amount} damage to {target}"
+        "Deal {amount} damage to {target}",
+        "Deal {amount} damage to {target} simultaneously",
+        "Deal {amount} damage to {target} all at once",
+        "Deal {amount} damage to {target} at the same time",
+        "Deal {amount} damage to {target} in a single event",
+        "Deal {amount} damage to {target} as one effect",
+        "Have {target} take {amount} damage",
+        "Cause {target} to take {amount} damage",
+        "Apply {amount} damage to {target}",
+        "Inflict {amount} damage on {target}"
       ],
       "note": "Use a mass target phrase such as each creature or each opponent; do not hard-code a second each."
     },
     "STAT_EQUAL_DAMAGE": {
       "templates": [
-        "Deal damage equal to its power to {target}",
-        "Deal damage equal to its toughness to {target}"
+        "Deal damage equal to {stat} to {target}",
+        "Deal an amount of damage equal to {stat} to {target}",
+        "{target} is dealt damage equal to {stat}",
+        "Deal to {target} an amount of damage equal to {stat}",
+        "Inflict damage equal to {stat} on {target}",
+        "Cause {target} to be dealt damage equal to {stat}",
+        "Deal damage equal to the value of {stat} to {target}",
+        "Deal to {target} damage equal to {stat}",
+        "Have {target} take damage equal to {stat}",
+        "Deal a quantity of damage equal to {stat} to {target}"
       ],
       "note": "The selected template must agree with the source statistic in the effect spec; the target remains a separate placeholder."
     },
     "GAIN_LIFE": {
       "templates": [
-        "You gain {amount} life"
+        "You gain {amount} life",
+        "Gain {amount} life",
+        "Your life total increases by {amount}",
+        "Increase your life total by {amount}",
+        "Restore {amount} life",
+        "Your life total rises by {amount}",
+        "Your life total is increased by {amount}",
+        "Add {amount} to your life total",
+        "You gain a total of {amount} life",
+        "Increase your life total by a total of {amount}"
       ],
       "note": "This effect already names the player; do not append a target phrase."
     },
     "LOSE_LIFE": {
       "templates": [
-        "{target} loses {amount} life"
+        "{target} loses {amount} life",
+        "Cause {target} to lose {amount} life",
+        "Have {target} lose {amount} life",
+        "Reduce {target}'s life total by {amount}",
+        "{target}'s life total is reduced by {amount}",
+        "Lower {target}'s life total by {amount}",
+        "Subtract {amount} life from {target}",
+        "Force {target} to lose {amount} life",
+        "Require {target} to lose {amount} life",
+        "{target} suffers a loss of {amount} life"
       ],
       "note": "Use a target phrase that supplies the subject, such as target opponent or each opponent."
     },
     "DRAW": {
       "templates": [
-        "Draw {amount} cards"
+        "Draw {amount} cards",
+        "You draw {amount} cards",
+        "Draw {amount} cards now",
+        "Draw {amount} cards from your library",
+        "Draw {amount} cards from the top of your library",
+        "Draw a total of {amount} cards",
+        "Draw {amount} cards at once",
+        "Draw {amount} cards in a single action",
+        "Draw {amount} cards as this effect resolves",
+        "Draw {amount} cards this way"
       ],
       "note": "Draw is a complete one-shot effect; do not add immediately or a redundant target."
     },
     "DISCARD": {
       "templates": [
-        "{target} discards {amount} cards"
+        "{target} discards {amount} cards",
+        "Have {target} discard {amount} cards",
+        "Cause {target} to discard {amount} cards",
+        "{target} discards {amount} cards from their hand",
+        "Make {target} discard {amount} cards",
+        "{target} discards a total of {amount} cards",
+        "Force {target} to discard {amount} cards",
+        "Require {target} to discard {amount} cards",
+        "{target} must discard {amount} cards",
+        "{target} puts {amount} cards from their hand into their graveyard"
       ],
       "note": "Use a player target phrase that can grammatically serve as the subject."
     },
     "COUNTER_SPELL": {
       "templates": [
-        "Counter {target}"
+        "Counter {target}",
+        "Counter {target} before it resolves",
+        "Counter {target} while it is on the stack",
+        "Stop {target} from resolving",
+        "Prevent {target} from resolving",
+        "Counter {target} before it can resolve",
+        "Counter {target} as it is cast",
+        "Counter {target} on the stack",
+        "Counter {target} before resolution",
+        "Counter {target} instead of letting it resolve"
       ],
       "note": "The target placeholder should resolve to a spell target phrase; do not duplicate spell wording here."
     },
     "DESTROY": {
       "templates": [
-        "Destroy {target}"
+        "Destroy {target}",
+        "Destroy {target} outright",
+        "Destroy {target} immediately",
+        "Destroy {target} as this effect resolves",
+        "Destroy {target} on the battlefield",
+        "Destroy {target} if it remains on the battlefield",
+        "Have {target} destroyed",
+        "Cause {target} to be destroyed",
+        "Make {target} be destroyed",
+        "Destroy {target} completely"
       ],
       "note": "The target placeholder supplies the permanent, creature, or artifact/enchantment phrase."
     },
     "EXILE": {
       "templates": [
-        "Exile {target}"
+        "Exile {target}",
+        "Exile {target} from the battlefield",
+        "Exile {target} immediately",
+        "Exile {target} as this effect resolves",
+        "Send {target} into exile",
+        "Put {target} into exile",
+        "Move {target} to exile",
+        "Have {target} exiled",
+        "Cause {target} to be exiled",
+        "Exile {target} from the game"
       ],
       "note": "Keep exile as the action only; any duration or return condition belongs to another slot."
     },
     "RETURN_HAND": {
       "templates": [
-        "Return {target} to its owner's hand"
+        "Return {target} to its owner's hand",
+        "Return {target} to its owner's hand from the battlefield",
+        "Put {target} into its owner's hand",
+        "Send {target} back to its owner's hand",
+        "Return {target} to its owner's hand as this effect resolves",
+        "Have {target} return to its owner's hand",
+        "Cause {target} to return to its owner's hand",
+        "Move {target} to its owner's hand",
+        "Return {target} from the battlefield to its owner's hand",
+        "Return {target} to the hand of its owner"
       ],
       "note": "Use a target phrase that names the object being returned; do not add bounce shorthand."
     },
     "PUT_BATTLEFIELD": {
       "templates": [
-        "Put {target} from your library onto the battlefield"
+        "Put {target} from your library onto the battlefield",
+        "Put {target} onto the battlefield under your control",
+        "Put {target} from your library onto the battlefield under your control",
+        "Put {target} onto the battlefield",
+        "Put {target} directly onto the battlefield",
+        "Place {target} onto the battlefield",
+        "Have {target} enter the battlefield under your control",
+        "Put {target} onto the battlefield from your library",
+        "Put {target} onto the battlefield without casting it",
+        "Put {target} from your library directly onto the battlefield"
       ],
       "note": "The target placeholder should resolve to the card or permanent being put onto the battlefield."
     },
     "REANIMATE": {
       "templates": [
-        "Return {target} from your graveyard to the battlefield"
+        "Return {target} from your graveyard to the battlefield",
+        "Put {target} from your graveyard onto the battlefield",
+        "Return {target} to the battlefield from your graveyard",
+        "Put {target} onto the battlefield from your graveyard",
+        "Return {target} from a graveyard to the battlefield",
+        "Return {target} from your graveyard under your control",
+        "Put {target} from your graveyard onto the battlefield under your control",
+        "Return {target} to the battlefield under your control",
+        "Bring {target} back from your graveyard onto the battlefield",
+        "Return {target} from the graveyard to the battlefield"
       ],
       "note": "Use a graveyard-creature target phrase; the zone movement is part of the effect template."
     },
     "SEARCH_LIBRARY": {
       "templates": [
-        "Search your library for {target}, reveal it, put it into your hand, then shuffle"
+        "Search your library for {target}, reveal it, put it into your hand, then shuffle",
+        "Search your library for {target}, reveal that card, put it into your hand, then shuffle",
+        "Search your library for {target}, find it, put it into your hand, then shuffle",
+        "Search your library for {target}, find that card, put it into your hand, then shuffle",
+        "Look through your library for {target}, put it into your hand, then shuffle",
+        "Search your library and find {target}; put it into your hand, then shuffle",
+        "Search your library for {target}, reveal the card, put it into your hand, then shuffle",
+        "Search your library for {target}, put that card into your hand, then shuffle",
+        "Search your library for {target} and put it into your hand, then shuffle",
+        "Search your library for {target}, reveal it, then put it into your hand and shuffle"
       ],
       "note": "This is the complete synthetic tutor form used by the current spec renderer; keep search wording out of query phrases."
     },
     "SEARCH_TO_HAND": {
       "templates": [
-        "Search your library for {target}, reveal it, put it into your hand, then shuffle"
+        "Search your library for {target}, reveal it, put it into your hand, then shuffle",
+        "Search your library for {target}, reveal that card, then put it into your hand and shuffle",
+        "Find {target} in your library, reveal it, put it into your hand, then shuffle",
+        "Find {target} in your library and put it into your hand, then shuffle",
+        "Search your library for {target} and put that card into your hand, then shuffle",
+        "Search your library for {target}, reveal the card, then put it into your hand and shuffle",
+        "Look through your library for {target}, reveal it, then put it into your hand and shuffle",
+        "Search your library and put {target} into your hand, then shuffle",
+        "Search your library for {target}; reveal it, put it into your hand, then shuffle",
+        "Search your library for {target}, put it into your hand, and shuffle"
       ],
       "note": "The hand destination is explicit here so this effect cannot become an incomplete search fragment."
     },
     "TEMP_BUFF": {
       "templates": [
-        "{target} gets {p}/{t}"
+        "{target} gets {p}/{t}",
+        "Give {target} {p}/{t}",
+        "Grant {target} {p}/{t}",
+        "Increase the power of {target} by {p} and its toughness by {t}",
+        "Raise the power of {target} by {p} and its toughness by {t}",
+        "Modify the power and toughness of {target} by {p}/{t}",
+        "{target} gains {p}/{t}",
+        "{target} receives {p}/{t}",
+        "Give {p}/{t} to {target}",
+        "Boost {target} by {p}/{t}"
       ],
       "note": "Do not include until end of turn here; duration rendering owns that suffix."
     },
     "PLUS1_COUNTER": {
       "templates": [
-        "Put a +1/+1 counter on {target}"
+        "Put a +1/+1 counter on {target}",
+        "Put one +1/+1 counter on {target}",
+        "Place a +1/+1 counter on {target}",
+        "Give {target} a +1/+1 counter",
+        "Put a +1/+1 counter onto {target}",
+        "Add a +1/+1 counter to {target}",
+        "{target} gets a +1/+1 counter",
+        "{target} receives a +1/+1 counter",
+        "Put a +1/+1 counter on {target} as this effect resolves",
+        "Give one +1/+1 counter to {target}"
       ],
       "note": "The counter mechanic itself expresses persistence; do not append permanently or other duration wording."
     },
     "GRANT_KEYWORD": {
       "templates": [
-        "{target} gains {keyword}"
+        "{target} gains {keyword}",
+        "Give {target} {keyword}",
+        "Grant {target} {keyword}",
+        "{target} gets {keyword}",
+        "{target} has {keyword}",
+        "{target} gains the {keyword} ability",
+        "Give {target} the {keyword} ability",
+        "{target} is granted {keyword}",
+        "Grant {keyword} to {target}",
+        "{target} receives {keyword}"
       ],
       "note": "The keyword placeholder must be filled from the static-ability spec; duration rendering owns any until-end-of-turn wording."
     },
     "CREATE_TOKEN": {
       "templates": [
-        "Create {amount} 1/1 white Soldier creature tokens"
+        "Create {amount} 1/1 white Soldier creature tokens",
+        "Create {amount} white Soldier creature tokens with base power and toughness 1/1",
+        "Create {amount} 1/1 Soldier creature tokens that are white",
+        "Create {amount} white 1/1 Soldier tokens",
+        "Create {amount} 1/1 white Soldier tokens",
+        "Create {amount} 1/1 creature tokens that are white Soldiers",
+        "Create {amount} white Soldier creature tokens, each 1/1",
+        "Create {amount} 1/1 white Soldier creature tokens under your control",
+        "Create {amount} white Soldier tokens with base power and toughness 1/1",
+        "Create {amount} tokens that are 1/1 white Soldiers"
       ],
       "note": "The current candidate spec supplies quantity but not token identity; use this stable Oracle-like fallback rather than leaving a token placeholder unresolved."
     },
     "SCRY": {
       "templates": [
-        "Scry {amount}"
+        "Scry {amount}",
+        "You scry {amount}",
+        "Scry exactly {amount}",
+        "Scry {amount} from the top of your library",
+        "Look at the top {amount} cards of your library, then put any number of them on the bottom of your library and the rest on top in any order",
+        "Look at the top {amount} cards of your library, put any number on the bottom, and put the rest back on top in any order",
+        "Look at the top {amount} cards of your library, then put any number of them on the bottom and the rest back on top",
+        "Look at the top {amount} cards of your library, then put any number of them on the bottom of your library and the rest on top",
+        "Perform scry {amount}",
+        "Take a scry {amount} action"
       ],
       "note": "Scry is a complete one-shot effect and does not need a target or immediately suffix."
     },
     "PREVENT_DAMAGE": {
       "templates": [
-        "Prevent the next {amount} damage"
+        "Prevent the next {amount} damage",
+        "Prevent {amount} damage",
+        "Prevent the next {amount} damage that would be dealt",
+        "Prevent {amount} damage that would be dealt",
+        "Prevent the next {amount} damage that would be dealt to you",
+        "Prevent the next {amount} damage to you",
+        "Prevent {amount} incoming damage",
+        "Prevent the next {amount} points of damage",
+        "Prevent {amount} damage from being dealt",
+        "Stop the next {amount} damage from being dealt"
       ],
       "note": "The current spec models prevention without a target; keep this as a complete prevention clause."
     },
     "TAP": {
       "templates": [
-        "Tap {target}"
+        "Tap {target}",
+        "{target} becomes tapped",
+        "Tap {target} as this effect resolves",
+        "Tap {target} immediately",
+        "Cause {target} to tap",
+        "Have {target} tap",
+        "Tap {target} now",
+        "Tap {target} without untapping it",
+        "Tap {target} as part of this effect",
+        "Cause {target} to become tapped"
       ],
       "note": "The target placeholder supplies the permanent or creature phrase; do not use tap-down query shorthand."
     },
     "ADD_MANA": {
       "templates": [
-        "Add {amount} mana"
+        "Add {amount} {color} mana",
+        "Produce {amount} {color} mana",
+        "Generate {amount} {color} mana",
+        "Add a total of {amount} {color} mana",
+        "You add {amount} {color} mana",
+        "You generate {amount} {color} mana"
       ],
-      "note": "The current candidate spec supplies a numeric amount; color-specific wording belongs to a color-aware effect spec."
+      "required_slots": [
+        "amount",
+        "color"
+      ],
+      "note": "Candidate specs for ADD_MANA include both a numeric amount and a color. Every candidate template must preserve both semantic slots. Any-color or any-combination wording should use a distinct color value such as ANY or ANY_COMBINATION rather than being mixed with fixed-color candidates."
     },
     "SACRIFICE": {
       "templates": [
-        "{target} sacrifices a creature"
+        "{target} sacrifices a creature",
+        "Have {target} sacrifice a creature",
+        "Cause {target} to sacrifice a creature",
+        "Make {target} sacrifice a creature",
+        "Force {target} to sacrifice a creature",
+        "Require {target} to sacrifice a creature",
+        "{target} must sacrifice a creature",
+        "Sacrifice a creature controlled by {target}",
+        "Have a creature controlled by {target} be sacrificed",
+        "Choose {target}; it sacrifices a creature"
       ],
+      "templates_by_target": {
+        "CREATURE_YOU_CONTROL": [
+          "Sacrifice {target}",
+          "Have {target} be sacrificed",
+          "Cause {target} to be sacrificed",
+          "Make {target} be sacrificed",
+          "Sacrifice {target} as this effect resolves",
+          "Have {target} sacrificed as this effect resolves",
+          "{target} is sacrificed",
+          "Sacrifice {target} now",
+          "Choose {target}; it is sacrificed",
+          "Put {target} into its owner's graveyard by sacrificing it"
+        ]
+      },
       "note": "Choose a subject-compatible target phrase, such as an opponent or each opponent; do not append sacrifice shorthand."
     },
     "EXTRA_TURN": {
       "templates": [
-        "Take an extra turn after this one"
+        "Take an extra turn after this one",
+        "Take an extra turn after this turn",
+        "You take an extra turn after this one",
+        "You get an extra turn after this one",
+        "Take an additional turn after this one",
+        "Take another turn after this one",
+        "Take an extra turn following this one",
+        "Take an extra turn after the current turn",
+        "Take an extra turn once this turn ends",
+        "Take an extra turn after this turn ends"
       ],
       "note": "The effect already expresses the extra-turn timing; duration rendering must omit EXTRA_TURN."
     },
     "MILL": {
       "templates": [
-        "{target} mills {amount} cards"
+        "Cause {target} to mill {amount} cards",
+        "Have {target} mill {amount} cards",
+        "Make {target} mill {amount} cards",
+        "Force {target} to mill {amount} cards",
+        "Require {target} to mill {amount} cards",
+        "Direct {target} to mill {amount} cards",
+        "Order {target} to mill {amount} cards",
+        "Instruct {target} to mill {amount} cards",
+        "Let {target} mill {amount} cards",
+        "Ask {target} to mill {amount} cards"
       ],
       "note": "Use a player subject target phrase; keep mill wording complete and Oracle-like."
     }
