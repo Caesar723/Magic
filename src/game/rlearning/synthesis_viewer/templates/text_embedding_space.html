@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <header class="reconstruction-header">
+    <div>
+      <p class="eyebrow"><a href="{{ url_for('step_page', experiment_id=experiment.id, step=step) }}">{{ experiment.name }} / step {{ step }}</a></p>
+      <h1>Text embedding space</h1>
+      <p class="page-subtitle">{{ index.projection.method | upper }} projection of synthesis queries and every parsed card</p>
+    </div>
+    <div class="metric-strip">
+      <span><small>points</small><b>{{ index.point_count }}</b></span>
+      <span><small>queries</small><b>{{ index.query_count }}</b></span>
+      <span><small>cards</small><b>{{ index.card_count | default(index.candidate_count) }}</b></span>
+      <span><small>dimensions</small><b>{{ index.vector_dimensions }}</b></span>
+    </div>
+  </header>
+
+  <section class="transition-controls">
+    <label><input id="text-query-toggle" type="checkbox" checked> Show synthesis queries</label>
+    <details class="binding-filter">
+      <summary>Filter binding effects</summary>
+      <div class="binding-filter-actions">
+        <button id="binding-select-all" type="button">Select all</button>
+        <button id="binding-clear-all" type="button">Clear</button>
+      </div>
+      <div id="binding-effect-filter" class="binding-effect-filter"></div>
+    </details>
+    <span id="binding-legend" class="plot-legend binding-legend"></span>
+  </section>
+
+  <div class="transition-space-layout">
+    <section class="transition-plot-card">
+      <div class="transition-plot-shell">
+        <svg id="text-embedding-plot" viewBox="0 0 1000 640" role="img" aria-label="Two-dimensional text embedding projection"></svg>
+        <div id="text-embedding-tooltip" class="transition-tooltip" hidden></div>
+      </div>
+      <footer>
+        <span>PC1</span>
+        <span>PC2 is shown on the vertical axis</span>
+      </footer>
+    </section>
+
+    <aside class="transition-inspector">
+      <p class="eyebrow">SELECTED VECTOR</p>
+      <h2 id="text-point-title">Select a vector</h2>
+      <dl>
+        <dt>Type</dt><dd id="text-point-kind">—</dd>
+        <dt>Name / sample</dt><dd id="text-point-name">—</dd>
+        <dt>Type / cost</dt><dd id="text-point-type">—</dd>
+        <dt>Bindings</dt><dd id="text-point-bindings">—</dd>
+        <dt>Card ID</dt><dd id="text-point-card-id">—</dd>
+        <dt>Text</dt><dd id="text-point-text">—</dd>
+      </dl>
+    </aside>
+  </div>
+
+  <script id="text-embedding-points-data" type="application/json">{{ points | tojson }}</script>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', path='text_embedding_space.js') }}" defer></script>
+{% endblock %}

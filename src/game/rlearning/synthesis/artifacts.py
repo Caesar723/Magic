@@ -236,3 +236,85 @@ def write_transition_space_artifact(
         generated_at=generated_at,
     )
     return module_path
+
+
+def write_text_embedding_space_artifact(
+    step_dir: str | Path,
+    *,
+    step: int,
+    embeddings: np.ndarray,
+    records: Iterable[dict[str, Any]],
+    coordinates: np.ndarray,
+    projection: dict[str, Any],
+) -> Path:
+    """Write text embeddings and their browser-ready two-dimensional view."""
+    destination = Path(step_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+
+    embedding_array = np.asarray(embeddings, dtype=np.float32)
+    point_records = [dict(record) for record in records]
+    coordinates = np.asarray(coordinates, dtype=np.float32)
+    if embedding_array.ndim != 2:
+        raise ValueError(f"Expected a 2D embedding matrix, got shape {embedding_array.shape}")
+    if coordinates.shape != (len(point_records), 2):
+        raise ValueError(
+            f"Expected projection shape {(len(point_records), 2)}, got {coordinates.shape}"
+        )
+    if embedding_array.shape[0] != len(point_records):
+        raise ValueError(
+            f"Embedding matrix has {embedding_array.shape[0]} rows for "
+            f"{len(point_records)} records"
+        )
+
+    for point, coordinate in zip(point_records, coordinates):
+        point["x"] = round(float(coordinate[0]), 7)
+        point["y"] = round(float(coordinate[1]), 7)
+
+    temporary_module = destination / f".text_embedding_space-{uuid.uuid4().hex}.tmp"
+    temporary_module.mkdir(parents=True)
+    np.savez_compressed(temporary_module / "embeddings.npz", embeddings=embedding_array)
+
+    generated_at = utc_now()
+    _write_json(
+        temporary_module / "points.json",
+        {
+            "schema_version": SCHEMA_VERSION,
+            "step": int(step),
+            "projection": projection,
+            "points": point_records,
+        },
+    )
+    query_count = sum(point.get("kind") == "query" for point in point_records)
+    card_count = sum(point.get("kind") == "card" for point in point_records)
+    _write_json(
+        temporary_module / "index.json",
+        {
+            "schema_version": SCHEMA_VERSION,
+            "step": int(step),
+            "generated_at": generated_at,
+            "point_count": len(point_records),
+            "query_count": query_count,
+            "card_count": card_count,
+            "vector_dimensions": int(embedding_array.shape[1]),
+            "projection": projection,
+            "points": "points.json",
+            "embeddings": "embeddings.npz",
+        },
+    )
+
+    module_path = _replace_module(destination, "text_embedding_space", temporary_module)
+    _update_manifest(
+        destination,
+        step=step,
+        module_name="text_embedding_space",
+        module_metadata={
+            "status": "complete",
+            "point_count": len(point_records),
+            "query_count": query_count,
+            "card_count": card_count,
+            "index": "text_embedding_space/index.json",
+            "generated_at": generated_at,
+        },
+        generated_at=generated_at,
+    )
+    return module_path

@@ -169,6 +169,36 @@ def create_app(logdir: str | Path) -> FastAPI:
             points=points,
         )
 
+    @app.get(
+        "/experiments/{experiment_id}/{step}/text-embedding-space",
+        name="text_embedding_space_page",
+    )
+    async def text_embedding_space_page(
+        request: Request,
+        experiment_id: str,
+        step: int,
+    ):
+        repository: ArtifactRepository = request.app.state.repository
+        try:
+            experiment = repository.get_experiment(experiment_id)
+            index, points_payload = repository.text_embedding_space(
+                experiment_id,
+                step,
+            )
+        except ArtifactNotFoundError as error:
+            raise _not_found(error) from error
+
+        return _render(
+            request,
+            "text_embedding_space.html",
+            title=f"{experiment.name} · {step} · text embeddings",
+            experiment=experiment,
+            current_experiment_id=experiment.id,
+            step=step,
+            index=index,
+            points=points_payload.get("points", []),
+        )
+
     return app
 
 

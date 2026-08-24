@@ -24,11 +24,21 @@
       </article>
     {% endif %}
 
-    <article class="module-card is-muted">
-      <span class="module-status">LATER</span>
-      <h2>Card space</h2>
-      <p>Will show card-vector nearest neighbors and clusters.</p>
-    </article>
+    {% set text_embedding_space = step_info.manifest.modules.text_embedding_space if step_info.manifest.modules is defined else none %}
+    {% if text_embedding_space and text_embedding_space.status == 'complete' %}
+      <a class="module-card is-ready" href="{{ url_for('text_embedding_space_page', experiment_id=experiment.id, step=step_info.step) }}">
+        <span class="module-status">READY</span>
+        <h2>Text embedding space</h2>
+        <p>Synthesis queries and every parsed card projected to two dimensions.</p>
+        <small>{{ text_embedding_space.query_count }} queries · {{ text_embedding_space.card_count }} cards</small>
+      </a>
+    {% else %}
+      <article class="module-card">
+        <span class="module-status">PENDING</span>
+        <h2>Text embedding space</h2>
+        <p>This step does not have a complete text embedding artifact yet.</p>
+      </article>
+    {% endif %}
     {% set transition_space = step_info.manifest.modules.transition_space if step_info.manifest.modules is defined else none %}
     {% if transition_space and transition_space.status == 'complete' %}
       <a class="module-card is-ready" href="{{ url_for('transition_space_page', experiment_id=experiment.id, step=step_info.step) }}">

@@ -53,6 +53,7 @@ class JinaTextEncoder(WeightedDataset):
 
         return {
             "query": query["query_message"],
+            "query_bindings": query.get("query_bindings", []),
             "candidate": [candidate["card_ability"] for candidate in candidates],
             "relevance": torch.as_tensor(
                 [candidate["relevance"] for candidate in candidates],

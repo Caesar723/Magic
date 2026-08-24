@@ -111,6 +111,13 @@ a { color: inherit; text-decoration: none; }
 .transition-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-bottom: 16px; padding: 13px 16px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel-muted); color: var(--muted); font-size: .82rem; }
 .transition-controls label { display: flex; align-items: center; gap: 7px; cursor: pointer; }
 .transition-controls input { accent-color: var(--accent-deep); }
+.binding-filter { position: relative; }
+.binding-filter summary { cursor: pointer; color: var(--ink); }
+.binding-filter[open] { min-width: 330px; }
+.binding-filter-actions { display: flex; gap: 7px; margin: 10px 0 8px; }
+.binding-filter button { padding: 4px 8px; border: 1px solid var(--line); border-radius: 5px; background: #24302f; color: var(--ink); cursor: pointer; }
+.binding-effect-filter { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px 10px; max-height: 270px; overflow-y: auto; }
+.binding-effect-option { color: var(--muted); font-size: .72rem; }
 .plot-legend { margin-left: auto; display: flex; align-items: center; gap: 7px; }
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; background: #789088; }
 .legend-dot.highlight { width: 12px; height: 12px; border: 2px solid #fff0c9; background: var(--warning); }
@@ -125,6 +132,10 @@ a { color: inherit; text-decoration: none; }
 .transition-point:hover, .transition-point:focus { opacity: 1; outline: none; }
 .transition-point.is-highlighted { fill: var(--warning); stroke: #fff0c9; stroke-width: 2.2; opacity: 1; }
 .highlights-disabled .transition-point.is-highlighted { fill: #81938e; stroke: none; opacity: .55; }
+.binding-legend { max-width: min(100%, 900px); flex-wrap: wrap; justify-content: flex-end; }
+.text-point { opacity: .7; cursor: pointer; transition: opacity .12s, r .12s; }
+.text-point:hover, .text-point:focus { opacity: 1; outline: none; stroke: #f2f7ee; stroke-width: 1.5; }
+.text-point.is-query { opacity: 1; stroke: #fff0c9; stroke-width: 2; }
 .transition-tooltip { position: absolute; z-index: 4; max-width: 320px; padding: 7px 9px; border: 1px solid #566760; border-radius: 6px; background: #0d1212; color: var(--ink); font-size: .72rem; pointer-events: none; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
 .transition-inspector { align-self: start; padding: 18px; }
 .transition-inspector h2 { margin: 6px 0 18px; font-size: 1.12rem; }

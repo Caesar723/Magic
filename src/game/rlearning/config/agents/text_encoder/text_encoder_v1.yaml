@@ -1,5 +1,5 @@
 # Trainable 2D-to-3D body lifting training config.
-log_dir: "text_encoder/text_encoder_v1"
+log_dir: "text_encoder/text_encoder_v2"
 fps: 30
 seed: 1234
 

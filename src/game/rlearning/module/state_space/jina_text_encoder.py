@@ -1,12 +1,15 @@
 
 
+import json
+from pathlib import Path
+
 import torch
 import torch.nn.functional as F
 
-
-
-
 from game.rlearning.utils.baseAgent import ModelTrainer
+from game.rlearning.synthesis.artifacts import write_text_embedding_space_artifact
+from game.rlearning.synthesis.projection import pca_project_2d
+import game.rlearning.utils.log as log
 
 
 
@@ -104,9 +107,142 @@ class JinaTextEncoder(ModelTrainer):
 
         return loss
 
-    @torch.no_grad()
     def synthesis(self):
-        # This trainer has no generated artifact to save.  The base synthesis
-        # routine expects an ``index`` field that the text-matching dataset
-        # intentionally does not return.
-        return None
+        """Project synthesis queries together with every parsed card embedding."""
+        self._moving_average()
+        models = self.models_test
+        for model in models.values():
+            model.eval()
+
+        dataset = self.dataset_class(self.config, "synthesis")
+        total = min(len(dataset), int(self.config.get("synthesis_items", 10)))
+        if total <= 0:
+            return None
+
+        cards = self._load_synthesis_cards()
+        if not cards:
+            log.warning("Text synthesis skipped because no parsed cards were found.")
+            return None
+
+        query_batch_size = max(
+            1,
+            int(
+                self.config.get(
+                    "synthesis_text_batch_size",
+                    self.config.get("dataloader", {}).get("batch_size", 1),
+                )
+            ),
+        )
+        card_batch_size = max(
+            1,
+            int(self.config.get("synthesis_card_batch_size", 64)),
+        )
+        source_metadata = dataset.fixed_synthesis_metadata
+        if source_metadata is None:
+            source_metadata = dataset.metadata[:total]
+
+        query_embeddings = []
+        query_records = []
+        log.info(
+            f"Synthesis step {self.step}: encoding {total} queries and "
+            f"{len(cards)} parsed cards."
+        )
+
+        with torch.no_grad():
+            for batch_start in range(0, total, query_batch_size):
+                batch_metadata = source_metadata[batch_start : batch_start + query_batch_size]
+                source_samples = [dataset.get_sample(metadata) for metadata in batch_metadata]
+                batch_queries = [sample["query"] for sample in source_samples]
+                values = models["TextEncoder"](
+                    batch_queries,
+                    prompt_name="query",
+                ).detach().float().cpu()
+                query_embeddings.append(values)
+
+                for local_index, metadata in enumerate(batch_metadata):
+                    source_index = batch_start + local_index
+                    query_records.append(
+                        {
+                            "kind": "query",
+                            "query_index": source_index,
+                            "source_index": source_index,
+                            "sample_id": metadata["index"],
+                            "dataset": metadata.get("name", "dataset"),
+                            "binding_label": self._binding_label(
+                                source_samples[local_index]["query_bindings"]
+                            ),
+                            "text": batch_queries[local_index],
+                        }
+                    )
+
+            card_embeddings = []
+            for batch_start in range(0, len(cards), card_batch_size):
+                card_batch = cards[batch_start : batch_start + card_batch_size]
+                values = models["TextEncoder"](
+                    [card["synthesis_text"] for card in card_batch],
+                    prompt_name="document",
+                ).detach().float().cpu()
+                card_embeddings.append(values)
+
+        query_values = torch.cat(query_embeddings)
+        card_values = torch.cat(card_embeddings)
+        records = []
+        for vector_index, record in enumerate(query_records):
+            records.append({"vector_index": vector_index, **record})
+        for card_index, card in enumerate(cards):
+            records.append(
+                {
+                    "vector_index": len(query_records) + card_index,
+                    "kind": "card",
+                    "card_id": card.get("card_id"),
+                    "name": card.get("name", card.get("card_id", "Unnamed card")),
+                    "type": card.get("type", card.get("kind", "Unknown")),
+                    "cost": card.get("cost"),
+                    "binding_label": self._binding_label(card.get("bindings", [])),
+                    "bindings": card.get("bindings", []),
+                    "text": card["synthesis_text"],
+                }
+            )
+
+        embeddings = torch.cat([query_values, card_values]).numpy()
+        coordinates, projection = pca_project_2d(embeddings)
+        projection["source"] = "text_embeddings"
+        step_dir = f"{self.logdir}/synthesis/{self.step}"
+        artifact_path = write_text_embedding_space_artifact(
+            step_dir,
+            step=self.step,
+            embeddings=embeddings,
+            records=records,
+            coordinates=coordinates,
+            projection=projection,
+        )
+        log.info(f"Synthesis step {self.step}: wrote {artifact_path}.")
+        return artifact_path
+
+    def _load_synthesis_cards(self):
+        default_path = Path(__file__).resolve().parents[2] / "data/retrieval/parsed_cards.jsonl"
+        cards_path = Path(self.config.get("synthesis_cards_path", default_path))
+        if not cards_path.is_file():
+            log.warning(f"Parsed-card file was not found: {cards_path}")
+            return []
+
+        cards = []
+        with cards_path.open("r", encoding="utf-8") as file:
+            for line in file:
+                if not line.strip():
+                    continue
+                card = json.loads(line)
+                text = card.get("ability") or card.get("index_text") or card.get("name")
+                if text:
+                    card["synthesis_text"] = text
+                    cards.append(card)
+        return cards
+
+    @staticmethod
+    def _binding_label(bindings):
+        effects = []
+        for binding in bindings:
+            effect = binding.get("effect", "UNSPECIFIED")
+            if effect not in effects:
+                effects.append(effect)
+        return " + ".join(effects) if effects else "UNSPECIFIED"
