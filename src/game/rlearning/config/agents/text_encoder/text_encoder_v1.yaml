@@ -1,5 +1,5 @@
 # Trainable 2D-to-3D body lifting training config.
-log_dir: "text_encoder/text_encoder_v2"
+log_dir: "text_encoder/text_encoder_v4"
 fps: 30
 seed: 1234
 
@@ -21,6 +21,10 @@ ranking_temperature: 0.1
 min_relevance_gap: 1.0e-6
 relevance_gap_power: 1.0
 
+w_listwise_loss: 0.5
+
+w_anchor_loss: 0.1
+
 dataloader:
   batch_size: 2
   num_workers: 4
@@ -37,15 +41,15 @@ test_items: 30
 synthesis_items: 4
 
 optimizer:
-  learning_rate: 1.0e-4
-  betas: [0.9, 0.999]
-  eps: 1.0e-8
-  weight_decay: 1.0e-2
+  learning_rate: 1.0e-5
+  betas: [0.8, 0.99]
+  eps: 1.0e-9
   grad_clip_thresh: 1.0
-  n_warmup_steps: 10000
+  n_warmup_steps: 0
+
 
 scheduler:
-  step_size: 100
+  step_size: 200
   gamma: 0.999
 
 

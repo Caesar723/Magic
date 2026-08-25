@@ -151,7 +151,7 @@ class BaseTrainer:
             self.models_test[k].load_state_dict(self._models[k].state_dict())  
             
         
-        self.logdir = f'{ORGPATH}/../{CHECKPOINT_ROOT_PATH}/{config["log_dir"]}'
+        self.logdir = f'{CHECKPOINT_ROOT_PATH}/{config["log_dir"]}'
         print(self.logdir)
         if rank == 0: 
             if name=="main":
@@ -623,7 +623,7 @@ class EmptyTrainer(BaseTrainer):
         self.rank = rank 
         self.name=name
 
-        self.logdir = f'{ORGPATH}/../{CHECKPOINT_ROOT_PATH}/{config["log_dir"]}'
+        self.logdir = f'{CHECKPOINT_ROOT_PATH}/{config["log_dir"]}'
         #print(self.logdir)
         self.total_step = config["total_step"] 
         self.step = 0 

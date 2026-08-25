@@ -1,12 +1,17 @@
 
 
+import copy
 import json
 from pathlib import Path
+from typing import Optional
 
 import torch
 import torch.nn.functional as F
 
 from game.rlearning.utils.baseAgent import ModelTrainer
+from game.rlearning.net.state_space.jina_text_encoder import (
+    JinaTextEncoder as JinaTextEncoderModel,
+)
 from game.rlearning.synthesis.artifacts import write_text_embedding_space_artifact
 from game.rlearning.synthesis.projection import pca_project_2d
 import game.rlearning.utils.log as log
@@ -53,14 +58,83 @@ def continuous_pairwise_ranking_loss(
     )
 
 
+def continuous_listwise_ranking_loss(
+    scores: torch.Tensor,
+    relevance: torch.Tensor,
+    temperature: float = 0.1,
+    gain_base: float = 2.0,
+) -> Optional[torch.Tensor]:
+    """Match one query's score distribution to its graded relevance labels.
+
+    ``scores`` and ``relevance`` have shape ``[batch_size, candidate_count]``.
+    Relevance is converted to non-negative graded gains using
+    ``gain_base ** relevance - 1`` and normalized within each query.  This
+    supports multiple equally relevant candidates without forcing an arbitrary
+    order between them.  ``None`` is returned when a group has no positive
+    relevance signal.
+    """
+    relevance = relevance.to(device=scores.device, dtype=scores.dtype)
+    safe_temperature = max(float(temperature), torch.finfo(scores.dtype).eps)
+    safe_gain_base = max(float(gain_base), 1.0 + torch.finfo(scores.dtype).eps)
+
+    gain_base_tensor = torch.as_tensor(
+        safe_gain_base,
+        device=scores.device,
+        dtype=scores.dtype,
+    )
+    gains = torch.pow(gain_base_tensor, relevance) - 1
+    gains = gains.clamp_min(0)
+    gain_sum = gains.sum(dim=-1, keepdim=True)
+    valid_rows = gain_sum.squeeze(-1) > torch.finfo(scores.dtype).eps
+    if not valid_rows.any():
+        return None
+
+    target_distribution = gains[valid_rows] / gain_sum[valid_rows]
+    log_score_distribution = F.log_softmax(
+        scores[valid_rows] / safe_temperature,
+        dim=-1,
+    )
+    return -(target_distribution * log_score_distribution).sum(dim=-1).mean()
+
+
+def embedding_anchor_loss(
+    embeddings: torch.Tensor,
+    reference_embeddings: torch.Tensor,
+) -> torch.Tensor:
+    """Keep fine-tuned embeddings close to frozen reference embeddings."""
+    reference_embeddings = reference_embeddings.detach().to(
+        device=embeddings.device,
+        dtype=embeddings.dtype,
+    )
+    return 1 - F.cosine_similarity(
+        embeddings,
+        reference_embeddings,
+        dim=-1,
+    ).mean()
+
+
 
 class JinaTextEncoder(ModelTrainer):
 
-
-
-
     def __init__(self, config, restore_step, rank=0, n_gpus=1, name="main"):
         super().__init__(config, restore_step, rank, n_gpus)
+
+    def _init_extra(self):
+        """Optionally keep a frozen base encoder for embedding distillation."""
+        super()._init_extra()
+        self.anchor_teacher = None
+        if float(self.config.get("w_anchor_loss", 0)) <= 0:
+            return
+
+        # Keep ``trainable=True`` so the teacher follows the same differentiable
+        # encoding path and pooling rule as the student.  Its parameters are
+        # then frozen and its forward pass is always protected by ``no_grad``.
+        teacher_config = copy.deepcopy(self.config["model"]["TextEncoder"])
+        teacher_config["trainable"] = True
+        self.anchor_teacher = JinaTextEncoderModel(teacher_config)
+        self.anchor_teacher.eval()
+        self.anchor_teacher.requires_grad_(False)
+        log.info("Enabled frozen base TextEncoder teacher for anchor loss.")
 
     def _forward(self, batch, models, isTrain, step, epoch):
 
@@ -104,6 +178,61 @@ class JinaTextEncoder(ModelTrainer):
             ranking_loss = torch.stack(ranking_losses).mean()
             loss["ranking_loss"] = ranking_loss
             loss["total_loss"] += ranking_loss*self.config.get("w_ranking_loss", 1)
+        if self.config.get("w_listwise_loss", 1)>0:
+            listwise_losses = []
+            for query_embedding, start, end in zip(
+                query_embeddings,
+                candidate_offsets[:-1],
+                candidate_offsets[1:],
+            ):
+                if end <= start:
+                    continue
+
+                scores = F.cosine_similarity(
+                    query_embedding.unsqueeze(0),
+                    candidate_embeddings[start:end],
+                    dim=-1,
+                )
+                listwise_loss = continuous_listwise_ranking_loss(
+                    scores.unsqueeze(0),
+                    relevance[start:end].unsqueeze(0),
+                    temperature=self.config.get("listwise_temperature", 0.1),
+                    gain_base=self.config.get("listwise_gain_base", 2.0),
+                )
+                if listwise_loss is not None:
+                    listwise_losses.append(listwise_loss)
+
+            if listwise_losses:
+                listwise_loss = torch.stack(listwise_losses).mean()
+                loss["listwise_loss"] = listwise_loss
+                loss["total_loss"] += listwise_loss * self.config.get(
+                    "w_listwise_loss", 1
+                )
+
+        if self.anchor_teacher is not None:
+            with torch.no_grad():
+                reference_query_embeddings = self.anchor_teacher(
+                    batch["query"],
+                    device=query_embeddings.device,
+                    prompt_name="query",
+                )
+                reference_candidate_embeddings = self.anchor_teacher(
+                    batch["candidate"],
+                    device=candidate_embeddings.device,
+                    prompt_name="document",
+                )
+
+            anchor_loss = 0.5 * (
+                embedding_anchor_loss(query_embeddings, reference_query_embeddings)
+                + embedding_anchor_loss(
+                    candidate_embeddings,
+                    reference_candidate_embeddings,
+                )
+            )
+            loss["anchor_loss"] = anchor_loss
+            loss["total_loss"] += anchor_loss * self.config.get(
+                "w_anchor_loss", 0
+            )
 
         return loss
 
