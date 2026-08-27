@@ -17,6 +17,14 @@
   <section class="transition-controls">
     <label><input id="highlight-toggle" type="checkbox" checked> Highlight reconstruction samples</label>
     <label><input id="highlights-only-toggle" type="checkbox"> Show highlights only</label>
+    <details class="binding-filter">
+      <summary>Filter state changes</summary>
+      <div class="binding-filter-actions">
+        <button id="change-select-all" type="button">Select all</button>
+        <button id="change-clear-all" type="button">Clear</button>
+      </div>
+      <div id="state-change-filter" class="binding-effect-filter"></div>
+    </details>
     <span id="state-change-legend" class="plot-legend"></span>
   </section>
 

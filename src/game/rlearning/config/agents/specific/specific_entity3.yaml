@@ -3,7 +3,7 @@
 # Common
 ###########################
 
-log_dir: "specific/specific_entity_v06"
+log_dir: "specific/specific_entity_v05"
 restore_step: 0
 #------------------------------------
 
@@ -128,7 +128,7 @@ model:
   TextEncoder:
     class_name: "game.rlearning.net.state_space.jina_text_encoder.JinaTextEncoder"
     model_name: "jinaai/jina-embeddings-v5-text-small"
-    local_model_path: "models/jina-embeddings-v5-text-small"
+    local_model_path: "/mnt/data/trainData/checkpoints/text_encoder/text_encoder_v4/jina_embeddings_v5_step_55000"
     cache_dir: "models"
     task: "text-matching"
     truncate_dim: 128

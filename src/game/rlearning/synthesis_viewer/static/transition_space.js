@@ -7,6 +7,7 @@
   const tooltip = document.getElementById("transition-tooltip");
   const highlightToggle = document.getElementById("highlight-toggle");
   const highlightsOnlyToggle = document.getElementById("highlights-only-toggle");
+  const stateChangeFilter = document.getElementById("state-change-filter");
   const namespace = "http://www.w3.org/2000/svg";
   const width = 1000;
   const height = 640;
@@ -39,6 +40,10 @@
   };
   const pointChange = (point) => point.state_delta?.change_type || "no_major_change";
   const pointColor = (point) => changeColors[pointChange(point)] || changeColors.no_major_change;
+  // Keep every known transition label selectable even when this particular
+  // synthesis sample happens not to contain a point of that class.
+  const changeTypes = Object.keys(changeLabels);
+  const selectedChangeTypes = new Set();
 
   const values = (key) => points.map((point) => Number(point[key]) || 0);
   const extent = (items) => {
@@ -143,12 +148,46 @@
     const emphasizeHighlights = Boolean(highlightToggle?.checked);
     svg.classList.toggle("highlights-disabled", !emphasizeHighlights);
     circles.forEach(({ circle, point }) => {
-      circle.style.display = highlightsOnly && !point.is_highlighted ? "none" : "";
+      const changeVisible = selectedChangeTypes.size === 0
+        || selectedChangeTypes.has(pointChange(point));
+      circle.style.display = (highlightsOnly && !point.is_highlighted) || !changeVisible
+        ? "none"
+        : "";
       circle.setAttribute("r", point.is_highlighted && emphasizeHighlights ? 7 : 3.2);
       circle.style.stroke = point.is_highlighted && emphasizeHighlights ? "#fff0c9" : "";
       circle.style.strokeWidth = point.is_highlighted && emphasizeHighlights ? "2.2" : "";
     });
   };
+
+  if (stateChangeFilter) {
+    changeTypes.forEach((change) => {
+      const label = document.createElement("label");
+      label.className = "binding-effect-option";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = change;
+      checkbox.addEventListener("change", () => {
+        if (checkbox.checked) selectedChangeTypes.add(change);
+        else selectedChangeTypes.delete(change);
+        applyFilters();
+      });
+      label.append(
+        checkbox,
+        document.createTextNode(changeLabels[change] || change),
+      );
+      stateChangeFilter.appendChild(label);
+    });
+  }
+  document.getElementById("change-select-all")?.addEventListener("click", () => {
+    changeTypes.forEach((change) => selectedChangeTypes.add(change));
+    stateChangeFilter?.querySelectorAll("input").forEach((checkbox) => { checkbox.checked = true; });
+    applyFilters();
+  });
+  document.getElementById("change-clear-all")?.addEventListener("click", () => {
+    selectedChangeTypes.clear();
+    stateChangeFilter?.querySelectorAll("input").forEach((checkbox) => { checkbox.checked = false; });
+    applyFilters();
+  });
   highlightToggle?.addEventListener("change", applyFilters);
   highlightsOnlyToggle?.addEventListener("change", applyFilters);
   applyFilters();
