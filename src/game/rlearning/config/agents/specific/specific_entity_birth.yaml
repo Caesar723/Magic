@@ -2,7 +2,7 @@
 # Entity transition + birth-slot comparison experiment
 ###########################
 
-log_dir: "specific/specific_entity_birth_v01"
+log_dir: "specific/specific_entity_birth_v04"
 restore_step: 0
 
 cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Creature+3|Ironclad Crusader+Creature+2|Sunlit Priestess+Creature+3|Apocalypse Riders+Sorcery+4|Call to Unity+Sorcery+4|Angelic Blessing+Sorcery+2|Righteous Conviction+Sorcery+2|Spectral Embrace+Sorcery+3|Celestial Convergence+Instant+1|Avenging Light+Instant+1|Plains+Land+15"
@@ -115,13 +115,13 @@ model:
     hidden_dim: 256
     d_model: 128
 
-  PriorityEncoder:
-    class_name: "game.rlearning.net.state_space.CVAE.PriorityEncoder"
+  PriorEncoder:
+    class_name: "game.rlearning.net.state_space.CVAE.PriorEncoder"
     d_model: 128
     latent_dim: 128
 
-  PosteriorDecoder:
-    class_name: "game.rlearning.net.state_space.CVAE.PosteriorDecoder"
+  PosteriorEncoder:
+    class_name: "game.rlearning.net.state_space.CVAE.PosteriorEncoder"
     d_model: 128
     latent_dim: 128
 

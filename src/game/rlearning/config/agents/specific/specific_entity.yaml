@@ -150,13 +150,13 @@ model:
     hidden_dim: 256
     d_model: 128
 
-  PriorityEncoder:
-    class_name: "game.rlearning.net.state_space.CVAE.PriorityEncoder"
+  PriorEncoder:
+    class_name: "game.rlearning.net.state_space.CVAE.PriorEncoder"
     d_model: 128
     latent_dim: 128
 
-  PosteriorDecoder:
-    class_name: "game.rlearning.net.state_space.CVAE.PosteriorDecoder"
+  PosteriorEncoder:
+    class_name: "game.rlearning.net.state_space.CVAE.PosteriorEncoder"
     d_model: 128
     latent_dim: 128
 
@@ -206,4 +206,3 @@ unchanged_attribute_weight: 0.1
 w_stat_expected_l1: 1.0
 # An unchanged slot receives 1 + this bonus as its loss weight.
 unchanged_stat_bonus: 3.0
-

@@ -1,36 +1,22 @@
-
 ###########################
-# Common
+# Entity transition + birth-slot comparison experiment
 ###########################
 
-log_dir: "specific/specific_entity_v06"
+log_dir: "specific/specific_entity_birth_v02"
 restore_step: 0
-#------------------------------------
 
 cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Creature+3|Ironclad Crusader+Creature+2|Sunlit Priestess+Creature+3|Apocalypse Riders+Sorcery+4|Call to Unity+Sorcery+4|Angelic Blessing+Sorcery+2|Righteous Conviction+Sorcery+2|Spectral Embrace+Sorcery+3|Celestial Convergence+Instant+1|Avenging Light+Instant+1|Plains+Land+15"
 
-#------------------------------------
-
-
-###########################
-# Train
-###########################
-
 seed: 1234
 max_store: 1024
-#------------------------------------
-
 dataset_class_name: "game.rlearning.datasets.state_space.EntityTransition.EntityTransitionDataset"
 dataloader:
   batch_size: 32
   num_workers: 0
-
 dataset_multiple: 10
 
-#------------------------------------
-
-trainer: "game.rlearning.module.state_space.EntityTransition.EntityTransitionCVAETrainer"
-
+# This is intentionally a separate trainer from specific_entity2.yaml.
+trainer: "game.rlearning.module.state_space.EntityTransitionBirth.EntityTransitionBirthCVAETrainer"
 reward_function: "game.rlearning.rewards.win_base.get_reward"
 state_function: "game.rlearning.states.state_space.specific_entity.get_state"
 action_transform_function: "game.rlearning.actions.state_space.index_base.num2action"
@@ -38,12 +24,10 @@ action_mask_function: "game.rlearning.actions.state_space.index_base.create_acti
 w_val_loss: 0.5
 w_act_loss: 0.5
 
-
 ppo:
   gamma: 0.99
   lambd: 0.95
   clip_para: 0.2
-
 
 optimizer:
   learning_rate: 2.0e-4
@@ -51,16 +35,12 @@ optimizer:
   eps: 1.0e-9
   grad_clip_thresh: 1.0
   n_warmup_steps: 0
-
 scheduler:
   step_size: 200
   gamma: 0.998
-
 reset_epoch: False
 reset_learning_rate: True
 moving_average_beta: 0
-
-#------------------------------------
 
 total_step: 600000
 log_step: 20
@@ -73,22 +53,14 @@ save_step: 2000
 epochs: 5
 n_epoch: 15
 
-
-###########################
-# Model
-###########################
-
 action_space: 362
 shared_card_cfg: &shared_card_cfg
   max_card_id: 100
   max_card_type: 4
-
   card_special_types_len: 20
   card_cost_len: 6
   num_cards: 10
-
   max_mana: 20
-
   id_dim: 32
   type_dim: 16
   cat_emb_dim: 16
@@ -96,17 +68,10 @@ shared_card_cfg: &shared_card_cfg
   cont_hidden: 32
   card_embed_dim: 128
 
-
 TextTokenizer:
   raw_text: True
 
-# CLIPTokenizer:
-#   context_length: 77
-#   padding: "max_length"
-
-
 model:
-
   StateTransformerEncoder:
     class_name: "game.rlearning.net.state_space.EntityTransition.EntityStateTransformerEncoder"
     num_card_types: 5
@@ -161,7 +126,7 @@ model:
     latent_dim: 128
 
   TokenTransitionStateDecoder:
-    class_name: "game.rlearning.net.state_space.EntityTransition.EntityTransitionStateDecoder"
+    class_name: "game.rlearning.net.state_space.EntityTransitionBirth.EntityTransitionBirthStateDecoder"
     transition_dim: 128
     num_card_types: 5
     num_card_costs: 6
@@ -170,39 +135,35 @@ model:
     stack_player_dim: 2
     stack_action_vocab_size: 20
     num_locations: 9
+    # Global maximum for source-free entities created in one transition.
+    num_birth_slots: 10
     d_model: 128
     transition_memory_len: 10
     nhead: 4
-    num_layers: 2
+    num_layers: 5
     dim_feedforward: 256
     dropout: 0.1
-
 
 ###########################
 # Loss
 ###########################
 
-# Original global life and mana reconstruction.
 w_global_state_loss: 1.0
-
-# Changed self/opponent life values receive more reconstruction weight.
 changed_life_weight: 8.0
 unchanged_life_weight: 1.0
-
-# Source-card destination and dynamic-attribute reconstruction.
 w_card_location_loss: 1.0
 w_card_state_loss: 1.0
 w_card_stat_loss: 1.0
 w_card_tapped_loss: 1.0
-
-# Compensate for the large number of cards that remain in their source zone.
 moved_location_weight: 8.0
-
-# Dynamic values that changed receive more reconstruction weight.
 changed_attribute_weight: 8.0
 unchanged_attribute_weight: 1.0
-
-# Discrete stat loss: cross-entropy + expected-value L1.
 w_stat_expected_l1: 1.0
-# An unchanged slot receives 1 + this bonus as its loss weight.
 unchanged_stat_bonus: 3.0
+
+# Birth-slot loss.  Targets are unmatched next-state card instances and are
+# assigned to the ten slots with Hungarian matching.
+w_birth_loss: 1.0
+w_birth_presence_loss: 1.0
+w_birth_attribute_loss: 1.0
+birth_presence_positive_weight: 4.0

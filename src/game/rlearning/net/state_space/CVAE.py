@@ -27,7 +27,7 @@ class CardFusion(nn.Module):
         return self.net(h)
 
 
-class PriorityEncoder(nn.Module):
+class PriorEncoder(nn.Module):
     def __init__(self, config):
         super().__init__()
 
@@ -55,7 +55,7 @@ class PriorityEncoder(nn.Module):
 
 
 
-class PosteriorDecoder(nn.Module):
+class PosteriorEncoder(nn.Module):
     def __init__(self, config):
         super().__init__()
 

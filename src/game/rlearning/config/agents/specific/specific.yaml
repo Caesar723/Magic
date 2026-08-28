@@ -148,13 +148,13 @@ model:
     hidden_dim: 256
     d_model: 128
 
-  PriorityEncoder:
-    class_name: 'game.rlearning.net.state_space.CVAE.PriorityEncoder'
+  PriorEncoder:
+    class_name: 'game.rlearning.net.state_space.CVAE.PriorEncoder'
     d_model: 128
     latent_dim: 128
 
-  PosteriorDecoder:
-    class_name: 'game.rlearning.net.state_space.CVAE.PosteriorDecoder'
+  PosteriorEncoder:
+    class_name: 'game.rlearning.net.state_space.CVAE.PosteriorEncoder'
     d_model: 128
     latent_dim: 128
 

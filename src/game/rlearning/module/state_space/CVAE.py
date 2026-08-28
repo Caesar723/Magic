@@ -471,8 +471,8 @@ class CVAETrainer(BaseTrainer):
         # 按你的设计把 text / attr 合成 h_card，维度 = d_model
         h_card = models["CardFusion"](h_text, h_card_attr)  # 或 Linear(cat(...))
         # 4) CVAE prior / posterior
-        mean_p, std_p = models["PriorityEncoder"](h_card, h_action, h_s)
-        mean_q, std_q = models["PosteriorDecoder"](h_card, h_action, h_s, h_s_next)
+        mean_p, std_p = models["PriorEncoder"](h_card, h_action, h_s)
+        mean_q, std_q = models["PosteriorEncoder"](h_card, h_action, h_s, h_s_next)
         if isTrain:
             z = mean_q + std_q * torch.randn_like(mean_q)
         else:

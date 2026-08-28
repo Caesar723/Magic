@@ -1,0 +1,9 @@
+agent_config: game/rlearning/config/agents/specific/specific_entity_birth3.yaml
+opponent_config:
+  - game/rlearning/config/agents/specific/specific_entity_birth3.yaml
+
+info_communication: "game.rlearning.communicate.training_parallel_specific_room.Info_Communication"
+num_worker: 25
+
+env: "game.rlearning.parallel_env.training_parallel_specific_env.Parallel_Env"
+room: "game.rlearning.trainingRoom.training_parallel_specific_room.Multi_Agent_Parallel_Specific_Room"
