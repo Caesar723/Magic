@@ -17,6 +17,7 @@ cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Cre
 ###########################
 seed: 1234
 max_store: 1024
+binding_augmentation_probability: 0.0
 #------------------------------------
 dataset_class_name: "game.rlearning.datasets.state_space.CVAE.CVAEDataset"
 dataloader:
@@ -93,14 +94,6 @@ shared_card_cfg: &shared_card_cfg
   mana_dim: 16
   cont_hidden: 32
   card_embed_dim: 128
-  
-
-TextTokenizer:
-  raw_text: True
-  
-CLIPTokenizer:
-  context_length: 77
-  padding: "max_length"
   
 
 model:

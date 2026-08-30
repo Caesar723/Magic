@@ -53,10 +53,6 @@ scheduler:
   gamma: 0.999
 
 
-TextTokenizer:
-  raw_text: True
-
-
 model:
   
   TextEncoder:

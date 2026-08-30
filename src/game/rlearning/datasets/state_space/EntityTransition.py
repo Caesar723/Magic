@@ -156,5 +156,8 @@ class EntityTransitionDataset(CVAEDataset):
 
         result["action"] = action_one_hot
         result["action_index"] = np.asarray(action, dtype=np.int64)
-        result["card_used"] = data["state"]["card_used"]
+        card_used = dict(data["state"]["card_used"])
+        description = card_used["description"]
+        card_used["description"] = self.augment_description(description)
+        result["card_used"] = card_used
         return result

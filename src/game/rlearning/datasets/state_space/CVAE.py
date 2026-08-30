@@ -1,11 +1,17 @@
 import torch
 import numpy as np
-from transformers import AutoTokenizer
+from pathlib import Path
+import json
+import random
 
 from game.rlearning.utils.baseDataset import BaseDataset
 from game.rlearning.utils.data import batch_to_cuda, detach_cuda, to_cpu, to_cuda
 import game.rlearning.utils.log as log
-
+from game.rlearning.data_preprocess.spec_render import render_candidate_card
+from game.rlearning.data_preprocess.candidate import (
+    prepare_candidate_binding,
+    validate_candidate_spec,
+)
 
 # ============================================================
 # Basic path utils
@@ -342,6 +348,57 @@ def get_state(data):
     }
 
 
+def _normalize_description(text):
+    return " ".join(str(text).split())
+
+def _load_jsonl(path):
+    with path.open("r", encoding="utf-8") as stream:
+        return [
+            json.loads(line)
+            for line in stream
+            if line.strip()
+        ]
+def bindings_by_description_dict(config):
+    default_path = (
+        Path(__file__).resolve().parents[2]
+        / "data/retrieval/parsed_cards.jsonl"
+    )
+    cards_path = Path(config.get("bindings_index_path", default_path))
+
+    return {
+        _normalize_description(description): card.get("bindings", [])
+        for card in _load_jsonl(cards_path)
+        if (description := card.get("ability") or card.get("index_text"))
+    }
+
+
+
+def render_library_dict(config):
+    default_path = (
+        Path(__file__).resolve().parents[2]
+        / "data/retrieval/libraries"
+    )
+    library_path = Path(
+        config.get("binding_library_path", default_path)
+    )
+
+    return {
+        name: json.loads(
+            (library_path / f"{name}.json").read_text(encoding="utf-8")
+        )
+        for name in ["amounts", "durations", "effects", "statics", "targets", "triggers"]
+    }
+
+def render_exact_description(bindings, library):
+    candidate_bindings = [
+        prepare_candidate_binding(binding)
+        for binding in bindings
+    ]
+
+    for binding in candidate_bindings:
+        validate_candidate_spec(binding, library)
+
+    return render_candidate_card(candidate_bindings, library)
 # ============================================================
 # Dataset
 # ============================================================
@@ -356,44 +413,30 @@ class CVAEDataset(BaseDataset):
         return self.get_sample(self.datas[idx])
         
     def set_extra(self):
-        self.extra = {}
-        if self.use_raw_text():
-            return
-
-
-
-        tokenizer_config = self.config.get("TextTokenizer", self.config["CLIPTokenizer"])
-        model_name = tokenizer_config.get(
-            "model_name",
-            "openai/clip-vit-base-patch32",
-        )
-        self.extra["TextTokenizer"] = AutoTokenizer.from_pretrained(
-            model_name,
-            trust_remote_code=tokenizer_config.get("trust_remote_code", False),
-        )
-
-    def use_raw_text(self):
-        return self.config.get("TextTokenizer", {}).get("raw_text", False)
+        self.extra = {
+            "description_to_bindings": bindings_by_description_dict(self.config),
+            "library": render_library_dict(self.config),
+        }
 
     def encode_descriptions(self, descriptions):
-        if self.use_raw_text():
-            return {
-                "input": descriptions,
-                "attention_mask": None,
-            }
-
-        tokenizer_config = self.config.get("TextTokenizer", self.config["CLIPTokenizer"])
-        tokens = self.extra["TextTokenizer"](
-            descriptions,
-            padding=tokenizer_config["padding"],
-            truncation=True,
-            max_length=tokenizer_config["context_length"],
-            return_tensors="pt",
-        )
         return {
-            "input": tokens["input_ids"],
-            "attention_mask": tokens["attention_mask"],
+            "input": descriptions,
+            "attention_mask": None,
         }
+
+    def augment_description(self, description):
+        bindings = self.extra["description_to_bindings"].get(_normalize_description(description))
+        if bindings and random.random() < self.config.get("binding_augmentation_probability",0.0):
+            try:
+                augmented_description = render_exact_description(
+                    bindings,
+                    self.extra["library"],
+                )
+            except (KeyError, TypeError, ValueError):
+                pass
+            else:
+                return augmented_description
+        return description
 
     def get_sample(self, data):
         """
@@ -423,8 +466,10 @@ class CVAEDataset(BaseDataset):
         result["action"] = action_one_hot
         result["action_index"] = np.asarray(action, dtype=np.int64)
 
-        result["card_used"] = data["state"]["card_used"]
-
+        card_used = dict(data["state"]["card_used"])
+        description = card_used["description"]
+        card_used["description"] = self.augment_description(description)
+        result["card_used"] = card_used
         return result
 
     def collate_state(self, batch, key: str):
