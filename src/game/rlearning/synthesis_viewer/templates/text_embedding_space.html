@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_step_navigator.html" import step_navigator %}
 
 {% block content %}
   <header class="reconstruction-header">
@@ -14,6 +15,8 @@
       <span><small>dimensions</small><b>{{ index.vector_dimensions }}</b></span>
     </div>
   </header>
+
+  {{ step_navigator(step_navigation) }}
 
   <section class="transition-controls">
     <label><input id="text-query-toggle" type="checkbox" checked> Show synthesis queries</label>

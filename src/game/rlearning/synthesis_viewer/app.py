@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import RedirectResponse
@@ -25,6 +26,61 @@ def _render(request: Request, template_name: str, **context):
 
 def _not_found(error: ArtifactNotFoundError) -> HTTPException:
     return HTTPException(status_code=404, detail=str(error))
+
+
+def _step_navigation(
+    request: Request,
+    experiment_id: str,
+    current_step: int,
+    endpoint: str,
+    module_name: str | None = None,
+) -> dict[str, Any]:
+    """Build links for the browseable snapshots of a single viewer.
+
+    A snapshot can exist before every module finishes writing.  Filtering by the
+    requested module means changing steps in a visualization never sends a user
+    to a 404 page for a missing artifact.
+    """
+    repository: ArtifactRepository = request.app.state.repository
+    available_steps: list[dict[str, Any]] = []
+    for step_info in repository.list_steps(experiment_id):
+        if module_name is not None:
+            module = step_info["manifest"].get("modules", {}).get(module_name)
+            if not isinstance(module, dict) or module.get("status") != "complete":
+                continue
+
+        step = step_info["step"]
+        available_steps.append(
+            {
+                "step": step,
+                "url": str(
+                    request.url_for(
+                        endpoint,
+                        experiment_id=experiment_id,
+                        step=step,
+                    )
+                ),
+            }
+        )
+
+    available_steps.sort(key=lambda item: item["step"])
+    current_index = next(
+        index
+        for index, item in enumerate(available_steps)
+        if item["step"] == current_step
+    )
+    return {
+        "available_steps": available_steps,
+        "current": available_steps[current_index],
+        "older": (
+            available_steps[current_index - 1] if current_index > 0 else None
+        ),
+        "newer": (
+            available_steps[current_index + 1]
+            if current_index + 1 < len(available_steps)
+            else None
+        ),
+    }
 
 
 def create_app(logdir: str | Path) -> FastAPI:
@@ -74,6 +130,12 @@ def create_app(logdir: str | Path) -> FastAPI:
             experiment=experiment,
             current_experiment_id=experiment.id,
             step_info=step_info,
+            step_navigation=_step_navigation(
+                request,
+                experiment.id,
+                step_info["step"],
+                "step_page",
+            ),
         )
 
     @app.get(
@@ -122,6 +184,13 @@ def create_app(logdir: str | Path) -> FastAPI:
             step=step,
             index=index,
             sample=sample,
+            step_navigation=_step_navigation(
+                request,
+                experiment.id,
+                step,
+                "reconstruction_page",
+                module_name="reconstruction",
+            ),
         )
 
     @app.get(
@@ -167,6 +236,13 @@ def create_app(logdir: str | Path) -> FastAPI:
             step=step,
             index=index,
             points=points,
+            step_navigation=_step_navigation(
+                request,
+                experiment.id,
+                step,
+                "transition_space_page",
+                module_name="transition_space",
+            ),
         )
 
     @app.get(
@@ -197,6 +273,13 @@ def create_app(logdir: str | Path) -> FastAPI:
             step=step,
             index=index,
             points=points_payload.get("points", []),
+            step_navigation=_step_navigation(
+                request,
+                experiment.id,
+                step,
+                "text_embedding_space_page",
+                module_name="text_embedding_space",
+            ),
         )
 
     return app

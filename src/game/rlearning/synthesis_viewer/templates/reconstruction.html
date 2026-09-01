@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "_state.html" import game_state %}
+{% from "_step_navigator.html" import step_navigator %}
 
 {% block content %}
   <header class="reconstruction-header">
@@ -13,6 +14,8 @@
       {% endfor %}
     </div>
   </header>
+
+  {{ step_navigator(step_navigation) }}
 
   <div class="reconstruction-layout">
     <aside class="sample-list">

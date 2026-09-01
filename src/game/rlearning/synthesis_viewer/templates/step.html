@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_step_navigator.html" import step_navigator %}
 
 {% block content %}
   <header class="page-header compact-header">
@@ -6,6 +7,8 @@
     <h1>step {{ step_info.step }}</h1>
     <p>Generated at {{ step_info.manifest.generated_at | default('an unknown time') }}</p>
   </header>
+
+  {{ step_navigator(step_navigation) }}
 
   <section class="module-grid">
     {% set reconstruction = step_info.manifest.modules.reconstruction if step_info.manifest.modules is defined else none %}

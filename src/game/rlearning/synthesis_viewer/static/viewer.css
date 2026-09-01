@@ -51,6 +51,23 @@ a { color: inherit; text-decoration: none; }
 .metric-strip small { color: var(--muted); font-size: .68rem; }
 .metric-strip b { margin-top: 2px; font-size: .88rem; }
 
+.step-navigator { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 0 0 20px; padding: 14px 16px 14px 18px; border: 1px solid #48624e; border-radius: 14px; background: linear-gradient(110deg, #18251f, var(--panel-muted)); box-shadow: 0 10px 28px rgba(0, 0, 0, .12); }
+.step-navigator-summary { min-width: 180px; }
+.step-navigator-summary .eyebrow { margin: 0 0 3px; color: #b8d9b9; }
+.step-navigator-summary strong, .step-navigator-summary small { display: block; }
+.step-navigator-summary strong { font-size: 1.05rem; letter-spacing: -.015em; }
+.step-navigator-summary small { margin-top: 3px; color: var(--muted); font-size: .72rem; }
+.step-navigator-actions { display: flex; align-items: flex-end; justify-content: flex-end; gap: 8px; }
+.step-nav-button, .step-select-control button { min-height: 38px; padding: 0 11px; border: 1px solid #3b5045; border-radius: 8px; background: #1d2b26; color: var(--ink); font-size: .78rem; font-weight: 700; line-height: 36px; white-space: nowrap; transition: background .15s, border-color .15s, transform .15s; }
+.step-nav-button:hover, .step-select-control button:hover { border-color: var(--accent); background: #284032; transform: translateY(-1px); }
+.step-nav-button.is-disabled { border-color: #2a3431; background: #161d1b; color: #65726c; cursor: not-allowed; }
+.step-select-form { display: grid; gap: 4px; }
+.step-select-form label { color: var(--muted); font-size: .66rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.step-select-control { display: flex; gap: 6px; }
+.step-select-control select { min-width: 116px; height: 38px; padding: 0 28px 0 10px; border: 1px solid #56745d; border-radius: 8px; background: #111917; color: var(--ink); font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; }
+.step-select-control select:focus-visible, .step-select-control button:focus-visible, .step-nav-button:focus-visible { outline: 2px solid #d7f0d3; outline-offset: 2px; }
+.step-select-control button { cursor: pointer; line-height: normal; }
+
 .reconstruction-layout { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 24px; }
 .sample-list { align-self: start; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-muted); }
 .sample-list h2 { margin: 4px 8px 10px; font-size: 1rem; }
@@ -154,6 +171,8 @@ a { color: inherit; text-decoration: none; }
   .reconstruction-layout { grid-template-columns: 1fr; }
   .transition-space-layout { grid-template-columns: 1fr; }
   .sample-list { position: static; max-height: 220px; }
+  .step-navigator { align-items: flex-start; flex-direction: column; }
+  .step-navigator-actions { width: 100%; justify-content: flex-start; }
 }
 
 @media (max-width: 720px) {
@@ -162,5 +181,13 @@ a { color: inherit; text-decoration: none; }
   .reconstruction-header { align-items: start; }
   .metric-strip { width: 100%; }
   .metric-strip span { flex: 1; }
+  .step-navigator { padding: 14px; }
+  .step-navigator-actions { align-items: stretch; display: grid; grid-template-columns: 1fr 1fr; }
+  .step-select-form { grid-column: 1 / -1; grid-row: 1; }
+  .step-navigator-actions > .step-nav-button:first-child { grid-column: 1; grid-row: 2; }
+  .step-navigator-actions > .step-nav-button:last-child { grid-column: 2; grid-row: 2; }
+  .step-select-control { width: 100%; }
+  .step-select-control select { flex: 1; min-width: 0; }
+  .step-nav-button { text-align: center; }
   .card-grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
 }

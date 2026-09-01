@@ -1,0 +1,43 @@
+{% macro step_navigator(navigation) %}
+  <section class="step-navigator"
+           aria-label="Synthesis step navigation"
+           data-step-navigation
+           {% if navigation.older %}data-older-url="{{ navigation.older.url }}"{% endif %}
+           {% if navigation.newer %}data-newer-url="{{ navigation.newer.url }}"{% endif %}>
+    <div class="step-navigator-summary">
+      <p class="eyebrow">SNAPSHOT NAVIGATION</p>
+      <strong>Step {{ navigation.current.step }}</strong>
+      <small>{{ navigation.available_steps | length }} snapshots available here · use [ and ] to browse</small>
+    </div>
+
+    <div class="step-navigator-actions">
+      {% if navigation.older %}
+        <a class="step-nav-button" href="{{ navigation.older.url }}" aria-label="Open earlier step {{ navigation.older.step }}">
+          <span aria-hidden="true">←</span> Earlier
+        </a>
+      {% else %}
+        <span class="step-nav-button is-disabled" aria-disabled="true"><span aria-hidden="true">←</span> Earlier</span>
+      {% endif %}
+
+      <form class="step-select-form" data-step-select-form>
+        <label for="step-select">Jump to step</label>
+        <div class="step-select-control">
+          <select id="step-select" data-step-select aria-label="Jump to a synthesis step">
+            {% for item in navigation.available_steps %}
+              <option value="{{ item.url }}" {% if item.step == navigation.current.step %}selected{% endif %}>{{ item.step }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit">Go</button>
+        </div>
+      </form>
+
+      {% if navigation.newer %}
+        <a class="step-nav-button" href="{{ navigation.newer.url }}" aria-label="Open later step {{ navigation.newer.step }}">
+          Later <span aria-hidden="true">→</span>
+        </a>
+      {% else %}
+        <span class="step-nav-button is-disabled" aria-disabled="true">Later <span aria-hidden="true">→</span></span>
+      {% endif %}
+    </div>
+  </section>
+{% endmacro %}
