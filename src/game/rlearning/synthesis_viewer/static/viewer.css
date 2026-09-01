@@ -153,6 +153,23 @@ a { color: inherit; text-decoration: none; }
 .text-point { opacity: .7; cursor: pointer; transition: opacity .12s, r .12s; }
 .text-point:hover, .text-point:focus { opacity: 1; outline: none; stroke: #f2f7ee; stroke-width: 1.5; }
 .text-point.is-query { opacity: 1; stroke: #fff0c9; stroke-width: 2; }
+.card-fusion-controls select, .card-fusion-controls input { margin-left: 5px; border: 1px solid #48624e; border-radius: 6px; background: #101716; color: var(--ink); font: inherit; font-size: .78rem; }
+.card-fusion-guide { margin: 0 0 16px; padding: 13px 16px; border-left: 3px solid var(--accent-deep); border-radius: 0 10px 10px 0; background: #16201d; }
+.card-fusion-guide .eyebrow { margin: 0 0 5px; color: var(--accent); }
+.card-fusion-guide p:last-child { margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.5; }
+.card-fusion-controls select { min-height: 29px; padding: 0 7px; }
+.card-fusion-controls input { width: min(245px, 48vw); min-height: 29px; padding: 0 8px; }
+.card-fusion-search { flex: 1 1 250px; }
+.card-fusion-point { opacity: .82; cursor: pointer; stroke: rgba(14, 20, 19, .7); stroke-width: 1.3; transition: opacity .12s, r .12s, stroke-width .12s; }
+.card-fusion-point:hover, .card-fusion-point:focus { opacity: 1; outline: none; stroke: #f2f7ee; stroke-width: 2.2; }
+.card-fusion-point.is-selected { opacity: 1; stroke: #fff0c9; stroke-width: 3.4; }
+.card-fusion-neighbors { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
+.card-fusion-neighbors h3 { margin: 0 0 10px; font-size: .82rem; }
+.card-fusion-neighbors ol { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.card-fusion-neighbors button { display: grid; grid-template-columns: 42px minmax(0, 1fr); width: 100%; padding: 8px; border: 1px solid #33443e; border-radius: 7px; background: #17211e; color: var(--ink); cursor: pointer; text-align: left; }
+.card-fusion-neighbors button:hover { border-color: var(--accent-deep); background: #21302a; }
+.card-fusion-neighbors button strong { color: var(--accent); font-size: .72rem; }
+.card-fusion-neighbors button span { overflow: hidden; color: #d9e3db; font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
 .transition-tooltip { position: absolute; z-index: 4; max-width: 320px; padding: 7px 9px; border: 1px solid #566760; border-radius: 6px; background: #0d1212; color: var(--ink); font-size: .72rem; pointer-events: none; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
 .transition-inspector { align-self: start; padding: 18px; }
 .transition-inspector h2 { margin: 6px 0 18px; font-size: 1.12rem; }

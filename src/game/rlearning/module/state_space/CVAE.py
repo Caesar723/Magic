@@ -1,4 +1,9 @@
 
+import json
+import re
+from collections import Counter, defaultdict
+from pathlib import Path
+
 import torch
 import torch.nn.functional as F
 
@@ -7,6 +12,7 @@ from game.rlearning.utils.baseAgent import BaseTrainer
 from game.rlearning.utils.data import batch_to_cuda
 from game.rlearning.net.state_space.StateEncoder import squeeze_time_dim_state
 from game.rlearning.synthesis.artifacts import (
+    write_card_fusion_space_artifact,
     write_reconstruction_artifact,
     write_transition_space_artifact,
 )
@@ -220,6 +226,7 @@ class CVAETrainer(BaseTrainer):
             synthesis_models["TextEncoder"] = self.models["TextEncoder"]
 
         vector_chunks = {
+            "h_card": [],
             "mean_q": [],
             "std_q": [],
             "mean_p": [],
@@ -277,6 +284,10 @@ class CVAETrainer(BaseTrainer):
                         "state_delta": state_delta_from_target(
                             source_state,
                             target_state,
+                            local_index,
+                        ),
+                        "card_model_description": self._synthesis_card_model_description(
+                            batch["card_used"],
                             local_index,
                         ),
                         "action": {
@@ -383,8 +394,15 @@ class CVAETrainer(BaseTrainer):
             coordinates=coordinates,
             projection=projection,
         )
+        card_fusion_path = self._write_card_fusion_space_artifact(
+            step_dir,
+            synthesis_models,
+            fallback_vectors=vectors["h_card"],
+            transition_records=transition_records,
+        )
         log.info(
-            f"Synthesis step {self.step}: wrote {reconstruction_path} and {transition_path}."
+            f"Synthesis step {self.step}: wrote {reconstruction_path}, "
+            f"{transition_path}, and {card_fusion_path}."
         )
         return transition_path
 
@@ -397,12 +415,259 @@ class CVAETrainer(BaseTrainer):
             return [0]
         return [round(index * (dataset_size - 1) / (item_count - 1)) for index in range(item_count)]
 
+    def _write_card_fusion_space_artifact(
+        self,
+        step_dir,
+        models,
+        *,
+        fallback_vectors,
+        transition_records,
+    ):
+        """Encode every parsed card with the same CardFusion used at inference."""
+        catalog_cards = self._load_card_fusion_catalog_cards()
+        text_encoder = models.get("TextEncoder")
+        if not catalog_cards or not hasattr(text_encoder, "_load_encoder"):
+            if catalog_cards:
+                log.warning(
+                    "CardFusion catalog view needs a raw-text encoder; "
+                    "using replay cards instead."
+                )
+            return write_card_fusion_space_artifact(
+                step_dir,
+                step=self.step,
+                fused_vectors=fallback_vectors,
+                records=transition_records,
+            )
+
+        observed_outcomes = self._card_fusion_observed_outcomes(transition_records)
+        catalog_records = []
+        for catalog_card in catalog_cards:
+            change_counts = Counter()
+            for description in catalog_card["description_keys"]:
+                change_counts.update(observed_outcomes.get(description, {}))
+            catalog_records.append(
+                {
+                    "card_used": catalog_card["card_used"],
+                    "semantic_effects": catalog_card["semantic_effects"],
+                    "state_change_counts": dict(change_counts),
+                    "sample_count": sum(change_counts.values()),
+                }
+            )
+
+        device = next(models["CardFusion"].parameters()).device
+        batch_size = max(
+            1,
+            int(self.config.get("synthesis_card_fusion_batch_size", 64)),
+        )
+        vector_chunks = []
+        with torch.no_grad():
+            for batch_start in range(0, len(catalog_cards), batch_size):
+                card_batch = catalog_cards[batch_start : batch_start + batch_size]
+                h_text = text_encoder(
+                    [card["card_used"]["description"] for card in card_batch],
+                    device=device,
+                )
+                h_card_attr = models["CardStateEncoder"](
+                    torch.as_tensor(
+                        [card["model_attributes"]["card_type"] for card in card_batch],
+                        dtype=torch.long,
+                        device=device,
+                    ),
+                    torch.as_tensor(
+                        [card["model_attributes"]["special_type"] for card in card_batch],
+                        dtype=torch.float32,
+                        device=device,
+                    ),
+                    torch.as_tensor(
+                        [card["model_attributes"]["mana_cost"] for card in card_batch],
+                        dtype=torch.float32,
+                        device=device,
+                    ),
+                    torch.as_tensor(
+                        [card["model_attributes"]["attack"] for card in card_batch],
+                        dtype=torch.float32,
+                        device=device,
+                    ),
+                    torch.as_tensor(
+                        [card["model_attributes"]["health"] for card in card_batch],
+                        dtype=torch.float32,
+                        device=device,
+                    ),
+                    torch.as_tensor(
+                        [card["model_attributes"]["has_state"] for card in card_batch],
+                        dtype=torch.long,
+                        device=device,
+                    ),
+                )
+                vector_chunks.append(
+                    models["CardFusion"](h_text, h_card_attr).detach().float().cpu()
+                )
+
+        return write_card_fusion_space_artifact(
+            step_dir,
+            step=self.step,
+            fused_vectors=torch.cat(vector_chunks).numpy(),
+            records=catalog_records,
+            source_sample_count=len(transition_records),
+        )
+
+    def _load_card_fusion_catalog_cards(self):
+        default_path = (
+            Path(__file__).resolve().parents[2]
+            / "data/retrieval/parsed_cards.jsonl"
+        )
+        cards_path = Path(
+            self.config.get("synthesis_card_fusion_cards_path", default_path)
+        )
+        if not cards_path.is_file():
+            log.warning(f"CardFusion catalog file was not found: {cards_path}")
+            return []
+
+        cards = []
+        with cards_path.open("r", encoding="utf-8") as stream:
+            for line in stream:
+                if not line.strip():
+                    continue
+                try:
+                    card = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                description = card.get("ability") or card.get("index_text") or card.get("name")
+                if not description:
+                    continue
+                card_used, model_attributes = self._card_fusion_catalog_attributes(
+                    card,
+                    description,
+                )
+                description_keys = {
+                    self._normalize_card_fusion_text(value)
+                    for value in (card.get("ability"), card.get("index_text"), description)
+                    if value
+                }
+                effects = sorted(
+                    {
+                        str(binding.get("effect"))
+                        for binding in card.get("bindings", [])
+                        if isinstance(binding, dict) and binding.get("effect")
+                    }
+                )
+                cards.append(
+                    {
+                        "card_used": card_used,
+                        "model_attributes": model_attributes,
+                        "description_keys": description_keys,
+                        "semantic_effects": effects,
+                    }
+                )
+        return cards
+
+    @staticmethod
+    def _normalize_card_fusion_text(value):
+        return " ".join(str(value).split()).casefold()
+
+    @staticmethod
+    def _card_fusion_catalog_attributes(card, description):
+        type_name = str(card.get("type", "Unknown"))
+        type_id = {
+            "creature": 1,
+            "instant": 2,
+            "land": 3,
+            "sorcery": 4,
+        }.get(type_name.casefold(), 0)
+        mana_cost = CVAETrainer._card_fusion_mana_cost(card.get("cost", ""))
+        special_type = [0.0] * 20
+        text = str(description).casefold()
+        special_type[0] = float("enters the battlefield" in text)
+        special_type[1] = float("leaves the battlefield" in text or "dies" in text)
+        for index, keyword in enumerate(
+            ("reach", "trample", "flying", "haste", "flash", "lifelink"),
+            start=2,
+        ):
+            special_type[index] = float(bool(re.search(rf"\\b{keyword}\\b", text)))
+        special_type[8] = 1.0
+        special_type[9] = float(bool(re.search(r"\\binfect\\b", text)))
+        special_type[10] = float(bool(re.search(r"\\bindestructible\\b", text)))
+        attack = CVAETrainer._card_fusion_stat(card.get("power"))
+        health = CVAETrainer._card_fusion_stat(card.get("toughness"))
+        has_state = int(type_id == 1)
+        return (
+            {
+                "card_id": card.get("card_id"),
+                "name": card.get("name"),
+                "description": str(description),
+                "type": type_name,
+                "mana_cost": [round(value * 20) for value in mana_cost],
+                "attack": round(attack * 20),
+                "health": round(health * 20),
+                "has_state": bool(has_state),
+                "special_types": [
+                    name
+                    for name, value in zip(
+                        (
+                            "ETB effect", "LTB effect", "Reach", "Trample", "Flying",
+                            "Haste", "Flash", "Lifelink", "Can attack", "Infect",
+                            "Indestructible",
+                        ),
+                        special_type,
+                    )
+                    if value
+                ],
+            },
+            {
+                "card_type": type_id,
+                "special_type": special_type,
+                "mana_cost": mana_cost,
+                "attack": attack,
+                "health": health,
+                "has_state": has_state,
+            },
+        )
+
+    @staticmethod
+    def _card_fusion_mana_cost(cost):
+        values = [0.0] * 6
+        cost = str(cost or "")
+        generic = "".join(re.findall(r"\d+", cost))
+        values[0] = min(20, int(generic)) / 20 if generic else 0.0
+        for index, color in enumerate(("U", "W", "B", "R", "G"), start=1):
+            values[index] = min(20, cost.upper().count(color)) / 20
+        return values
+
+    @staticmethod
+    def _card_fusion_stat(value):
+        try:
+            return max(0.0, min(20.0, float(value))) / 20
+        except (TypeError, ValueError):
+            return 0.0
+
+    def _card_fusion_observed_outcomes(self, transition_records):
+        outcomes = defaultdict(Counter)
+        for record in transition_records:
+            card = record.get("card_used", {})
+            description = self._normalize_card_fusion_text(card.get("description", ""))
+            if not description:
+                continue
+            change = str(
+                record.get("state_delta", {}).get("change_type", "no_major_change")
+            )
+            outcomes[description][change] += 1
+        return outcomes
+
     @staticmethod
     def _raw_card_used(data):
         state = data.get("state", {})
         if isinstance(state, (list, tuple)):
             state = state[-1] if state else {}
         return state.get("card_used", {}) if isinstance(state, dict) else {}
+
+    @staticmethod
+    def _synthesis_card_model_description(card_used, sample_index):
+        """Keep the displayed text aligned with the text that reached CardFusion."""
+        descriptions = card_used.get("description") if isinstance(card_used, dict) else None
+        if isinstance(descriptions, (list, tuple)) and sample_index < len(descriptions):
+            value = descriptions[sample_index]
+            return value if isinstance(value, str) else None
+        return None
 
     @staticmethod
     def _select_batch(value, indices):

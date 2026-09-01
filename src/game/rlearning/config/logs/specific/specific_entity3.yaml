@@ -3,7 +3,7 @@
 # Common
 ###########################
 
-log_dir: "logs/specific/specific_entity_v05"
+log_dir: "logs/specific/specific_entity_v01"
 restore_step: 0
 #------------------------------------
 
@@ -63,7 +63,7 @@ moving_average_beta: 0
 
 #------------------------------------
 
-total_step: 600000
+total_step: 300000
 log_step: 20
 eval_step: 2000
 synthesis_step: 2000

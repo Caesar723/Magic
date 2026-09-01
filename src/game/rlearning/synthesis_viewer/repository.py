@@ -163,3 +163,26 @@ class ArtifactRepository:
         if points is None:
             raise ArtifactNotFoundError("Text embedding-space points are unavailable")
         return index, points
+
+    def card_fusion_space(self, experiment_id: str, step: int) -> tuple[dict, dict]:
+        step_info = self.get_step(experiment_id, step)
+        module = step_info["manifest"].get("modules", {}).get("card_fusion_space")
+        if not isinstance(module, dict) or module.get("status") != "complete":
+            raise ArtifactNotFoundError("CardFusion space is not available for this step")
+
+        index_path = self._artifact_path(
+            step_info["path"],
+            str(module.get("index", "")),
+        )
+        index = self._read_json(index_path)
+        if index is None:
+            raise ArtifactNotFoundError("CardFusion-space index is unavailable")
+
+        points_path = self._artifact_path(
+            index_path.parent,
+            str(index.get("points", "")),
+        )
+        points = self._read_json(points_path)
+        if points is None:
+            raise ArtifactNotFoundError("CardFusion-space points are unavailable")
+        return index, points

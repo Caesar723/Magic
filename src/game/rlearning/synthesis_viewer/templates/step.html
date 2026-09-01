@@ -42,6 +42,21 @@
         <p>This step does not have a complete text embedding artifact yet.</p>
       </article>
     {% endif %}
+    {% set card_fusion_space = step_info.manifest.modules.card_fusion_space if step_info.manifest.modules is defined else none %}
+    {% if card_fusion_space and card_fusion_space.status == 'complete' %}
+      <a class="module-card is-ready" href="{{ url_for('card_fusion_space_page', experiment_id=experiment.id, step=step_info.step) }}">
+        <span class="module-status">READY</span>
+        <h2>CardFusion space</h2>
+        <p>Inspect learned card representations and their nearest semantic neighbours.</p>
+        <small>{{ card_fusion_space.point_count }} unique cards · {{ card_fusion_space.source_sample_count }} source uses</small>
+      </a>
+    {% else %}
+      <article class="module-card">
+        <span class="module-status">PENDING</span>
+        <h2>CardFusion space</h2>
+        <p>This step does not have a complete CardFusion artifact yet.</p>
+      </article>
+    {% endif %}
     {% set transition_space = step_info.manifest.modules.transition_space if step_info.manifest.modules is defined else none %}
     {% if transition_space and transition_space.status == 'complete' %}
       <a class="module-card is-ready" href="{{ url_for('transition_space_page', experiment_id=experiment.id, step=step_info.step) }}">

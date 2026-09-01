@@ -16,6 +16,8 @@ from typing import Any, Iterable
 
 import numpy as np
 
+from .projection import pca_project_2d
+
 
 SCHEMA_VERSION = 1
 
@@ -231,6 +233,232 @@ def write_transition_space_artifact(
             "point_count": len(point_records),
             "highlight_count": highlight_count,
             "index": "transition_space/index.json",
+            "generated_at": generated_at,
+        },
+        generated_at=generated_at,
+    )
+    return module_path
+
+
+def _card_fusion_key(card: dict[str, Any]) -> str:
+    """Return a stable identity for a card as seen by CardFusion."""
+    return json.dumps(
+        {
+            "card_id": card.get("card_id"),
+            "description": str(card.get("description", "")),
+            "type": card.get("type"),
+            "mana_cost": card.get("mana_cost", []),
+            "attack": card.get("attack"),
+            "health": card.get("health"),
+            "has_state": card.get("has_state"),
+            "special_types": card.get("special_types", []),
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+
+
+def _card_fusion_label(card: dict[str, Any], fallback_index: int) -> str:
+    """Use the opening sentence as a compact card label when a name is absent."""
+    name = " ".join(str(card.get("name", "")).split())
+    if name:
+        return name
+    description = " ".join(str(card.get("description", "")).split())
+    if not description:
+        return f"Card {fallback_index + 1}"
+    return description.split(".", maxsplit=1)[0][:90]
+
+
+def write_card_fusion_space_artifact(
+    step_dir: str | Path,
+    *,
+    step: int,
+    fused_vectors: np.ndarray,
+    records: Iterable[dict[str, Any]],
+    neighbor_count: int = 4,
+    source_sample_count: int | None = None,
+) -> Path:
+    """Write a unique-card view of the vectors emitted by ``CardFusion``.
+
+    Replay data contains many uses of the same card. The artifact averages
+    identical CardFusion outputs and records the observed outcomes separately,
+    so one dot answers "what does this card mean to the model?" instead of
+    rendering hundreds of overlapping copies of the same card.
+    """
+    destination = Path(step_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+
+    vectors = np.asarray(fused_vectors, dtype=np.float32)
+    source_records = [dict(record) for record in records]
+    if vectors.ndim != 2:
+        raise ValueError(f"Expected a 2D CardFusion matrix, got shape {vectors.shape}")
+    if vectors.shape[0] != len(source_records):
+        raise ValueError(
+            f"CardFusion matrix has {vectors.shape[0]} rows for "
+            f"{len(source_records)} records"
+        )
+    if not source_records:
+        raise ValueError("At least one CardFusion record is required")
+
+    grouped: dict[str, dict[str, Any]] = {}
+    for vector, record in zip(vectors, source_records):
+        card = dict(record.get("card_used", {}))
+        model_description = record.get("card_model_description")
+        if isinstance(model_description, str) and model_description.strip():
+            card["description"] = model_description
+        key = _card_fusion_key(card)
+        group = grouped.setdefault(
+            key,
+            {
+                "card": card,
+                "vectors": [],
+                "sample_count": 0,
+                "change_counts": {},
+                "semantic_effects": set(),
+            },
+        )
+        group["vectors"].append(vector)
+        group["sample_count"] += max(0, int(record.get("sample_count", 1)))
+        effects = record.get("semantic_effects", card.get("semantic_effects", []))
+        if isinstance(effects, str):
+            effects = [effects]
+        if isinstance(effects, (list, tuple, set)):
+            group["semantic_effects"].update(
+                str(effect) for effect in effects if effect
+            )
+
+        recorded_counts = record.get("state_change_counts")
+        if isinstance(recorded_counts, dict):
+            for change_type, count in recorded_counts.items():
+                group["change_counts"][str(change_type)] = (
+                    group["change_counts"].get(str(change_type), 0) + int(count)
+                )
+        else:
+            change_type = str(
+                record.get("state_delta", {}).get("change_type", "no_major_change")
+            )
+            group["change_counts"][change_type] = (
+                group["change_counts"].get(change_type, 0) + 1
+            )
+
+    grouped_values = list(grouped.values())
+    card_vectors = np.stack(
+        [np.mean(group["vectors"], axis=0) for group in grouped_values]
+    ).astype(np.float32)
+    coordinates, projection = pca_project_2d(card_vectors)
+    projection["source"] = "card_fusion_output"
+
+    point_records: list[dict[str, Any]] = []
+    for card_index, (group, coordinate) in enumerate(zip(grouped_values, coordinates)):
+        change_counts = dict(sorted(group["change_counts"].items()))
+        dominant_change = (
+            max(
+                change_counts,
+                key=lambda change: (change_counts[change], change),
+            )
+            if change_counts
+            else "catalog_only"
+        )
+        card = group["card"]
+        semantic_effects = sorted(group["semantic_effects"])
+        point_records.append(
+            {
+                "card_index": card_index,
+                "card_id": card.get("card_id"),
+                "name": card.get("name"),
+                "label": _card_fusion_label(card, card_index),
+                "description": str(card.get("description", "No card text available")),
+                "type": str(card.get("type", "Unknown")),
+                "mana_cost": card.get("mana_cost", []),
+                "attack": card.get("attack", 0),
+                "health": card.get("health", 0),
+                "has_state": bool(card.get("has_state", False)),
+                "special_types": card.get("special_types", []),
+                "sample_count": group["sample_count"],
+                "state_change_counts": change_counts,
+                "dominant_change": dominant_change,
+                "semantic_effects": semantic_effects,
+                "semantic_label": semantic_effects[0] if semantic_effects else dominant_change,
+                "x": round(float(coordinate[0]), 7),
+                "y": round(float(coordinate[1]), 7),
+            }
+        )
+
+    safe_norms = np.linalg.norm(card_vectors, axis=1, keepdims=True).clip(min=1e-12)
+    normalized_vectors = card_vectors / safe_norms
+    similarities = normalized_vectors @ normalized_vectors.T
+    nearest_similarities = []
+    semantic_agreements = []
+    for card_index, point in enumerate(point_records):
+        ordered_indices = sorted(
+            (index for index in range(len(point_records)) if index != card_index),
+            key=lambda index: (-float(similarities[card_index, index]), index),
+        )
+        neighbors = []
+        for neighbor_index in ordered_indices[: max(0, int(neighbor_count))]:
+            similarity = round(float(similarities[card_index, neighbor_index]), 4)
+            neighbors.append({"card_index": neighbor_index, "similarity": similarity})
+        point["neighbors"] = neighbors
+        if neighbors:
+            nearest_similarities.append(neighbors[0]["similarity"])
+            semantic_agreements.append(
+                float(
+                    point["semantic_label"]
+                    == point_records[neighbors[0]["card_index"]]["semantic_label"]
+                )
+            )
+
+    source_sample_count = (
+        len(source_records)
+        if source_sample_count is None
+        else max(0, int(source_sample_count))
+    )
+    generated_at = utc_now()
+    temporary_module = destination / f".card_fusion_space-{uuid.uuid4().hex}.tmp"
+    temporary_module.mkdir(parents=True)
+    np.savez_compressed(temporary_module / "vectors.npz", fused_embeddings=card_vectors)
+    _write_json(
+        temporary_module / "points.json",
+        {
+            "schema_version": SCHEMA_VERSION,
+            "step": int(step),
+            "projection": projection,
+            "points": point_records,
+        },
+    )
+    _write_json(
+        temporary_module / "index.json",
+        {
+            "schema_version": SCHEMA_VERSION,
+            "step": int(step),
+            "generated_at": generated_at,
+            "point_count": len(point_records),
+            "source_sample_count": source_sample_count,
+            "vector_dimensions": int(card_vectors.shape[1]),
+            "mean_nearest_similarity": round(
+                float(np.mean(nearest_similarities)) if nearest_similarities else 0.0,
+                4,
+            ),
+            "nearest_semantic_agreement": round(
+                float(np.mean(semantic_agreements)) if semantic_agreements else 0.0,
+                4,
+            ),
+            "projection": projection,
+            "points": "points.json",
+            "vectors": "vectors.npz",
+        },
+    )
+
+    module_path = _replace_module(destination, "card_fusion_space", temporary_module)
+    _update_manifest(
+        destination,
+        step=step,
+        module_name="card_fusion_space",
+        module_metadata={
+            "status": "complete",
+            "point_count": len(point_records),
+            "source_sample_count": source_sample_count,
+            "index": "card_fusion_space/index.json",
             "generated_at": generated_at,
         },
         generated_at=generated_at,

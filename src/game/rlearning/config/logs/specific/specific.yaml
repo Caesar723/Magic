@@ -3,7 +3,7 @@
 # Common
 ###########################
 
-log_dir: "logs/specific/specific_entity_v05"
+log_dir: "logs/specific/specific_v01"
 restore_step: 0
 #------------------------------------
 
@@ -13,27 +13,25 @@ cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Cre
 
 
 ###########################
-# Train
+#  Train 
 ###########################
-
 seed: 1234
 max_store: 1024
 binding_augmentation_probability: 0.0
 #------------------------------------
-
-dataset_class_name: "game.rlearning.datasets.state_space.EntityTransition.EntityTransitionDataset"
+dataset_class_name: "game.rlearning.datasets.state_space.CVAE.CVAEDataset"
 dataloader:
   batch_size: 32
   num_workers: 0
 
 dataset_multiple: 10
 
-#------------------------------------
 
-trainer: "game.rlearning.module.state_space.EntityTransition.EntityTransitionCVAETrainer"
+#------------------------------------
+trainer: "game.rlearning.module.state_space.CVAE.CVAETrainer"
 
 reward_function: "game.rlearning.rewards.win_base.get_reward"
-state_function: "game.rlearning.states.state_space.specific_entity.get_state"
+state_function: "game.rlearning.states.state_space.specific.get_state"
 action_transform_function: "game.rlearning.actions.state_space.index_base.num2action"
 action_mask_function: "game.rlearning.actions.state_space.index_base.create_action_mask"
 w_val_loss: 0.5
@@ -44,12 +42,14 @@ ppo:
   gamma: 0.99
   lambd: 0.95
   clip_para: 0.2
+  
+
 
 
 optimizer:
-  learning_rate: 2.0e-4
+  learning_rate: 2.0e-4  
   betas: [0.8, 0.99]
-  eps: 1.0e-9
+  eps: 1.0e-9 
   grad_clip_thresh: 1.0
   n_warmup_steps: 0
 
@@ -62,8 +62,7 @@ reset_learning_rate: True
 moving_average_beta: 0
 
 #------------------------------------
-
-total_step: 600000
+total_step: 300000
 log_step: 20
 eval_step: 2000
 synthesis_step: 2000
@@ -74,11 +73,9 @@ save_step: 2000
 epochs: 5
 n_epoch: 15
 
-
 ###########################
-# Model
+#  Model 
 ###########################
-
 action_space: 362
 shared_card_cfg: &shared_card_cfg
   max_card_id: 100
@@ -90,18 +87,19 @@ shared_card_cfg: &shared_card_cfg
 
   max_mana: 20
 
+
   id_dim: 32
   type_dim: 16
   cat_emb_dim: 16
   mana_dim: 16
   cont_hidden: 32
   card_embed_dim: 128
-
+  
 
 model:
 
   StateTransformerEncoder:
-    class_name: "game.rlearning.net.state_space.EntityTransition.EntityStateTransformerEncoder"
+    class_name: 'game.rlearning.net.state_space.StateEncoder.StateTransformerEncoder'
     num_card_types: 5
     special_type_dim: 20
     stack_player_dim: 2
@@ -114,16 +112,16 @@ model:
     max_slots: 64
 
   ActionEncoder:
-    class_name: "game.rlearning.net.state_space.StateEncoder.ActionEncoder"
+    class_name: 'game.rlearning.net.state_space.StateEncoder.ActionEncoder'
     action_size: 362
     output_dim: 128
 
   TextEncoder:
-    class_name: "game.rlearning.net.state_space.jina_text_encoder.JinaTextEncoder"
-    model_name: "jinaai/jina-embeddings-v5-text-small"
-    local_model_path: "/mnt/data/trainData/checkpoints/text_encoder/text_encoder_v4/jina_embeddings_v5_step_55000"
-    cache_dir: "models"
-    task: "text-matching"
+    class_name: 'game.rlearning.net.state_space.jina_text_encoder.JinaTextEncoder'
+    model_name: 'jinaai/jina-embeddings-v5-text-small'
+    local_model_path: 'models/jina-embeddings-v5-text-small'
+    cache_dir: 'models'
+    task: 'text-matching'
     truncate_dim: 128
     normalize: True
     trust_remote_code: True
@@ -131,30 +129,30 @@ model:
     lazy_load: True
 
   CardStateEncoder:
-    class_name: "game.rlearning.net.state_space.StateEncoder.CardStateEncoder"
+    class_name: 'game.rlearning.net.state_space.StateEncoder.CardStateEncoder'
     max_card_type: 5
     num_special: 20
     output_dim: 128
 
   CardFusion:
-    class_name: "game.rlearning.net.state_space.CVAE.CardFusion"
+    class_name: 'game.rlearning.net.state_space.CVAE.CardFusion'
     text_dim: 128
     attr_dim: 128
     hidden_dim: 256
     d_model: 128
 
   PriorEncoder:
-    class_name: "game.rlearning.net.state_space.CVAE.PriorEncoder"
+    class_name: 'game.rlearning.net.state_space.CVAE.PriorEncoder'
     d_model: 128
     latent_dim: 128
 
   PosteriorEncoder:
-    class_name: "game.rlearning.net.state_space.CVAE.PosteriorEncoder"
+    class_name: 'game.rlearning.net.state_space.CVAE.PosteriorEncoder'
     d_model: 128
     latent_dim: 128
 
   TokenTransitionStateDecoder:
-    class_name: "game.rlearning.net.state_space.EntityTransition.EntityTransitionStateDecoder"
+    class_name: 'game.rlearning.net.state_space.StateEncoder.TokenTransitionStateDecoder'
     transition_dim: 128
     num_card_types: 5
     num_card_costs: 6
@@ -162,38 +160,12 @@ model:
     special_type_dim: 20
     stack_player_dim: 2
     stack_action_vocab_size: 20
-    num_locations: 9
     d_model: 128
     transition_memory_len: 10
     nhead: 4
     num_layers: 2
     dim_feedforward: 256
     dropout: 0.1
-
-
-###########################
-# Loss
-###########################
-
-# Original global life and mana reconstruction.
-w_global_state_loss: 1.0
-
-# Changed self/opponent life values receive more reconstruction weight.
-changed_life_weight: 8.0
-unchanged_life_weight: 1.0
-
-# Source-card destination and dynamic-attribute reconstruction.
-w_card_location_loss: 1.0
-w_card_state_loss: 1.0
-w_card_stat_loss: 1.0
-w_card_tapped_loss: 1.0
-
-# Compensate for the large number of cards that remain in their source zone.
-moved_location_weight: 8.0
-
-# Dynamic values that changed receive more reconstruction weight.
-changed_attribute_weight: 8.0
-unchanged_attribute_weight: 1.0
 
 # Discrete stat loss: cross-entropy + expected-value L1.
 w_stat_expected_l1: 1.0

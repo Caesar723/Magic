@@ -349,6 +349,7 @@ class EntityTransitionCVAETrainer(CVAETrainer):
             synthesis_models["TextEncoder"] = self.models["TextEncoder"]
 
         vector_chunks = {
+            "h_card": [],
             "mean_q": [],
             "std_q": [],
             "mean_p": [],
@@ -407,6 +408,10 @@ class EntityTransitionCVAETrainer(CVAETrainer):
                         "state_delta": state_delta_from_target(
                             source_state,
                             target_state,
+                            local_index,
+                        ),
+                        "card_model_description": self._synthesis_card_model_description(
+                            batch["card_used"],
                             local_index,
                         ),
                         "action": {
@@ -532,8 +537,14 @@ class EntityTransitionCVAETrainer(CVAETrainer):
             coordinates=coordinates,
             projection=projection,
         )
+        card_fusion_path = self._write_card_fusion_space_artifact(
+            step_dir,
+            synthesis_models,
+            fallback_vectors=vectors["h_card"],
+            transition_records=transition_records,
+        )
         log.info(
             f"Entity synthesis step {self.step}: wrote "
-            f"{reconstruction_path} and {transition_path}."
+            f"{reconstruction_path}, {transition_path}, and {card_fusion_path}."
         )
         return transition_path

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% from "_step_navigator.html" import step_navigator %}
+
+{% block content %}
+  <header class="reconstruction-header">
+    <div>
+      <p class="eyebrow"><a href="{{ url_for('step_page', experiment_id=experiment.id, step=step) }}">{{ experiment.name }} / step {{ step }}</a></p>
+      <h1>CardFusion space</h1>
+      <p class="page-subtitle">Every parsed card is passed through CardFusion with its text and reconstructed game attributes. Nearby cards are the model's closest learned neighbours.</p>
+    </div>
+    <div class="metric-strip">
+      <span><small>unique cards</small><b>{{ index.point_count }}</b></span>
+      <span><small>replay uses</small><b>{{ index.source_sample_count }}</b></span>
+      <span><small>mean nearest sim.</small><b>{{ '%.1f'|format(index.mean_nearest_similarity * 100) }}%</b></span>
+      <span><small>nearest semantic match</small><b>{{ '%.1f'|format(index.nearest_semantic_agreement * 100) }}%</b></span>
+    </div>
+  </header>
+
+  {{ step_navigator(step_navigation) }}
+
+  <section class="card-fusion-guide">
+    <p class="eyebrow">HOW TO READ</p>
+    <p>Inspect close neighbours and their card text: clusters indicate which cards CardFusion represents similarly. Color uses the parsed card's primary binding effect; nearest-semantic-match is a diagnostic, not a CardFusion accuracy score.</p>
+  </section>
+
+  <section class="transition-controls card-fusion-controls">
+    <label>Card type <select id="card-fusion-type-filter"><option value="">All types</option></select></label>
+    <label>Semantic effect <select id="card-fusion-semantic-filter"><option value="">All effects</option></select></label>
+    <label class="card-fusion-search">Search card text <input id="card-fusion-search" type="search" placeholder="e.g. damage, draw, creature"></label>
+    <span id="card-fusion-legend" class="plot-legend binding-legend"></span>
+  </section>
+
+  <div class="transition-space-layout">
+    <section class="transition-plot-card">
+      <div class="transition-plot-shell">
+        <svg id="card-fusion-plot" viewBox="0 0 1000 640" role="img" aria-label="Two-dimensional CardFusion output projection"></svg>
+        <div id="card-fusion-tooltip" class="transition-tooltip" hidden></div>
+      </div>
+      <footer>
+        <span>{{ index.projection.method | upper }} 1</span>
+        <span>Color = parsed semantic effect · size = observed replay uses</span>
+      </footer>
+    </section>
+
+    <aside class="transition-inspector card-fusion-inspector">
+      <p class="eyebrow">SELECTED CARD</p>
+      <h2 id="card-fusion-title">Select a card</h2>
+      <dl>
+        <dt>Card attributes</dt><dd id="card-fusion-attributes">—</dd>
+        <dt>Observed uses</dt><dd id="card-fusion-samples">—</dd>
+        <dt>Parsed effects</dt><dd id="card-fusion-effects">—</dd>
+        <dt>Observed outcome</dt><dd id="card-fusion-change">—</dd>
+        <dt>Traits</dt><dd id="card-fusion-traits">—</dd>
+        <dt>Card text</dt><dd id="card-fusion-description">—</dd>
+      </dl>
+      <section class="card-fusion-neighbors" aria-labelledby="card-fusion-neighbors-title">
+        <h3 id="card-fusion-neighbors-title">Nearest learned neighbours</h3>
+        <ol id="card-fusion-neighbor-list"></ol>
+      </section>
+    </aside>
+  </div>
+
+  <script id="card-fusion-points-data" type="application/json">{{ points | tojson }}</script>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', path='card_fusion_space.js') }}" defer></script>
+{% endblock %}
