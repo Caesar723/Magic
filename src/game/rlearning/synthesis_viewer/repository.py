@@ -141,6 +141,32 @@ class ArtifactRepository:
             raise ArtifactNotFoundError("Transition-space points are unavailable")
         return index, points
 
+    def transition_plan(self, experiment_id: str, step: int) -> tuple[dict, dict]:
+        """Return the deterministic transition-plan projection for one snapshot."""
+        step_info = self.get_step(experiment_id, step)
+        module = step_info["manifest"].get("modules", {}).get("transition_plan")
+        if not isinstance(module, dict) or module.get("status") != "complete":
+            raise ArtifactNotFoundError("Transition plan is not available for this step")
+        index_path = self._artifact_path(step_info["path"], str(module.get("index", "")))
+        index = self._read_json(index_path)
+        if index is None:
+            raise ArtifactNotFoundError("Transition-plan index is unavailable")
+        points = self._read_json(self._artifact_path(index_path.parent, str(index.get("points", ""))))
+        if points is None:
+            raise ArtifactNotFoundError("Transition-plan points are unavailable")
+        plan_points = points.get("points", [])
+        try:
+            _, transition_points = self.transition_space(experiment_id, step)
+        except ArtifactNotFoundError:
+            transition_points = {}
+        records = transition_points.get("points", [])
+        fields = ("source_index", "is_highlighted", "reconstruction_sample_id", "state_delta", "action", "card_used", "reconstruction_score", "reconstruction_scores")
+        if len(records) == len(plan_points) and all(item.get("vector_index") == position for position, item in enumerate(records)):
+            for point, record in zip(plan_points, records):
+                for field in fields:
+                    point.setdefault(field, record.get(field))
+        return index, points
+
     def text_embedding_space(self, experiment_id: str, step: int) -> tuple[dict, dict]:
         step_info = self.get_step(experiment_id, step)
         module = step_info["manifest"].get("modules", {}).get("text_embedding_space")

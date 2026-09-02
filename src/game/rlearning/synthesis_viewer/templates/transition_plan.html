@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% from "_step_navigator.html" import step_navigator %}
+
+{% block content %}
+  <header class="reconstruction-header">
+    <div>
+      <p class="eyebrow"><a href="{{ url_for('step_page', experiment_id=experiment.id, step=step) }}">{{ experiment.name }} / step {{ step }}</a></p>
+      <h1>Transition plan</h1>
+      <p class="page-subtitle">{{ index.projection.method | upper }} of the mean of four deterministic plan tokens; z is not included.</p>
+    </div>
+    <div class="metric-strip">
+      <span><small>plans</small><b>{{ index.point_count }}</b></span>
+      <span><small>T tokens / plan</small><b>{{ index.plan_token_count }}</b></span>
+      <span><small>T dimensions</small><b>{{ index.vector_dimensions }}</b></span>
+      <span><small>PC1 + PC2 variance</small><b>{{ '%.1f'|format((index.projection.explained_variance_ratio[0] + index.projection.explained_variance_ratio[1]) * 100) }}%</b></span>
+    </div>
+  </header>
+
+  {{ step_navigator(step_navigation) }}
+
+  <section class="card-fusion-guide">
+    <p class="eyebrow">HOW TO READ</p>
+    <p>Each point is one card/action/current-state input. Its color is exactly the same state-change class used in Transition space, so the two layouts can be compared directly.</p>
+  </section>
+
+  <section class="transition-controls"><span id="transition-plan-legend" class="plot-legend"></span></section>
+
+  <div class="transition-space-layout">
+    <section class="transition-plot-card">
+      <div class="transition-plot-shell">
+        <svg id="transition-plan-plot" viewBox="0 0 1000 640" role="img" aria-label="Two-dimensional deterministic transition-plan projection"></svg>
+        <div id="transition-plan-tooltip" class="transition-tooltip" hidden></div>
+      </div>
+      <footer><span>PC1</span><span>PC2 · mean of 4T</span></footer>
+    </section>
+    <aside class="transition-inspector">
+      <p class="eyebrow">SELECTED PLAN</p>
+      <h2 id="transition-plan-title">Select a plan</h2>
+      <dl>
+        <dt>Dataset vector</dt><dd id="transition-plan-index">—</dd>
+        <dt>Action</dt><dd id="transition-plan-action">—</dd>
+        <dt>State change</dt><dd id="transition-plan-change">—</dd>
+        <dt>Card text</dt><dd id="transition-plan-card">—</dd>
+        <dt>Projection coordinate</dt><dd id="transition-plan-coordinate">—</dd>
+        <dt>Plan structure</dt><dd>{{ index.plan_token_count }} deterministic tokens × {{ index.vector_dimensions }} dimensions</dd>
+        <dt>Stochastic z</dt><dd>Not shown or used in this projection</dd>
+      </dl>
+      <a id="transition-plan-reconstruction-link" class="inspector-link" href="#" hidden>Open reconstruction</a>
+    </aside>
+  </div>
+
+  <script id="transition-plan-points-data" type="application/json">{{ points | tojson }}</script>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', path='transition_plan.js') }}" defer></script>
+{% endblock %}

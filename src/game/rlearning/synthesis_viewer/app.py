@@ -341,6 +341,43 @@ def create_app(logdir: str | Path) -> FastAPI:
         )
 
     @app.get(
+        "/experiments/{experiment_id}/{step}/transition-plan",
+        name="transition_plan_page",
+    )
+    async def transition_plan_page(request: Request, experiment_id: str, step: int):
+        """Render the deterministic four-token transition-plan projection."""
+        repository: ArtifactRepository = request.app.state.repository
+        try:
+            experiment = repository.get_experiment(experiment_id)
+            index, points_payload = repository.transition_plan(experiment_id, step)
+        except ArtifactNotFoundError as error:
+            raise _not_found(error) from error
+        points = []
+        for source_point in points_payload.get("points", []):
+            point = dict(source_point)
+            sample_id = point.get("reconstruction_sample_id")
+            if sample_id is not None:
+                point["reconstruction_url"] = str(request.url_for("reconstruction_sample_page", experiment_id=experiment_id, step=step, sample_id=sample_id)) + "?encoder=prior"
+            points.append(point)
+        return _render(
+            request,
+            "transition_plan.html",
+            title=f"{experiment.name} · {step} · transition plan",
+            experiment=experiment,
+            current_experiment_id=experiment.id,
+            step=step,
+            index=index,
+            points=points,
+            step_navigation=_step_navigation(
+                request,
+                experiment.id,
+                step,
+                "transition_plan_page",
+                module_name="transition_plan",
+            ),
+        )
+
+    @app.get(
         "/experiments/{experiment_id}/{step}/text-embedding-space",
         name="text_embedding_space_page",
     )

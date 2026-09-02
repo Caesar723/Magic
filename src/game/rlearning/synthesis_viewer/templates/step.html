@@ -72,5 +72,20 @@
         <p>This step does not have a complete transition-space artifact yet.</p>
       </article>
     {% endif %}
+    {% set transition_plan = step_info.manifest.modules.transition_plan if step_info.manifest.modules is defined else none %}
+    {% if transition_plan and transition_plan.status == 'complete' %}
+      <a class="module-card is-ready" href="{{ url_for('transition_plan_page', experiment_id=experiment.id, step=step_info.step) }}">
+        <span class="module-status">READY</span>
+        <h2>Transition plan</h2>
+        <p>Deterministic four-token plan, averaged and projected to two dimensions.</p>
+        <small>{{ transition_plan.point_count }} state-conditioned plans</small>
+      </a>
+    {% else %}
+      <article class="module-card">
+        <span class="module-status">PENDING</span>
+        <h2>Transition plan</h2>
+        <p>This step does not have a complete deterministic plan artifact yet.</p>
+      </article>
+    {% endif %}
   </section>
 {% endblock %}
