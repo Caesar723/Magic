@@ -4,10 +4,18 @@
   if (!dataElement || !svg) return;
 
   const points = JSON.parse(dataElement.textContent || "[]");
+  const projectionsElement = document.getElementById("transition-projections-data");
+  const projectionOptions = projectionsElement
+    ? JSON.parse(projectionsElement.textContent || "[]")
+    : [{ key: "posterior", label: "Posterior · reconstruction" }];
   const tooltip = document.getElementById("transition-tooltip");
   const highlightToggle = document.getElementById("highlight-toggle");
   const highlightsOnlyToggle = document.getElementById("highlights-only-toggle");
   const stateChangeFilter = document.getElementById("state-change-filter");
+  const latentTitle = document.getElementById("transition-latent-title");
+  const latentViewInputs = [...document.querySelectorAll('input[name="latent-view"]')];
+  let latentView = latentViewInputs.find((input) => input.checked)?.value
+    || "posterior";
   const namespace = "http://www.w3.org/2000/svg";
   const width = 1000;
   const height = 640;
@@ -44,17 +52,28 @@
   // synthesis sample happens not to contain a point of that class.
   const changeTypes = Object.keys(changeLabels);
   const selectedChangeTypes = new Set();
+  let selectedPoint = null;
 
-  const values = (key) => points.map((point) => Number(point[key]) || 0);
+  const coordinatesFor = (point) => point.coordinates?.[latentView] || point;
+  const values = (key) => points.map(
+    (point) => Number(coordinatesFor(point)[key]) || 0,
+  );
   const extent = (items) => {
     const minimum = Math.min(...items);
     const maximum = Math.max(...items);
     return minimum === maximum ? [minimum - 1, maximum + 1] : [minimum, maximum];
   };
-  const [xMin, xMax] = extent(values("x"));
-  const [yMin, yMax] = extent(values("y"));
+  let xMin;
+  let xMax;
+  let yMin;
+  let yMax;
+  const updateScales = () => {
+    [xMin, xMax] = extent(values("x"));
+    [yMin, yMax] = extent(values("y"));
+  };
   const scaleX = (value) => padding + ((value - xMin) / (xMax - xMin)) * (width - padding * 2);
   const scaleY = (value) => height - padding - ((value - yMin) / (yMax - yMin)) * (height - padding * 2);
+  updateScales();
 
   const grid = document.createElementNS(namespace, "g");
   grid.setAttribute("class", "plot-grid");
@@ -96,16 +115,22 @@
   };
 
   const selectPoint = (point) => {
+    selectedPoint = point;
     setText("point-title", `Vector ${point.vector_index}`);
     setText("point-action", point.action?.label);
     setText("point-card-type", point.card_used?.type);
     setText("point-card-text", point.card_used?.description);
     setText("point-change", changeLabels[pointChange(point)] || pointChange(point));
     setText("point-source-index", String(point.source_index));
-    setText("point-score", point.reconstruction_score ?? "—");
+    setText(
+      "point-score",
+      point.reconstruction_scores?.[latentView] ?? point.reconstruction_score ?? "—",
+    );
     const link = document.getElementById("reconstruction-link");
-    if (link && point.reconstruction_url) {
-      link.href = point.reconstruction_url;
+    const reconstructionUrl = point.reconstruction_urls?.[latentView]
+      || point.reconstruction_url;
+    if (link && reconstructionUrl) {
+      link.href = reconstructionUrl;
       link.hidden = false;
     } else if (link) {
       link.hidden = true;
@@ -113,9 +138,10 @@
   };
 
   const circles = points.map((point) => {
+    const coordinate = coordinatesFor(point);
     const circle = document.createElementNS(namespace, "circle");
-    circle.setAttribute("cx", scaleX(Number(point.x)));
-    circle.setAttribute("cy", scaleY(Number(point.y)));
+    circle.setAttribute("cx", scaleX(Number(coordinate.x)));
+    circle.setAttribute("cy", scaleY(Number(coordinate.y)));
     circle.setAttribute("r", point.is_highlighted ? 7 : 3.2);
     circle.setAttribute("tabindex", "0");
     circle.style.fill = pointColor(point);
@@ -137,11 +163,26 @@
     circle.addEventListener("focus", () => selectPoint(point));
     circle.addEventListener("click", () => {
       selectPoint(point);
-      if (point.reconstruction_url) window.location.href = point.reconstruction_url;
+      const reconstructionUrl = point.reconstruction_urls?.[latentView]
+        || point.reconstruction_url;
+      if (reconstructionUrl) window.location.href = reconstructionUrl;
     });
     pointLayer.appendChild(circle);
     return { circle, point };
   });
+
+  const applyLatentView = (nextView) => {
+    latentView = nextView;
+    updateScales();
+    circles.forEach(({ circle, point }) => {
+      const coordinate = coordinatesFor(point);
+      circle.setAttribute("cx", scaleX(Number(coordinate.x)));
+      circle.setAttribute("cy", scaleY(Number(coordinate.y)));
+    });
+    const label = projectionOptions.find((option) => option.key === latentView)?.label;
+    if (latentTitle && label) latentTitle.textContent = label;
+    if (selectedPoint) selectPoint(selectedPoint);
+  };
 
   const applyFilters = () => {
     const highlightsOnly = Boolean(highlightsOnlyToggle?.checked);
@@ -190,5 +231,11 @@
   });
   highlightToggle?.addEventListener("change", applyFilters);
   highlightsOnlyToggle?.addEventListener("change", applyFilters);
+  latentViewInputs.forEach((input) => {
+    input.addEventListener("change", () => {
+      if (input.checked) applyLatentView(input.value);
+    });
+  });
+  applyLatentView(latentView);
   applyFilters();
 })();

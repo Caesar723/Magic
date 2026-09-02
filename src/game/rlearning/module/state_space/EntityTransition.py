@@ -433,11 +433,10 @@ class EntityTransitionCVAETrainer(CVAETrainer):
                     dtype=torch.long,
                     device=batch["mean_q"].device,
                 )
-                prediction = synthesis_models["TokenTransitionStateDecoder"](
-                    state_tokens=batch["tokens_s"].index_select(0, selection),
-                    state_padding_mask=batch["pad_s"].index_select(0, selection),
-                    spans=batch["spans_s"],
-                    transition_vec=batch["mean_q"].index_select(0, selection),
+                predictions = self._synthesis_decoder_predictions(
+                    synthesis_models,
+                    batch,
+                    selection,
                 )
                 selected_source_state = self._select_batch(
                     source_state,
@@ -460,27 +459,54 @@ class EntityTransitionCVAETrainer(CVAETrainer):
                     card_used = card_used_from_raw(
                         self._raw_card_used(self.dataset.datas[source_index])
                     )
-                    metrics = entity_reconstruction_metrics(
-                        prediction,
-                        selected_source_state,
-                        selected_target_state,
-                        reconstruction_index,
-                    )
+                    prediction_views = {}
+                    for prediction_key, prediction_info in predictions.items():
+                        prediction = prediction_info["prediction"]
+                        metrics = entity_reconstruction_metrics(
+                            prediction,
+                            selected_source_state,
+                            selected_target_state,
+                            reconstruction_index,
+                        )
+                        prediction_views[prediction_key] = {
+                            "encoder": prediction_info["encoder"],
+                            "label": prediction_info["label"],
+                            "condition": prediction_info["condition"],
+                            "metrics": metrics,
+                            "entity_transitions": entity_transition_rows(
+                                prediction,
+                                selected_source_state,
+                                selected_target_state,
+                                reconstruction_index,
+                            ),
+                            "predicted_next_state": state_from_entity_prediction(
+                                prediction,
+                                selected_source_state,
+                                reconstruction_index,
+                            ),
+                        }
+                    prior_metrics = prediction_views["prior"]["metrics"]
+                    posterior_metrics = prediction_views["posterior"]["metrics"]
                     transition_records[vector_index]["reconstruction_score"] = (
-                        metrics["score"]
+                        prior_metrics["score"]
                     )
+                    transition_records[vector_index]["reconstruction_scores"] = {
+                        "prior": prior_metrics["score"],
+                        "posterior": posterior_metrics["score"],
+                    }
                     reconstruction_records.append(
                         {
-                            "schema_version": 1,
+                            "schema_version": 2,
                             "reconstruction_type": "entity_transition",
                             "sample_id": sample_id,
                             "source_index": source_index,
                             "vector_index": vector_index,
                             "summary": {
                                 "action": describe_action(action_index),
-                                "score": metrics["score"],
+                                "score": prior_metrics["score"],
+                                "prior_score": prior_metrics["score"],
+                                "posterior_score": posterior_metrics["score"],
                             },
-                            "metrics": metrics,
                             "input_state": state_from_entity_target(
                                 selected_source_state,
                                 reconstruction_index,
@@ -492,19 +518,7 @@ class EntityTransitionCVAETrainer(CVAETrainer):
                                     "label": describe_action(action_index),
                                 },
                             },
-                            "entity_transitions": entity_transition_rows(
-                                prediction,
-                                selected_source_state,
-                                selected_target_state,
-                                reconstruction_index,
-                            ),
-                            "predicted_next_state": (
-                                state_from_entity_prediction(
-                                    prediction,
-                                    selected_source_state,
-                                    reconstruction_index,
-                                )
-                            ),
+                            "predictions": prediction_views,
                             "target_next_state": state_from_entity_target(
                                 selected_target_state,
                                 reconstruction_index,
@@ -522,7 +536,14 @@ class EntityTransitionCVAETrainer(CVAETrainer):
             name: torch.cat(chunks, dim=0).numpy()
             for name, chunks in vector_chunks.items()
         }
-        coordinates, projection = pca_project_2d(vectors["mean_q"])
+        posterior_coordinates, posterior_projection = pca_project_2d(
+            vectors["mean_q"],
+            source="mean_q",
+        )
+        prior_coordinates, prior_projection = pca_project_2d(
+            vectors["mean_p"],
+            source="mean_p",
+        )
         step_dir = f"{self.logdir}/synthesis/{self.step}"
         reconstruction_path = write_reconstruction_artifact(
             step_dir,
@@ -534,8 +555,16 @@ class EntityTransitionCVAETrainer(CVAETrainer):
             step=self.step,
             vectors=vectors,
             records=transition_records,
-            coordinates=coordinates,
-            projection=projection,
+            coordinates=posterior_coordinates,
+            projection=posterior_projection,
+            coordinates_by_view={
+                "prior": prior_coordinates,
+                "posterior": posterior_coordinates,
+            },
+            projections={
+                "prior": prior_projection,
+                "posterior": posterior_projection,
+            },
         )
         card_fusion_path = self._write_card_fusion_space_artifact(
             step_dir,

@@ -309,11 +309,10 @@ class CVAETrainer(BaseTrainer):
                     dtype=torch.long,
                     device=batch["mean_q"].device,
                 )
-                prediction = synthesis_models["TokenTransitionStateDecoder"](
-                    state_tokens=batch["tokens_s"].index_select(0, selection),
-                    state_padding_mask=batch["pad_s"].index_select(0, selection),
-                    spans=batch["spans_s"],
-                    transition_vec=batch["mean_q"].index_select(0, selection),
+                predictions = self._synthesis_decoder_predictions(
+                    synthesis_models,
+                    batch,
+                    selection,
                 )
                 selected_target_state = self._select_batch(target_state, selection)
 
@@ -329,25 +328,45 @@ class CVAETrainer(BaseTrainer):
                     card_used = card_used_from_raw(
                         self._raw_card_used(self.dataset.datas[source_index])
                     )
-                    metrics = reconstruction_metrics(
-                        prediction,
-                        selected_target_state,
-                        reconstruction_index,
-                    )
-                    transition_records[vector_index]["reconstruction_score"] = metrics[
+                    prediction_views = {}
+                    for prediction_key, prediction_info in predictions.items():
+                        prediction = prediction_info["prediction"]
+                        metrics = reconstruction_metrics(
+                            prediction,
+                            selected_target_state,
+                            reconstruction_index,
+                        )
+                        prediction_views[prediction_key] = {
+                            "encoder": prediction_info["encoder"],
+                            "label": prediction_info["label"],
+                            "condition": prediction_info["condition"],
+                            "metrics": metrics,
+                            "predicted_next_state": state_from_prediction(
+                                prediction,
+                                reconstruction_index,
+                            ),
+                        }
+                    prior_metrics = prediction_views["prior"]["metrics"]
+                    posterior_metrics = prediction_views["posterior"]["metrics"]
+                    transition_records[vector_index]["reconstruction_score"] = prior_metrics[
                         "score"
                     ]
+                    transition_records[vector_index]["reconstruction_scores"] = {
+                        "prior": prior_metrics["score"],
+                        "posterior": posterior_metrics["score"],
+                    }
                     reconstruction_records.append(
                         {
-                            "schema_version": 1,
+                            "schema_version": 2,
                             "sample_id": sample_id,
                             "source_index": source_index,
                             "vector_index": vector_index,
                             "summary": {
                                 "action": describe_action(action_index),
-                                "score": metrics["score"],
+                                "score": prior_metrics["score"],
+                                "prior_score": prior_metrics["score"],
+                                "posterior_score": posterior_metrics["score"],
                             },
-                            "metrics": metrics,
                             "input_state": state_from_target(
                                 source_state,
                                 local_index,
@@ -359,10 +378,7 @@ class CVAETrainer(BaseTrainer):
                                     "label": describe_action(action_index),
                                 },
                             },
-                            "predicted_next_state": state_from_prediction(
-                                prediction,
-                                reconstruction_index,
-                            ),
+                            "predictions": prediction_views,
                             "target_next_state": state_from_target(
                                 target_state,
                                 local_index,
@@ -379,7 +395,14 @@ class CVAETrainer(BaseTrainer):
             name: torch.cat(chunks, dim=0).numpy()
             for name, chunks in vector_chunks.items()
         }
-        coordinates, projection = pca_project_2d(vectors["mean_q"])
+        posterior_coordinates, posterior_projection = pca_project_2d(
+            vectors["mean_q"],
+            source="mean_q",
+        )
+        prior_coordinates, prior_projection = pca_project_2d(
+            vectors["mean_p"],
+            source="mean_p",
+        )
         step_dir = f"{self.logdir}/synthesis/{self.step}"
         reconstruction_path = write_reconstruction_artifact(
             step_dir,
@@ -391,8 +414,16 @@ class CVAETrainer(BaseTrainer):
             step=self.step,
             vectors=vectors,
             records=transition_records,
-            coordinates=coordinates,
-            projection=projection,
+            coordinates=posterior_coordinates,
+            projection=posterior_projection,
+            coordinates_by_view={
+                "prior": prior_coordinates,
+                "posterior": posterior_coordinates,
+            },
+            projections={
+                "prior": prior_projection,
+                "posterior": posterior_projection,
+            },
         )
         card_fusion_path = self._write_card_fusion_space_artifact(
             step_dir,
@@ -679,6 +710,41 @@ class CVAETrainer(BaseTrainer):
         if isinstance(value, torch.Tensor):
             return value.index_select(0, indices.to(value.device))
         return value
+
+    @staticmethod
+    def _synthesis_decoder_predictions(models, batch, selection):
+        """Decode deterministic Prior and Posterior means for viewer comparison.
+
+        The Prior view represents inference from the current state, card and
+        action.  The Posterior view additionally observes the true next state,
+        so it remains useful as the reconstruction upper bound.
+        """
+        decoder_inputs = {
+            "state_tokens": batch["tokens_s"].index_select(0, selection),
+            "state_padding_mask": batch["pad_s"].index_select(0, selection),
+            "spans": batch["spans_s"],
+        }
+        decoder = models["TokenTransitionStateDecoder"]
+        return {
+            "prior": {
+                "encoder": "PriorEncoder",
+                "label": "Prior · inference",
+                "condition": "current state + card + action",
+                "prediction": decoder(
+                    **decoder_inputs,
+                    transition_vec=batch["mean_p"].index_select(0, selection),
+                ),
+            },
+            "posterior": {
+                "encoder": "PosteriorEncoder",
+                "label": "Posterior · reconstruction",
+                "condition": "current state + card + action + true next state",
+                "prediction": decoder(
+                    **decoder_inputs,
+                    transition_vec=batch["mean_q"].index_select(0, selection),
+                ),
+            },
+        }
 
     def _forward(self, batch, models, isTrain, step, epoch):
 

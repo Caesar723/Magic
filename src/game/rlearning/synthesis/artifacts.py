@@ -165,8 +165,16 @@ def write_transition_space_artifact(
     records: Iterable[dict[str, Any]],
     coordinates: np.ndarray,
     projection: dict[str, Any],
+    coordinates_by_view: dict[str, np.ndarray] | None = None,
+    projections: dict[str, dict[str, Any]] | None = None,
 ) -> Path:
-    """Write raw latent vectors and browser-ready projected points."""
+    """Write raw latent vectors and browser-ready Prior/Posterior projections.
+
+    ``coordinates`` and ``projection`` remain the legacy Posterior defaults so
+    previously generated artifacts and viewers stay compatible.  New artifacts
+    also carry named coordinate sets, allowing the viewer to switch between
+    inference-time Prior and target-aware Posterior latent spaces.
+    """
     destination = Path(step_dir)
     destination.mkdir(parents=True, exist_ok=True)
 
@@ -178,20 +186,44 @@ def write_transition_space_artifact(
         raise ValueError("Transition-space vectors must include mean_q")
 
     point_records = [dict(record) for record in records]
-    coordinates = np.asarray(coordinates, dtype=np.float32)
-    if coordinates.shape != (len(point_records), 2):
+    default_coordinates = np.asarray(coordinates, dtype=np.float32)
+    if default_coordinates.shape != (len(point_records), 2):
         raise ValueError(
-            f"Expected projection shape {(len(point_records), 2)}, got {coordinates.shape}"
+            "Expected projection shape "
+            f"{(len(point_records), 2)}, got {default_coordinates.shape}"
         )
+    coordinate_sets = {
+        name: np.asarray(values, dtype=np.float32)
+        for name, values in (coordinates_by_view or {}).items()
+    }
+    coordinate_sets.setdefault("posterior", default_coordinates)
+    for name, values in coordinate_sets.items():
+        if values.shape != (len(point_records), 2):
+            raise ValueError(
+                f"Projection {name!r} has shape {values.shape}; expected "
+                f"{(len(point_records), 2)}"
+            )
+    projection_sets = dict(projections or {})
+    projection_sets.setdefault("posterior", projection)
     for name, values in vector_arrays.items():
         if values.shape[0] != len(point_records):
             raise ValueError(
                 f"Vector array {name} has {values.shape[0]} rows for {len(point_records)} records"
             )
 
-    for point, coordinate in zip(point_records, coordinates):
-        point["x"] = round(float(coordinate[0]), 7)
-        point["y"] = round(float(coordinate[1]), 7)
+    for point_index, point in enumerate(point_records):
+        # Keep top-level x/y for older viewer versions, using Posterior as the
+        # historic default.  New viewers select from the named coordinate sets.
+        posterior_coordinate = coordinate_sets["posterior"][point_index]
+        point["x"] = round(float(posterior_coordinate[0]), 7)
+        point["y"] = round(float(posterior_coordinate[1]), 7)
+        point["coordinates"] = {
+            name: {
+                "x": round(float(coordinate[point_index][0]), 7),
+                "y": round(float(coordinate[point_index][1]), 7),
+            }
+            for name, coordinate in coordinate_sets.items()
+        }
 
     temporary_module = destination / f".transition_space-{uuid.uuid4().hex}.tmp"
     temporary_module.mkdir(parents=True)
@@ -218,6 +250,9 @@ def write_transition_space_artifact(
             "highlight_count": highlight_count,
             "vector_dimensions": int(vector_arrays["mean_q"].shape[1]),
             "projection": projection,
+            "projections": projection_sets,
+            "default_latent_view": "posterior",
+            "latent_views": list(coordinate_sets),
             "points": "points.json",
             "vectors": "vectors.npz",
         },
@@ -232,6 +267,7 @@ def write_transition_space_artifact(
             "status": "complete",
             "point_count": len(point_records),
             "highlight_count": highlight_count,
+            "latent_views": list(coordinate_sets),
             "index": "transition_space/index.json",
             "generated_at": generated_at,
         },

@@ -6,10 +6,11 @@
   <header class="reconstruction-header">
     <div>
       <p class="eyebrow"><a href="{{ url_for('step_page', experiment_id=experiment.id, step=step) }}">{{ experiment.name }} / step {{ step }}</a></p>
-      <h1>Reconstruction · sample {{ sample.sample_id }}</h1>
+      <h1>{{ prediction.label }} · sample {{ sample.sample_id }}</h1>
+      <p class="page-subtitle">{{ prediction.condition }}</p>
     </div>
     <div class="metric-strip">
-      {% for name, value in sample.metrics.items() %}
+      {% for name, value in prediction.metrics.items() %}
         <span><small>{{ name }}</small><b>{{ value }}</b></span>
       {% endfor %}
     </div>
@@ -17,15 +18,24 @@
 
   {{ step_navigator(step_navigation) }}
 
+  <nav class="prediction-switch" aria-label="Latent encoder view">
+    {% for option in prediction_options %}
+      <a class="{% if option.key == selected_encoder %}is-active{% endif %}" href="{{ prediction_urls[option.key] }}">
+        <strong>{{ option.label }}</strong>
+        <small>{{ option.prediction.encoder }}</small>
+      </a>
+    {% endfor %}
+  </nav>
+
   <div class="reconstruction-layout">
     <aside class="sample-list">
       <h2>Samples</h2>
       {% for item in index.samples %}
         <a class="sample-link {% if item.sample_id == sample.sample_id %}is-active{% endif %}"
-           href="{{ url_for('reconstruction_sample_page', experiment_id=experiment.id, step=step, sample_id=item.sample_id) }}">
+           href="{{ sample_urls[item.sample_id] }}">
           <strong>#{{ item.sample_id }}</strong>
           <span>{{ item.summary.action | default('Unknown action') }}</span>
-          <small>score {{ item.summary.score | default('-') }}</small>
+          <small>{{ selected_encoder }} score {{ item.summary[selected_encoder ~ '_score'] | default(item.summary.score | default('-')) }}</small>
         </a>
       {% endfor %}
     </aside>
@@ -50,7 +60,7 @@
         </div>
       </section>
 
-      {% if sample.entity_transitions is defined %}
+      {% if prediction.entity_transitions %}
         <details class="entity-transitions" open>
           <summary>
             <span>Card entity transitions</span>
@@ -68,7 +78,7 @@
                 </tr>
               </thead>
               <tbody>
-                {% for entity in sample.entity_transitions %}
+                {% for entity in prediction.entity_transitions %}
                   <tr class="{{ 'is-correct' if entity.correct else 'is-error' }}">
                     <td>
                       <strong>{{ entity.card_type }}</strong>
@@ -93,7 +103,7 @@
       {% endif %}
 
       <div class="next-state-grid">
-        {{ game_state('Predicted next state', sample.predicted_next_state, true) }}
+        {{ game_state(prediction.label ~ ' next state', prediction.predicted_next_state, true) }}
         {{ game_state('True next state', sample.target_next_state) }}
       </div>
     </div>

@@ -18,6 +18,65 @@ PACKAGE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(PACKAGE_DIR / "templates"))
 
 
+def _reconstruction_prediction_options(sample: dict[str, Any]) -> list[dict[str, Any]]:
+    """Normalize new dual-encoder artifacts and the legacy single view."""
+    predictions = sample.get("predictions")
+    if isinstance(predictions, dict):
+        options = []
+        for key in ("prior", "posterior"):
+            prediction = predictions.get(key)
+            if not isinstance(prediction, dict):
+                continue
+            options.append(
+                {
+                    "key": key,
+                    "label": str(
+                        prediction.get(
+                            "label",
+                            "Prior · inference"
+                            if key == "prior"
+                            else "Posterior · reconstruction",
+                        )
+                    ),
+                    "prediction": prediction,
+                }
+            )
+        if options:
+            return options
+
+    # Artifacts made before dual visualization used only Posterior mean_q.
+    return [
+        {
+            "key": "posterior",
+            "label": "Posterior · reconstruction",
+            "prediction": {
+                "encoder": "PosteriorEncoder",
+                "label": "Posterior · reconstruction",
+                "condition": "current state + card + action + true next state",
+                "metrics": sample.get("metrics", {}),
+                "entity_transitions": sample.get("entity_transitions"),
+                "predicted_next_state": sample.get("predicted_next_state"),
+            },
+        }
+    ]
+
+
+def _transition_projection_options(index: dict[str, Any]) -> list[dict[str, str]]:
+    available = index.get("latent_views")
+    if not isinstance(available, list):
+        available = ["posterior"]
+    labels = {
+        "prior": "Prior · inference",
+        "posterior": "Posterior · reconstruction",
+    }
+    options = [
+        {"key": key, "label": labels.get(key, str(key).replace("_", " ").title())}
+        for key in ("prior", "posterior")
+        if key in available
+    ]
+    return options or [{"key": "posterior", "label": labels["posterior"]}]
+
+
 def _render(request: Request, template_name: str, **context):
     repository: ArtifactRepository = request.app.state.repository
     context.setdefault("experiments", repository.list_experiments())
@@ -167,7 +226,11 @@ def create_app(logdir: str | Path) -> FastAPI:
         name="reconstruction_sample_page",
     )
     async def reconstruction_sample_page(
-        request: Request, experiment_id: str, step: int, sample_id: str
+        request: Request,
+        experiment_id: str,
+        step: int,
+        sample_id: str,
+        encoder: str = "prior",
     ):
         repository: ArtifactRepository = request.app.state.repository
         try:
@@ -175,6 +238,27 @@ def create_app(logdir: str | Path) -> FastAPI:
             index, sample = repository.reconstruction_sample(experiment_id, step, sample_id)
         except ArtifactNotFoundError as error:
             raise _not_found(error) from error
+        prediction_options = _reconstruction_prediction_options(sample)
+        selected_option = next(
+            (option for option in prediction_options if option["key"] == encoder),
+            prediction_options[0],
+        )
+        selected_encoder = selected_option["key"]
+        sample_urls = {
+            str(item["sample_id"]): (
+                f"{request.url_for('reconstruction_sample_page', experiment_id=experiment_id, step=step, sample_id=item['sample_id'])}"
+                f"?encoder={selected_encoder}"
+            )
+            for item in index.get("samples", [])
+            if isinstance(item, dict) and item.get("sample_id") is not None
+        }
+        prediction_urls = {
+            option["key"]: (
+                f"{request.url_for('reconstruction_sample_page', experiment_id=experiment_id, step=step, sample_id=sample_id)}"
+                f"?encoder={option['key']}"
+            )
+            for option in prediction_options
+        }
         return _render(
             request,
             "reconstruction.html",
@@ -184,6 +268,11 @@ def create_app(logdir: str | Path) -> FastAPI:
             step=step,
             index=index,
             sample=sample,
+            prediction=selected_option["prediction"],
+            prediction_options=prediction_options,
+            selected_encoder=selected_encoder,
+            sample_urls=sample_urls,
+            prediction_urls=prediction_urls,
             step_navigation=_step_navigation(
                 request,
                 experiment.id,
@@ -217,7 +306,7 @@ def create_app(logdir: str | Path) -> FastAPI:
             point = dict(source_point)
             sample_id = point.get("reconstruction_sample_id")
             if sample_id is not None:
-                point["reconstruction_url"] = str(
+                reconstruction_url = str(
                     request.url_for(
                         "reconstruction_sample_page",
                         experiment_id=experiment_id,
@@ -225,6 +314,11 @@ def create_app(logdir: str | Path) -> FastAPI:
                         sample_id=sample_id,
                     )
                 )
+                point["reconstruction_urls"] = {
+                    "prior": reconstruction_url + "?encoder=prior",
+                    "posterior": reconstruction_url + "?encoder=posterior",
+                }
+                point["reconstruction_url"] = point["reconstruction_urls"]["prior"]
             points.append(point)
 
         return _render(
@@ -236,6 +330,7 @@ def create_app(logdir: str | Path) -> FastAPI:
             step=step,
             index=index,
             points=points,
+            projection_options=_transition_projection_options(index),
             step_navigation=_step_navigation(
                 request,
                 experiment.id,

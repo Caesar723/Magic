@@ -5,7 +5,11 @@ from __future__ import annotations
 import numpy as np
 
 
-def pca_project_2d(vectors: np.ndarray) -> tuple[np.ndarray, dict]:
+def pca_project_2d(
+    vectors: np.ndarray,
+    *,
+    source: str = "mean_q",
+) -> tuple[np.ndarray, dict]:
     """Project vectors to two dimensions with deterministic PCA."""
     values = np.asarray(vectors, dtype=np.float32)
     if values.ndim != 2:
@@ -37,9 +41,8 @@ def pca_project_2d(vectors: np.ndarray) -> tuple[np.ndarray, dict]:
 
     return coordinates, {
         "method": "pca",
-        "source": "mean_q",
+        "source": source,
         "explained_variance_ratio": [
             round(float(value), 6) for value in explained_variance_ratio
         ],
     }
-
