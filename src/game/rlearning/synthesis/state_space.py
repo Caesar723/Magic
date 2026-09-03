@@ -30,7 +30,7 @@ SPECIAL_TYPE_NAMES = {
     10: "Indestructible",
 }
 
-MANA_NAMES = ["U", "R", "G", "W", "B"]
+MANA_NAMES = ["C", "U", "W", "B", "R", "G"]
 
 
 def describe_action(action_index: int) -> str:
@@ -350,10 +350,14 @@ def card_used_from_raw(card_used: dict[str, Any] | None) -> dict[str, Any]:
     if isinstance(card_type, torch.Tensor):
         card_type = int(card_type.detach().cpu().item())
 
+    colors = card_used.get("color_identity", [])
+    if isinstance(colors, torch.Tensor):
+        colors = colors.detach().cpu().tolist()
     return {
         "description": str(card_used.get("description", "No card text available")),
         "type": CARD_TYPE_NAMES.get(int(card_type), "Unknown"),
         "mana_cost": [_clamped_integer(value, scale=20) for value in mana_cost],
+        "colors": [name for name, value in zip(MANA_NAMES[1:], colors) if float(value) > 0.5],
         "attack": _clamped_integer(card_used.get("attack", 0), scale=20),
         "health": _clamped_integer(card_used.get("defend", 0), scale=20),
         "has_state": bool(card_used.get("has_state", False)),

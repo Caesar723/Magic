@@ -29,6 +29,23 @@ BOARD_ZONE_NAMES = (
 
 ENTITY_ZONE_NAMES = CARD_ZONE_NAMES + BOARD_ZONE_NAMES
 LOCATION_NAMES = ENTITY_ZONE_NAMES + ("outside",)
+MANA_KEYS = ("colorless", "U", "W", "B", "R", "G")
+MANA_NAMES = ("C", "U", "W", "B", "R", "G")
+COLOR_NAMES = MANA_NAMES[1:]
+
+
+def color_identity(mana_cost="", color="", name=""):
+    """Encode a card's colors as a U/W/B/R/G multi-hot vector."""
+    values = np.zeros(len(COLOR_NAMES), dtype=np.float32)
+    for index, symbol in enumerate(COLOR_NAMES):
+        values[index] = float(symbol in str(mana_cost).upper())
+    source = f"{color} {name}".casefold()
+    for index, words in enumerate((
+        ("blue", "island"), ("white", "gold", "plains"), ("black", "swamp"),
+        ("red", "mountain"), ("green", "forest"),
+    )):
+        values[index] = max(values[index], float(any(word in source for word in words)))
+    return values
 
 
 # ============================================================
@@ -96,12 +113,12 @@ def _normalized_value(value, maximum=20):
 
 
 def _get_mana_state(room: "Base_Agent_Room", agent: "Agent"):
-    """Keep the existing global mana semantics unchanged."""
+    """Encode all available mana in the shared C/U/W/B/R/G order."""
     total_cost = room.get_cost_total(agent)
     return np.asarray(
         [
-            _normalized_value(total_cost[color])
-            for color in ("U", "R", "G", "W", "B")
+            _normalized_value(total_cost[key])
+            for key in MANA_KEYS
         ],
         dtype=np.float32,
     )
@@ -117,6 +134,7 @@ def _empty_entity():
         "card_types": 0,
         "card_special_types": np.zeros(20, dtype=np.float32),
         "card_costs": np.zeros(6, dtype=np.float32),
+        "card_color_identity": np.zeros(5, dtype=np.float32),
         "card_atks": 0.0,
         "card_hps": 0.0,
         "card_has_state": 0.0,
@@ -148,6 +166,7 @@ def _card_entity(room: "Base_Agent_Room", card: "Card", dynamic_state: bool, is_
         "card_types": np.int64(card_type),
         "card_special_types": np.asarray(special_types, dtype=np.float32),
         "card_costs": np.asarray(costs, dtype=np.float32),
+        "card_color_identity": color_identity(card.mana_cost, getattr(card, "color", ""), card.name),
         "card_atks": np.float32(attack),
         "card_hps": np.float32(health),
         "card_has_state": np.float32(has_state),

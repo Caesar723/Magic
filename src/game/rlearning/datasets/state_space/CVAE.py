@@ -513,6 +513,7 @@ class CVAEDataset(BaseDataset):
                 "card_used&similar_description",
                 "card_used&special_type",
                 "card_used&mana_cost",
+                "card_used&color_identity",
                 "card_used&attack",
                 "card_used&defend",
                 "card_used&has_state",
@@ -560,6 +561,7 @@ class CVAEDataset(BaseDataset):
                 
                 "card_used&special_type",
                 "card_used&mana_cost",
+                "card_used&color_identity",
                 "card_used&attack",
                 "card_used&defend",
                 "card_used&has_state",

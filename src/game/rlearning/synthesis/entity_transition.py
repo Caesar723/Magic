@@ -23,6 +23,7 @@ ENTITY_FIELDS = (
     "card_ids",
     "card_types",
     "card_costs",
+    "card_color_identity",
     "card_special_types",
     "card_atks",
     "card_hps",

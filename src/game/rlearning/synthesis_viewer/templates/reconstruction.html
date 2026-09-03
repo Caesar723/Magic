@@ -51,6 +51,7 @@
           <p class="inline-facts">
             Cost {{ sample.transition.card_used.mana_cost | join('/') }} ·
             {{ sample.transition.card_used.attack }}/{{ sample.transition.card_used.health }}
+            {% if sample.transition.card_used.colors %} · Colors {{ sample.transition.card_used.colors | join('/') }}{% endif %}
           </p>
         </div>
         <div>

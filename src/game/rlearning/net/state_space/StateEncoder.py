@@ -93,6 +93,12 @@ class CardStateEncoder(nn.Module):
             nn.GELU(),
             nn.Linear(config["output_dim"], config["output_dim"]),
         )
+        self.color_encoder = nn.Sequential(
+            nn.Linear(5, config["output_dim"]),
+            nn.LayerNorm(config["output_dim"]),
+            nn.GELU(),
+            nn.Linear(config["output_dim"], config["output_dim"]),
+        )
 
         self.has_combat_embed = nn.Embedding(2, config["output_dim"])
 
@@ -103,7 +109,7 @@ class CardStateEncoder(nn.Module):
         )
 
         self.out = nn.Sequential(
-            nn.Linear(config["output_dim"] * 5, config["output_dim"]),
+            nn.Linear(config["output_dim"] * 6, config["output_dim"]),
             nn.GELU(),
             nn.Linear(config["output_dim"], config["output_dim"])
         )
@@ -112,10 +118,12 @@ class CardStateEncoder(nn.Module):
         
 
 
-    def forward(self, card_type,special_type, mana_cost, attack, defense, has_combat):
+    def forward(self, card_type, special_type, mana_cost, attack, defense, has_combat, color_identity):
+        """Encode structured card facts before CardFusion joins them with text."""
         type_feat = self.type_embed(card_type)
         special_feat = self.special_type_proj(special_type.float())
         mana_feat = self.mana_encoder(mana_cost.float())
+        color_feat = self.color_encoder(color_identity.float())
 
         combat_raw = torch.stack([attack, defense], dim=-1)
         combat_feat = self.combat_mlp(combat_raw)
@@ -128,6 +136,7 @@ class CardStateEncoder(nn.Module):
             type_feat,
             special_feat,
             mana_feat,
+            color_feat,
             combat_feat,
             has_combat_feat,
         ], dim=-1)
@@ -312,7 +321,7 @@ class StateTransformerEncoder(nn.Module):
         )
 
         # scalar name ids for global channels:
-        # 0 = self_life, 1 = oppo_life, 2..6 = mana U/R/G/W/B
+        # 0 = self_life, 1 = oppo_life, 2..7 = mana C/U/W/B/R/G
         self.scalar_name_emb = nn.Embedding(
             16,
             d_model,
@@ -341,6 +350,11 @@ class StateTransformerEncoder(nn.Module):
 
         self.card_cost_proj = nn.Sequential(
             nn.Linear(6, d_model),
+            nn.GELU(),
+            nn.LayerNorm(d_model),
+        )
+        self.card_color_proj = nn.Sequential(
+            nn.Linear(5, d_model),
             nn.GELU(),
             nn.LayerNorm(d_model),
         )
@@ -453,7 +467,7 @@ class StateTransformerEncoder(nn.Module):
     def encode_global_tokens(self, global_state):
         """
         global_state: [B, G]
-            G = 7 = self_life + oppo_life + self_mana(U,R,G,W,B)
+            G = 8 = self_life + oppo_life + self_mana(C,U,W,B,R,G)
 
         token: one scalar token per channel
 
@@ -540,6 +554,7 @@ class StateTransformerEncoder(nn.Module):
         zone:
             card_types:         [B, N]      可选
             card_costs:         [B, N, 6]   可选
+            card_color_identity:[B, N, 5]   可选，U/W/B/R/G
             card_special_types: [B, N, K]
             card_atks:          [B, N]
             card_hps:           [B, N]
@@ -603,6 +618,7 @@ class StateTransformerEncoder(nn.Module):
             
 
         card_costs = get_scalar("card_costs",unsqueeze=False,dim=6)
+        card_colors = get_scalar("card_color_identity",unsqueeze=False,dim=5)
         card_atks = get_scalar("card_atks")
         card_hps = get_scalar("card_hps")
         card_has_state = get_scalar("card_has_state")
@@ -619,11 +635,12 @@ class StateTransformerEncoder(nn.Module):
 
         numeric_emb = self.card_numeric_proj(numeric)
         card_cost_emb = self.card_cost_proj(card_costs)
+        card_color_emb = self.card_color_proj(card_colors)
 
         # -----------------------------------------------------
         # content embedding
         # -----------------------------------------------------
-        x = card_type_emb + special_type_emb + numeric_emb + card_cost_emb + self.card_attacker_emb(card_is_attacker)
+        x = card_type_emb + special_type_emb + numeric_emb + card_cost_emb + card_color_emb + self.card_attacker_emb(card_is_attacker)
 
         # -----------------------------------------------------
         # structural embeddings
@@ -1195,7 +1212,7 @@ def make_fake_state(
     state = {
         "global_state": torch.randn(
             B,
-            7,
+            8,
             device=device,
         ),
 
@@ -1375,7 +1392,7 @@ if __name__ == "__main__":
 
     expected_L = (
         1  # cls
-        + 7  # global_state: life*2 + mana*5
+        + 8  # global_state: life*2 + mana*6
         + sizes["hand"]
         + sizes["library"]
         + sizes["graveyard"]
@@ -1415,7 +1432,7 @@ if __name__ == "__main__":
 
     assert pred_next_state["global_state"].shape == (
         B,
-        7,
+        8,
         config["num_stat_classes"],
     )
 

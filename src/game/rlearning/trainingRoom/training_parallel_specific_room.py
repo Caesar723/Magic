@@ -40,6 +40,7 @@ from pycards.land.Forest.model import Forest
 from game.testing_room import Testing_Spawn_Creature
 from game.player import Player
 from game.rlearning.trainingRoom.training_parallel_room import Multi_Agent_Parallel_Room
+from game.rlearning.states.state_space.specific_entity import color_identity
 from typing import TYPE_CHECKING
 from game.game_function_tool import get_dir_names,name_replace,ORGPATH
 import re
@@ -806,6 +807,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             "similar_description":similar_description,
             "special_type":card_special_type,
             "mana_cost":np.array(card_manas),
+            "color_identity":color_identity(card.mana_cost, getattr(card, "color", ""), card.name),
             "attack":attack/max_state,
             "defend":defend/max_state,
             "has_state":has_state,

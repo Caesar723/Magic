@@ -12,9 +12,6 @@ from game.rlearning.states.state_space.specific_entity import (
 
 
 # ============================================================
-# Raw state -> structured entity state
-# ============================================================
-
 def collate_entity_zone_numpy(batch, collection: str, zone_name: str):
     prefix = f"{collection}&{zone_name}"
     return {
@@ -31,6 +28,11 @@ def collate_entity_zone_numpy(batch, collection: str, zone_name: str):
         "card_costs": stack_path_numpy(
             batch,
             f"{prefix}&card_costs",
+            dtype=np.float32,
+        ),
+        "card_color_identity": stack_path_numpy(
+            batch,
+            f"{prefix}&card_color_identity",
             dtype=np.float32,
         ),
         "card_special_types": stack_path_numpy(
@@ -96,7 +98,6 @@ def get_state(data):
         "self_mana",
         dtype=np.float32,
     ).reshape(num_frames, -1)
-
     global_state = np.concatenate(
         [self_life, oppo_life, self_mana],
         axis=-1,

@@ -11,6 +11,7 @@ import torch.nn.functional as F
 from game.rlearning.utils.baseAgent import BaseTrainer
 from game.rlearning.utils.data import batch_to_cuda
 from game.rlearning.net.state_space.StateEncoder import squeeze_time_dim_state
+from game.rlearning.states.state_space.specific_entity import color_identity
 from game.rlearning.synthesis.artifacts import (
     write_card_fusion_space_artifact,
     write_reconstruction_artifact,
@@ -529,6 +530,11 @@ class CVAETrainer(BaseTrainer):
                         dtype=torch.long,
                         device=device,
                     ),
+                    torch.as_tensor(
+                        [card["model_attributes"]["color_identity"] for card in card_batch],
+                        dtype=torch.float32,
+                        device=device,
+                    ),
                 )
                 vector_chunks.append(
                     models["CardFusion"](h_text, h_card_attr).detach().float().cpu()
@@ -606,6 +612,7 @@ class CVAETrainer(BaseTrainer):
             "sorcery": 4,
         }.get(type_name.casefold(), 0)
         mana_cost = CVAETrainer._card_fusion_mana_cost(card.get("cost", ""))
+        card_colors = color_identity(card.get("cost", ""), card.get("color", ""), card.get("name", ""))
         special_type = [0.0] * 20
         text = str(description).casefold()
         special_type[0] = float("enters the battlefield" in text)
@@ -628,6 +635,7 @@ class CVAETrainer(BaseTrainer):
                 "description": str(description),
                 "type": type_name,
                 "mana_cost": [round(value * 20) for value in mana_cost],
+                "color_identity": card_colors.tolist(),
                 "attack": round(attack * 20),
                 "health": round(health * 20),
                 "has_state": bool(has_state),
@@ -648,6 +656,7 @@ class CVAETrainer(BaseTrainer):
                 "card_type": type_id,
                 "special_type": special_type,
                 "mana_cost": mana_cost,
+                "color_identity": card_colors.tolist(),
                 "attack": attack,
                 "health": health,
                 "has_state": has_state,
@@ -798,6 +807,7 @@ class CVAETrainer(BaseTrainer):
             cu["attack"],
             cu["defend"],
             cu["has_state"].long(),
+            cu["color_identity"],
         )
         # 按你的设计把 text / attr 合成 h_card，维度 = d_model
         h_card = models["CardFusion"](h_text, h_card_attr)  # 或 Linear(cat(...))
