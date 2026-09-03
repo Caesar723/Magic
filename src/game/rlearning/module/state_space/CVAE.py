@@ -773,7 +773,9 @@ class CVAETrainer(BaseTrainer):
             loss_reconstruction=self.reconstruction_loss(batch)
             loss["reconstruction_loss"]=loss_reconstruction["total_loss"]
             for key in loss_reconstruction:
-                if key not in ["total_loss"]:
+                if key == "score":
+                    loss["reconstruction/score"] = loss_reconstruction[key]
+                elif key != "total_loss":
                     loss[f"reconstruction_{key}"]=loss_reconstruction[key]
             total_loss=total_loss+loss["reconstruction_loss"]*self.config.get("w_reconstruction_loss",1.0)
 

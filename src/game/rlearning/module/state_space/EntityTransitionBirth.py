@@ -132,6 +132,7 @@ class EntityTransitionBirthCVAETrainer(EntityTransitionCVAETrainer):
         result["total_loss"] += (
             result["birth_loss"] * float(self.config.get("w_birth_loss", 1.0))
         )
+        result["score"] = result["total_loss"].detach().add(1).reciprocal()
 
         with torch.no_grad():
             predicted_count = (

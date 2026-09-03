@@ -304,6 +304,7 @@ class EntityTransitionCVAETrainer(CVAETrainer):
             "w_card_tapped_loss",
             1.0,
         )
+        result["score"] = result["total_loss"].detach().add(1).reciprocal()
 
         return result
 
