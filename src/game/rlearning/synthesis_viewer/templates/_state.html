@@ -19,6 +19,7 @@
       <span>{{ item.attack }}/{{ item.health }}</span>
       {% if item.has_state %}<span>has state</span>{% endif %}
       {% if item.tapped is defined %}<span>{{ 'tapped' if item.tapped else 'untapped' }}</span>{% endif %}
+      {% if item.is_attacker | default(false) %}<span>attacker</span>{% endif %}
       {% if item.card_id is defined %}<span>id {{ item.card_id }}</span>{% endif %}
       {% if item.stack_player is defined %}<span>{{ item.stack_player }} · stack action {{ item.stack_action }}</span>{% endif %}
     </div>

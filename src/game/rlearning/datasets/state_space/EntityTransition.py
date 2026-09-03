@@ -63,6 +63,11 @@ def collate_entity_zone_numpy(batch, collection: str, zone_name: str):
             f"{prefix}&card_tapped_valid",
             dtype=np.float32,
         ),
+        "card_is_attacker": stack_path_numpy(
+            batch,
+            f"{prefix}&card_is_attacker",
+            dtype=np.float32,
+        ),
         "card_mask": stack_path_numpy(
             batch,
             f"{prefix}&card_mask",

@@ -29,6 +29,7 @@ ENTITY_FIELDS = (
     "card_has_state",
     "card_tapped",
     "card_tapped_valid",
+    "card_is_attacker",
     "card_mask",
 )
 
@@ -230,6 +231,7 @@ def _target_card(zone, slot_index):
     }
     if _as_float(zone["card_tapped_valid"][slot_index]) >= 0.5:
         card["tapped"] = _as_float(zone["card_tapped"][slot_index]) >= 0.5
+    card["is_attacker"] = _as_float(zone["card_is_attacker"][slot_index]) >= 0.5
     return card
 
 

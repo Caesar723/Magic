@@ -38,6 +38,7 @@ LOCATION_NAMES = ENTITY_ZONE_NAMES + ("outside",)
 def get_state(room: "Base_Agent_Room", agent: "Agent"):
     """Build the entity-aligned state used by the location ablation."""
     opponent = agent.opponent
+    attacker = getattr(room, "attacker", None)
 
     state = {
         "self_life": _normalized_value(agent.life),
@@ -55,12 +56,14 @@ def get_state(room: "Base_Agent_Room", agent: "Agent"):
                 agent.battlefield,
                 10,
                 dynamic_state=True,
+                attacker=attacker,
             ),
             "oppo_board": get_card_entities(
                 room,
                 opponent.battlefield,
                 10,
                 dynamic_state=True,
+                attacker=attacker,
             ),
             "self_land": get_card_entities(
                 room,
@@ -119,11 +122,13 @@ def _empty_entity():
         "card_has_state": 0.0,
         "card_tapped": 0.0,
         "card_tapped_valid": 0.0,
+        "card_is_attacker": 0.0,
         "card_mask": 0.0,
     }
 
 
-def _card_entity(room: "Base_Agent_Room", card: "Card", dynamic_state: bool):
+def _card_entity(room: "Base_Agent_Room", card: "Card", dynamic_state: bool, is_attacker: bool = False):
+    """Encode one card and retain its current combat-attacker role."""
     card_type, special_types = room.get_card_special_types(card)
     costs = [
         max(0, min(20, int(value)))
@@ -148,6 +153,7 @@ def _card_entity(room: "Base_Agent_Room", card: "Card", dynamic_state: bool):
         "card_has_state": np.float32(has_state),
         "card_tapped": np.float32(card.get_flag("tap")) if dynamic_state else np.float32(0.0),
         "card_tapped_valid": np.float32(dynamic_state),
+        "card_is_attacker": np.float32(is_attacker),
         "card_mask": np.float32(1.0),
     }
 
@@ -158,13 +164,15 @@ def get_card_entities(
     max_length: int,
     *,
     dynamic_state: bool = False,
+    attacker: "Card | None" = None,
 ):
-    """Encode every zone with one shared card schema and stable list order."""
+    """Encode one zone and mark the slot that contains the live attacker."""
     fields = {name: [] for name in _empty_entity()}
 
     for slot_index in range(max_length):
         if slot_index < len(cards):
-            entity = _card_entity(room, cards[slot_index], dynamic_state)
+            card = cards[slot_index]
+            entity = _card_entity(room, card, dynamic_state, card is attacker)
         else:
             entity = _empty_entity()
 

@@ -352,6 +352,8 @@ class StateTransformerEncoder(nn.Module):
             nn.LayerNorm(d_model),
         )
 
+        self.card_attacker_emb = nn.Embedding(2, d_model, padding_idx=0)
+
         self.stack_player_proj = nn.Sequential(
             nn.Linear(stack_player_dim, d_model),
             nn.GELU(),
@@ -542,6 +544,7 @@ class StateTransformerEncoder(nn.Module):
             card_atks:          [B, N]
             card_hps:           [B, N]
             card_has_state:     [B, N]
+            card_is_attacker:   [B, N]
             card_mask:          [B, N]
 
         return:
@@ -603,6 +606,7 @@ class StateTransformerEncoder(nn.Module):
         card_atks = get_scalar("card_atks")
         card_hps = get_scalar("card_hps")
         card_has_state = get_scalar("card_has_state")
+        card_is_attacker = get_scalar("card_is_attacker").squeeze(-1).long().clamp(0, 1)
 
         numeric = torch.cat(
             [
@@ -619,7 +623,7 @@ class StateTransformerEncoder(nn.Module):
         # -----------------------------------------------------
         # content embedding
         # -----------------------------------------------------
-        x = card_type_emb + special_type_emb + numeric_emb + card_cost_emb
+        x = card_type_emb + special_type_emb + numeric_emb + card_cost_emb + self.card_attacker_emb(card_is_attacker)
 
         # -----------------------------------------------------
         # structural embeddings
