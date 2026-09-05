@@ -28,6 +28,7 @@ class Testing_Spawn_Creature(Creature):
         power: int=1,
         toughness: int=1,
         flag_keywords: dict[str, bool]={},
+        current_toughness: int=None,
     ) -> None:
         super().__init__(player)
         Testing_Spawn_Creature._seq += 1
@@ -37,7 +38,7 @@ class Testing_Spawn_Creature(Creature):
         self.name = f"Test Token #{n}"
         self.live = toughness
         self.power = power
-        self.actual_live = toughness
+        self.actual_live = toughness if current_toughness is None else current_toughness
         self.actual_power = power
 
         self.type_creature = "Merfolk Creature"

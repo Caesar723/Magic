@@ -50,6 +50,9 @@ if TYPE_CHECKING:
     from game.card_simulation import Card_Simulation
 
 
+CARD_AUGMENTATION_KEYWORDS = ("reach", "Trample", "flying", "haste", "Flash", "lifelink")
+
+
 class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
     CARDS_CACHE:dict[str,list[Card]]={}
@@ -213,7 +216,6 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
     def augment_card_attributes(self,card:Card):
         """Randomly change one usable card attribute before scenario generation."""
-        CARD_AUGMENTATION_KEYWORDS = ("reach", "Trample", "flying", "haste", "Flash", "lifelink")
         probability=self.config.get("card_attribute_augmentation_probability",0.0)
         if probability<=0.0 or random.random()>=probability:
             return
@@ -225,24 +227,28 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
                 choices.append("keyword")
         if not choices:
             return
-        choice=random.choice(choices)
-        if choice=="cost":
-            costs["colorless"]=random.randrange(costs["colorless"])
-            colors="".join(color*costs[color] for color in ("U","W","B","R","G"))
-            card.mana_cost=f"{costs['colorless'] or ''}{colors}"
-        elif choice=="state":
-            card.actual_power=random.randint(1,8)
-            card.actual_live=random.randint(1,card.live)
-        elif choice=="base_state":
-            card.power=random.randint(1,8)
-            card.live=random.randint(1,8)
-            card.actual_power=card.power
-            card.actual_live=card.live
-        else:
-            keyword=random.choice([key for key in CARD_AUGMENTATION_KEYWORDS if not card.get_flag(key)])
-            card.flag_dict[keyword]=True
-            if random.random()<0.5:
-                card.content=f"{card.content.rstrip('.')} {keyword}."
+        count=random.randint(1,min(3,len(choices)))
+        selected=set(random.sample(choices,count))
+        for choice in ("cost","base_state","state","keyword"):
+            if choice not in selected:
+                continue
+            if choice=="cost":
+                costs["colorless"]=random.randrange(costs["colorless"])
+                colors="".join(color*costs[color] for color in ("U","W","B","R","G"))
+                card.mana_cost=f"{costs['colorless'] or ''}{colors}"
+            elif choice=="base_state":
+                card.power=random.randint(1,8)
+                card.live=random.randint(1,8)
+                card.actual_power=card.power
+                card.actual_live=card.live
+            elif choice=="state":
+                card.actual_power=random.randint(1,card.power)
+                card.actual_live=random.randint(1,card.live)
+            else:
+                keyword=random.choice([key for key in CARD_AUGMENTATION_KEYWORDS if not card.get_flag(key)])
+                card.flag_dict[keyword]=True
+                if random.random()<0.5:
+                    card.content=f"{card.content.rstrip('.')} {keyword}."
 
 
     def env_initinal_library(self,player,parameters:dict={}):
@@ -336,6 +342,9 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             idx = random.randint(0, 1)
             points[idx] += 1
         power, toughness = points
+        current_toughness = toughness
+        if toughness > 1 and random.random() < 0.4:
+            current_toughness = random.randint(1, toughness - 1)
 
         chosen_flags = {}
         if flag_count > 0:
@@ -346,6 +355,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         return {
             "power": power,
             "toughness": toughness,
+            "current_toughness": current_toughness,
             "flag_keywords": chosen_flags
         }
 
@@ -354,7 +364,10 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
     def env_one_creature(self,player:"Player"):
         weight=random.random()
         creature_sample=self.get_creature_sample(weight)
-        creature=Testing_Spawn_Creature(player,creature_sample["power"],creature_sample["toughness"],creature_sample["flag_keywords"])
+        creature=Testing_Spawn_Creature(
+            player,creature_sample["power"],creature_sample["toughness"],
+            creature_sample["flag_keywords"],current_toughness=creature_sample["current_toughness"],
+        )
         player.battlefield=[creature]
 
     def env_no_creature(self,player):
@@ -365,7 +378,10 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         for i in range(num):
             weight=random.random()
             creature_sample=self.get_creature_sample(weight)
-            creature=Testing_Spawn_Creature(player,creature_sample["power"],creature_sample["toughness"],creature_sample["flag_keywords"])
+            creature=Testing_Spawn_Creature(
+                player,creature_sample["power"],creature_sample["toughness"],
+                creature_sample["flag_keywords"],current_toughness=creature_sample["current_toughness"],
+            )
             creatures.append(creature)
         player.battlefield=creatures
 
