@@ -2,7 +2,7 @@
 # Common
 ###########################
 
-log_dir: "logs/specific/specific_entity_birth_plan_wolpertinger_v01"
+log_dir: "logs/specific/specific_entity_birth_plan_wolpertinger_base_stats_v01"
 restore_step: 0
 cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Creature+3|Ironclad Crusader+Creature+2|Sunlit Priestess+Creature+3|Apocalypse Riders+Sorcery+4|Call to Unity+Sorcery+4|Angelic Blessing+Sorcery+2|Righteous Conviction+Sorcery+2|Spectral Embrace+Sorcery+3|Celestial Convergence+Instant+1|Avenging Light+Instant+1|Plains+Land+15"
 
@@ -14,16 +14,17 @@ cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Cre
 seed: 1234
 max_store: 1024
 binding_augmentation_probability: 0.4
+card_attribute_augmentation_probability: 0.0
 
 dataloader:
   batch_size: 32
   num_workers: 0
 
-dataset_class_name: "game.rlearning.datasets.state_space.EntityTransition.EntityTransitionDataset"
+dataset_class_name: "game.rlearning.datasets.state_space.EntityTransitionBaseStats.EntityTransitionBaseStatsDataset"
 dataset_multiple: 10
 trainer: "game.rlearning.module.state_space.EntityTransitionPlanBirth.EntityTransitionPlanBirthCVAETrainer"
 reward_function: "game.rlearning.rewards.win_base.get_reward"
-state_function: "game.rlearning.states.state_space.specific_entity.get_state"
+state_function: "game.rlearning.states.state_space.specific_entity_base_stats.get_state"
 action_transform_function: "game.rlearning.actions.state_space.index_base.num2action"
 action_mask_function: "game.rlearning.actions.state_space.index_base.create_action_mask"
 w_val_loss: 0.5
@@ -79,6 +80,7 @@ model:
     dim_feedforward: 256
     dropout: 0.1
     max_slots: 64
+    use_base_stats: true
 
   ActionEncoder:
     class_name: "game.rlearning.net.state_space.StateEncoder.ActionEncoder"

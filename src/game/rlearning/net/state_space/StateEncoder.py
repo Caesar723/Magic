@@ -263,6 +263,7 @@ class StateTransformerEncoder(nn.Module):
 
         self.d_model = d_model
         self.special_type_dim = special_type_dim
+        self.use_base_stats = bool(config.get("use_base_stats", False))
 
         # =====================================================
         # token category ids
@@ -365,6 +366,12 @@ class StateTransformerEncoder(nn.Module):
             nn.GELU(),
             nn.LayerNorm(d_model),
         )
+        if self.use_base_stats:
+            self.card_base_stat_proj = nn.Sequential(
+                nn.Linear(2, d_model),
+                nn.GELU(),
+                nn.LayerNorm(d_model),
+            )
 
         self.card_attacker_emb = nn.Embedding(2, d_model, padding_idx=0)
 
@@ -558,6 +565,8 @@ class StateTransformerEncoder(nn.Module):
             card_special_types: [B, N, K]
             card_atks:          [B, N]
             card_hps:           [B, N]
+            card_base_atks:     [B, N]      optional
+            card_base_hps:      [B, N]      optional
             card_has_state:     [B, N]
             card_is_attacker:   [B, N]
             card_mask:          [B, N]
@@ -640,7 +649,14 @@ class StateTransformerEncoder(nn.Module):
         # -----------------------------------------------------
         # content embedding
         # -----------------------------------------------------
-        x = card_type_emb + special_type_emb + numeric_emb + card_cost_emb + card_color_emb + self.card_attacker_emb(card_is_attacker)
+        x = card_type_emb + special_type_emb + numeric_emb + card_cost_emb + card_color_emb
+        x = x + self.card_attacker_emb(card_is_attacker)
+        if self.use_base_stats:
+            base_stats = torch.cat(
+                [get_scalar("card_base_atks"), get_scalar("card_base_hps")],
+                dim=-1,
+            )
+            x = x + self.card_base_stat_proj(base_stats)
 
         # -----------------------------------------------------
         # structural embeddings
