@@ -31,6 +31,26 @@ SPECIAL_TYPE_NAMES = {
 }
 
 MANA_NAMES = ["C", "U", "W", "B", "R", "G"]
+# The original ``specific`` state predates the shared entity schema.  It
+# stores only the five coloured mana values in U/R/G/W/B order.
+LEGACY_MANA_NAMES = ["U", "R", "G", "W", "B"]
+
+
+def _mana_names_for_global_width(global_width: int) -> list[str]:
+    """Return the mana schema used by a global-state tensor.
+
+    Entity states contain life x 2 plus six mana values (8 channels), while
+    the original specific state contains life x 2 plus five coloured mana
+    values (7 channels).
+    """
+    if global_width == 2 + len(MANA_NAMES):
+        return MANA_NAMES
+    if global_width == 2 + len(LEGACY_MANA_NAMES):
+        return LEGACY_MANA_NAMES
+    raise ValueError(
+        "Unsupported global-state width: "
+        f"expected 7 or 8 channels, got {global_width}"
+    )
 
 
 def describe_action(action_index: int) -> str:
@@ -167,13 +187,14 @@ def _select_zone_sample(
 
 def _global_from_target(values: torch.Tensor) -> dict[str, Any]:
     values = values.detach().cpu().flatten()
-    mana_values = values[2 : 2 + len(MANA_NAMES)]
+    mana_names = _mana_names_for_global_width(values.numel())
+    mana_values = values[2 : 2 + len(mana_names)]
     return {
         "self_life": _clamped_integer(values[0], scale=20),
         "oppo_life": _clamped_integer(values[1], scale=20),
         "mana": {
             mana_name: _clamped_integer(value, scale=20)
-            for mana_name, value in zip(MANA_NAMES, mana_values)
+            for mana_name, value in zip(mana_names, mana_values)
         },
     }
 
@@ -181,12 +202,13 @@ def _global_from_target(values: torch.Tensor) -> dict[str, Any]:
 def _global_from_prediction(values: torch.Tensor) -> dict[str, Any]:
     """Decode discrete global class logits with shape [G, K]."""
     classes = values.detach().cpu().argmax(dim=-1).tolist()
+    mana_names = _mana_names_for_global_width(len(classes))
     return {
         "self_life": classes[0],
         "oppo_life": classes[1],
         "mana": {
             mana_name: classes[2 + offset]
-            for offset, mana_name in enumerate(MANA_NAMES)
+            for offset, mana_name in enumerate(mana_names)
         },
     }
 
@@ -281,7 +303,11 @@ def _target_life(state: dict[str, Any], sample_index: int, offset: int) -> int:
 
 def _target_mana_total(state: dict[str, Any], sample_index: int) -> int:
     values = state["global_state"][sample_index].detach().cpu().flatten()
-    return sum(_clamped_integer(value, scale=20) for value in values[2 : 2 + len(MANA_NAMES)])
+    mana_names = _mana_names_for_global_width(values.numel())
+    return sum(
+        _clamped_integer(value, scale=20)
+        for value in values[2 : 2 + len(mana_names)]
+    )
 
 
 def state_delta_from_target(source: dict[str, Any], target: dict[str, Any], sample_index: int) -> dict[str, Any]:

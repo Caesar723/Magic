@@ -915,6 +915,10 @@ class CVAETrainer(BaseTrainer):
                 1.0,
             )
 
+        # Keep the base CVAE trainer aligned with entity-transition trainers.
+        # CVAETrainer._forward exposes this as ``reconstruction/score``.
+        result["score"] = result["total_loss"].detach().add(1).reciprocal()
+
         return result
 
     
