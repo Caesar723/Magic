@@ -16,6 +16,7 @@ from game.rlearning.synthesis.state_space import (
     CARD_TYPE_NAMES,
     MANA_NAMES,
     SPECIAL_TYPE_NAMES,
+    state_reconstruction_metrics,
 )
 
 
@@ -567,8 +568,15 @@ def _masked_mean(values, valid):
     return values[valid].float().mean()
 
 
-def entity_reconstruction_metrics(prediction, source, target, sample_index):
-    """Compute compact per-sample diagnostics for the entity reconstruction."""
+def entity_reconstruction_metrics(
+    prediction,
+    source,
+    target,
+    sample_index,
+    *,
+    predicted_state=None,
+):
+    """Compute diagnostics and the common score for an entity reconstruction."""
     source_entities, aligned_target = align_next_entities(source, target)
     predicted_entities = flatten_entity_predictions(prediction)
 
@@ -634,7 +642,7 @@ def entity_reconstruction_metrics(prediction, source, target, sample_index):
     def rounded(value):
         return round(float(value.detach().cpu().item()), 6)
 
-    return {
+    metrics = {
         "global_ce": rounded(global_ce),
         "location_ce": rounded(location_ce),
         "location_accuracy": rounded(location_accuracy),
@@ -644,5 +652,18 @@ def entity_reconstruction_metrics(prediction, source, target, sample_index):
         "attack_mae": rounded(stat_mae["attack_mae"]),
         "health_mae": rounded(stat_mae["health_mae"]),
         "tapped_accuracy": rounded(tapped_accuracy),
-        "score": rounded(score),
+        "source_aligned_score": rounded(score),
     }
+    if predicted_state is None:
+        predicted_state = state_from_entity_prediction(
+            prediction,
+            source,
+            sample_index,
+        )
+    metrics.update(
+        state_reconstruction_metrics(
+            predicted_state,
+            state_from_entity_target(target, sample_index),
+        )
+    )
+    return metrics

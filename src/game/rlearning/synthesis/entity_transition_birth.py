@@ -455,8 +455,19 @@ def entity_birth_transition_rows(prediction, source, target, sample_index):
 
 
 def entity_birth_reconstruction_metrics(prediction, source, target, sample_index):
-    """Extend source-card reconstruction metrics with birth-count diagnostics."""
-    metrics = entity_reconstruction_metrics(prediction, source, target, sample_index)
+    """Add birth diagnostics while retaining the common state score."""
+    predicted_state = state_from_entity_birth_prediction(
+        prediction,
+        source,
+        sample_index,
+    )
+    metrics = entity_reconstruction_metrics(
+        prediction,
+        source,
+        target,
+        sample_index,
+        predicted_state=predicted_state,
+    )
     births = prediction["births"]
     aligned = align_birth_slots(births, source, target)
     matched = aligned["matched"][sample_index]
@@ -485,10 +496,4 @@ def entity_birth_reconstruction_metrics(prediction, source, target, sample_index
     metrics["birth_target_count"] = target_count
     metrics["birth_overflow_count"] = overflow_count
     metrics["birth_destination_accuracy"] = round(destination_accuracy, 6)
-    metrics["score"] = round(
-        metrics["score"]
-        + float(presence_bce.item())
-        + (1.0 - destination_accuracy if target_count else 0.0),
-        6,
-    )
     return metrics

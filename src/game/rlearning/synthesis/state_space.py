@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from typing import Any
 
 import torch
@@ -286,6 +287,95 @@ def state_from_prediction(prediction: dict[str, Any], sample_index: int) -> dict
             )
             for name, zone in prediction["board_zones"].items()
         },
+    }
+
+
+def _card_state_signature(card: dict[str, Any]) -> tuple[Any, ...]:
+    """Return the comparable, model-independent part of one rendered card."""
+    special_types = card.get("special_types", ())
+    if isinstance(special_types, str):
+        special_types = (special_types,)
+    else:
+        special_types = tuple(sorted(str(value) for value in special_types))
+
+    mana_cost = card.get("mana_cost", ())
+    if isinstance(mana_cost, str):
+        mana_cost = (mana_cost,)
+    else:
+        mana_cost = tuple(mana_cost)
+
+    # Card IDs are intentionally excluded: source-aligned decoders know the
+    # IDs of existing cards, while birth-query decoders produce virtual IDs.
+    # The zone and rendered card state are the common representation shared by
+    # all reconstruction outputs.
+    return (
+        str(card.get("type", "Unknown")),
+        mana_cost,
+        int(card.get("attack", 0)),
+        int(card.get("health", 0)),
+        bool(card.get("has_state", False)),
+        special_types,
+        bool(card.get("tapped", False)),
+    )
+
+
+def _state_card_counter(state: dict[str, Any]) -> Counter:
+    cards = Counter()
+    for collection in ("card_zones", "board_zones"):
+        for zone_name, zone in state.get(collection, {}).items():
+            for card in zone.get("cards", ()):
+                cards[(collection, zone_name, _card_state_signature(card))] += 1
+    return cards
+
+
+def state_reconstruction_metrics(
+    predicted_state: dict[str, Any],
+    target_state: dict[str, Any],
+) -> dict[str, float | int]:
+    """Score rendered next states with one common evaluator for all models.
+
+    The comparison is deliberately performed after decoding, rather than on
+    model-specific logits. Cards are treated as an unordered multiset inside
+    each zone, so source-aligned, birth-slot, and slot-based decoders share the
+    same score definition.
+    """
+    predicted_global = predicted_state.get("global_state", {})
+    target_global = target_state.get("global_state", {})
+    predicted_mana = predicted_global.get("mana", {})
+    target_mana = target_global.get("mana", {})
+    mana_names = sorted(set(predicted_mana) | set(target_mana))
+    global_values = [
+        (predicted_global.get("self_life", 0), target_global.get("self_life", 0)),
+        (predicted_global.get("oppo_life", 0), target_global.get("oppo_life", 0)),
+    ]
+    global_values.extend(
+        (predicted_mana.get(name, 0), target_mana.get(name, 0))
+        for name in mana_names
+    )
+    global_mae = (
+        sum(
+            abs(float(predicted) - float(target)) / 20.0
+            for predicted, target in global_values
+        )
+        / max(len(global_values), 1)
+    )
+
+    predicted_cards = _state_card_counter(predicted_state)
+    target_cards = _state_card_counter(target_state)
+    predicted_count = sum(predicted_cards.values())
+    target_count = sum(target_cards.values())
+    intersection = sum((predicted_cards & target_cards).values())
+    union = predicted_count + target_count - intersection
+    card_set_jaccard = intersection / union if union else 1.0
+    card_set_error = 1.0 - card_set_jaccard
+
+    return {
+        "global_mae": round(global_mae, 6),
+        "card_set_jaccard": round(card_set_jaccard, 6),
+        "card_set_error": round(card_set_error, 6),
+        "predicted_card_count": predicted_count,
+        "target_card_count": target_count,
+        "score": round(global_mae + card_set_error, 6),
     }
 
 

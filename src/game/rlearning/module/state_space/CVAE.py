@@ -21,10 +21,10 @@ from game.rlearning.synthesis.projection import pca_project_2d
 from game.rlearning.synthesis.state_space import (
     card_used_from_raw,
     describe_action,
-    reconstruction_metrics,
     state_delta_from_target,
     state_from_prediction,
     state_from_target,
+    state_reconstruction_metrics,
 )
 import game.rlearning.utils.log as log
 
@@ -332,20 +332,24 @@ class CVAETrainer(BaseTrainer):
                     prediction_views = {}
                     for prediction_key, prediction_info in predictions.items():
                         prediction = prediction_info["prediction"]
-                        metrics = reconstruction_metrics(
+                        predicted_next_state = state_from_prediction(
                             prediction,
+                            reconstruction_index,
+                        )
+                        target_next_state = state_from_target(
                             selected_target_state,
                             reconstruction_index,
+                        )
+                        metrics = state_reconstruction_metrics(
+                            predicted_next_state,
+                            target_next_state,
                         )
                         prediction_views[prediction_key] = {
                             "encoder": prediction_info["encoder"],
                             "label": prediction_info["label"],
                             "condition": prediction_info["condition"],
                             "metrics": metrics,
-                            "predicted_next_state": state_from_prediction(
-                                prediction,
-                                reconstruction_index,
-                            ),
+                            "predicted_next_state": predicted_next_state,
                         }
                     prior_metrics = prediction_views["prior"]["metrics"]
                     posterior_metrics = prediction_views["posterior"]["metrics"]
