@@ -6,7 +6,7 @@ from multiprocessing import Process
 import threading
 import torch 
 import torch.nn as nn 
-
+import json
 
 
 
@@ -61,7 +61,23 @@ def _collate_batch(batch, s_keys, g_keys,extra_keys=[]):
         # print(k)
     
     return collate_batch
+
+def model_key(config: dict,rank) -> str:
+    key_data = {
+        "trainer": config["trainer"],
+        "model": config["model"],
+        "rank": rank,
+    }
+    return json.dumps(
+        key_data,
+        sort_keys=True,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
 class BaseTrainer:
+
+    _agent_model_cache = {}
+
     def __init__(self, config,restore_step, rank=0, n_gpus=1,name="main"):
         self.config = config
         self.n_gpus = n_gpus 
@@ -91,65 +107,90 @@ class BaseTrainer:
         self.optims = dict()
         self.g_keys = []
         self.i_keys = []
-        for k, cfg in config["model"].items():
-            if torch.cuda.is_available():
-                model = init_model(cfg).cuda(rank)  
-            elif torch.backends.mps.is_available():
-                model = init_model(cfg).to(torch.device("mps"))
-            else:
-                model = init_model(cfg)
-            if whether_contain_parameters(model):
-                if self.n_gpus > 1:
-                    #  DistributedDataParallel
-                    #  the batch won't be split, but update in parallel for each gpu, thus faster update frequence
-                    model = nn.SyncBatchNorm.convert_sync_batchnorm(model) 
-                    model = DDP(model, device_ids=[rank]) 
-                    if self.rank == 0: 
-                        log.info(f"Using DistributedDataParallel with {self.n_gpus} gpus.")
-                if self.n_gpus < -1:
-                    #  DataParallel
-                    #  the batch will be split in net.forward(), thus larger batch, but same update frequence
-                    #  Arbitrary positional and keyword inputs are allowed to be passed into
-                    #  DataParallel but some types are specially handled. tensors will be
-                    #  **scattered** on dim specified (default 0). tuple, list and dict types will
-                    #  be shallow copied. The other types will be shared among different threads
-                    #  and can be corrupted if written to in the model's forward pass.
-                    model = nn.DataParallel(model)
-                    if self.rank == 0: 
-                        log.info(f"Using DataParallel with {abs(self.n_gpus)} gpus.")
 
-                if not cfg.get("ignore_optim", False):
-                    #to save gpu resources
-                    if cfg.get("is_g", True):
-                        learning_rate=config["optimizer"]["learning_rate"]
-                    else:
-                        learning_rate=config["optimizer"].get("learning_rate_d",config["optimizer"]["learning_rate"])
-                    self.optims[k] = AdamW( model.parameters(), 
-                                        lr=learning_rate, 
-                                        betas=config["optimizer"]["betas"],
-                                        eps=config["optimizer"]["eps"],
-                                        weight_decay=config['optimizer'].get('weight_decay', 1e-2)) 
+        self._cache_opponent_models = name.startswith("agent") and n_gpus == 1
 
-            if cfg.get("is_g", True):
-                self.g_keys.append(k)
-            else:
-                self.i_keys.append(k)
+        cache_key = None
+        cached = None
 
-            self.models[k] = model
-            if self.n_gpus > 1:
-                self._models[k] = model.module
-            elif self.n_gpus < -1:
-                self._models[k] = model.module
-            else:
-                self._models[k] = model
-            if torch.cuda.is_available():
-                self.models_test[k] = init_model(cfg).cuda(rank) 
-            elif torch.backends.mps.is_available():
-                self.models_test[k] = init_model(cfg).to(torch.device("mps"))
-            else:
-                self.models_test[k] = init_model(cfg)
-            self.models_test[k].load_state_dict(self._models[k].state_dict())  
+        if self._cache_opponent_models:
+            cache_key = model_key(config,rank)
+            cached = self._agent_model_cache.get(cache_key)
             
+        if cached is not None:
+            self.models = cached["models"]
+            self._models = cached["_models"]
+            self.models_test = cached["models_test"]
+            self.g_keys = list(cached["g_keys"])
+            self.i_keys = list(cached["i_keys"])
+        else:
+
+            for k, cfg in config["model"].items():
+                if torch.cuda.is_available():
+                    model = init_model(cfg).cuda(rank)  
+                elif torch.backends.mps.is_available():
+                    model = init_model(cfg).to(torch.device("mps"))
+                else:
+                    model = init_model(cfg)
+                if whether_contain_parameters(model):
+                    if self.n_gpus > 1:
+                        #  DistributedDataParallel
+                        #  the batch won't be split, but update in parallel for each gpu, thus faster update frequence
+                        model = nn.SyncBatchNorm.convert_sync_batchnorm(model) 
+                        model = DDP(model, device_ids=[rank]) 
+                        if self.rank == 0: 
+                            log.info(f"Using DistributedDataParallel with {self.n_gpus} gpus.")
+                    if self.n_gpus < -1:
+                        #  DataParallel
+                        #  the batch will be split in net.forward(), thus larger batch, but same update frequence
+                        #  Arbitrary positional and keyword inputs are allowed to be passed into
+                        #  DataParallel but some types are specially handled. tensors will be
+                        #  **scattered** on dim specified (default 0). tuple, list and dict types will
+                        #  be shallow copied. The other types will be shared among different threads
+                        #  and can be corrupted if written to in the model's forward pass.
+                        model = nn.DataParallel(model)
+                        if self.rank == 0: 
+                            log.info(f"Using DataParallel with {abs(self.n_gpus)} gpus.")
+
+                    if not cfg.get("ignore_optim", False) and not self._cache_opponent_models:
+                        #to save gpu resources
+                        if cfg.get("is_g", True):
+                            learning_rate=config["optimizer"]["learning_rate"]
+                        else:
+                            learning_rate=config["optimizer"].get("learning_rate_d",config["optimizer"]["learning_rate"])
+                        self.optims[k] = AdamW( model.parameters(), 
+                                            lr=learning_rate, 
+                                            betas=config["optimizer"]["betas"],
+                                            eps=config["optimizer"]["eps"],
+                                            weight_decay=config['optimizer'].get('weight_decay', 1e-2)) 
+
+                if cfg.get("is_g", True):
+                    self.g_keys.append(k)
+                else:
+                    self.i_keys.append(k)
+
+                self.models[k] = model
+                if self.n_gpus > 1:
+                    self._models[k] = model.module
+                elif self.n_gpus < -1:
+                    self._models[k] = model.module
+                else:
+                    self._models[k] = model
+                if torch.cuda.is_available():
+                    self.models_test[k] = init_model(cfg).cuda(rank) 
+                elif torch.backends.mps.is_available():
+                    self.models_test[k] = init_model(cfg).to(torch.device("mps"))
+                else:
+                    self.models_test[k] = init_model(cfg)
+                self.models_test[k].load_state_dict(self._models[k].state_dict())  
+            if self._cache_opponent_models:
+                BaseTrainer._agent_model_cache[cache_key] = {
+                    "models": self.models,
+                    "_models": self._models,
+                    "models_test": self.models_test,
+                    "g_keys": tuple(self.g_keys),
+                    "i_keys": tuple(self.i_keys),
+                }
         
         self.logdir = f'{CHECKPOINT_ROOT_PATH}/{config["log_dir"]}'
         print(self.logdir)
@@ -183,7 +224,7 @@ class BaseTrainer:
                 )
             self.scheds = { k: LambdaLR(opt, lr_lambda) for k, opt in self.optims.items() }
 
-        if restore_step != 0:
+        if restore_step != 0 and not self._cache_opponent_models:
             self.restore_checkpoint(restore_step) 
         self.max_step=self.step
 

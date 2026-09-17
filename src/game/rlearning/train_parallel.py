@@ -29,7 +29,7 @@ def main(args):
 
 def get_args():
     parser=argparse.ArgumentParser()
-    parser.add_argument("-c","--config",type=str,default=f"{ORGPATH}/game/rlearning/config/parallel/parallel_specific_v1.yaml")
+    parser.add_argument("-c","--config",type=str,default=f"{ORGPATH}/game/rlearning/config/parallel/specific/parallel_specific_v1.yaml")
     parser.add_argument(
         "-r", "--restore-step", type=int, default=None,
         help="Checkpoint step to restore; use -1 for the latest g_last/i_last checkpoint.",
