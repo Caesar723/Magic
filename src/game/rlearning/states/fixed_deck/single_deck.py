@@ -82,15 +82,13 @@ def get_state(room:"Base_Agent_Room",agent:"Agent"):
     state_batch["oppo_life"]=oppo_life_one_hot
     max_mana=20
 
-    
+
 
     self_mana=[]
     cost=room.get_cost_total(agent)
     for color in ["U","R","G","W","B"]:
         mana_cost=cost[color]
-        mana_cost=max(0,min(max_mana,int(mana_cost)))
-        # one_hot=np.zeros(max_mana)
-        # one_hot[mana_cost]=1
+        mana_cost=max(0,min(max_mana - 1,int(mana_cost)))
         self_mana.append(mana_cost)
     
 
@@ -113,7 +111,11 @@ def get_state(room:"Base_Agent_Room",agent:"Agent"):
         if hand_i <length_hand:
             card=agent.hand[hand_i]
 
-            card_ids.append(agent.id_dict[f"{card.name}+{card.type}"])
+            # Tokens or other dynamically-created cards are not necessarily
+            # part of this fixed deck's ID vocabulary.  ID 0 is ignored when
+            # constructing ``card_matrix``, so encode such cards as unknown
+            # rather than allowing state construction to terminate a rollout.
+            card_ids.append(agent.id_dict.get(f"{card.name}+{card.type}", 0))
 
             card_type,card_special_type=room.get_card_special_types(card)
 

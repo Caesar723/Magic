@@ -32,3 +32,6 @@ src/game/game_records
 .vscode/
 
 models
+
+.tmux-magic.conf
+.tmux-magic-zdotdir

@@ -3,7 +3,7 @@
 # Common
 ###########################
 
-log_dir: "checkpoints/pair_exercise/stage1/19_green_graveyard_value"
+log_dir: "logs/pair_exercise/stage1/19_green_graveyard_value"
 restore_step: -1
 new_version: True
 #------------------------------------
@@ -158,4 +158,3 @@ model:
   
 
     
-

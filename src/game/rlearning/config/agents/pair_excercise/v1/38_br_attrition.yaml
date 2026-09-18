@@ -3,7 +3,7 @@
 # Common
 ###########################
 
-log_dir: "checkpoints/pair_exercise/stage1/38_br_attrition"
+log_dir: "logs/pair_exercise/stage1/38_br_attrition"
 restore_step: -1
 new_version: True
 #------------------------------------
@@ -158,4 +158,3 @@ model:
   
 
     
-

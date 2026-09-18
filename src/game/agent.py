@@ -103,7 +103,7 @@ class Agent_Player(Player):
         return 
     
 
-    async def send_selection_cards(self,selected_cards:list,selection_random:bool=False,auto_select:bool=False):
+    async def send_selection_cards(self,selected_cards:list,selection_random:bool=True,auto_select:bool=True):
         print(auto_select,selection_random)
         if auto_select:
             return random.choice(selected_cards)

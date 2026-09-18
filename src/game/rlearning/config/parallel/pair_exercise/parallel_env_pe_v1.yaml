@@ -1,0 +1,56 @@
+
+train_config:
+  - game/rlearning/config/agents/pair_excercise/v1/01_ug_time_tempo.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/02_blue_time_value.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/03_blue_spell_midrange.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/04_blue_interactive_air.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/05_blue_flash_flying.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/06_blue_bounce_tempo.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/07_blue_time_control.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/08_blue_sea_midrange.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/09_red_creature_burn.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/10_red_ralgar_midrange.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/11_red_phoenix_board.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/12_red_big_creature_midrange.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/13_red_disruption.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/14_red_board_control.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/15_green_midrange_ramp.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/16_green_stompy.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/17_green_combat_tricks.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/18_green_land_midrange.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/19_green_graveyard_value.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/20_green_natures_embrace.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/21_white_small_midrange.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/22_white_protection.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/23_white_lifegain_midrange.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/24_white_human_army.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/25_white_angel_control.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/26_white_reanimator.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/27_black_aggro.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/28_black_removal_midrange.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/29_black_discard.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/30_black_graveyard_midrange.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/31_black_lifedrain_control.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/32_uw_flying_interaction.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/33_rw_creature_burn.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/34_rw_knight_finisher.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/35_rg_creature_midrange.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/36_rg_ramp_dragon_lord.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/37_bg_graveyard_midrange.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/38_br_attrition.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/39_ub_interactive_control.yaml
+  # - game/rlearning/config/agents/pair_excercise/v1/40_wb_life_attrition.yaml
+
+
+env: "game.rlearning.parallel_env.training_parallel_env_pair_exercise.Parallel_Env_Pair_Exercise"
+info_communication: "game.rlearning.communicate.training_parallel_room.Info_Communication"
+room: "game.rlearning.trainingRoom.training_parallel_room.Multi_Agent_Parallel_Room"
+
+inference:
+  max_batch_size: 32
+  max_wait_ms: 5
+  max_cached_policies: 8
+
+rollout_torch_threads: 1
+
+num_worker: 1

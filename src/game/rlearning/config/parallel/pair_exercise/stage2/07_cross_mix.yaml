@@ -1,0 +1,16 @@
+train_config:
+  - game/rlearning/config/agents/pair_excercise/v1/07_blue_time_control.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/34_rw_knight_finisher.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/15_green_midrange_ramp.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/22_white_protection.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/29_black_discard.yaml
+
+env: "game.rlearning.parallel_env.training_parallel_env_pair_exercise.Parallel_Env_Pair_Exercise"
+info_communication: "game.rlearning.communicate.training_parallel_room.Info_Communication"
+room: "game.rlearning.trainingRoom.training_parallel_room.Multi_Agent_Parallel_Room"
+inference:
+  max_batch_size: 32
+  max_wait_ms: 5
+  max_cached_policies: 8
+rollout_torch_threads: 1
+num_worker: 5

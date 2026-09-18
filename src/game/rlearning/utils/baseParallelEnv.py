@@ -11,6 +11,8 @@ import random
 import asyncio
 import os
 import signal
+from os import PathLike
+from copy import deepcopy
 
 from game.rlearning.utils.model import get_class_by_name
 from game.rlearning.utils.file import read_yaml
@@ -28,9 +30,12 @@ if TYPE_CHECKING:
 class BaseParallelEnv:
     
     
-    def __init__(self, config_path: str, restore_step=None):
-        
-        self.env_config=read_yaml(config_path)
+    def __init__(self, config_path: "str | PathLike | dict", restore_step=None):
+        if isinstance(config_path, dict):
+            self.env_config = deepcopy(config_path)
+        else:
+            self.env_config = read_yaml(str(config_path))
+
         self.restore_step_override = restore_step
         self.num_worker=self.env_config["num_worker"]
         self.manager=Manager()

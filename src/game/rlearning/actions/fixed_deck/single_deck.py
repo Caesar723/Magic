@@ -232,7 +232,13 @@ def mask_hand(room:"Base_Agent_Room",agent:"Agent",oppo_agent:"Agent",mask:np.nd
     for hand_card in agent.hand:
         if card_counter>=9:
             break
-        current_index=start_index+(agent.id_dict[f"{hand_card.name}+{hand_card.type}"]-1)*33
+        card_id = agent.id_dict.get(f"{hand_card.name}+{hand_card.type}")
+        # Dynamic cards outside the fixed-deck vocabulary are encoded as ID 0
+        # in the state.  They therefore must not expose a play-card action.
+        if card_id is None:
+            card_counter += 1
+            continue
+        current_index=start_index+(card_id-1)*33
         if hand_card.check_can_use(agent)[0]:
             select_range=''
             for cls in instance_dict:

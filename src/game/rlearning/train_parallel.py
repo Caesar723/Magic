@@ -21,8 +21,12 @@ def main(args):
         env.run()
     except KeyboardInterrupt:
         print("\nInterrupted by user; saving checkpoint and stopping child processes...")
-        if env.agent1.rank == 0:
-            env.agent1.save_checkpoint()
+        # Parallel_Env owns ``agent1`` directly.  Pair exercise is a
+        # launcher for child Parallel_Env instances, so it deliberately has
+        # no top-level trainer to checkpoint here.
+        agent = getattr(env, "agent1", None)
+        if agent is not None and agent.rank == 0:
+            agent.save_checkpoint()
     finally:
         env.shutdown()
 

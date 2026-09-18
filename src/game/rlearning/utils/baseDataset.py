@@ -50,7 +50,7 @@ class BaseDataset(Dataset):
     def __init__(self, config):
         self.config = config
         self.datas=[]
-        self.logdir = f'{ORGPATH}/../{CHECKPOINT_ROOT_PATH}/{config["log_dir"]}'
+        self.logdir = f'{CHECKPOINT_ROOT_PATH}/{config["log_dir"]}'
         self.pbar = self._new_pbar()
 
     def _new_pbar(self):

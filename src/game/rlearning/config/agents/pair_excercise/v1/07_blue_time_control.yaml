@@ -2,7 +2,7 @@
 # Common
 ###########################
 
-log_dir: "checkpoints/pair_exercise/stage1/07_blue_time_control"
+log_dir: "logs/pair_exercise/stage1/07_blue_time_control"
 restore_step: -1
 new_version: True
 #------------------------------------
@@ -144,4 +144,3 @@ model:
     hidden_dim: 512
     output_dim: 1
     deep: 5
-

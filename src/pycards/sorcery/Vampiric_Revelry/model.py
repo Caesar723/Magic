@@ -30,8 +30,9 @@ class Vampiric_Revelry(Sorcery):
 
     @select_object("",1)
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
-        creature=random.choice(opponent.battlefield+player.battlefield)
-        gain=creature.state[1]
-        await self.destroy_object(creature,"rgba(0,0,0,0.5)","Cure")
-        await self.cure_to_object(player, max(gain, 0), "rgba(0,255,0,1)", "Cure")
+        if opponent.battlefield+player.battlefield:
+            creature=random.choice(opponent.battlefield+player.battlefield)
+            gain=creature.state[1]
+            await self.destroy_object(creature,"rgba(0,0,0,0.5)","Cure")
+            await self.cure_to_object(player, max(gain, 0), "rgba(0,255,0,1)", "Cure")
 
