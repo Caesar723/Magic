@@ -10,7 +10,9 @@ var TIME_INTERVAL=2
 const client = new Game_Client();
 
 let lastTime = 0;
+let animationFrame = null;
 function main(time){
+  animationFrame = null;
 
   const deltaTime = (time - lastTime) / 1000;
   
@@ -31,8 +33,17 @@ function main(time){
   
   
   
-  requestAnimationFrame(main);
+  if (!client.game_player.isFinished()) {
+    animationFrame = requestAnimationFrame(main);
+  }
 }
+
+window.startReplayRender = () => {
+  if (animationFrame === null) {
+    lastTime = performance.now();
+    animationFrame = requestAnimationFrame(main);
+  }
+};
 
 const canvas = document.getElementById('myCanvas');
 
@@ -67,5 +78,3 @@ window.addEventListener('resize', resizeCanvas);
 
 // 初始化canvas大小
 resizeCanvas();
-
-main()

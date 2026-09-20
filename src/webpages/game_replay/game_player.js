@@ -118,7 +118,7 @@ class Game_Player{
                 
             } else {
                 this.pause_flag = false;
-                
+                window.startReplayRender();
                 playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>'; // play 图标
             }
         });
@@ -200,6 +200,7 @@ class Game_Player{
         this.wait_flag=false
         this.pause_flag=false
         this.length=datas.game_records.length
+        window.startReplayRender();
         const progressBar = document.getElementById("progress_bar");
         progressBar.max=this.length
         progressBar.value=0
@@ -244,6 +245,10 @@ class Game_Player{
             progressBar.value=this.data_index;
         }, time*1000)
 
+    }
+
+    isFinished(){
+        return this.length === 0 || this.data_index >= this.length;
     }
 
 
@@ -295,6 +300,7 @@ class Game_Player{
         if (index>=this.length){
             return
         }
+        window.startReplayRender();
         if (this.current_timeout){
             clearTimeout(this.current_timeout)
             this.current_timeout=null
