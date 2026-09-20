@@ -16,20 +16,20 @@
             <label for="login__username"><svg class="icon">
                 <use xlink:href="#icon-user"></use>
             </svg><span class="hidden">Username</span></label>
-            <input autocomplete="username" id="login__username" type="text" name="username" class="form__input" placeholder="Username" required>
+            <input autocomplete="username" autofocus id="login__username" type="text" name="username" class="form__input" placeholder="Username" minlength="3" required>
         </div>
 
         <div class="form__field">
             <label for="login__password"><svg class="icon">
                 <use xlink:href="#icon-lock"></use>
             </svg><span class="hidden">Password</span></label>
-            <input id="login__password" type="password" name="password" class="form__input" placeholder="Password" required>
+            <input autocomplete="new-password" id="login__password" type="password" name="password" class="form__input" placeholder="Password" minlength="6" required>
         </div>
         <div class="form__field">
             <label for="login__password"><svg class="icon">
                 <use xlink:href="#icon-lock"></use>
             </svg><span class="hidden">Password Confirmation</span></label>
-            <input id="login__password_repeat" type="password" name="password_repest" class="form__input" placeholder="Password Confirmation" required>
+            <input autocomplete="new-password" id="login__password_repeat" type="password" name="password_confirmation" class="form__input" placeholder="Confirm password" minlength="6" required>
         </div>
 
         <div class="form__field">
@@ -37,7 +37,9 @@
         </div>
 
         </form>
-        <div id="message_confirm" style="display:none;"></div>
+        <p id="message_confirm" role="status" aria-live="polite"></p>
+
+        <p class="text--center">Already have an account? <a href="/login">Sign in</a></p>
 
         
 
@@ -55,4 +57,5 @@
     </symbol>
     </svg>
     <script src="webpages/loginpage/signup.js"></script>
-<body>
+</body>
+</html>

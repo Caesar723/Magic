@@ -76,10 +76,10 @@
         
     </div>
     <div id="game_player">
-        <div id="read_mode">
-            <p>drug .mgf file<br>or click to select</p>
-            <input type="file" id="fileInput" accept=".mgf" hidden />
-        </div>
+        <input type="file" id="fileInput" accept=".mgf" />
+        <label id="read_mode" for="fileInput">
+            <p>Drop a .mgf replay file here<br>or click to choose a file.</p>
+        </label>
         <div id="play_mode">
             <button id="play_button">
                 <!-- 默认播放图标 -->
@@ -89,6 +89,7 @@
               </button>
             <input type="range" id="progress_bar" value="0" min="0" max="100" step="1">
             <span id="progress_value">0</span>
+            <label id="choose_replay" for="fileInput">Choose another replay</label>
         </div>
     </div>
     <div id="replay_area">

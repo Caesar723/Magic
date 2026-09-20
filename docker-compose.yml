@@ -31,7 +31,7 @@ services:
     image: registry.cn-shanghai.aliyuncs.com/magic_fan_made/server_magic
     platform: linux/amd64
     ports:
-      - "8000:8000"
+      - "10086:80"
     depends_on:
       - db
       - mongo

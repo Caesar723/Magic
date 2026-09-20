@@ -1,96 +1,33 @@
+const form = document.getElementById("itemForm");
+const message = document.getElementById("message_confirm");
 
-
-
-async function get_image_five(){
-    
-    const response = await fetch('/login/cards_show', {
-                method: 'POST',
-            });
-    const responseData = await response.json();
-    return responseData
-}
-function set_from_button(){
-    document.getElementById('itemForm').addEventListener('submit', async function (e) {
-    e.preventDefault();
-
-    // 获取表单数据
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
-    console.log(JSON.stringify(data));
-    // 发送 POST 请求到服务器
-    const response = await fetch('/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    });
-
-    // 处理响应数据
-    const responseData = await response.json();
-    console.log(responseData);
-    if (responseData.message=="Login successful"){
-
-        window.location.href = '/';
-    }
-    console.log('Received:', responseData);
-    // 可以在此处更新页面内容
-});
+function showMessage(text) {
+    message.textContent = text;
+    message.style.display = "block";
 }
 
+form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const submit = form.querySelector('[type="submit"]');
+    submit.disabled = true;
+    submit.value = "Signing in...";
 
-async function set_image_slider(){
-    const lis = document.querySelectorAll('.image_card_div');
-    const images=await get_image_five();
-    
-    for (var li=0;li<5;li++){
-        
-        const div = document.createElement('div');
-        
-        const img = document.createElement('img');
-        
-        img.src = '/get-images/'+images.image_url[li]; // 设置图片源
-        img.className = 'image_card'; // 设置替代文本
-
-        // 创建段落元素
-        const p = document.createElement('p');
-        p.textContent = images.image_story[li]; // 设置段落文本
-        p.className="text--center";
-
-        div.appendChild(img);
-        div.appendChild(p);
-        lis[li].appendChild(div);
-    }
-}
-async function send_match_request(name){
-        
-    const response = await fetch(name, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        
-    });
-    const responseData =await response.json()
-    return responseData
-}
-document.getElementById('demo').addEventListener('click', async function() {
-    var responseData =await send_match_request("/matching_demo")
-        
-
-    if (responseData["state"]=="find!"){
-        window.location.href = '/game_demo';
-    }else{
-        
+    try {
+        const response = await fetch("/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(Object.fromEntries(new FormData(form))),
+        });
+        const { message: result } = await response.json();
+        if (result === "Login successful") {
+            window.location.href = "/";
+            return;
+        }
+        showMessage(result === "username error" ? "No account matches that username." : "Incorrect password. Please try again.");
+    } catch {
+        showMessage("Could not sign in. Please try again.");
+    } finally {
+        submit.disabled = false;
+        submit.value = "Sign In";
     }
 });
-
-function main(){
-    
-    set_image_slider();
-    set_from_button();
-    
-}
-
-
-main();

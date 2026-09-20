@@ -76,11 +76,7 @@ class Game_Player{
 
                 // 转成 File 对象，补齐 name / lastModified
                 const file = new File([blob], file_name, { type: blob.type });
-                this.handleFile(file)
-                const dropZone=document.getElementById("read_mode")
-                const playZone=document.getElementById("play_mode")
-                dropZone.style.display="none"
-                playZone.style.display="block"
+                if (await this.handleFile(file)) this.setReplayMode(true);
             })
             
             const replayZone=document.getElementById("replay_list")
@@ -101,10 +97,18 @@ class Game_Player{
         const progressBar = document.getElementById("progress_bar");
         const progressValue = document.getElementById("progress_value");
         const playZone=document.getElementById("play_mode")
-        dropZone.style.display="block"
-        playZone.style.display="none"
-        
-        
+        const overlay = document.getElementById("overlay");
+        this.setReplayMode = (loaded) => {
+            dropZone.style.display = loaded ? "none" : "flex";
+            playZone.style.display = loaded ? "flex" : "none";
+            overlay.classList.toggle("replay-loading", !loaded);
+            if (loaded) {
+                overlay.classList.remove("active");
+                document.getElementById("myCanvas").classList.remove("active");
+                document.getElementById("replay_list").classList.remove("active");
+            }
+        };
+        this.setReplayMode(false);
 
         // 播放/暂停切换
         playBtn.addEventListener("click", async() => {
@@ -119,6 +123,13 @@ class Game_Player{
             }
         });
 
+        const fileInput = document.getElementById("fileInput");
+        const loadReplay = async (file) => {
+            if (await this.handleFile(file)) {
+                this.setReplayMode(true);
+            }
+        };
+
         // 拖动进度条
         progressBar.addEventListener("input", async () => {
             progressValue.textContent = progressBar.value;
@@ -130,63 +141,35 @@ class Game_Player{
             e.preventDefault();
             dropZone.classList.add("dragover");
         });
-        dropZone.addEventListener("dragover", (e) => {
-            
-            e.preventDefault();
-            dropZone.classList.add("dragover");
-        });
-        
         dropZone.addEventListener("dragleave", () => {
             
             dropZone.classList.remove("dragover");
         });
         
-        // 放下文件
         dropZone.addEventListener("drop", (e) => {
             
             e.preventDefault();
             dropZone.classList.remove("dragover");
-            if (e.dataTransfer.files.length) {
-                this.handleFile(e.dataTransfer.files[0]);
-                const dropZone=document.getElementById("read_mode")
-                const playZone=document.getElementById("play_mode")
-                dropZone.style.display="none"
-                playZone.style.display="block"
-            }
+            loadReplay(e.dataTransfer.files[0]);
         });
-        document.getElementById("fileInput").addEventListener("change", async (event) => {
-            this.handleFile(event.target.files[0]);
+        fileInput.addEventListener("change", (event) => {
+            loadReplay(event.target.files[0]);
         });
     }
 
     async handleFile(file){
-        //const file = event.target.files[0];
-        if (!file) return;
-    
-        // 1. 读取文件为 ArrayBuffer
-        const arrayBuffer = await file.arrayBuffer();
-    
-        // 2. 转换为 Uint8Array
-        const uint8Array = new Uint8Array(arrayBuffer);
-    
-        // 3. 解压 (zlib inflate)
-        let decompressed;
         try {
-            decompressed = pako.inflate(uint8Array);
-        } catch (err) {
-            console.error("解压失败:", err);
-            return;
+            if (!file || !file.name.endsWith(".mgf")) {
+                throw new Error("Please choose a .mgf replay file.");
+            }
+            const data = JSON.parse(new TextDecoder().decode(pako.inflate(new Uint8Array(await file.arrayBuffer()))));
+            await this.load_datas(data);
+            return true;
+        } catch (error) {
+            console.error("Could not load replay:", error);
+            alert(error.message || "Could not read this replay file.");
+            return false;
         }
-    
-        // 4. Uint8Array 转字符串
-        const decoder = new TextDecoder("utf-8");
-        const jsonString = decoder.decode(decompressed);
-    
-        // 5. 解析 JSON
-        const data = JSON.parse(jsonString);
-        console.log(data)
-    
-        this.load_datas(data)
     }
 
     async fetchFile(filename) {

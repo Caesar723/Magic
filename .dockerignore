@@ -1,0 +1,8 @@
+/.git
+/data
+/mnt
+/checkpoints
+/artifacts
+/.agents
+/.codex
+/.tmux-magic.sock

@@ -1,41 +1,93 @@
 #game_player {
-    top: 10px;
-    position: absolute;
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
     z-index: 1000;
 }
 #read_mode {
-    border: 2px dashed #4a90e2;
-    border-radius: 12px;
-    padding: 40px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: min(440px, calc(100vw - 48px));
+    min-height: 156px;
+    border: 1px dashed rgba(137, 207, 255, 0.7);
+    position: relative;
+    border-radius: 16px;
+    padding: 28px 36px;
     text-align: center;
-    color: #4a90e2;
+    color: #edf7ff;
     cursor: pointer;
-    transition: background 0.3s, border-color 0.3s;
-    width: 300px;
-    height: 50px;
-    background: white;
+    transition: transform 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    background: linear-gradient(135deg, rgba(20, 38, 63, 0.94), rgba(35, 74, 107, 0.88));
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(10px);
+    pointer-events: auto;
     z-index: 800;
   }
 
+  #read_mode:hover {
+    transform: translateY(-2px);
+    border-color: #8fd8ff;
+    background: linear-gradient(135deg, rgba(28, 56, 88, 0.96), rgba(48, 102, 145, 0.92));
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.36);
+  }
+
+  #fileInput {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
   #read_mode.dragover {
-    background: #e6f0ff;
-    border-color: #0066cc;
+    transform: scale(1.02);
+    background: rgba(43, 120, 171, 0.96);
+    border-color: #d5f2ff;
   }
 
   #read_mode p {
     margin: 0;
-    font-size: 16px;
+    font: 600 15px/1.6 Merriweather, serif;
+    letter-spacing: 0.01em;
   }
 
 
   #play_mode {
+    box-sizing: border-box;
     display: flex;
     align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
     gap: 12px;
-    width: 400px;
-    padding: 16px 24px;
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    width: min(680px, calc(100vw - 48px));
+    padding: 12px 18px;
+    border: 1px solid rgba(137, 207, 255, 0.45);
     border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    background: rgba(15, 30, 49, 0.88);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
+    backdrop-filter: blur(10px);
+    pointer-events: auto;
+  }
+
+  #choose_replay {
+    padding: 9px 12px;
+    border: 1px solid rgba(137, 207, 255, 0.65);
+    border-radius: 8px;
+    color: #edf7ff;
+    cursor: pointer;
+    font: 600 12px Merriweather, serif;
+  }
+
+  #choose_replay:hover {
+    background: rgba(80, 156, 207, 0.3);
   }
 
   /* 播放按钮 */
@@ -65,7 +117,8 @@
     background: #ddd;
     outline: none;
     cursor: pointer;
-    width: 300px;
+    width: auto;
+    min-width: 100px;
 
     
   }
@@ -184,7 +237,7 @@
     
   }
 
-  #overlay.active {
+  #overlay.active, #overlay.replay-loading {
     filter: blur(8px);
   }
 
@@ -219,7 +272,6 @@
   .panel.active {
     right: 0;
   }
-  
 
   #game_info{
     position: absolute;
@@ -228,8 +280,6 @@
     width: 30%;
     height: 100%;
     z-index: 1000;
-    
     color: white;
     z-index: 1000;
   }
-  
