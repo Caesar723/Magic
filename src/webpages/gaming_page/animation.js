@@ -350,10 +350,15 @@ class Play_Cards extends Animation{
     set_animate(){
         //this.deleted_card.moving_cache.push(["disappear",[[0,60*this.player.unit,-20]]])
         this.show_2D.show_a_card(this.object_hold)
-        setTimeout(() => {
+        const finish = () => {
             this.action_finished=true
             this.show_2D.unshow_a_card()
-          }, 2000); // 将在2秒后打印消息
+        };
+        if (window.replayClock) {
+            window.replayClock.wait(2000, finish);
+        } else {
+            setTimeout(finish, 2000);
+        }
     }
     draw_action(ctx,canvas,camera){
         super.draw_action(ctx,canvas,camera)

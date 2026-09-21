@@ -6,6 +6,25 @@ function showMessage(text) {
     message.style.display = "block";
 }
 
+async function loadCarousel() {
+    try {
+        const response = await fetch("/login/cards_show", { method: "POST" });
+        const { image_url: imageUrls, image_story: stories } = await response.json();
+        document.querySelectorAll(".image_card_div").forEach((slot, index) => {
+            const image = new Image();
+            image.src = `/get-images/${imageUrls[index]}`;
+            image.alt = stories[index] || "Magic card";
+            image.className = "image_card";
+            const story = document.createElement("p");
+            story.textContent = stories[index];
+            story.className = "text--center";
+            slot.replaceChildren(image, story);
+        });
+    } catch {
+        showMessage("Card images could not be loaded.");
+    }
+}
+
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const submit = form.querySelector('[type="submit"]');
@@ -31,3 +50,5 @@ form.addEventListener("submit", async (event) => {
         submit.value = "Sign In";
     }
 });
+
+loadCarousel();

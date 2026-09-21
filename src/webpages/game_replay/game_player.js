@@ -12,10 +12,11 @@ class Game_Player{
         this.data_index=-1
         this.wait_flag=false
         this.pause_flag=false
+        this.waitUntil=0
+        this.advanceAfterWait=false
         this.length=0
         this.message_processor=message_processor
         this.room=room
-        this.current_timeout=null
         this.set_replay_records()
         this.init_listen()
     }
@@ -97,6 +98,7 @@ class Game_Player{
         const progressBar = document.getElementById("progress_bar");
         const progressValue = document.getElementById("progress_value");
         const playZone=document.getElementById("play_mode")
+        const speedSelect = document.getElementById("playback_speed");
         const overlay = document.getElementById("overlay");
         this.setReplayMode = (loaded) => {
             dropZone.style.display = loaded ? "none" : "flex";
@@ -109,19 +111,24 @@ class Game_Player{
             }
         };
         this.setReplayMode(false);
+        const syncPlaybackSpeed = () => {
+            window.replayClock.setSpeed(Number(speedSelect.value));
+        };
+        speedSelect.addEventListener("input", syncPlaybackSpeed);
+        speedSelect.addEventListener("change", syncPlaybackSpeed);
+        syncPlaybackSpeed();
 
-        // 播放/暂停切换
-        playBtn.addEventListener("click", async() => {
-            if (!this.pause_flag) {
-                this.pause_flag = true;
-                playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'; // pause 图标
-                
-            } else {
-                this.pause_flag = false;
-                window.startReplayRender();
-                playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>'; // play 图标
-            }
-        });
+        this.setReplayPaused = (paused) => {
+            this.pause_flag = paused;
+            playIcon.innerHTML = paused
+                ? '<path d="M8 5v14l11-7z"/>'
+                : '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+            playBtn.setAttribute("aria-label", paused ? "Resume replay" : "Pause replay");
+            playBtn.title = paused ? "Resume replay" : "Pause replay";
+            if (paused) window.stopReplayRender();
+            else window.startReplayRender();
+        };
+        playBtn.addEventListener("click", () => this.setReplayPaused(!this.pause_flag));
 
         const fileInput = document.getElementById("fileInput");
         const loadReplay = async (file) => {
@@ -190,7 +197,8 @@ class Game_Player{
     }
 
     async load_datas(datas){
-        
+        window.replayClock.reset();
+        this.reset_action_bar();
         this.room.self_player.name=datas.basic_info.self_name
         this.room.oppo_player.name=datas.basic_info.opponent_name
         this.datas=datas.game_records
@@ -198,9 +206,10 @@ class Game_Player{
         this.reward_datas=datas.reward_datas
         this.data_index=0
         this.wait_flag=false
-        this.pause_flag=false
+        this.waitUntil=0
+        this.advanceAfterWait=false
         this.length=datas.game_records.length
-        window.startReplayRender();
+        this.setReplayPaused(false)
         const progressBar = document.getElementById("progress_bar");
         progressBar.max=this.length
         progressBar.value=0
@@ -219,9 +228,19 @@ class Game_Player{
             return
         }
         if (this.wait_flag){
+            const actionBar=this.room.action_bar;
+            if (window.replayClock.time<this.waitUntil || !actionBar.actions_finsihed || actionBar.actions_cache.length){
+                return
+            }
+            this.wait_flag=false
+            if (this.advanceAfterWait){
+                this.data_index++
+            }
+            document.getElementById("progress_value").textContent = this.data_index;
+            document.getElementById("progress_bar").value=this.data_index;
+            this.advanceAfterWait=false
             return
         }
-        
         let time=0;
         if (this.data_index>=this.length-2){
             //time=1;
@@ -236,19 +255,20 @@ class Game_Player{
         this.message_processor.extractParts(this.datas[this.data_index].game_records)
         this.show_game_reward(this.data_index)
         this.wait_flag=true
-        this.current_timeout=setTimeout(() => {
-            this.wait_flag=false
-            this.data_index++
-            const progressValue = document.getElementById("progress_value");
-            progressValue.textContent = this.data_index;
-            const progressBar = document.getElementById("progress_bar");
-            progressBar.value=this.data_index;
-        }, time*1000)
+        this.advanceAfterWait=true
+        this.waitUntil=window.replayClock.time+time*1000
 
     }
 
     isFinished(){
         return this.length === 0 || this.data_index >= this.length;
+    }
+
+    reset_action_bar(){
+        const actionBar=this.room.action_bar;
+        actionBar.actions_cache=[];
+        actionBar.actions_processing=[];
+        actionBar.actions_finsihed=true;
     }
 
 
@@ -289,10 +309,10 @@ class Game_Player{
     }
 
     async play(){
-        this.pause_flag=false
+        this.setReplayPaused(false)
     }
     async pause(){
-        this.pause_flag=true
+        this.setReplayPaused(true)
     }
     
     async change_data_index(index){
@@ -301,12 +321,9 @@ class Game_Player{
             return
         }
         window.startReplayRender();
-        if (this.current_timeout){
-            clearTimeout(this.current_timeout)
-            this.current_timeout=null
-            
-        }
+        this.reset_action_bar();
         this.wait_flag=true
+        this.advanceAfterWait=false
         const self_player=this.room.self_player
         const oppo_player=this.room.oppo_player
         self_player.cards=[]
@@ -334,14 +351,7 @@ class Game_Player{
         this.show_game_reward(this.data_index)
         this.message_processor.extractParts(this.check_point_datas[restore_index].game_ini_records)
         
-        this.current_timeout=setTimeout(() => {
-            this.wait_flag=false
-            //this.data_index++
-            const progressValue = document.getElementById("progress_value");
-            progressValue.textContent = this.data_index;
-            const progressBar = document.getElementById("progress_bar");
-            progressBar.value=this.data_index;
-        }, 1000)
+        this.waitUntil=window.replayClock.time+1000
     }
     
 }
