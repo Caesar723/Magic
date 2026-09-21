@@ -39,7 +39,7 @@ class Card{
         this.color_fee=color_fee
         this.dynamic_canvas=dynamic_canvas;
         this.back_img=new Image();
-        this.back_img.src="webpages/image_source/card/back.png";
+        this.back_img.src="webpages/image_source/card/back.png?v=compass";
         this.image= this.dynamic_canvas[2]
         this.orginal_image=this.dynamic_canvas[3]
         this.color_fee_paths={

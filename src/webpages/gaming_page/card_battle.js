@@ -33,7 +33,7 @@ class Card_Battle{
 
         this.canvas=document.createElement('canvas');
         this.back_img=new Image();
-        this.back_img.src="webpages/image_source/card/back.png";
+        this.back_img.src="webpages/image_source/card/back.png?v=compass";
         this.canvas.width=80*10
         this.canvas.height=60*10
         this.ctx=this.canvas.getContext('2d')

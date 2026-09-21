@@ -6,3 +6,4 @@
 /.agents
 /.codex
 /.tmux-magic.sock
+/local-tls

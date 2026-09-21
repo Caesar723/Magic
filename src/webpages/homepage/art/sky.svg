@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#73999c"/><stop offset=".65" stop-color="#95b2ac"/><stop offset="1" stop-color="#819fa0"/></linearGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".7" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
+  </defs>
+  <path d="M0 0h1600v1000H0z" fill="url(#sky)"/>
+  <circle cx="790" cy="162" r="114" fill="#cad2bb" opacity=".3"/>
+  <g fill="#4c757d" opacity=".24">
+    <path d="m680 121 19-8 13 1 2-18 9-2 3-18 5 19 12 5 2-34 6-10 6 10 3 29 13-2 5 17 26 7-8 19-14 11-9 44-10-19-8 31-11-39-14 9-12-34-14-2Z"/>
+    <path d="m1462 137 16-11 20 2 4-29 8-4 6 31 27-4 19 11-12 15-18 2-9 39-12-18-10 25-12-46-19-4Z"/>
+    <path d="m22 627 15-11 25 5 6-20 13-4 6-36 7 34 13 12 28-2 19 12-15 13-21 3-16 64-13-23-12 44-19-84-20 7Z"/>
+  </g>
+  <g fill="#d9dfce" opacity=".55" stroke="#69878a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-40 307q19-18 45-10-10-22 10-28 3-25 27-25 25-2 39 16 25-10 36 9 30-5 39 17 37-2 65 19 42-7 75 13H-40Z"/>
+    <path d="M1316 364q27-24 56-17-6-22 17-31 3-29 28-26 25-19 47 7 32-11 50 16 30-3 37 16 35-4 72 18 33-3 55 17Z"/>
+    <path d="M-90 846q47-27 81-14-4-23 24-32 1-31 28-32 24-26 48-4 27-7 36 17 35-6 42 24 25-7 46 9 46-14 77 16 46-7 68 16Z"/>
+    <path d="M1138 944q39-22 63-16 17-25 40-18-5-24 21-38 21-25 50-4 42-7 61 25 31-8 54 14 39-8 60 10 46-2 75 22 38-7 64 5Z"/>
+    <path d="M-4 285q28-8 47 1m5-27q15 1 23 13m4 25q26-8 48 2m1249 43q23-5 36 2m5-33q14-12 30-6m4 27q28-5 42 10M21 818q26-11 49 1m10-32q14 0 20 10m1133 126q24-11 48-1m5-39q13-4 26 6" fill="none"/>
+  </g>
+  <path d="M0 0h1600v1000H0z" filter="url(#grain)" opacity=".028"/>
+</svg>

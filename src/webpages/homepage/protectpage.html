@@ -1,182 +1,121 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Home Page</title>
-    <link rel="stylesheet" type="text/css" href="webpages/homepage/style.css">
-    <link rel="stylesheet" type="text/css" href="webpages/error.css">
-    <script src="webpages/homepage/decks.js"></script>
-    <script src="webpages/error.js"></script>
-    <script src="webpages/homepage/deck_holder.js"></script>
-    <script src="webpages/homepage/home.js"></script>
-    <link rel="shortcut icon" href="webpages/homepage/coin.png" type="image/x-icon" /> 
-
-    <link rel="stylesheet" href="webpages/homepage/book.css">
-
-    
-    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#729496">
+    <title>Magic</title>
+    <link rel="icon" href="/webpages/homepage/coin.png">
+    <link rel="stylesheet" href="/webpages/homepage/style.css">
+    <script defer src="/webpages/homepage/decks.js"></script>
+    <script defer src="/webpages/homepage/deck_holder.js"></script>
+    <script defer src="/webpages/homepage/home.js"></script>
+    <script defer src="/webpages/homepage/homepage.js"></script>
+    <script type="module" src="/webpages/homepage/lobby-scene.js"></script>
 </head>
 <body>
-    <iframe src="webpages/audio/audio_hall.html"  style="display: none;"  id="audio-frame"></iframe>
-    <script src="webpages/audio/audio_fun_hall.js"></script>
-    <div id="box">
-        <div id="text_box"></div>
+    <iframe src="/webpages/audio/audio_hall.html" hidden id="audio-frame" title="Background music"></iframe>
+    <div id="button-container">
+        <header class="topbar">
+            <a class="brand" href="/" aria-label="Magic home">
+                <svg viewBox="0 0 60 76" aria-hidden="true">
+                    <path d="M5 3h50v52L30 71 5 55Z" fill="#354e55"/>
+                    <path d="M11 9h38v43L30 64 11 52Z" fill="none" stroke="#d9cba7" stroke-width="2"/>
+                    <path d="m30 15 4 18 14 5-14 4-4 16-4-16-14-4 14-5Z" fill="#d9cba7"/>
+                    <circle cx="30" cy="38" r="12" fill="none" stroke="#d9cba7"/>
+                </svg>
+                <span>MAGIC</span>
+            </a>
+            <nav id="functionButtons" aria-label="Lobby controls">
+                <div id="currency" aria-label="Coins"><span class="coin-mark" aria-hidden="true">✧</span><span class="button-text" aria-live="polite">—</span></div>
+                <button id="history" class="icon-button" aria-label="Match History" title="Match History"><svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="10.5"/><path d="M14 7v8l5 3"/></svg></button>
+                <button id="setting" class="icon-button" aria-label="Settings" title="Settings"><svg viewBox="0 0 28 28" aria-hidden="true"><path d="m11 3 6 0 1 4 4 1 3 5-3 3v5l-5 3-3-3-4 1-4-4 1-4-3-3 3-5 4 0Z"/><circle cx="14" cy="14" r="4"/></svg></button>
+            </nav>
+        </header>
+        <main class="lobby" aria-label="Game lobby">
+            <div id="lobby-stage" class="lobby-stage" data-renderer="fallback">
+                <div class="fallback-world" aria-hidden="true">
+
+                    <img class="map-art" src="/webpages/homepage/art/battle-map.png" alt="">
+                    <svg class="hero-sprite mage" data-part="mage" data-angle="0" viewBox="30 690 263 390" aria-hidden="true"><image href="/webpages/homepage/art/props.png?v=2" width="1448" height="1086"/></svg>
+                    <svg class="hero-sprite wolf" data-part="wolf" data-angle="0" viewBox="356 730 370 330" aria-hidden="true"><image href="/webpages/homepage/art/props.png?v=2" width="1448" height="1086"/></svg>
+                    <svg class="hero-sprite card-left" data-part="card-left" data-angle="-2" viewBox="790 714 257 344" aria-hidden="true"><image href="/webpages/homepage/art/props.png?v=2" width="1448" height="1086"/></svg>
+                    <svg class="hero-sprite card-middle" data-part="card-middle" data-angle="8" viewBox="790 714 257 344" aria-hidden="true"><image href="/webpages/homepage/art/props.png?v=2" width="1448" height="1086"/></svg>
+                    <svg class="hero-sprite card-right" data-part="card-right" data-angle="18" viewBox="790 714 257 344" aria-hidden="true"><image href="/webpages/homepage/art/props.png?v=2" width="1448" height="1086"/></svg>
+                </div>
+                <canvas id="lobby-canvas" aria-hidden="true"></canvas>
+                <button id="start-game" class="start-game" data-object="battle" aria-expanded="false" aria-controls="mode-picker"><span aria-hidden="true">✧</span>Start Game<span aria-hidden="true">✧</span></button>
+                <p id="selected-deck" class="selected-deck" hidden></p>
+                <section class="shelf shelf-cards" aria-label="Cards">
+                    <svg class="platform-art" viewBox="35 150 2100 480" aria-hidden="true"><image href="/webpages/homepage/art/platform.png" width="2172" height="724"/></svg>
+                    <button id="draw" class="object-button" data-object="draw"><svg class="object-art" viewBox="35 0 290 374" aria-hidden="true"><image href="/webpages/homepage/art/props.png?v=2" width="1448" height="1086"/></svg><span class="object-label">Draw Cards</span></button>
+                    <button id="choose" class="object-button" data-object="choose"><svg class="object-art" viewBox="360 20 360 348" aria-hidden="true"><image href="/webpages/homepage/art/props.png?v=2" width="1448" height="1086"/></svg><span class="object-label">Choose Deck</span></button>
+                    <button id="deck" class="object-button" data-object="deck"><svg class="object-art" viewBox="736 32 367 333" aria-hidden="true"><image href="/webpages/homepage/art/props.png?v=2" width="1448" height="1086"/></svg><span class="object-label">Deck Building</span></button>
+                </section>
+                <section class="shelf shelf-explore" aria-label="Explore">
+                    <svg class="platform-art" viewBox="35 150 2100 480" aria-hidden="true"><image href="/webpages/homepage/art/platform.png" width="2172" height="724"/></svg>
+                    <button id="rogue" class="object-button" data-object="rogue"><svg class="object-art" viewBox="1110 8 338 350" aria-hidden="true"><image href="/webpages/homepage/art/props.png?v=2" width="1448" height="1086"/></svg><span class="object-label">Rogue</span></button>
+                    <button id="game-tutorial" class="object-button" data-object="guide"><svg class="object-art" viewBox="10 380 370 314" aria-hidden="true"><image href="/webpages/homepage/art/props.png?v=2" width="1448" height="1086"/></svg><span class="object-label">Game Tutorial</span></button>
+                </section>
+                <section class="shelf shelf-tools" aria-label="More">
+                    <svg class="platform-art" viewBox="35 150 2100 480" aria-hidden="true"><image href="/webpages/homepage/art/platform.png" width="2172" height="724"/></svg>
+                    <button id="shop" class="object-button" data-object="shop"><svg class="object-art" viewBox="392 368 354 335" aria-hidden="true"><image href="/webpages/homepage/art/props.png?v=2" width="1448" height="1086"/></svg><span class="object-label">Shop</span></button>
+                    <button id="studio" class="object-button" data-object="studio">
+                        <svg class="object-art" viewBox="756 365 350 352" aria-hidden="true"><image href="/webpages/homepage/art/props.png?v=2" width="1448" height="1086"/></svg>
+                        <svg class="studio-ink" viewBox="0 0 100 100" aria-hidden="true"><path d="M30 64Q62 43 47 40T56 25" pathLength="1"/></svg>
+                        <svg class="studio-brush" viewBox="1080 728 358 330" aria-hidden="true"><image href="/webpages/homepage/art/props.png?v=2" width="1448" height="1086"/></svg>
+                        <span class="object-label">Studio</span>
+                    </button>
+                    <button id="tasks" class="object-button" data-object="tasks"><svg class="object-art" viewBox="1122 360 307 364" aria-hidden="true"><image href="/webpages/homepage/art/props.png?v=2" width="1448" height="1086"/></svg><span class="object-label">Tasks</span></button>
+                </section>
+                <section id="mode-picker" class="mode-picker parchment" aria-labelledby="mode-title" hidden>
+                    <button class="close-button" id="close-modes" aria-label="Close game modes">×</button>
+                    <h2 id="mode-title">Choose a Mode</h2>
+                    <button id="start" class="mode-button"><span aria-hidden="true">⚔</span>PVP<span aria-hidden="true">→</span></button>
+                    <button id="tutorial" class="mode-button"><span aria-hidden="true">✧</span>Play vs AI<span aria-hidden="true">→</span></button>
+                </section>
+            </div>
+        </main>
     </div>
-    <div id="button_process" >
-        <div id="choose_deck" class="button_process_deck" style=" background-color:#4e9534;">
-            <?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-            <svg  height=“100%” viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 12.6111L8.92308 17.5L20 6.5" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+    <dialog id="deck-dialog" class="parchment deck-dialog" aria-labelledby="deck-title">
+        <button class="close-button" id="close-decks" aria-label="Close deck selection">×</button>
+        <h2 id="deck-title">Choose Deck</h2>
+        <p id="deck-context">Select a deck.</p>
+        <div class="deck-layout">
+            <div id="box_decks"><p id="deck-empty" role="status">Loading decks…</p></div>
+            <div class="deck-preview"><div id="box_cards_1" class="box_cards"></div><div id="box_cards_2" class="box_cards"></div><p id="deck-preview-hint">Select a deck to view its cards.</p></div>
         </div>
-        <div id="delete_deck" class="button_process_deck" style=" background-color:#953434;">
-            <?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-            <svg height=“100%” viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 12V16M10 14H14M16 6L15.7294 5.18807C15.4671 4.40125 15.3359 4.00784 15.0927 3.71698C14.8779 3.46013 14.6021 3.26132 14.2905 3.13878C13.9376 3 13.523 3 12.6936 3H11.3064C10.477 3 10.0624 3 9.70951 3.13878C9.39792 3.26132 9.12208 3.46013 8.90729 3.71698C8.66405 4.00784 8.53292 4.40125 8.27064 5.18807L8 6M4 6H20M18 6V16.2C18 17.8802 18 18.7202 17.673 19.362C17.3854 19.9265 16.9265 20.3854 16.362 20.673C15.7202 21 14.8802 21 13.2 21H10.8C9.11984 21 8.27976 21 7.63803 20.673C7.07354 20.3854 6.6146 19.9265 6.32698 19.362C6 18.7202 6 17.8802 6 16.2V6" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+        <div id="button_process"><button id="delete_deck" class="quiet-button" disabled>Delete Deck</button><button id="choose_deck" class="solid-button" disabled>Use Deck</button></div>
+        <a class="text-link" href="/deck_building">Build a Deck ↗</a>
+    </dialog>
+    <dialog id="settings-dialog" class="parchment small-dialog" aria-labelledby="settings-title">
+        <button class="close-button" data-close-dialog aria-label="Close settings">×</button>
+        <h2 id="settings-title">Settings</h2>
+        <label class="setting-row">Music <input id="music-enabled" type="checkbox" checked></label>
+        <label class="setting-row">Reduce Motion <input id="reduce-motion" type="checkbox"></label>
+    </dialog>
+    <dialog id="guide-dialog" class="parchment small-dialog" aria-labelledby="guide-title">
+        <button class="close-button" data-close-dialog aria-label="Close tutorial">×</button>
+        <h2 id="guide-title">Game Tutorial</h2>
+        <ol class="guide-steps">
+            <li>Open packs in <b>Draw Cards</b>.</li>
+            <li>Create a deck in <b>Deck Building</b>, then select it in <b>Choose Deck</b>.</li>
+            <li>Select <b>Start Game</b> for PVP or an AI match, or enter <b>Rogue</b>.</li>
+        </ol>
+        <button id="guide-practice" class="solid-button">Practice vs AI</button>
+        <a class="text-link" href="/tech_doc/en">Game Documentation ↗</a>
+    </dialog>
+    <dialog id="matching-dialog" class="parchment small-dialog" aria-labelledby="matching-title">
+        <div class="matching-art" aria-hidden="true">
+            <div class="matching-orbit"><i></i><i></i><i></i></div>
+            <img class="matching-card matching-card-left" src="/webpages/image_source/card/back.png?v=compass" alt="">
+            <img class="matching-card matching-card-right" src="/webpages/image_source/card/back.png?v=compass" alt="">
+            <span class="matching-spark">✧</span>
         </div>
-    </div>
-    <div id="box_decks">
-        
-    </div>
-    <div id="box_cards_1" class="box_cards">
-        
-    </div>
-    <div id="box_cards_2" class="box_cards">
-
-    </div>
-    <div id="button-container" class="button-container" >
-        
-        <div id="currency" class="rectangle-button" style="--rotate: 0deg; --width: 10vw; --height: 5vw; --color: #FF6347; --top: 7.5vw; left: 3vw;">
-            
-            <span class="button-text"><img src="webpages/homepage/coin.png" alt="Description" id="img_coin">0</span>
-        </div>
-
-        <div id="functionButtons" >
-            
-            <div id="history" class="icon-button">
-                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#bababa"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M3 5.67541V3C3 2.44772 2.55228 2 2 2C1.44772 2 1 2.44772 1 3V7C1 8.10457 1.89543 9 3 9H7C7.55229 9 8 8.55229 8 8C8 7.44772 7.55229 7 7 7H4.52186C4.54218 6.97505 4.56157 6.94914 4.57995 6.92229C5.621 5.40094 7.11009 4.22911 8.85191 3.57803C10.9074 2.80968 13.173 2.8196 15.2217 3.6059C17.2704 4.3922 18.9608 5.90061 19.9745 7.8469C20.9881 9.79319 21.2549 12.043 20.7247 14.1724C20.1945 16.3018 18.9039 18.1638 17.0959 19.4075C15.288 20.6513 13.0876 21.1909 10.9094 20.9247C8.73119 20.6586 6.72551 19.605 5.27028 17.9625C4.03713 16.5706 3.27139 14.8374 3.06527 13.0055C3.00352 12.4566 2.55674 12.0079 2.00446 12.0084C1.45217 12.0088 0.995668 12.4579 1.04626 13.0078C1.25994 15.3309 2.2082 17.5356 3.76666 19.2946C5.54703 21.3041 8.00084 22.5931 10.6657 22.9188C13.3306 23.2444 16.0226 22.5842 18.2345 21.0626C20.4464 19.541 22.0254 17.263 22.6741 14.6578C23.3228 12.0526 22.9963 9.30013 21.7562 6.91897C20.5161 4.53782 18.448 2.69239 15.9415 1.73041C13.4351 0.768419 10.6633 0.756291 8.14853 1.69631C6.06062 2.47676 4.26953 3.86881 3 5.67541Z" fill="#bababa"></path> <path d="M12 5C11.4477 5 11 5.44771 11 6V12.4667C11 12.4667 11 12.7274 11.1267 12.9235C11.2115 13.0898 11.3437 13.2344 11.5174 13.3346L16.1372 16.0019C16.6155 16.278 17.2271 16.1141 17.5032 15.6358C17.7793 15.1575 17.6155 14.546 17.1372 14.2698L13 11.8812V6C13 5.44772 12.5523 5 12 5Z" fill="#bababa"></path> </g></svg>
-            </div>
-
-            
-
-            <div id="setting" class="icon-button"> 
-                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#bababa"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M3.59938 6.22413C3.362 4.82033 4.68002 3.64638 6.07306 4.02084L7.12777 4.30435C7.96485 4.52937 8.85305 4.19092 9.31887 3.46943L10.3298 1.90368C11.1077 0.698775 12.8923 0.698773 13.6702 1.90368L14.6811 3.46943C15.1469 4.19092 16.0351 4.52937 16.8722 4.30435L17.9269 4.02084C19.32 3.64638 20.638 4.82033 20.4006 6.22413L20.1405 7.76265C20.0068 8.55335 20.3773 9.3442 21.0747 9.75663L22.0388 10.3268C23.3204 11.0847 23.3204 12.9153 22.0388 13.6732L21.0747 14.2434C20.3773 14.6558 20.0068 15.4467 20.1405 16.2374L20.4006 17.7759C20.638 19.1797 19.32 20.3536 17.9269 19.9792L16.8722 19.6957C16.0351 19.4706 15.1469 19.8091 14.6811 20.5306L13.6702 22.0963C12.8923 23.3012 11.1077 23.3012 10.3298 22.0963L9.31887 20.5306C8.85305 19.8091 7.96485 19.4706 7.12777 19.6957L6.07306 19.9792C4.68002 20.3536 3.362 19.1797 3.59938 17.7759L3.85954 16.2374C3.99324 15.4467 3.62271 14.6558 2.92531 14.2434L1.96116 13.6732C0.679612 12.9153 0.679614 11.0847 1.96116 10.3268L2.92531 9.75663C3.62271 9.3442 3.99324 8.55335 3.85954 7.76265L3.59938 6.22413ZM9.03042 6.14621H6.06085V9.0731L3.09127 12L6.06085 14.9269V17.8538H9.03042L12 20.7807L14.9696 17.8538H17.9392V14.9269L20.9087 12L17.9392 9.0731V6.14621H14.9696L12 3.21931L9.03042 6.14621Z" fill="#bababa"></path> <path d="M16.4515 12C16.4515 14.4247 14.4572 16.3903 11.9971 16.3903C9.53706 16.3903 7.54277 14.4247 7.54277 12C7.54277 9.57528 9.53706 7.60965 11.9971 7.60965C14.4572 7.60965 16.4515 9.57528 16.4515 12ZM9.51963 12C9.51963 13.3486 10.6288 14.4419 11.9971 14.4419C13.3654 14.4419 14.4746 13.3486 14.4746 12C14.4746 10.6514 13.3654 9.5581 11.9971 9.5581C10.6288 9.5581 9.51963 10.6514 9.51963 12Z" fill="#bababa"></path> </g></svg>
-            </div>
-
-            
-            
-        </div>
-
-        
-        <div id="start" class="rectangle-button" style="--rotate: 0deg;  --width: 20vw; --height: 23vw; --color: #FF4500; --top: 14vw; left: 12vw;">
-            <div class="image-container">
-                <img src="webpages/homepage/home_photo/pvp.webp" alt="Image Description">
-                <video muted loop>
-                    <source src="webpages/homepage/home_videos/pvp.mp4" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-            
-            <span class="button-text">Start Game</span>
-        </div>
-
-        <div id="draw" class="rectangle-button" style="--rotate: 0deg;  --width: 15vw; --height: 17vw; --color: #FF8C00; --top: 38vw; left: 12vw;">
-            <div class="image-container">
-                <img src="webpages/homepage/home_photo/pack.webp" alt="Image Description">
-                <video muted loop>
-                    <source src="webpages/homepage/home_videos/pack.mp4" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-            <span class="button-text">Draw Card</span>
-        </div>
-
-        <div id="choose" class="rectangle-button" style="--rotate: 0deg; --width: 10vw; --height: 11vw; --color: #CC0000; --top: 14vw; left: 34vw;">
-            <div class="image-container">
-                <img src="webpages/homepage/home_photo/choose.webp" alt="Image Description">
-                <video muted loop>
-                    <source src="webpages/homepage/home_videos/choose.mp4" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-            <span class="button-text">Choose Deck</span>
-        </div>
-
-        <div id="deck" class="rectangle-button" style="--rotate: 0deg; --width: 15vw; --height: 17vw; --color: #e09406; --top: 38vw; left: 31vw;">
-            <div class="image-container">
-                <img src="webpages/homepage/home_photo/deck_b.webp" alt="Image Description">
-                <video muted loop>
-                    <source src="webpages/homepage/home_videos/deck_b.mp4" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-            <span class="button-text">Deck Building</span>
-        </div>
-
-        <div id="shop" class="rectangle-button" style="--rotate: 0deg;  --width: 15vw; --height: 17vw; --color: #FF6347; --top: 38vw; left: 50vw;">
-            <div class="image-container">
-                <img src="webpages/homepage/home_photo/shop.webp" alt="Image Description">
-                <video muted loop>
-                    <source src="webpages/homepage/home_videos/shop.mp4" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-            <span class="button-text">Shop</span>
-        </div>
-
-        <div id="tutorial" class="rectangle-button" style="--rotate: 0deg; --width: 20vw; --height: 23vw; --color: #FF4500; --top: 14vw; left: 45vw;">
-            <div class="image-container">
-                <img src="webpages/homepage/home_photo/pve.webp" alt="Image Description">
-                <video muted loop>
-                    <source src="webpages/homepage/home_videos/pve.mp4" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-            <span class="button-text">Game Tutorial</span>
-        </div>
-
-        <div id="rogue" class="rectangle-button" style="--rotate: 0deg;  --width: 18vw; --height: 20vw; --color: #FF6347; --top: 14vw; left: 67vw;">
-            <div class="image-container">
-                <img src="webpages/homepage/home_photo/rogue.png" alt="Image Description">
-                <video muted loop>
-                    <source src="webpages/homepage/home_videos/rogue.mp4" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-            <span class="button-text">Rogue</span>
-        </div>
-
-        <div id="studio" class="rectangle-button" style="--rotate: 0deg;  --width: 18vw; --height: 20vw; --color: #FF8C00; --top: 35vw; left: 67vw;">
-            <div class="image-container">
-                <img src="webpages/homepage/home_photo/design.webp" alt="Image Description">
-                <video muted loop>
-                    <source src="webpages/homepage/home_videos/design.mp4" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-            <span class="button-text">Studio</span>
-        </div>
-        <div id="tasks" class="rectangle-button" style="--rotate: 0deg;--width: 10vw; --height: 11vw; --color: #CC0000; --top: 26vw; left: 34vw">
-            <div class="image-container">
-                <img src="webpages/homepage/home_photo/task.webp" alt="Image Description">
-                <video muted loop>
-                    <source src="webpages/homepage/home_videos/task.mp4" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-            <span class="button-text">Tasks</span>
-        </div>
-    </div>
-
-
-    <script src="webpages/homepage/homepage.js"></script>
-    <script src="webpages/homepage/book.js"></script>
-   
-    
-
-
-    
-    
-
+        <h2 id="matching-title">Finding an opponent…</h2>
+        <p id="matching-description"></p>
+        <button id="cancel-matching" class="quiet-button">Cancel</button>
+    </dialog>
+    <div id="lobby-notice" role="status" aria-live="polite" hidden></div>
 </body>
 </html>

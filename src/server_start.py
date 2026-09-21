@@ -1,5 +1,6 @@
 def main():
     import uvicorn
+    from pathlib import Path
     ip_address = get_local_ip()
     print(ip_address)
     ip_address="172.20.10.7"
@@ -8,10 +9,9 @@ def main():
     uvicorn.run(
         "server:app",
         host=ip_address,
-        port=80,
-        # ssl_keyfile="src/xuanpei-chen.top_ssh/www.xuanpei-chen.top.key",
-        # ssl_certfile="src/xuanpei-chen.top_ssh/www.xuanpei-chen.top_public.crt",
-        # ssl_ca_certs="src/xuanpei-chen.top_ssh/www.xuanpei-chen.top_chain.crt",
+        port=443,
+        ssl_keyfile=Path("/app/tls/magic-ip.key"),
+        ssl_certfile=Path("/app/tls/magic-ip.crt"),
         reload=False,
         reload_dirs=["src", "!src/user_cache"]
     )

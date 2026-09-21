@@ -1,135 +1,79 @@
-class Decks_Container{
-
-    constructor(){
-        this.get_all_decks()
-        this.process_listener()
-        this.seleted_deck=NaN//[id,name]
-        this.all_decks=[]
-        
-        
+class Decks_Container {
+    constructor() {
+        // Keep the legacy spelling and [id, name] shape used by every game entry.
+        this.seleted_deck = NaN;
+        this.all_decks = [];
+        this.process_listener();
+        this.ready = this.get_all_decks();
     }
-
-    async get_all_decks(){
-        const response = await fetch('/get_decks_home', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+    error(message) { document.dispatchEvent(new CustomEvent('lobby:error',{detail:message})); }
+    async get_all_decks() {
+        try {
+            const response = await fetch('/get_decks_home',{method:'POST',headers:{'Content-Type':'application/json'},signal:AbortSignal.timeout(20000)});
+            if (!response.ok) throw new Error();
+            const data = await response.json();
+            if (!Array.isArray(data)) throw new Error();
+            this.process_data(data);
+        } catch (_) {
+            const empty = document.getElementById('deck-empty');
+            empty.hidden = false; empty.textContent = 'Unable to load decks.';
+            const retry = document.createElement('button'); retry.className='text-link';retry.textContent='Retry';
+            retry.addEventListener('click',()=>{empty.textContent='Loading…';this.ready=this.get_all_decks();}); empty.append(retry);
+        }
+    }
+    process_data(data) {
+        this.all_decks.forEach(deck=>deck.divbutton.remove());
+        this.all_decks = data.map(item=>new Deck(...item.content,this,item.id));
+        this.updateEmpty();
+    }
+    updateEmpty() {
+        const empty=document.getElementById('deck-empty');
+        empty.hidden=this.all_decks.length>0;empty.textContent='No decks yet. Build a deck to get started.';
+    }
+    process_listener() {
+        document.getElementById('choose_deck').addEventListener('click',()=>{
+            const selected=this.find_child('button_process_deck_click');
+            if (!selected || this.deleting) return;
+            this.seleted_deck=[selected.id,selected.name];
+            this.close_all('selected');
+            document.dispatchEvent(new CustomEvent('lobby:deck-selected',{detail:this.seleted_deck}));
         });
-        const responseData =await response.json()
-        console.log(responseData)
-        this.process_data(responseData)
-        console.log(this.all_decks)
-    }
-
-    process_data(data){
-        for (let i in data){
-            
-            this.all_decks.push(new Deck(...data[i]["content"],this,data[i]["id"]))
-        }
-    }   
-
-    draw(){
-        const box_cards_1=document.getElementById('box_cards_1');
-        const box_cards_2=document.getElementById('box_cards_2');
-        this.check_box(box_cards_1)
-        this.check_box(box_cards_2)
-    }
-
-    check_box(box_cards){
-        if (box_cards.classList.contains('box_cards_front') && box_cards.hasChildNodes()) {
-            
-            const element=box_cards.firstChild
-            for( let i in this.all_decks){
-                if (this.all_decks[i].canvas===element){
-                    this.all_decks[i].draw_canvas()
-
-                }
-            }
-        }
-    }
-
-    process_listener(){
-        const choose_deck=document.getElementById('choose_deck');
-        const delete_deck=document.getElementById('delete_deck');
-
-        choose_deck.addEventListener('click',(event)=> {
-            const deck_seleted=this.find_child("button_process_deck_click")
-            this.seleted_deck=[deck_seleted.id,deck_seleted.name]
-            this.clear_child("button_process_deck_click")
-            this.close_all()
-            
-        })
-        delete_deck.addEventListener('click',async (event)=> {
-            const deck_seleted=this.find_child("button_process_deck_click")
-            await this.delete_deck(deck_seleted)
-            this.clear_child("button_process_deck_click")
-            this.close_all()
-        })
-    }
-    async delete_deck(deck){
-        const response = await fetch('/delete_deck', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ "id":deck.id,"name":deck.name }) // 将数据转换为JSON字符串
+        document.getElementById('delete_deck').addEventListener('click',async()=>{
+            const selected=this.find_child('button_process_deck_click');
+            if (!selected || this.deleting) return;
+            this.deleting=true;this.setActions(false);
+            try { await this.delete_deck(selected); }
+            finally { this.deleting=false;this.setActions(Boolean(this.find_child('button_process_deck_click'))); }
         });
-        const responseData =await response.json()
-        console.log(responseData)
-        if (responseData["state"]=="successful"){
-
-            deck.divbutton.remove();
-            const index=this.all_decks.indexOf(deck)
-            if (index > -1) {
-                this.all_decks.splice(index, 1); // 如果找到了，删除这个元素
-            }
-            
-        }
-        else{
-            showBox("Error Occur, can not delete deck")
-        }
     }
-    close_all(){
-        console.log(1)
-        var box = document.getElementById('box_decks');
-        var container=document.getElementById('button-container')
-        var button_process=document.getElementById('button_process')
-        var box_cards_1=document.getElementById('box_cards_1')
-        var box_cards_2=document.getElementById('box_cards_2')
-       
-        // 根据方框的当前状态切换类
-        
-        button_process.classList.remove('show_button_process');
-        box_cards_1.classList.remove('box_cards_front');
-        box_cards_2.classList.remove('box_cards_front');
-                
-        box.classList.remove('box_decks-visible');
-        box.style.left="-20vw"
-        
-        box.style.borderBottomRightRadius = '0';
-        box.style.borderTopRightRadius="0"
-        
-        
-        container.classList.remove('blur');
-        
-        
+    setActions(enabled) {
+        document.getElementById('choose_deck').disabled=!enabled;
+        document.getElementById('delete_deck').disabled=!enabled;
     }
-    clear_child(class_name){
-        for (let i in this.all_decks){
-            const deck=this.all_decks[i];
-            deck.divbutton.classList.remove(class_name);
-        }
+    async delete_deck(deck) {
+        try {
+            const response=await fetch('/delete_deck',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:deck.id,name:deck.name}),signal:AbortSignal.timeout(20000)});
+            if (!response.ok || (await response.json()).state!=='successful') throw new Error();
+            deck.divbutton.remove();this.all_decks=this.all_decks.filter(item=>item!==deck);
+            if (this.seleted_deck && this.seleted_deck[0]===deck.id) this.seleted_deck=NaN;
+            this.resetPreview();this.updateEmpty();document.dispatchEvent(new Event('lobby:deck-deleted'));
+        } catch (_) { this.error('Unable to delete the deck. Please try again.'); }
     }
-    find_child(class_name){
-        for (let i in this.all_decks){
-            const deck=this.all_decks[i];
-            if (deck.divbutton.classList.contains(class_name)) {
-                return deck
-            }
-        }
-        return false
+    resetPreview() {
+        this.clear_child('button_process_deck_click');
+        document.getElementById('button_process').classList.remove('show_button_process');
+        document.querySelectorAll('.box_cards').forEach(box=>{box.classList.remove('box_cards_front');box.replaceChildren();});
+        document.getElementById('deck-preview-hint').hidden=false;this.setActions(false);
     }
-
+    close_all(reason='cancel') {
+        this.resetPreview();
+        document.getElementById('box_decks').classList.remove('box_decks-visible');
+        document.getElementById('deck-dialog').close(reason);
+    }
+    clear_child(className) {
+        this.all_decks.forEach(deck=>{deck.divbutton.classList.remove(className);deck.divbutton.setAttribute('aria-pressed','false');});
+    }
+    find_child(className) { return this.all_decks.find(deck=>deck.divbutton.classList.contains(className)) || false; }
+    // The list now uses HTML, so no perpetual canvas redraw is needed.
+    draw() {}
 }
-
