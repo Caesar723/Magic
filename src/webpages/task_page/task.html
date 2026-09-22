@@ -1,25 +1,55 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Card Game Task Bar</title>
-    <link rel="icon" href="webpages/task_page/icon.png">
-    <link rel="stylesheet" href="webpages/task_page/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#486568">
+    <title>Tasks · Magic</title>
+    <link rel="icon" href="/webpages/homepage/coin.png">
+    <link rel="stylesheet" href="/webpages/task_page/style.css">
+    <script defer src="/webpages/task_page/task.js"></script>
 </head>
 <body>
-    <div class="task-bar-container">
-        <div id="taskBar" class="task-bar">
-            <!-- Tasks will be generated here by JavaScript -->
+    <svg class="symbol-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <symbol id="mark-compass" viewBox="0 0 48 48"><circle cx="24" cy="24" r="16"/><path d="m24 3 5 16 16 5-16 5-5 16-5-16L3 24l16-5Z"/><path d="m24 15 3 9-3 9-3-9Z"/></symbol>
+            <symbol id="mark-hunt" viewBox="0 0 48 48"><path d="M12 37 34 8l6-2v7L18 41M8 31l13 10M10 42l5-7"/><path d="m9 9 28 30m-4-5 7-4m-4 8 5 5"/><path d="m8 7 8 3-5 5Z"/></symbol>
+            <symbol id="mark-draw" viewBox="0 0 48 48"><path d="m5 13 16-5 10 29-17 5ZM16 7h20v33H16Z"/><path d="m25 17 4 7-4 7-4-7ZM37 11l6 1-4 26M20 11h4"/></symbol>
+            <symbol id="mark-play" viewBox="0 0 48 48"><path d="M10 7h25v34H10ZM17 12h10m-10 23h6"/><path d="m25 16 8 8-8 8-8-8ZM35 20h9m-4-4 4 4-4 4"/></symbol>
+            <symbol id="mark-win" viewBox="0 0 48 48"><path d="M14 7h20l-3 15-7 6-7-6ZM24 28v10M16 41h16l-3-4H19ZM13 11H6v7l10 8M35 11h7v7l-10 8"/><path d="m24 11 2 4 5 1-4 3 1 4-4-2-4 2 1-4-4-3 5-1Z"/></symbol>
+            <symbol id="mark-sorcery" viewBox="0 0 48 48"><path d="m10 39 26-27m-7 4 8 8M9 9l7 3-7 3-3-3ZM35 34l4-5 3 5-3 5ZM29 5l1 5M41 10l-4 3"/><path d="m7 37 4 4 5-5-4-4Z"/></symbol>
+            <symbol id="mark-land" viewBox="0 0 48 48"><path d="M5 39 17 17l7 12 5-18 14 28ZM12 26l5 3 4-3M25 25l4 2 4-3M8 43h33"/><path d="M10 8h7m-3-3v6m24 0h5m-3-3v6"/></symbol>
+        </defs>
+    </svg>
+    <div class="ambient" aria-hidden="true"></div>
+    <header class="task-header-bar">
+        <a id="exit" class="nav-link" href="/"><span aria-hidden="true">←</span> Lobby</a>
+        <h1><svg aria-hidden="true"><use href="#mark-compass"/></svg>Tasks</h1>
+        <div class="header-actions">
+            <div id="currency" aria-label="Coins"><span class="coin-mark" aria-hidden="true">✧</span><span class="button-text" aria-live="polite">—</span></div>
+            <button id="refresh-balance" class="icon-button" aria-label="Refresh coin balance" title="Refresh coin balance">↻</button>
         </div>
-    </div>
-    <a href="/">
-      <div id="exit" class="triangle-button" style="--rotate: 270deg; --size: 3vw; --color: #FF8C00; bottom: 3vw; left: 4vw;">
-        <span class="button-text">Exit</span>
-      </div>
-    </a>
-    <script src="webpages/task_page/task.js"></script>
+    </header>
+    <main class="task-bar-container">
+        <div class="journal-ribbon" aria-hidden="true"><svg><use href="#mark-compass"/></svg></div>
+        <div class="journal-spine" aria-hidden="true"></div>
+        <header class="journal-heading">
+            <div><h2>Active Tasks</h2><span id="task-count" aria-label="Active task count">—</span></div>
+            <button id="reload-tasks" class="quiet-button"><span aria-hidden="true">↻</span> Update Tasks</button>
+        </header>
+        <ol id="taskBar" class="task-bar" aria-label="Your tasks" aria-busy="true"></ol>
+        <div id="task-empty" hidden><svg aria-hidden="true"><use href="#mark-compass"/></svg><p>No active tasks.</p></div>
+        <p id="task-status" role="status" aria-live="polite">Loading tasks…</p>
+        <footer class="journal-footer"><span aria-hidden="true">✧</span><p>Rewards are added automatically when you complete a task.</p><span aria-hidden="true">✧</span></footer>
+    </main>
+    <dialog id="replace-dialog" aria-labelledby="replace-title" aria-describedby="replace-description replace-status">
+        <button id="close-replace" class="close-button" aria-label="Close replacement">×</button>
+        <div class="dialog-mark" aria-hidden="true"><svg><use href="#mark-compass"/></svg></div>
+        <h2 id="replace-title">Replace this task?</h2>
+        <p id="replace-name"></p>
+        <p id="replace-description">This task will be exchanged for another. Its current progress will be lost.</p>
+        <p id="replace-status" role="status" aria-live="polite"></p>
+        <div class="dialog-actions"><button id="cancel-replace" class="quiet-button">Keep Task</button><button id="confirm-replace" class="paper-button">Replace Task <span aria-hidden="true">↻</span></button></div>
+    </dialog>
 </body>
 </html>

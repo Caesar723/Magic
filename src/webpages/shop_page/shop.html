@@ -1,52 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Shop Page</title>
-    <link rel="stylesheet" type="text/css" href="webpages/shop_page/style.css">
-    <link rel="shortcut icon" href="webpages/homepage/coin.png" type="image/x-icon" />
-    <script src="packet/math.min.js"></script>
-    <script src="webpages/rotation.js"></script>
-    <script src="webpages/block.js"></script> 
-    <script src="webpages/pack.js"></script>
-    <script src="webpages/shop_page/item.js"></script>
-    <script src="webpages/shop_page/list.js"></script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#40595b">
+    <title>Shop · Magic</title>
+    <link rel="icon" href="/webpages/homepage/coin.png">
+    <link rel="stylesheet" href="/webpages/shop_page/style.css">
+    <script defer src="/webpages/pack-art.js"></script>
+    <script defer src="/webpages/shop_page/item.js"></script>
+    <script defer src="/webpages/shop_page/list.js"></script>
 </head>
 <body>
-
-    <div id="currency_container">
-      <div id="currency" class="rectangle-button" style="--rotate: 0deg; --width: 10vw; --height: 5vw; --color: #FF6347; --top: 7.5vw; left: 3vw;">
-            
-        <span class="button-text"><img src="webpages/homepage/coin.png" alt="Description" id="img_coin">0</span>
-      </div>
-    </div>
-    <div id="shop_title">
-      <div id="shop_title_top">shop</div>
-      <div id="shop_title_bottom"></div>
-      <!-- <img id="shop_title_back" src="webpages/shop_page/title_back.PNG" alt="Shop" > -->
-    </div>
-    
-    <div id="shop_list">
-      
-
-    </div>
-
-    <div id="exit" class="triangle-button" style="--rotate: 270deg; --size: 3vw; --color: #FF8C00; bottom: 3vw; left: 4vw;">
-      <span class="button-text">Exit</span>
-    </div>
-
-    <script>
-        async function get_currency() {
-            const currency=await fetch('/get_currency',{
-                method:'POST',
-            })
-            const data=await currency.json()
-            const element=document.getElementById('currency')
-            const span=element.querySelector('.button-text')
-            span.innerHTML=`<img src="webpages/homepage/coin.png" alt="Description" id="img_coin">${data.currency}`
-        }
-        get_currency()
-    </script>
-    
+    <header class="shop-header">
+        <a id="exit" href="/" class="nav-link"><span aria-hidden="true">←</span> Lobby</a>
+        <div id="shop_title"><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="16"/><path d="m22 2 4 16 16 4-16 4-4 16-4-16L2 22l16-4Z"/></svg><h1 id="shop_title_top">Shop</h1></div>
+        <div class="header-actions">
+            <div id="currency_container">
+                <div id="currency" aria-label="Coins"><span id="img_coin" class="coin-mark" aria-hidden="true">✧</span><span class="button-text" aria-live="polite">—</span></div>
+                <button id="refresh-balance" class="icon-button" aria-label="Refresh coin balance" title="Refresh coin balance">↻</button>
+            </div>
+            <a href="/draw_card" class="nav-link packs-link">Your Packs <span aria-hidden="true">↗</span></a>
+        </div>
+    </header>
+    <main class="shop-layout">
+        <section class="showcase" aria-labelledby="selected-name">
+            <div class="selected-heading"><span class="small-rule" aria-hidden="true"></span><h2 id="selected-name">Choose a Pack</h2></div>
+            <div id="shop-stage" data-renderer="loading" aria-label="Selected pack preview">
+                <div class="stage-orbit" aria-hidden="true"></div>
+                <div class="stone-pedestal" aria-hidden="true"></div>
+                <div id="selected-art" class="selected-art" aria-hidden="true" hidden><div class="pack-volume"><img alt=""><span class="pack-spine"></span></div></div>
+                <canvas id="shop-canvas" aria-hidden="true"></canvas>
+                <button id="rotate-pack" class="quiet-button" aria-label="Rotate selected pack" hidden>↻ Rotate</button>
+            </div>
+            <div class="purchase-bar">
+                <span id="purchase-pack-name" class="mobile-pack-name"></span>
+                <p id="selected-price" class="selected-price"><span class="coin-mark" aria-hidden="true">✧</span><span>—</span><small>coins</small></p>
+                <button id="buy-pack" class="paper-button shop_item_buy" disabled>Buy Pack <span aria-hidden="true">→</span></button>
+                <p id="balance-message" role="status"></p>
+            </div>
+        </section>
+        <section class="catalog" aria-labelledby="catalog-title">
+            <div class="catalog-heading"><h2 id="catalog-title">Card Packs</h2><span id="catalog-count"></span></div>
+            <div id="shop_list" aria-label="Choose a pack to purchase" aria-busy="true"></div>
+            <div id="catalog-message" role="status">Loading packs…</div>
+            <button id="retry-shop" class="paper-button" hidden>Reload Shop</button>
+        </section>
+    </main>
+    <dialog id="purchase-dialog" aria-labelledby="purchase-title" aria-describedby="purchase-status">
+        <button id="close-purchase" class="close-button" aria-label="Close purchase">×</button>
+        <div class="receipt-illustration" aria-hidden="true"><div id="purchase-art" class="pack-volume"><img alt=""><span class="pack-spine"></span></div><span class="receipt-seal">✓</span></div>
+        <div class="receipt-content">
+            <p class="receipt-category">Shop</p>
+            <h2 id="purchase-title">Confirm Purchase</h2>
+            <p id="purchase-name"></p>
+            <dl class="receipt-totals"><div><dt>Price · 1 pack</dt><dd id="purchase-price"></dd></div><div><dt>Your coins</dt><dd id="purchase-balance"></dd></div><div class="receipt-remaining"><dt>After purchase</dt><dd id="purchase-remaining"></dd></div></dl>
+            <p id="purchase-status" role="status" aria-live="polite"></p>
+            <div id="purchase-actions"><button id="cancel-purchase" class="quiet-button">Cancel</button><button id="confirm-purchase" class="paper-button">Confirm Purchase</button></div>
+            <div id="purchase-result" hidden><button id="continue-shopping" class="quiet-button">Continue Shopping</button><a id="open-packs" class="paper-button" href="/draw_card">Open Packs ↗</a></div>
+            <button id="retry-balance" class="text-button" hidden>Refresh Balance</button>
+        </div>
+    </dialog>
 </body>
 </html>
