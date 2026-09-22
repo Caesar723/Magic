@@ -17,7 +17,7 @@ from server_function_tool import split_message_deck,Deck_Response,Task_Data,Task
 
 
 sql_name=os.getenv("DATABASE_PYURL", "mysql+pymysql://root@localhost/Magic_fan_made")
-engine = create_engine(sql_name)
+engine = create_engine(sql_name, pool_pre_ping=True)
 
 Base = declarative_base()
 
@@ -78,7 +78,7 @@ class PlayerPack(Base):
 class Task(Base):
     __tablename__ = 'tasks'
     id=Column(Integer, primary_key=True)
-    title = Column(String(255))
+    title = Column(String(255), unique=True, nullable=False)
     description = Column(String(255))
     total_progress = Column(Integer)
     gold_reward = Column(Integer)
@@ -98,6 +98,11 @@ def reset_table():
     Base.metadata.drop_all(engine)
     # # 重新创建所有表
     Base.metadata.create_all(engine)
+
+def ensure_database_schema():
+    """Create missing tables and synchronize built-in task definitions safely."""
+    Base.metadata.create_all(engine)
+    reset_tasks()
 
 def check_in_data_base_card(session,name,type,rarity):
     print((session.query(Card).filter(and_(Card.name == name,Card.type_card==type)).first() is not None))
@@ -164,13 +169,21 @@ def reset_packs():
 def reset_tasks():
     from tasks import TASK_DICT
     Session = sessionmaker(bind=engine)
-    # 创建会话实例
     session = Session()
-    for name,cla in TASK_DICT.items():
-        task=Task(title=name,description=cla.description,total_progress=cla.total_steps,gold_reward=cla.gold_reward)
-        session.add(task)
-    session.commit()
-    session.close()
+    try:
+        existing_tasks = {task.title: task for task in session.query(Task).all()}
+        for name, cla in TASK_DICT.items():
+            task = existing_tasks.get(name)
+            if task is None:
+                session.add(Task(title=name, description=cla.description,
+                                 total_progress=cla.total_steps, gold_reward=cla.gold_reward))
+            else:
+                task.description = cla.description
+                task.total_progress = cla.total_steps
+                task.gold_reward = cla.gold_reward
+        session.commit()
+    finally:
+        session.close()
 
 def reset_all_packs():
     # Pack.__table__.drop(engine)

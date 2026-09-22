@@ -1,6 +1,20 @@
 def main():
     import uvicorn
     from pathlib import Path
+    from sqlalchemy.exc import OperationalError
+    from database import ensure_database_schema
+
+    for attempt in range(30):
+        try:
+            ensure_database_schema()
+            print("Database schema is ready.")
+            break
+        except OperationalError:
+            if attempt == 29:
+                raise
+            import time
+            time.sleep(1)
+
     ip_address = get_local_ip()
     print(ip_address)
     ip_address="172.20.10.7"
