@@ -1,50 +1,32 @@
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('webpages/service-worker.js').then(function(registration) {
-        console.log('Service Worker registered with scope:', registration.scope);
-    });
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/webpages/service-worker.js').catch(() => {});
+
+const deck = new Deck();
+const book = new Book(deck);
+const deckMotion = matchMedia('(prefers-reduced-motion: reduce)');
+function applyDeckMotion() {
+    let stored = false;
+    try { stored = localStorage.getItem('lobby-reduced-motion') === 'true'; } catch (_) {}
+    const reduced = deckMotion.matches || stored;
+    document.body.classList.toggle('motion-reduced', reduced);
+    if (reduced) book.pause();
 }
-
-function set_Listener(){
-    const draw = document.getElementById('exit');
-    draw.addEventListener('click',  function () {
-            window.location.href = '/';
-    });
+function pauseDeckMotion() {
+    const paused = document.hidden || !document.hasFocus();
+    document.body.classList.toggle('motion-paused', paused);
+    if (paused) book.pause();
 }
-
-set_Listener();
-const frame_generator=new Card_frame()
-const paras=[
-    ["blue","Caesar","Creature","Uncommon","nothing nothing","cards/creature/Spectral Harbinger/image.jpg"],
-    ["red","Caesar","Creature","Mythic Rare","nothing nothing","cards/creature/Eternal Phoenix/image.jpg"],
-    ["black","Caesar","Creature","Common","nothing nothing","cards/creature/Nyxborn Serpent/image.jpg"],
-    ["gold","Caesar","Creature","Rare","nothing nothing","cards/creature/Luminous Guardian/image.jpg"],
-    ["green","Caesar","Creature","Mythic Rare","nothing nothing","cards/creature/Verdant Wyrm/image.jpg"]
-]
-
-
-const camera=new Camera([0,0,-50])
-const deck=new Deck()
-const book=new Book(camera,deck)
-
-
-var startTime = performance.now();
-function draw_picture(){
-    const endTime = performance.now();
-    const runningTime = endTime - startTime;
-    
-    //console.log(runningTime)
-    if (runningTime>0.01*1000){
-        startTime = performance.now();
-        book.update();
-        deck.update();
-        book.draw();
-        deck.draw();
-        
-    }
-    
-
-    
-    requestAnimationFrame(draw_picture);
+deckMotion.addEventListener('change', applyDeckMotion);
+window.addEventListener('storage', event => { if (event.key === 'lobby-reduced-motion') applyDeckMotion(); });
+for (const type of ['focus', 'blur']) window.addEventListener(type, pauseDeckMotion);
+document.addEventListener('visibilitychange', pauseDeckMotion);
+window.addEventListener('pagehide', event => { book.pause(); if (!event.persisted) book.dispose(); });
+window.addEventListener('pageshow', () => { applyDeckMotion(); pauseDeckMotion(); });
+const motes = document.createDocumentFragment();
+for (let i = 0; i < 10; i++) {
+    const mote = document.createElement('span'); mote.className = 'mote';
+    mote.style.setProperty('--x', ((i * 37 + 2) % 100) + '%');
+    mote.style.setProperty('--duration', (16 + i) + 's');
+    mote.style.setProperty('--delay', (-i * 2.4) + 's'); motes.append(mote);
 }
-
-draw_picture()
+document.querySelector('.ambient').append(motes);
+applyDeckMotion(); pauseDeckMotion(); book.load_page();

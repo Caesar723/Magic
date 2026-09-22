@@ -1,58 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-
-    <title>Deck Page</title>
-    <link rel="shortcut icon" href="webpages/homepage/coin.png" type="image/x-icon" /> 
-    <link href="https://fonts.googleapis.com/css?family=Merriweather:400,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="webpages/deckpage/style.css">
-    
-    <script src="webpages/deck_cards.js"></script>
-    <script src="webpages/button.js"></script>
-    <script src="packet/math.min.js"></script>
-    <script src="webpages/block.js"></script>
-    <script src="webpages/rotation.js"></script>
-    <script src="webpages/card.js"></script>
-    <script src="webpages/cards_main.js"></script>
-    <script src="webpages/deckpage/book.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
-    
-    
-    
-    
-
-    
-    
-    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#425f62">
+    <title>Deck Building · Magic</title>
+    <link rel="icon" href="/webpages/homepage/coin.png">
+    <link rel="stylesheet" href="/webpages/deckpage/style.css">
+    <script defer src="/packet/math.min.js"></script>
+    <script defer src="/webpages/rotation.js"></script>
+    <script defer src="/webpages/card.js"></script>
+    <script defer src="/webpages/cards_main.js"></script>
+    <script defer src="/webpages/deck_cards.js"></script>
+    <script defer src="/webpages/deckpage/book.js"></script>
+    <script defer src="/webpages/deckpage/deck.js"></script>
 </head>
 <body>
-    <!-- <iframe src="webpages/audio/audio_hall.html"  style="display: none;"  id="audio-frame"></iframe>
-    <script src="webpages/audio/audio_fun_hall.js"></script> -->
-    <div class="overlay">
-        <div id="canvasContainer">
-            <div id="box">
-                <div id="text_box"></div>
+    <svg class="symbol-library" aria-hidden="true"><defs><symbol id="compass" viewBox="0 0 48 48"><circle cx="24" cy="24" r="16"/><path d="m24 3 5 16 16 5-16 5-5 16-5-16L3 24l16-5Z"/></symbol></defs></svg>
+    <div class="ambient" aria-hidden="true"></div>
+    <header class="builder-header">
+        <a id="exit" class="nav-link" href="/"><span aria-hidden="true">←</span> Lobby</a>
+        <h1><svg aria-hidden="true"><use href="#compass"/></svg>Deck Building</h1>
+        <a class="nav-link" href="/draw_card">Your Packs <span aria-hidden="true">↗</span></a>
+    </header>
+    <main id="canvasContainer" class="builder-layout">
+        <section id="collection" class="collection-book" aria-labelledby="collection-title">
+            <header class="collection-heading"><h2 id="collection-title">Collection</h2><button id="open-saved-decks" class="quiet-button" aria-haspopup="dialog">Saved Decks</button></header>
+            <div id="type-filters" class="type-tabs" role="group" aria-label="Card type">
+                <button data-type="creature" aria-pressed="true">Creatures</button>
+                <button data-type="Instant" aria-pressed="false">Instants</button>
+                <button data-type="sorcery" aria-pressed="false">Sorceries</button>
+                <button data-type="land" aria-pressed="false">Lands</button>
             </div>
-            <canvas id="myCanvas"></canvas>
-            <div id="exit" class="triangle-button" style="--rotate: 270deg; --size: 3vw; --color: #FF8C00; bottom: 3vw; left: 4vw;">
-                <span class="button-text">Exit</span>
+            <div id="color-filters" class="color-tabs" role="group" aria-label="Card color">
+                <button data-color="blue" aria-pressed="true"><img src="/webpages/image_source/color_fee/blue.PNG" alt="">Blue</button>
+                <button data-color="gold" aria-pressed="false"><img src="/webpages/image_source/color_fee/gold.PNG" alt="">White</button>
+                <button data-color="black" aria-pressed="false"><img src="/webpages/image_source/color_fee/black.PNG" alt="">Black</button>
+                <button data-color="red" aria-pressed="false"><img src="/webpages/image_source/color_fee/red.PNG" alt="">Red</button>
+                <button data-color="green" aria-pressed="false"><img src="/webpages/image_source/color_fee/green.PNG" alt="">Green</button>
+                <button data-color="colorless" aria-pressed="false"><img src="/webpages/image_source/color_fee/colorless.PNG" alt="">Colorless</button>
             </div>
-            <div id="build" class="rect-button" style="--width: 14vw; --height: 5vw; --color: #FF8C00; bottom: 3vw; left: 65vw; --radius: 0.5vw;--size: 5vw;">
-                <span class="button-text">Build Deck</span>
+            <div id="myCanvas" class="collection-cards" aria-label="Cards in your collection" aria-busy="true"></div>
+            <div id="collection-message"><svg aria-hidden="true"><use href="#compass"/></svg><p id="collection-status" role="status">Loading cards…</p><button id="retry-collection" class="quiet-button" hidden>Try Again</button></div>
+            <footer class="page-navigation"><button id="previous-page" class="page-arrow" aria-label="Previous page" disabled>←</button><span id="page-number" aria-live="polite">Page 1</span><button id="next-page" class="page-arrow" aria-label="Next page" disabled>→</button></footer>
+        </section>
+        <aside id="deck" class="deck-sheet" aria-labelledby="deck-title">
+            <div class="deck-clip" aria-hidden="true"></div>
+            <header class="deck-heading"><h2 id="deck-title">Your Deck</h2><span id="deck-count" aria-label="Cards in deck">0</span></header>
+            <button id="new-deck" class="quiet-button">New Deck +</button>
+            <label class="name-label" for="deck_name">Deck name</label>
+            <input id="deck_name" type="text" placeholder="Name your deck" autocomplete="off" aria-describedby="deck-status">
+            <div class="deck-content">
+                <div id="deck-empty"><div class="empty-cards" aria-hidden="true"><img src="/webpages/image_source/card/back.png?v=compass" alt=""><img src="/webpages/image_source/card/back.png?v=compass" alt=""><img src="/webpages/image_source/card/back.png?v=compass" alt=""></div><p>Add cards from your collection.</p></div>
+                <ol id="deck-list" aria-label="Cards in your deck"></ol>
             </div>
-            <input type="text" id="deck_name" placeholder="Deck Name">
-            <div id="deck">
-                <canvas id="deckCanvas"></canvas>
-            </div>
+            <footer class="deck-footer"><p id="deck-breakdown">0 creatures · 0 spells · 0 lands</p><button id="build" class="paper-button">Save Deck <span aria-hidden="true">→</span></button><p id="deck-status" role="status" aria-live="polite"></p></footer>
+            <canvas id="deckCanvas" hidden aria-hidden="true"></canvas>
+        </aside>
+    </main>
+    <nav class="mobile-dock" aria-label="Deck builder sections"><a href="#collection">Collection ↑</a><a href="#deck">Your Deck <span id="mobile-deck-count">0</span> ↓</a></nav>
+    <dialog id="saved-decks" aria-labelledby="saved-title">
+        <button id="close-saved" class="close-button" aria-label="Close saved decks">×</button>
+        <h2 id="saved-title">Saved Decks</h2>
+        <p id="saved-status" role="status"></p><button id="retry-saved" class="quiet-button" hidden>Try Again</button>
+        <div class="saved-layout">
+            <div id="saved-list" aria-label="Saved decks"></div>
+            <section id="saved-preview" aria-labelledby="saved-name" hidden>
+                <h3 id="saved-name"></h3><p id="saved-count"></p>
+                <ul id="saved-cards"></ul>
+            </section>
         </div>
-        
-        
-        <script src="webpages/deckpage/deck.js"></script>
-        
-    </div>
-
+        <footer class="saved-footer"><button id="edit-saved" class="paper-button" disabled>Edit Deck →</button></footer>
+    </dialog>
+    <dialog id="card-detail" aria-labelledby="detail-name">
+        <button id="close-detail" class="close-button" aria-label="Close card details">×</button>
+        <div id="detail-face" class="detail-face"></div>
+        <div class="detail-copy"><p id="detail-rarity"></p><h2 id="detail-name"></h2><p id="detail-type"></p><p id="detail-cost"></p><p id="detail-ability"></p><p id="detail-stats"></p><p id="detail-quantity"></p><button id="detail-add" class="paper-button">Add to Deck <span aria-hidden="true">+</span></button></div>
+    </dialog>
+    <dialog id="box" aria-labelledby="save-title" aria-describedby="text_box">
+        <svg aria-hidden="true"><use href="#compass"/></svg><h2 id="save-title">Check Your Decks</h2><p id="text_box"></p>
+        <div class="dialog-actions"><button id="close-message" class="quiet-button">Keep Editing</button><a id="check-decks" class="paper-button" href="/">Back to Lobby ↗</a></div>
+    </dialog>
 </body>
 </html>
