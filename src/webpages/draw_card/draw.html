@@ -1,34 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-
-    <title>Protected Page</title>
-    <link rel="shortcut icon" href="webpages/homepage/coin.png" type="image/x-icon" /> 
-    <link rel="stylesheet" type="text/css" href="webpages/draw_card/style.css">
-    <script src="packet/math.min.js"></script>
-    <script src="webpages/block.js"></script>
-    <script src="webpages/pack.js"></script>
-    <script src="webpages/rotation.js"></script>
-    <script src="webpages/card.js"></script>
-    <script src="webpages/cards_main.js"></script>
-    <script src="webpages/draw_card/draw_card.js"></script>
-    
-    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#314f55">
+    <title>Draw Cards · Magic</title>
+    <link rel="icon" href="/webpages/homepage/coin.png">
+    <link rel="stylesheet" href="/webpages/draw_card/style.css">
+    <script defer src="/packet/math.min.js"></script>
+    <script defer src="/webpages/rotation.js"></script>
+    <script defer src="/webpages/card.js"></script>
+    <script defer src="/webpages/cards_main.js"></script>
+    <script defer src="/webpages/draw_card/draw_card.js"></script>
+    <script defer src="/webpages/draw_card/draw.js"></script>
 </head>
 <body>
-    <div class="overlay">
-        <div id="canvasContainer">
-            <canvas id="myCanvas"></canvas>
+    <header class="draw-header">
+        <a id="exit" href="/" class="back-link"><span aria-hidden="true">←</span> Lobby</a>
+        <h1><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="16"/><path d="m22 2 4 16 16 4-16 4-4 16-4-16L2 22l16-4Z"/></svg>Draw Cards</h1>
+        <a href="/shop" class="shop-link">Shop <span aria-hidden="true">↗</span></a>
+    </header>
+    <main class="draw-layout">
+        <section id="canvasContainer" class="draw-scene" data-state="loading" aria-labelledby="pack-title">
+            <div class="pack-heading"><h2 id="pack-title">Choose a Pack</h2><p id="pack-owned"></p></div>
+            <canvas id="myCanvas" aria-hidden="true"></canvas>
+            <div id="pack-focus" class="pack-focus" hidden aria-hidden="true">
+                <div class="fallback-plinth"></div>
+                <div class="pack-motion"><div class="pack-body"><img class="pack-image" alt=""></div><div class="pack-lid"></div></div>
+            </div>
+            <button id="rotate-pack" class="quiet-button rotate-button" aria-label="Rotate pack" hidden>↻ Rotate</button>
+            <div id="draw-results" class="draw-results" aria-label="Drawn cards" hidden></div>
+            <div class="draw-controls">
+                <p id="opening-status" role="status" aria-live="polite">Select a pack from your collection.</p>
+                <button id="open-pack" class="paper-button primary-button" disabled><span aria-hidden="true">✧</span> Open Pack <span aria-hidden="true">✧</span></button>
+                <button id="skip-animation" class="quiet-button" hidden>Skip Animation</button>
+                <div id="result-actions" hidden>
+                    <button id="reveal-all" class="paper-button">Reveal All</button>
+                    <button id="open-another" class="paper-button" hidden>Open Another</button>
+                </div>
+            </div>
+        </section>
+        <aside class="pack-library" aria-labelledby="library-title">
+            <div class="library-heading"><h2 id="library-title">Your Packs</h2><span id="pack-total" aria-label="Total packs">—</span></div>
+            <div id="pack-list" aria-label="Choose a pack" aria-busy="true"></div>
+            <div id="inventory-message" role="status"><p>Loading packs…</p></div>
+            <button id="retry-packs" class="quiet-button" hidden>Reload Packs</button>
+            <a id="empty-shop" href="/shop" class="paper-button" hidden>Visit Shop ↗</a>
+        </aside>
+    </main>
+    <p id="draw-notice" role="alert" hidden></p>
+    <dialog id="card-detail" aria-labelledby="detail-name">
+        <button id="close-detail" class="close-button" aria-label="Close card details">×</button>
+        <img id="detail-image" alt="">
+        <div class="detail-copy">
+            <p id="detail-rarity"></p><h2 id="detail-name"></h2><p id="detail-type"></p><p id="detail-cost"></p><p id="detail-ability"></p><p id="detail-stats"></p>
         </div>
-        
-        <div id="exit" class="triangle-button" style="--rotate: 270deg; --size: 3vw; --color: #FF8C00; bottom: 3vw; left: 4vw;">
-            <span class="button-text">Exit</span>
-        </div>
-        <script src="webpages/draw_card/draw.js"></script>
-    </div>
-
+    </dialog>
 </body>
 </html>
