@@ -1,1066 +1,596 @@
 class InteractiveMap {
     constructor() {
         this.request_processor = new Request_Processor();
-
-        this.mapContainer = document.getElementById('mapContainer');
-        this.mapContent = document.getElementById('mapContent');
-        this.mapSvg = document.getElementById('mapSvg');
-        this.infoPanel = document.getElementById('infoPanel');
-        
-        this.isDragging = false;
-        this.startX = 0;
-        this.currentX = 0;
-        this.translateX = 0;
-
-        this.currency = 0;
-        
-        this.nodes = [];
-        this.paths = [];
-        this.currentNode = null;
-        this.init();
-        this.initShop(); // 初始化商店系统
-        this.initBattle(); // 初始化战斗系统
-        this.initEvent(); // 初始化事件系统
-        this.initInventory();
-        this.initCardSystem(); // 初始化卡牌系统
+        this.ui = Object.fromEntries([...document.querySelectorAll('[id]')].map(element => [element.id, element]));
+        this.mapContainer = this.ui.mapContainer; this.mapContent = this.ui.mapContent; this.mapSvg = this.ui.mapSvg;
+        this.infoPanel = this.ui.infoPanel;
+        this.nodes = []; this.paths = []; this.mapArray = []; this.inventory = []; this.cards = []; this.shopItems = [];
+        this.currency = 0; this.currentNode = null; this.selectedNode = null;
+        this.busy = false; this.stale = false; this.hasRun = false;
+        this.zoom = 1;
+        this.viewportWidth = this.mapContainer.clientWidth;
+        this.motion = matchMedia('(prefers-reduced-motion: reduce)');
+        this.bindEvents(); this.initMotion();
+        this.ready = this.refreshJourney();
     }
-    setTheme(theme) {
-        if (theme === 'default') {
-            document.documentElement.removeAttribute('data-theme');
-        } else {
-            document.documentElement.setAttribute('data-theme', theme);
+    element(tag, className, text) {
+        const element = document.createElement(tag);
+        if (className) element.className = className;
+        if (text != null) element.textContent = String(text);
+        return element;
+    }
+    icon(name, className = '') {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('class', className); svg.setAttribute('aria-hidden', 'true');
+        svg.setAttribute('viewBox', name === 'compass' ? '0 0 48 48' : '0 0 200 190');
+        const use = document.createElementNS(svg.namespaceURI, 'use'); use.setAttribute('href', '#' + name); svg.append(use);
+        return svg;
+    }
+    image(path, className = '') {
+        const image = this.element('img', className); image.alt = ''; image.loading = 'lazy';
+        image.src = '/' + String(path || '').replace(/^\/+/, '');
+        image.addEventListener('error', () => { image.hidden = true; }, {once: true}); return image;
+    }
+    label(node) { return node.boss ? 'Boss' : {Start: 'Camp', battle: 'Battle', shop: 'Shop', event: 'Event'}[node.name] || 'Encounter'; }
+    landmark(node) { return 'landmark-' + (node.boss ? 'boss' : node.name === 'Start' ? 'start' : node.name); }
+    landmarkImage(node, className = '') { return this.image('webpages/rogue/art/' + this.landmark(node).replace('landmark-', 'island-') + '.webp', className); }
+    check(response, state = 'success') {
+        if (!response || response.state !== state) throw new Error('The action could not be confirmed.');
+        return response;
+    }
+    status(message = '') {
+        document.querySelectorAll('.request-status').forEach(element => { element.textContent = message; });
+        document.querySelectorAll('.retry-request').forEach(button => { button.hidden = !this.stale; button.disabled = this.busy; });
+    }
+    setBusy() {
+        const blocked = this.busy || this.stale || !this.hasRun;
+        this.ui.routeEnter.disabled = blocked || this.selectedNode?.status !== 'current';
+        this.ui.battleEnter.disabled = blocked || this.currentNode?.status !== 'current';
+        this.ui.shopClose.disabled = blocked;
+        this.ui.giveUpButton.disabled = this.ui.confirmYes.disabled = blocked;
+        for (const id of ['cardButton', 'inventoryToggle', 'centerMap']) this.ui[id].disabled = !this.hasRun || this.busy;
+        this.ui.zoomIn.disabled = !this.hasRun || this.zoom >= 1.4;
+        this.ui.zoomOut.disabled = !this.hasRun || this.zoom <= .6;
+        document.querySelectorAll('.buy-button').forEach(button => { button.disabled = blocked || button.dataset.available !== 'true'; });
+        document.querySelectorAll('.event-option').forEach(button => { button.disabled = blocked || button.dataset.valid !== 'true'; });
+        document.querySelectorAll('.retry-request').forEach(button => { button.disabled = this.busy; });
+        document.querySelectorAll('.close-button, #confirmNo').forEach(button => { button.disabled = this.busy; });
+        this.ui.routePanel.setAttribute('aria-busy', String(this.busy));
+        this.ui.routeChoices.querySelectorAll('button').forEach(button => { button.disabled = this.busy; });
+    }
+    async perform(action) {
+        if (this.busy || this.stale || !this.hasRun) return;
+        this.busy = true; this.status(); this.setBusy();
+        try { await action(); }
+        catch (_) {
+            // Refresh authoritative state before another mutation; never replay a purchase or event automatically.
+            this.stale = true;
+            this.status('The action could not be confirmed. Refresh your journey to check the result before continuing.');
+        } finally { if (!this.navigating) this.busy = false; this.setBusy(); }
+    }
+    async refreshJourney() {
+        if (this.busy) return;
+        this.busy = true; this.setBusy(); this.ui.mapContainer.setAttribute('aria-busy', 'true');
+        try {
+            await this.update_map_info(true);
+            this.stale = false; this.status();
+        } catch (_) {
+            this.stale = true; this.status('Unable to load your journey. Your progress has not been reset.');
+        } finally { this.busy = false; this.ui.mapContainer.setAttribute('aria-busy', 'false'); this.setBusy(); }
+    }
+    async update_map_info(reconcile = false) {
+        const map = await this.request_processor.get_map_info();
+        if (this.disposed) return;
+        if (map?.state === 'not in room') { this.endRun(); return; }
+        if (!Array.isArray(map) || !map.length || map.some(layer => !(Array.isArray(layer) ? layer : [layer]).every(node => node && typeof node.id === 'string' && ['current', 'completed', 'locked'].includes(node.status) && ['Start', 'battle', 'event', 'shop'].includes(node.name)))) throw new Error('Invalid map.');
+        const [treasures, profile, deck] = await Promise.all([
+            this.request_processor.get_treasure_info(), this.request_processor.get_profile_info(), this.request_processor.get_cards_info()
+        ]);
+        if (this.disposed) return;
+        if (!Array.isArray(treasures) || !Number.isFinite(profile?.currency) || !Number.isFinite(profile?.max_life) || !Number.isInteger(profile?.level) || deck?.state !== 'success' || !Array.isArray(deck.cards_info)) throw new Error('Invalid journey.');
+        const oldProfile = this.profile, oldTreasures = this.inventory.length, oldCount = this.cardCount();
+        const previousCurrent = this.nodes.filter(node => node.status === 'current').map(node => node.id).join();
+        this.hasRun = true; this.ui.noRun.hidden = true;
+        this.profile = profile; this.currency = profile.currency;
+        this.inventory = treasures; this.cards = deck.cards_info;
+        this.renderControlsInfo(profile); this.renderInventory();
+        if (this.ui.cardModal.open) this.renderCards();
+        if (!arraysEqual(map, this.mapArray)) this.generateMapFromArray(map);
+        const nextCurrent = this.nodes.filter(node => node.status === 'current').map(node => node.id).join();
+        if (previousCurrent !== nextCurrent) this.centerCurrent(Boolean(previousCurrent));
+        if (oldProfile) {
+            this.reward(this.ui.runCoins, profile.currency - oldProfile.currency);
+            this.reward(this.ui.runLife, profile.max_life - oldProfile.max_life);
+            if (oldTreasures !== treasures.length) this.reward(this.ui.inventoryToggle, treasures.length - oldTreasures);
+            if (oldCount !== this.cardCount()) this.reward(this.ui.cardButton, this.cardCount() - oldCount);
         }
-        
-        // 重新创建路径以应用新的颜色
-        this.createPaths();
+        if (reconcile && this.currentNode) {
+            const current = this.nodes.find(node => node.id === this.currentNode.id);
+            if (current?.status !== 'current') {
+                for (const id of ['shopModal', 'eventModal', 'battleModal']) this.ui[id].close();
+                this.currentNode = null;
+            } else if (this.ui.shopModal.open) {
+                const response = this.check(await this.request_processor.open_shop(current.id));
+                this.currentNode = current; this.shopItems = response.shop_info.shop_items; this.renderShop();
+            } else if (this.ui.eventModal.open) {
+                const response = this.check(await this.request_processor.open_event(current.id));
+                this.currentNode = current; this.renderEvent(response.event_info);
+            } else if (this.ui.battleModal.open) this.openBattle(current);
+        }
+        this.setBusy();
     }
-    
+    endRun() {
+        this.hasRun = false; this.nodes = []; this.paths = []; this.mapArray = [];
+        this.currentNode = null; this.selectedNode = null; this.clearMap(); this.ui.routeOverview.replaceChildren();
+        this.ui.routeChoices.replaceChildren(); this.ui.routeChoices.hidden = true;
+        document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
+        this.ui.noRun.hidden = false; this.ui.journeyTitle.textContent = 'Journey ended'; this.ui.journeyProgress.textContent = '';
+        this.ui.routeEnter.disabled = true; this.setBusy();
+    }
+    renderControlsInfo(profile) {
+        this.ui.runCoins.textContent = this.ui.currencyAmount.textContent = profile.currency;
+        this.ui.runLife.textContent = profile.max_life;
+        this.ui.actLabel.textContent = 'Act ' + (['I', 'II', 'III'][profile.level] || profile.level + 1);
+        const act = Math.max(0, Math.min(2, profile.level));
+        if (this.act !== act) {
+            this.act = act; document.body.dataset.act = String(act + 1);
+            this.ui.actLabel.classList.remove('act-arrival');
+            void this.ui.actLabel.offsetWidth; this.ui.actLabel.classList.add('act-arrival');
+        }
+        this.ui.treasureCount.textContent = this.inventory.length;
+        this.ui.cardCount.textContent = this.cardCount();
+        this.ui.deckSummary.textContent = this.cardCount() + ' cards · ' + this.cards.length + ' unique';
+    }
+    cardCount() { return this.cards.reduce((sum, card) => sum + Number(card.quantity || 0), 0); }
     generateMapFromArray(mapArray) {
-        this.nodes = [];
-        this.paths = [];
-        
-        const baseX = 200; // 起始X位置
-        const stepX = 400; // 每层之间的X间距
-        const centerY = 400; // 中心Y位置
-        const branchSpacing = 150; // 分支之间的Y间距
-        
-        let nodeId = 1;
-        let currentX = baseX;
-        
-        // 存储每层的节点信息，用于连接路径
-        const layerNodes = [];
-        
-        mapArray.forEach((layer, layerIndex) => {
-            const currentLayerNodes = [];
-            
-            if (Array.isArray(layer)) {
-                // 多个节点的分支层
-                const nodeCount = layer.length;
-                const startY = centerY - ((nodeCount - 1) * branchSpacing) / 2;
-                
-                layer.forEach((nodeData, nodeIndex) => {
-                    const node = {
-                        id: nodeId++,
-                        x: currentX,
-                        y: startY + (nodeIndex * branchSpacing),
-                        type: nodeData.status,
-                        title: nodeData.name,
-                        description: nodeData.description || `${nodeData.name}的详细信息`,
-                        node_extra:nodeData
-                    };
-                    
-                    this.nodes.push(node);
-                    currentLayerNodes.push(node);
-                });
-            } else {
-                // 单个节点层
-                const node = {
-                    id: nodeId++,
-                    x: currentX,
-                    y: centerY,
-                    type: layer.status,
-                    title: layer.name,
-                    description: layer.description || `${layer.name}的详细信息`,
-                    node_extra:layer
-                };
-                
-                this.nodes.push(node);
-                currentLayerNodes.push(node);
-            }
-            
-            layerNodes.push(currentLayerNodes);
-            currentX += stepX;
+        const selectedId = this.selectedNode?.id;
+        this.mapArray = mapArray; this.nodes = []; this.paths = [];
+        this.layers = mapArray.map((layer, index) => (Array.isArray(layer) ? layer : [layer]).map((data, branch) => {
+            const node = {...data, layer: index, branch, boss: index === mapArray.length - 1 && data.name === 'battle'};
+            this.nodes.push(node); return node;
+        }));
+        // Mirror the server graph: equal branch counts connect by index; other layers connect to every next node.
+        this.layers.slice(0, -1).forEach((layer, index) => {
+            const next = this.layers[index + 1];
+            layer.forEach((from, branch) => (layer.length === next.length ? [next[branch]] : next).forEach(to => this.paths.push({from, to})));
         });
-        
-        // 生成路径连接
-        for (let i = 0; i < layerNodes.length - 1; i++) {
-            const currentLayer = layerNodes[i];
-            const nextLayer = layerNodes[i + 1];
-            
-            // 如果当前层只有一个节点，连接到下一层的所有节点
-            if (currentLayer.length === 1) {
-                nextLayer.forEach(nextNode => {
-                    this.paths.push({
-                        from: currentLayer[0].id,
-                        to: nextNode.id,
-                        type: nextNode.type
-                    });
-                });
-            }
-            // 如果下一层只有一个节点，当前层的所有节点都连接到它
-            else if (nextLayer.length === 1) {
-                currentLayer.forEach(currentNode => {
-                    this.paths.push({
-                        from: currentNode.id,
-                        to: nextLayer[0].id,
-                        type: (nextLayer[0].type==="completed" && currentNode.type==="completed")||(nextLayer[0].type==="current" && currentNode.type==="completed") ? "completed" : "locked"
-                    });
-                });
-            }
-            // 如果两层都有多个节点，按索引对应连接
-            else {
-                const minLength = Math.min(currentLayer.length, nextLayer.length);
-                for (let j = 0; j < minLength; j++) {
-                    this.paths.push({
-                        from: currentLayer[j].id,
-                        to: nextLayer[j].id,
-                        type: currentLayer[j].type=="completed"?"completed":"locked"
-                    });
-                }
-            }
-        }
-        
-        // 清除现有的地图内容
         this.clearMap();
-        
-        // 重新创建地图
-        this.createPaths();
-        this.createNodes();
-        
-        console.log('[v0] Generated map with', this.nodes.length, 'nodes and', this.paths.length, 'paths');
-    }
-    
-    clearMap() {
-        // 清除所有节点
-        const existingNodes = this.mapContent.querySelectorAll('.map-node');
-        existingNodes.forEach(node => node.remove());
-        
-        // 清除所有路径
-        while (this.mapSvg.firstChild) {
-            this.mapSvg.removeChild(this.mapSvg.firstChild);
-        }
-    }
-
-    // async init_map_info(){
-        
-    // }
-
-    async update_map_info(){
-        const map_info = await this.request_processor.get_map_info();
-        console.log(map_info)
-        console.log(this.mapArray)
-        console.log(arraysEqual(map_info,this.mapArray))
-        if(! arraysEqual(map_info,this.mapArray)){
-            this.generateMapFromArray(map_info);
-        }
-        
-        const treasure_info = await this.request_processor.get_treasure_info();
-        console.log(treasure_info)
-        console.log(this.inventory)
-        console.log(arraysEqual(treasure_info,this.inventory))
-        if(! arraysEqual(treasure_info,this.inventory)){
-            this.inventory=treasure_info;
-            this.renderInventory();
-        }
-        const profile_info = await this.request_processor.get_profile_info();
-        const theme={
-            0:"default",
-            1:"purple",
-            2:"gold",
-        }
-        this.setTheme(theme[profile_info.level]);
-        this.renderControlsInfo(profile_info);
-
-        
-        const cards_info = (await this.request_processor.get_cards_info()).cards_info;
-        console.log(cards_info)
-        console.log(this.cards)
-        console.log(arraysEqual(cards_info,this.cards))
-        if(! arraysEqual(cards_info,this.cards)){
-            this.cards=cards_info;
-            this.renderCards();
-        }
-
-        this.updateCurrencyDisplay();
-        
-    }
-    
-    async init() {
-        
-        this.shopItems = [
-            // {
-            //     id: 1,
-            //     name: '传说之剑',
-            //     icon: '⚔️',
-            //     description: '传说中的神器，拥有无与伦比的锋利度和魔法力量，攻击力+100',
-            //     price: 500
-            // },
-            // {
-            //     id: 2,
-            //     name: '生命药水',
-            //     icon: '🧪',
-            //     description: '珍贵的治疗药水，能够瞬间恢复大量生命值，回复500HP',
-            //     price: 150
-            // },
-            // {
-            //     id: 3,
-            //     name: '魔法护盾',
-            //     icon: '🛡️',
-            //     description: '强大的防护装备，能够抵挡大部分魔法攻击，防御力+80',
-            //     price: 350
-            // },
-            // {
-            //     id: 4,
-            //     name: '速度之靴',
-            //     icon: '👢',
-            //     description: '轻盈的魔法靴子，大幅提升移动速度和敏捷度，速度+200%',
-            //     price: 200
-            // },
-            // {
-            //     id: 5,
-            //     name: '智慧法杖',
-            //     icon: '🪄',
-            //     description: '蕴含古老智慧的法杖，增强魔法威力和法力值，魔力+150',
-            //     price: 400
-            // },
-            // {
-            //     id: 6,
-            //     name: '隐身斗篷',
-            //     icon: '🧥',
-            //     description: '神秘的隐身装备，让穿戴者完全隐形，持续60秒',
-            //     price: 300
-            // }
-        ];
-       
-
-
-
-
-        const map_info = await this.request_processor.get_map_info();
-        const treasure_info = await this.request_processor.get_treasure_info();
-        const profile_info = await this.request_processor.get_profile_info();
-        this.inventory=treasure_info;
-        this.renderInventory();
-        this.renderControlsInfo(profile_info);
-        this.initGiveUpButton();
-        console.log(map_info)
-        console.log(treasure_info)
-        console.log(profile_info)
-
-        this.mapArray=map_info;
-        const mapContent = document.querySelector('.map-content');
-
-        
-        let newWidth = this.mapArray.length*500;
-        mapContent.style.width = newWidth + "px";
-
-        const theme={
-            0:"default",
-            1:"purple",
-            2:"gold",
-        }
-        this.setTheme(theme[profile_info.level]);
-        
-        this.generateMapFromArray(map_info);
-        
-        this.bindEvents();
-    }
-
-    renderControlsInfo(profile_info) {
-        this.currency = profile_info.currency;
-        console.log(profile_info)
-        const controlsInfo = document.getElementById('controlsInfo');
-        controlsInfo.innerHTML = `
-            <div>💰 Currency: <span class="number_display">${profile_info.currency}</span></div>
-            <div>🎯 Level: <span class="number_display">${profile_info.level}</span></div>
-            <div>🫀 Max Life: <span class="number_display">${profile_info.max_life}</span></div>
-        `;
-    }
-    
-    createPaths() {
-        this.paths.forEach(path => {
-            const fromNode = this.nodes.find(n => n.id === path.from);
-            const toNode = this.nodes.find(n => n.id === path.to);
-            
-            if (fromNode && toNode) {
-                const pathElement = this.createCurvePath(fromNode, toNode, path.type);
-                this.mapSvg.appendChild(pathElement);
-            }
-        });
-    }
-    
-    createCurvePath(fromNode, toNode, type) {
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        
-        // 计算控制点以创建平滑曲线
-        const dx = toNode.x - fromNode.x;
-        const dy = toNode.y - fromNode.y;
-        
-        // 根据路径方向调整控制点
-        let cp1x, cp1y, cp2x, cp2y;
-        
-        if (Math.abs(dy) > 50) {
-            // 有明显垂直偏移的分支路径
-            cp1x = fromNode.x + dx * 0.3;
-            cp1y = fromNode.y;
-            cp2x = toNode.x - dx * 0.3;
-            cp2y = toNode.y;
-        } else {
-            // 水平路径
-            cp1x = fromNode.x + dx * 0.5;
-            cp1y = fromNode.y + dy * 0.2;
-            cp2x = toNode.x - dx * 0.5;
-            cp2y = toNode.y - dy * 0.2;
-        }
-        
-        const pathData = `M ${fromNode.x} ${fromNode.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${toNode.x} ${toNode.y}`;
-        
-        path.setAttribute('d', pathData);
-        path.setAttribute('class', type === 'completed' || type === 'current' ? 'path-completed' : 'path-locked');
-        
-        return path;
-    }
-    
-    createNodes() {
         this.nodes.forEach(node => {
-            const nodeElement = document.createElement('div');
-            nodeElement.className = `map-node node-${node.type}`;
-            nodeElement.style.left = `${node.x}px`;
-            nodeElement.style.top = `${node.y}px`;
-            nodeElement.textContent = node.title;
-            nodeElement.dataset.nodeId = node.id;
-            
-            
-            nodeElement.addEventListener('click', async () => await this.showNodeInfo(node.node_extra));
-            
-            this.mapContent.appendChild(nodeElement);
+            const button = this.element('button', 'map-node node-' + node.status + (node.boss ? ' is-boss' : ''));
+            button.type = 'button'; button.dataset.nodeId = node.id; button.setAttribute('aria-pressed', 'false');
+            button.setAttribute('aria-label', this.label(node) + ', ' + node.status + (node.agent_name ? ', ' + node.agent_name : ''));
+            button.style.setProperty('--delay', (-node.branch * 1.4 - node.layer * .3) + 's');
+            const floating = this.element('span', 'node-float'); floating.append(this.icon(this.landmark(node), 'node-art node-fallback'));
+            const art = this.landmarkImage(node, 'node-art node-illustration');
+            art.addEventListener('load', () => floating.classList.add('has-illustration'), {once: true});
+            floating.append(art, this.element('span', 'node-aura'));
+            const route = this.layers[node.layer].length > 1 ? ['I', 'II', 'III'][node.branch] + ' · ' : '';
+            button.append(floating, this.element('span', 'node-title', route + this.label(node)));
+            button.addEventListener('click', () => { if (!this.suppressClick && !this.busy) this.showNodeInfo(node); });
+            for (const event of ['pointerenter', 'focus']) button.addEventListener(event, () => { this.focusPaths(node.id); if (event === 'focus') this.viewedLayer = node.layer; });
+            for (const event of ['pointerleave', 'blur']) button.addEventListener(event, () => this.focusPaths(this.selectedNode?.id));
+            node.element = button; this.mapContent.append(button);
+        });
+        this.paths.forEach(path => {
+            const element = document.createElementNS(this.mapSvg.namespaceURI, 'path');
+            const state = path.from.status === 'completed' ? (path.to.status === 'current' ? 'current' : path.to.status === 'completed' ? 'completed' : 'locked') : 'locked';
+            element.setAttribute('class', 'map-path path-' + state); this.mapSvg.append(element); path.element = element;
+        });
+        this.ui.routeOverview.replaceChildren(...this.layers.map((layer, index) => {
+            const state = layer.some(node => node.status === 'current') ? 'current' : layer.some(node => node.status === 'completed') ? 'completed' : 'locked';
+            const button = this.element('button', 'stage-' + state); button.dataset.layer = index;
+            button.setAttribute('aria-label', 'Stage ' + (index + 1) + ', ' + state); button.title = 'Stage ' + (index + 1);
+            button.addEventListener('click', () => this.centerLayer(index)); return button;
+        }));
+        const current = this.nodes.find(node => node.status === 'current');
+        const available = current ? this.layers[current.layer].filter(node => node.status === 'current') : [];
+        this.ui.routeChoices.hidden = available.length < 2;
+        this.ui.routeChoices.replaceChildren(...available.map(node => {
+            const button = this.element('button', 'route-choice'); button.dataset.routeId = node.id;
+            button.append(this.element('span', 'route-number', ['I', 'II', 'III'][node.branch]), this.landmarkImage(node), this.element('span', '', this.label(node)));
+            button.setAttribute('aria-label', 'Preview route ' + (node.branch + 1) + ': ' + this.label(node));
+            button.addEventListener('click', () => {
+                this.showNodeInfo(node);
+                this.centerNode(node);
+            });
+            return button;
+        }));
+        this.layoutMap();
+        this.showNodeInfo(this.nodes.find(node => node.id === selectedId && node.status === 'current') || current || this.nodes[0]);
+        const choices = available.length;
+        this.ui.journeyTitle.textContent = choices > 1 ? 'Choose your path' : 'Continue your journey';
+        this.ui.journeyProgress.textContent = current ? 'Stage ' + (current.layer + 1) + ' of ' + this.layers.length + ' · ' + choices + (choices === 1 ? ' route available' : ' routes available') : 'All encounters visited';
+    }
+    clearMap() { this.mapContent.querySelectorAll('.map-node').forEach(node => node.remove()); this.mapSvg.replaceChildren(); }
+    layoutMap() {
+        if (!this.nodes.length || this.disposed) return;
+        const z = this.zoom, nodeWidth = Math.min(innerWidth <= 620 ? 150 : 174, (this.mapContainer.clientWidth - 44) / 2) * z;
+        // Stagger forks to fit the viewport while keeping labels at a readable size.
+        const artHeight = Math.max(80, Math.min(155, (this.mapContainer.clientHeight - 52) / 2 - 30)) * z;
+        const nodeHeight = artHeight + 30, gap = 20 * z;
+        const hasFork = this.layers.some(layer => layer.length > 1);
+        const height = Math.max(this.mapContainer.clientHeight, (hasFork ? nodeHeight * 2 + gap : nodeHeight) + 32);
+        let offset = 45 * z;
+        this.layers.forEach(layer => {
+            const span = layer.length === 3 ? nodeWidth * 2 + gap : nodeWidth;
+            const center = offset + span / 2;
+            layer.forEach(node => {
+                node.stageX = center; node.x = center;
+                node.y = height / 2;
+                if (layer.length === 2) node.y += (node.branch === 0 ? -1 : 1) * (nodeHeight + gap) / 2;
+                if (layer.length === 3) {
+                    node.y += (node.branch - 1) * (nodeHeight + gap) / 2;
+                    node.x += (node.branch === 1 ? -1 : 1) * (nodeWidth + gap) / 2;
+                }
+            });
+            offset += span + 145 * z;
+        });
+        const width = Math.max(this.mapContainer.clientWidth, offset - 100 * z);
+        this.mapContent.style.width = width + 'px'; this.mapContent.style.height = height + 'px';
+        this.mapContent.style.setProperty('--node-width', nodeWidth + 'px');
+        this.mapContent.style.setProperty('--node-height', nodeHeight + 'px');
+        this.mapContent.style.setProperty('--art-height', artHeight + 'px');
+        this.mapSvg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+        this.nodes.forEach(node => {
+            Object.assign(node.element.style, {left: node.x + 'px', top: node.y + 'px'});
+        });
+        this.paths.forEach(({from, to, element}) => {
+            const dx = (to.x - from.x) * .48;
+            const bendY = this.layers[to.layer].length === 3 && to.branch !== 1 ? to.y : from.y;
+            element.setAttribute('d', `M ${from.x} ${from.y} C ${from.x + dx} ${bendY}, ${to.x - dx} ${to.y}, ${to.x} ${to.y}`);
+        });
+        this.ui.zoomLevel.textContent = Math.round(this.zoom * 100) + '%'; this.updateViewport(); this.setBusy();
+    }
+    changeZoom(delta) {
+        if (!this.hasRun) return;
+        const ratio = (this.mapContainer.scrollLeft + this.mapContainer.clientWidth / 2) / this.zoom;
+        this.zoom = Math.max(.6, Math.min(1.4, Math.round((this.zoom + delta) * 10) / 10));
+        this.layoutMap(); this.mapContainer.scrollLeft = ratio * this.zoom - this.mapContainer.clientWidth / 2;
+        this.mapContainer.scrollTop = (this.mapContent.clientHeight - this.mapContainer.clientHeight) / 2;
+    }
+    centerLayer(index, smooth = true) {
+        const node = this.layers?.[index]?.[0]; if (!node) return;
+        this.viewedLayer = index;
+        this.mapContainer.scrollTo({left: node.stageX - this.mapContainer.clientWidth / 2, top: (this.mapContent.clientHeight - this.mapContainer.clientHeight) / 2, behavior: smooth && !this.reduced ? 'smooth' : 'instant'});
+    }
+    centerCurrent(smooth = true) { const node = this.nodes.find(node => node.status === 'current'); if (node) this.centerLayer(node.layer, smooth); }
+    centerNode(node, smooth = true) {
+        this.viewedLayer = node.layer;
+        if (this.zoom <= 1) { this.centerLayer(node.layer, smooth); return; }
+        this.mapContainer.scrollTo({left: node.x - this.mapContainer.clientWidth / 2, top: node.y - this.mapContainer.clientHeight / 2, behavior: smooth && !this.reduced ? 'smooth' : 'instant'});
+    }
+    updateViewport() {
+        const left = this.mapContainer.scrollLeft, width = this.mapContainer.clientWidth;
+        const progress = Math.max(0, Math.min(1, left / Math.max(1, this.mapContent.clientWidth - width)));
+        const blend = value => { const t = Math.max(0, Math.min(1, value)); return t * t * (3 - 2 * t); };
+        this.ui.worldBackdrop.style.setProperty('--highlands', blend((progress - .08) / .47));
+        this.ui.worldBackdrop.style.setProperty('--riftlands', blend((progress - .55) / .45));
+        this.ui.worldBackdrop.style.setProperty('--drift', this.reduced ? '0px' : (-left / Math.max(1, this.mapContent.clientWidth) * 28) + 'px');
+        this.ui.routeOverview.querySelectorAll('button').forEach(button => {
+            const node = this.layers?.[Number(button.dataset.layer)]?.[0];
+            button.classList.toggle('in-view', Boolean(node && node.stageX >= left && node.stageX <= left + width));
         });
     }
-
-    showSmallMessage(title,description) {
-        document.getElementById('infoTitle').textContent = title;
-        document.getElementById('infoDescription').textContent = description;
-        this.infoPanel.classList.add('show');
-        setTimeout(() => {
-            this.infoPanel.classList.remove('show');
-        }, 3000);
+    focusPaths(id) { this.paths.forEach(path => path.element.classList.toggle('path-focus', path.from.id === id || path.to.id === id)); }
+    showNodeInfo(node) {
+        if (!node) return;
+        this.selectedNode = node;
+        this.nodes.forEach(entry => { entry.element.classList.toggle('is-selected', entry.id === node.id); entry.element.setAttribute('aria-pressed', String(entry.id === node.id)); });
+        this.ui.routeChoices.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.routeId === node.id)));
+        this.focusPaths(node.id);
+        this.ui.routeMark.replaceChildren(this.landmarkImage(node));
+        this.ui.routeState.textContent = {current: 'Available', completed: 'Visited', locked: 'Unexplored'}[node.status] + ' · Stage ' + (node.layer + 1);
+        this.ui.routeTitle.textContent = node.agent_name || this.label(node);
+        this.ui.routeDescription.textContent = node.status === 'locked' ? 'Complete your current encounter to continue along the map.'
+            : node.status === 'completed' ? 'This stop has already been visited.'
+            : node.name === 'battle' ? 'Inspect your opponent before entering battle.'
+            : 'Entering this ' + node.name + ' chooses the route and closes the other paths at this stage.';
+        this.ui.routeEnter.textContent = node.status === 'completed' ? 'Visited' : node.status === 'locked' ? 'Not yet available' : {battle: 'View Battle →', shop: 'Enter Shop →', event: 'Explore Event →'}[node.name];
+        this.setBusy();
     }
-    
-    async showNodeInfo(node) {
-        
-
-        console.log(node)
-        if(node.status!="locked" && node.name=="battle"){
-            this.openBattle(node);
-            this.showSmallMessage(node.agent_name,node.description);
-        }else if (node.status=="current" && node.name=="shop"){
-            await this.openShop(node);
-        }else if (node.status=="current" && node.name=="event"){
-            await this.openEvent(node);
-        }
-        
-        
+    enterSelected() {
+        const node = this.selectedNode;
+        if (this.busy || this.stale || node?.status !== 'current') return;
+        if (node.name === 'battle') this.openBattle(node);
+        else if (node.name === 'shop') this.openShop(node);
+        else if (node.name === 'event') this.openEvent(node);
     }
-    
-    bindEvents() {
-        // 鼠标事件
-        this.mapContainer.addEventListener('mousedown', (e) => this.startDrag(e));
-        document.addEventListener('mousemove', (e) => this.drag(e));
-        document.addEventListener('mouseup', () => this.endDrag());
-        
-        // 触摸事件
-        this.mapContainer.addEventListener('touchstart', (e) => this.startDrag(e.touches[0]));
-        document.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            this.drag(e.touches[0]);
+    showDialog(id) { if (!this.ui[id].open) this.ui[id].showModal(); }
+    closeDialog(id) { if (!this.busy) this.ui[id].close(); }
+    openShop(shop) {
+        return this.perform(async () => {
+            this.currentNode = shop;
+            this.check(await this.request_processor.select_routine(shop.id));
+            const response = this.check(await this.request_processor.open_shop(shop.id));
+            if (!Array.isArray(response.shop_info?.shop_items)) throw new Error('Invalid shop.');
+            this.shopItems = response.shop_info.shop_items;
+            await this.update_map_info(); this.renderShop(); this.showDialog('shopModal');
         });
-        document.addEventListener('touchend', () => this.endDrag());
-        
-        // 防止默认的拖拽行为
-        this.mapContainer.addEventListener('dragstart', (e) => e.preventDefault());
     }
-    
-    startDrag(e) {
-        this.isDragging = true;
-        this.startX = e.clientX - this.translateX;
-        this.mapContainer.style.cursor = 'grabbing';
-    }
-    
-    drag(e) {
-        if (!this.isDragging) return;
-        
-        e.preventDefault();
-        this.currentX = e.clientX - this.startX;
-        
-        // 限制拖拽范围，只允许横向移动
-        const maxTranslate = 0;
-        const minTranslate = -(500*this.mapArray.length - window.innerWidth);
-        
-        this.translateX = Math.max(minTranslate, Math.min(maxTranslate, this.currentX));
-        
-        this.mapContent.style.transform = `translateY(-50%) translateX(${this.translateX}px)`;
-    }
-    
-    endDrag() {
-        this.isDragging = false;
-        this.mapContainer.style.cursor = 'grab';
-    }
-    initShop() {
-        const shopModal = document.getElementById('shopModal');
-        const shopClose = document.getElementById('shopClose');
-        
-        shopClose.addEventListener('click', () => {
-            this.closeShop();
+    closeShop() {
+        return this.perform(async () => {
+            this.check(await this.request_processor.close_shop(this.currentNode.id));
+            this.ui.shopModal.close(); this.currentNode = null;
+            await this.update_map_info(); this.showSmallMessage('Journey continues', 'Choose your next stop.');
         });
-        
-        // 点击模态背景关闭商店
-        shopModal.addEventListener('click', (e) => {
-            if (e.target === shopModal) {
-                this.closeShop();
-            }
-        });
-        
-        // ESC键关闭商店
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && shopModal.classList.contains('show')) {
-                this.closeShop();
-            }
-        });
-        
-        this.renderShop();
     }
-    
-    async openShop(shop) {
-
-        const response_select = await this.request_processor.select_routine(shop.id);
-        this.update_map_info();
-        if(response_select.state!="success"){
-            this.showSmallMessage("shop","You can't select this shop");
-            return 
-        }
-
-
-        const response = await this.request_processor.open_shop(shop.id);
-        if(response.state!="success"){
-            this.showSmallMessage("shop","You can't open this shop");
-            return 
-        }
-        this.currentNode = shop;
-        this.shopItems = response.shop_info.shop_items;
-        this.renderShop();
-        
-
-        const shopModal = document.getElementById('shopModal');
-        shopModal.classList.add('show');
-        this.updateCurrencyDisplay();
-        console.log('[v0] Opened shop with', this.currency, 'currency');
-    }
-    
-    async closeShop() {
-        const shopModal = document.getElementById('shopModal');
-        shopModal.classList.remove('show');
-        await this.request_processor.close_shop(this.currentNode.id);
-        await this.update_map_info();
-        this.currentNode = null;
-        console.log('[v0] Closed shop');
-    }
-    
     renderShop() {
-        const shopGrid = document.getElementById('shopGrid');
-        shopGrid.innerHTML = '';
-        
-        this.shopItems.forEach(item => {
-            const itemElement = document.createElement('div');
-            itemElement.className = 'shop-item';
-            itemElement.innerHTML = `
-                <div class="shop-item-image">
-                <img src="/${item.image_path}" alt="Image Description">
-                </div>
-                <div class="shop-item-name">${item.name}</div>
-                <div class="shop-item-description">${item.description}</div>
-                <div class="shop-item-footer">
-                    <div class="shop-item-price">
-                        <span class="currency-icon">💰</span>
-                        ${item.price}
-                    </div>
-                    <button class="buy-button ${this.currency < item.price ? 'insufficient-funds' : ''}" 
-                            data-item-id="${item.id}" 
-                            ${this.currency < item.price || item.is_selled? 'disabled' : ''}>
-                        ${this.currency < item.price || item.is_selled ? "Can't Buy" : 'Buy'}
-                    </button>
-                </div>
-            `;
-            
-            const buyButton = itemElement.querySelector('.buy-button');
-            buyButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.purchaseItem(item);
-            });
-            
-            shopGrid.appendChild(itemElement);
+        const scene = '/webpages/rogue/art/merchant' + (this.act ? '-' + (this.act + 1) : '') + '.webp';
+        if (this.ui.shopArt.getAttribute('src') !== scene) this.ui.shopArt.src = scene;
+        this.ui.currencyAmount.textContent = this.currency;
+        this.ui.shopGrid.replaceChildren(...this.shopItems.map(item => {
+            const element = this.element('article', 'shop-item' + (item.is_selled ? ' sold' : ''));
+            element.dataset.itemId = item.id;
+            const art = this.element('div', 'shop-item-image'); art.append(this.image(item.image_path));
+            const footer = this.element('div', 'shop-item-footer'), price = this.element('span', 'shop-item-price');
+            const coin = this.element('span', 'coin-mark', '✧'); coin.setAttribute('aria-hidden', 'true'); price.append(coin, this.element('span', '', item.price));
+            const buy = this.element('button', 'paper-button buy-button', item.is_selled ? 'Acquired' : this.currency < item.price ? 'Need coins' : 'Buy');
+            buy.dataset.itemId = item.id; buy.dataset.available = String(!item.is_selled && this.currency >= item.price);
+            buy.setAttribute('aria-label', 'Buy ' + item.name + ' for ' + item.price + ' coins');
+            buy.addEventListener('click', () => this.purchaseItem(item)); footer.append(price, buy);
+            element.append(art, this.element('h3', 'shop-item-name', item.name), this.element('p', 'shop-item-description', item.description), footer);
+            return element;
+        }));
+        this.setBusy();
+    }
+    purchaseItem(item) {
+        if (item.is_selled || this.currency < item.price || this.currentNode?.name !== 'shop') return;
+        return this.perform(async () => {
+            this.check(await this.request_processor.shop_buy(this.currentNode.id, item.id));
+            item.is_selled = true; this.renderShop();
+            await this.update_map_info(); this.renderShop();
+            const element = [...this.ui.shopGrid.children].find(element => element.dataset.itemId === item.id);
+            element?.classList.add('purchase-success');
+            this.showSmallMessage('Acquired', item.name);
         });
     }
-    
-    async purchaseItem(item) {
-        if (this.currency< item.price){
-            this.showSmallMessage(
-                "Not enough currency",
-                `Buy ${item.name} need ${item.price} coins ,You have ${this.currency}。`
-            )
-            
-        }
-        const response=await this.request_processor.shop_buy(this.currentNode.id,item.id)
-        if(response.state=="success"){
-            item.is_selled=true;
-            
-            
-            await this.update_map_info();
-            
-            // 重新渲染商店以更新按钮状态
-            this.renderShop();
-            
-            // 显示购买成功动画
-            const shopItem = document.querySelector(`[data-item-id="${item.id}"]`).closest('.shop-item');
-            shopItem.classList.add('purchase-success');
-            setTimeout(() => {
-                shopItem.classList.remove('purchase-success');
-            }, 600);
-            
-            // 显示购买成功信息
-            document.getElementById('infoTitle').textContent = 'Purchase Success!';
-            document.getElementById('infoDescription').textContent = `You have successfully purchased ${item.name}, and it has been added to the道具背包中。`;
-            this.infoPanel.classList.add('show');
-            
-            setTimeout(() => {
-                this.infoPanel.classList.remove('show');
-            }, 3000);
-            
-            console.log('[v0] Purchased item:', item.name, 'for', item.price, 'currency. Remaining:', this.currency);
-        } else {
-            this.showSmallMessage(
-                "Failed",
-                `You can't buy ${item.name}`
-            )
-            
-        }
-    }
-    
-    updateCurrencyDisplay() {
-        document.getElementById('currencyAmount').textContent = this.currency;
-    }
-    
-    addCurrency(amount) {
-        this.currency += amount;
-        this.updateCurrencyDisplay();
-        console.log('[v0] Added', amount, 'currency. Total:', this.currency);
-    }
-    
-    initInventory() {
-        const inventoryToggle = document.getElementById('inventoryToggle');
-        const inventoryPanel = document.getElementById('inventoryPanel');
-        
-        inventoryToggle.addEventListener('click', () => {
-            inventoryPanel.classList.toggle('open');
-        });
-        
-        // 点击面板外部关闭
-        document.addEventListener('click', (e) => {
-            if (!inventoryPanel.contains(e.target) && !inventoryToggle.contains(e.target)) {
-                inventoryPanel.classList.remove('open');
-            }
-        });
-        
-        
-    }
-    
-    renderInventory() {
-        const inventoryGrid = document.getElementById('inventoryGrid');
-        inventoryGrid.innerHTML = '';
-        
-        this.inventory.forEach((item, index) => {
-            const itemElement = document.createElement('div');
-            itemElement.className = 'inventory-item';
-            itemElement.innerHTML = `
-                <div class="item-image">
-                <img src="/${item.image_path}" alt="Image Description">
-                </div>
-                <div class="item-name">${item.name}</div>
-                <div class="item-description">${item.description}</div>
-            `;
-            
-            itemElement.addEventListener('click', () => {
-                this.showItemInfo(item);
-            });
-            
-            inventoryGrid.appendChild(itemElement);
-        });
-    }
-    
-    showItemInfo(item) {
-        document.getElementById('infoTitle').textContent = item.name;
-        document.getElementById('infoDescription').textContent = item.description;
-        this.infoPanel.classList.add('show');
-        
-        setTimeout(() => {
-            this.infoPanel.classList.remove('show');
-        }, 4000);
-    }
-    
-    addItem(item) {
-        this.inventory.push(item);
-        this.renderInventory();
-        console.log('[v0] Added item to inventory:', item.name);
-    }
-    
-    removeItem(itemName) {
-        const index = this.inventory.findIndex(item => item.name === itemName);
-        if (index !== -1) {
-            this.inventory.splice(index, 1);
-            this.renderInventory();
-            console.log('[v0] Removed item from inventory:', itemName);
-        }
-    }
-    initBattle() {
-        const battleModal = document.getElementById('battleModal');
-        const battleClose = document.getElementById('battleClose');
-        const battleEnter = document.getElementById('battleEnter');
-        
-        battleClose.addEventListener('click', () => {
-            this.closeBattle();
-        });
-        
-        battleEnter.addEventListener('click', async () => {
-            await this.enterBattle();
-        });
-        
-        // 点击模态背景关闭战斗
-        battleModal.addEventListener('click', (e) => {
-            if (e.target === battleModal) {
-                this.closeBattle();
-            }
-        });
-        
-        // ESC键关闭战斗
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && battleModal.classList.contains('show')) {
-                this.closeBattle();
-            }
-        });
-    }
-    
     openBattle(enemy) {
-        const randomEnemy = enemy;
         this.currentNode = enemy;
-        
-        document.getElementById('enemyAvatar').textContent = randomEnemy.avatar;
-        document.getElementById('enemyName').textContent = randomEnemy.agent_name;
-        document.getElementById('enemyDescription').textContent = randomEnemy.description;
-        
-        let life=0
-        if (enemy.status=="current"){
-            life=randomEnemy.agent_max_life;
-        }
-        const hpPercentage = (life / randomEnemy.agent_max_life) * 100;
-        document.getElementById('enemyHpFill').style.width = `${hpPercentage}%`;
-        document.getElementById('enemyHpText').textContent = `${life} / ${randomEnemy.agent_max_life}`;
-        
-        const battleModal = document.getElementById('battleModal');
-        battleModal.classList.add('show');
-        
-        console.log('[v0] Opened battle with enemy:', randomEnemy.agent_name);
+        this.ui.enemyAvatar.replaceChildren(this.landmarkImage(enemy));
+        this.ui.enemyName.textContent = enemy.agent_name || 'Unknown opponent';
+        this.ui.enemyDescription.textContent = enemy.description || '';
+        this.ui.battleKind.textContent = enemy.boss ? 'Boss encounter' : 'Battle';
+        const life = enemy.status === 'current' ? enemy.agent_max_life : 0;
+        this.ui.enemyHpFill.style.width = life > 0 ? '100%' : '0%';
+        this.ui.enemyHpText.textContent = life + ' / ' + enemy.agent_max_life;
+        this.ui.battleReward.textContent = 'Victory reward: ' + enemy.agent_win_price + ' coins';
+        this.showDialog('battleModal'); this.setBusy();
     }
-    
-    closeBattle() {
-        const battleModal = document.getElementById('battleModal');
-        battleModal.classList.remove('show');
-        console.log('[v0] Closed battle modal');
-    }
-    
-    async enterBattle() {
-        // 这里可以添加进入战斗的逻辑
-        document.getElementById('infoTitle').textContent = 'Battle Start!';
-        document.getElementById('infoDescription').textContent = 'You bravely face the strong enemy, and the battle is about to begin!';
-        this.infoPanel.classList.add('show');
-        
-        setTimeout(() => {
-            this.infoPanel.classList.remove('show');
-        }, 3000);
-        if(this.currentNode){
-            await this.request_processor.select_routine(this.currentNode.id);
-            const response=await this.request_processor.battle(this.currentNode.id);
-            if(response.state=="find!"){
-                await this.update_map_info();
-                this.closeBattle();
-                window.location.href = '/gaming_rogue';
-            }
-            
-        }
-        this.currentNode = null;
-        
-        console.log('[v0] Entered battle');
-
-
-    }
-
-    initEvent() {
-        const eventModal = document.getElementById('eventModal');
-        
-        // 点击模态背景关闭事件
-        eventModal.addEventListener('click', (e) => {
-            if (e.target === eventModal) {
-                this.closeEvent();
-            }
-        });
-        
-        // ESC键关闭事件
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && eventModal.classList.contains('show')) {
-                this.closeEvent();
-            }
+    enterBattle() {
+        if (this.currentNode?.status !== 'current') return;
+        return this.perform(async () => {
+            const id = this.currentNode.id;
+            this.check(await this.request_processor.select_routine(id));
+            this.check(await this.request_processor.battle(id), 'find!');
+            this.navigating = true;
+            this.ui.battleModal.close(); this.ui.departure.classList.add('active');
+            if (!this.reduced && !document.hidden && document.hasFocus()) await new Promise(resolve => setTimeout(resolve, 650));
+            window.location.assign('/gaming_rogue');
         });
     }
-    
-    async openEvent(event) {
-        const response_select = await this.request_processor.select_routine(event.id);
-        this.update_map_info();
-        if(response_select.state!="success"){
-            this.showSmallMessage("event","You can't select this event");
-            return 
-        }
-
-        const response = await this.request_processor.open_event(event.id);
-        if(response.state!="success"){
-            this.showSmallMessage("event","You can't open this event");
-            return 
-        }
-
-        const randomEvent = response.event_info;
-        
-        document.getElementById('eventTitle').textContent = randomEvent.title;
-        document.getElementById('eventImage').textContent = randomEvent.image;
-        document.getElementById('eventDescription').textContent = randomEvent.description;
-        
-        const eventOptions = document.getElementById('eventOptions');
-        eventOptions.innerHTML = '';
-        
-        randomEvent.options.forEach((option, index) => {
-            const optionElement = document.createElement('div');
-            if (option.is_valid){
-                optionElement.className = 'event-option';
-                
-                optionElement.addEventListener('click', async () => {
-                    await this.selectEventOption(index,event,option, randomEvent.title);
-                });
-            }else{
-                optionElement.className = 'event-option-invalid';
-            }
-            optionElement.innerHTML = `
-                <div class="event-option-title">${option.title}</div>
-                <div class="event-option-description">${option.description}</div>
-            `;
-            
-            
-            
-            eventOptions.appendChild(optionElement);
+    openEvent(event) {
+        return this.perform(async () => {
+            this.currentNode = event;
+            this.check(await this.request_processor.select_routine(event.id));
+            const response = this.check(await this.request_processor.open_event(event.id));
+            await this.update_map_info(); this.renderEvent(response.event_info); this.showDialog('eventModal');
         });
-        
-        const eventModal = document.getElementById('eventModal');
-        eventModal.classList.add('show');
-        
-        console.log('[v0] Opened event:', randomEvent.title);
     }
-    
-    closeEvent() {
-        const eventModal = document.getElementById('eventModal');
-        eventModal.classList.remove('show');
-        console.log('[v0] Closed event modal');
+    renderEvent(event) {
+        if (!Array.isArray(event?.options)) throw new Error('Invalid event.');
+        this.event = event;
+        const themes = [
+            ['grove', /grove|root|bloom|colossus/i], ['rift', /rift|mirror|stellar/i],
+            ['embers', /flame|burning|obsidian/i], ['reliquary', /tome|pact|inscription|stele|statue|throne|runic/i]
+        ];
+        const theme = themes.find(([, pattern]) => pattern.test(event.title))?.[0] || 'temple';
+        this.ui.eventImage.dataset.theme = theme;
+        this.ui.eventArt.src = '/webpages/rogue/art/' + theme + '.webp';
+        this.ui.eventTitle.textContent = event.title; this.ui.eventDescription.textContent = event.description;
+        this.ui.eventOptions.replaceChildren(...event.options.map((option, index) => {
+            const button = this.element('button', 'event-option'); button.dataset.valid = String(Boolean(option.is_valid));
+            button.append(this.element('strong', '', option.title), this.element('span', '', option.description));
+            if (!option.is_valid) button.append(this.element('span', '', 'Unavailable'));
+            button.addEventListener('click', () => this.selectEventOption(index)); return button;
+        }));
+        this.setBusy();
     }
-    
-    async selectEventOption(index,event,option, eventTitle) {
-        // 显示选择结果
-        document.getElementById('infoTitle').textContent = `${eventTitle} - ${option.title}`;
-        document.getElementById('infoDescription').textContent = option.description;
-        this.infoPanel.classList.add('show');
-        
-        setTimeout(() => {
-            this.infoPanel.classList.remove('show');
-        }, 4000);
-        
-        this.closeEvent();
-        const response = await this.request_processor.select_event_option(event.id,index);
-        if(response.state!="success"){
-            this.showSmallMessage("event","You can't select this event");
-            return 
-        }
-        await this.update_map_info();
-        console.log('[v0] Selected event option:', option.title);
-    }
-    async initCardSystem() {
-        const cardButton = document.getElementById('cardButton');
-        const cardModal = document.getElementById('cardModal');
-        const cardClose = document.getElementById('cardClose');
-        
-        cardButton.addEventListener('click', () => {
-            this.openCardCollection();
+    selectEventOption(index) {
+        const option = this.event?.options[index];
+        if (!option?.is_valid || this.currentNode?.name !== 'event') return;
+        return this.perform(async () => {
+            this.check(await this.request_processor.select_event_option(this.currentNode.id, index));
+            this.ui.eventModal.close(); this.currentNode = null;
+            await this.update_map_info(); this.showSmallMessage('Choice made', option.title);
         });
-        
-        cardClose.addEventListener('click', () => {
-            this.closeCardCollection();
-        });
-        
-        // 点击模态背景关闭卡牌收藏
-        cardModal.addEventListener('click', (e) => {
-            if (e.target === cardModal) {
-                this.closeCardCollection();
-            }
-        });
-        
-        // ESC键关闭卡牌收藏
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && cardModal.classList.contains('show')) {
-                this.closeCardCollection();
-            }
-        });
-        
-        await this.initializeCardSystem(); // Call the new initialization method
-        this.renderCards();
     }
-    
-    openCardCollection() {
-        const cardModal = document.getElementById('cardModal');
-        cardModal.classList.add('show');
-        console.log('[v0] Opened card collection');
+    renderInventory() {
+        this.ui.inventoryGrid.replaceChildren(...this.inventory.map(item => {
+            const button = this.element('button', 'inventory-item'), copy = this.element('span');
+            copy.append(this.element('strong', '', item.name), this.element('p', '', item.description));
+            button.append(this.image(item.image_path), copy); button.addEventListener('click', () => this.showItemInfo(item)); return button;
+        }));
+        if (!this.inventory.length) this.ui.inventoryGrid.append(this.element('p', '', 'No treasures yet. Discover them through shops and encounters.'));
     }
-    
-    closeCardCollection() {
-        const cardModal = document.getElementById('cardModal');
-        cardModal.classList.remove('show');
-        console.log('[v0] Closed card collection');
-    }
-    
-    async initializeCardSystem() {
-        const response = await this.request_processor.get_cards_info();
-        if(response.state!="success"){
-            this.showSmallMessage("card","You can't get card info");
-            return 
-        }
-        this.cards = response.cards_info;
-        console.log(this.cards)
-        
-    }
-    
     renderCards() {
-        const cardGrid = document.getElementById('cardGrid');
-        cardGrid.innerHTML = '';
-        
-        this.cards.forEach(card => {
-            const cardElement = document.createElement('div');
-            cardElement.className = 'magic-card';
-            
-            // 解析法术力符号
-            const manaSymbols = this.parseManaSymbols(card.manaCost);
-            const manaHtml = manaSymbols.map(symbol => 
-                `<div class="mana-symbol mana-${symbol.type}">${symbol.value}</div>`
-            ).join('');
-            
-            // 只有生物才显示攻防
-            const isCreature = card.attack!=0 && card.defense!=0;
-            const statsHtml = isCreature ? `
-                <div class="card-stats">
-                    <div class="card-attack">
-                        <div class="card-stat-icon attack-icon">⚔</div>
-                        ${card.attack}
-                    </div>
-                    <div class="card-defense">
-                        <div class="card-stat-icon defense-icon">🛡</div>
-                        ${card.defense}
-                    </div>
-                </div>
-            ` : '';
-            
-            cardElement.innerHTML = `
-                <div class="card-quantity">${card.quantity}</div>
-                <div class="card-mana-cost">${manaHtml}</div>
-                <div class="card-image">
-                    <img src="/${card.image_path}" alt="${card.name}">
-                </div>
-                <div class="card-name">
-                    <h3>${card.name}</h3>
-                    <div class="card-type">${card.type}</div>
-                </div>
-                <div class="card-description">
-                    <div class="card-text">${card.description}</div>
-                    ${statsHtml}
-                </div>
-            `;
-            
-            cardElement.addEventListener('click', () => {
-                this.showCardDetails(card);
-            });
-            
-            cardGrid.appendChild(cardElement);
-        });
-    }
-
-    parseManaSymbols(manaCost) {
-        const symbols = [];
-        let i = 0;
-        
-        while (i < manaCost.length) {
-            const char = manaCost[i];
-            
-            if (/\d/.test(char)) {
-                // 数字法术力
-                let num = '';
-                while (i < manaCost.length && /\d/.test(manaCost[i])) {
-                    num += manaCost[i];
-                    i++;
-                }
-                if (num !== '0') {
-                    symbols.push({ type: 'colorless', value: num });
-                }
-            } else {
-                // 颜色法术力
-                const colorMap = {
-                    'W': 'white',
-                    'U': 'blue', 
-                    'B': 'black',
-                    'R': 'red',
-                    'G': 'green'
-                };
-                
-                if (colorMap[char]) {
-                    symbols.push({ type: colorMap[char], value: char });
-                }
-                i++;
+        const query = this.ui.cardSearch.value.trim().toLowerCase();
+        const cards = this.cards.filter(card => (card.name + ' ' + card.type + ' ' + card.description).toLowerCase().includes(query));
+        this.ui.cardGrid.replaceChildren(...cards.map(card => {
+            const button = this.element('button', 'magic-card');
+            const copy = this.element('span', 'card-copy'); copy.append(this.element('strong', '', card.name), this.element('small', '', card.type));
+            const mana = this.element('span', 'card-mana-cost'); mana.setAttribute('aria-label', 'Mana cost ' + (card.manaCost || '0'));
+            for (const symbol of String(card.manaCost || '').match(/\d+|[WUBRG]/g) || []) {
+                const token = this.element('span', 'mana-symbol');
+                const color = {W: 'gold', U: 'blue', B: 'black', R: 'red', G: 'green'}[symbol];
+                if (color) token.append(this.image('webpages/image_source/color_fee/' + color + '.PNG')); else token.textContent = symbol;
+                mana.append(token);
             }
-        }
-        
-        return symbols;
+            copy.append(mana);
+            button.append(this.image(card.image_path), copy, this.element('span', 'card-quantity', '× ' + card.quantity));
+            button.addEventListener('click', () => this.showCardDetails(card)); return button;
+        }));
+        this.ui.cardEmpty.hidden = cards.length > 0;
     }
-    
+    showItemInfo(item) { this.showDetails(item.name, 'Treasure', item.image_path, item.description, ''); }
     showCardDetails(card) {
-        document.getElementById('infoTitle').textContent = `${card.name} (${card.type})`;
-        document.getElementById('infoDescription').textContent = 
-            `法力消耗: ${card.manaCost} | 攻击: ${card.attack} | 防御: ${card.defense} | 数量: ${card.quantity}\n\n${card.description}`;
-        this.infoPanel.classList.add('show');
-        
-        setTimeout(() => {
-            this.infoPanel.classList.remove('show');
-        }, 4000);
-        
-        console.log('[v0] Showed card details for:', card.name);
+        const stats = (card.manaCost ? 'Mana cost: ' + card.manaCost + '\n' : '') + 'Copies: ' + card.quantity + ((card.attack || card.defense) ? '\nPower / Toughness: ' + card.attack + ' / ' + card.defense : '');
+        this.showDetails(card.name, card.type, card.image_path, card.description, stats);
     }
-    
-    addCard(name, manaCost, type, image, description, attack, defense, quantity = 1) {
-        const existingCard = this.cards.find(card => card.name === name);
-        if (existingCard) {
-            existingCard.quantity += quantity;
-        } else {
-            this.cards.push({
-                name, manaCost, type, image, description, attack, defense, quantity
+    showDetails(name, type, path, description, stats) {
+        this.ui.detailTitle.textContent = name; this.ui.detailType.textContent = type; this.ui.detailDescription.textContent = description; this.ui.detailStats.textContent = stats;
+        this.ui.detailImage.hidden = false; this.ui.detailImage.src = '/' + String(path).replace(/^\/+/, ''); this.ui.detailImage.alt = name;
+        this.ui.detailImage.onerror = () => { this.ui.detailImage.hidden = true; };
+        this.showDialog('detailModal');
+    }
+    showSmallMessage(title, description) {
+        clearTimeout(this.messageTimer);
+        this.ui.infoTitle.textContent = title; this.ui.infoDescription.textContent = description;
+        this.infoPanel.classList.add('show'); this.messageTimer = setTimeout(() => this.infoPanel.classList.remove('show'), 4000);
+    }
+    reward(target, delta) {
+        if (!delta || this.reduced || document.hidden || !document.hasFocus()) return;
+        const element = target.closest('.stat') || target;
+        element.classList.remove('changed'); void element.offsetWidth; element.classList.add('changed');
+        if (target.closest('.stat')) {
+            element.querySelector('.reward-delta')?.remove();
+            const number = this.element('span', 'reward-delta', (delta > 0 ? '+' : '') + delta);
+            number.setAttribute('aria-hidden', 'true'); element.append(number); number.addEventListener('animationend', () => number.remove(), {once: true});
+        }
+    }
+    initMotion() {
+        const motes = document.createDocumentFragment();
+        for (let i = 0; i < 26; i++) {
+            const mote = this.element('span', 'mote');
+            mote.style.setProperty('--x', (i * 37 % 100) + '%'); mote.style.setProperty('--y', (i * 19 % 100) + '%');
+            mote.style.setProperty('--duration', (10 + i % 9) + 's'); mote.style.setProperty('--delay', (-i * 1.3) + 's'); motes.append(mote);
+        }
+        this.ui.motes.append(motes);
+        document.querySelectorAll('.scene-particles').forEach(scene => {
+            for (let i = 0; i < 9; i++) {
+                const particle = this.element('span');
+                particle.style.setProperty('--x', (12 + i * 23 % 76) + '%');
+                particle.style.setProperty('--delay', (-i * .8) + 's'); scene.append(particle);
+            }
+        });
+        for (const id of ['shopModal', 'eventModal']) {
+            const dialog = this.ui[id];
+            dialog.addEventListener('pointermove', event => {
+                if (event.pointerType !== 'mouse' || this.reduced || document.hidden) return;
+                const bounds = dialog.getBoundingClientRect();
+                dialog.style.setProperty('--scene-x', ((event.clientX - bounds.left) / bounds.width - .5) * 12 + 'px');
+                dialog.style.setProperty('--scene-y', ((event.clientY - bounds.top) / bounds.height - .5) * 8 + 'px');
+            });
+            dialog.addEventListener('pointerleave', () => {
+                dialog.style.setProperty('--scene-x', '0px'); dialog.style.setProperty('--scene-y', '0px');
             });
         }
-        this.renderCards();
-        console.log('[v0] Added card:', name, 'quantity:', quantity);
+        this.applyMotion = () => {
+            let reduced = false;
+            try { const local = localStorage.getItem('rogue-reduced-motion'); reduced = local === null ? localStorage.getItem('lobby-reduced-motion') === 'true' : local === 'true'; } catch (_) {}
+            this.reduced = this.motion.matches || reduced;
+            document.body.classList.toggle('motion-reduced', this.reduced);
+            this.ui.motionToggle.setAttribute('aria-pressed', String(this.reduced));
+            this.ui.motionToggle.textContent = this.reduced ? 'Motion: Off' : 'Motion: On';
+            this.ui.motionToggle.disabled = this.motion.matches;
+            this.updateViewport();
+        };
+        const pause = () => { document.body.classList.toggle('motion-paused', document.hidden || !document.hasFocus()); };
+        this.motion.addEventListener('change', this.applyMotion);
+        window.addEventListener('storage', this.applyMotion);
+        window.addEventListener('blur', () => document.body.classList.add('motion-paused'));
+        window.addEventListener('focus', pause); document.addEventListener('visibilitychange', pause);
+        this.ui.motionToggle.addEventListener('click', () => { try { localStorage.setItem('rogue-reduced-motion', String(!this.reduced)); } catch (_) {} this.applyMotion(); });
+        this.applyMotion(); pause();
     }
-
-    initGiveUpButton() {
-        const giveUpButton = document.getElementById('giveUpButton');
-        const confirmModal = document.getElementById('confirmModal');
-        const confirmYes = document.getElementById('confirmYes');
-        const confirmNo = document.getElementById('confirmNo');
-
-        // 点击放弃按钮显示确认弹窗
-        giveUpButton.addEventListener('click', () => {
-            confirmModal.classList.add('show');
+    bindEvents() {
+        this.ui.routeEnter.addEventListener('click', () => this.enterSelected());
+        this.ui.centerMap.addEventListener('click', () => { this.zoom = 1; this.layoutMap(); this.centerCurrent(); });
+        this.ui.zoomIn.addEventListener('click', () => this.changeZoom(.1)); this.ui.zoomOut.addEventListener('click', () => this.changeZoom(-.1));
+        document.querySelectorAll('.retry-request').forEach(button => button.addEventListener('click', () => this.refreshJourney()));
+        this.ui.shopClose.addEventListener('click', () => this.closeShop()); this.ui.battleEnter.addEventListener('click', () => this.enterBattle());
+        this.ui.cardButton.addEventListener('click', () => { this.renderCards(); this.showDialog('cardModal'); });
+        this.ui.inventoryToggle.addEventListener('click', () => this.showDialog('inventoryPanel'));
+        this.ui.cardSearch.addEventListener('input', () => this.renderCards());
+        this.ui.giveUpButton.addEventListener('click', () => this.showDialog('confirmModal'));
+        this.ui.confirmYes.addEventListener('click', () => this.perform(async () => {
+            this.check(await this.request_processor.give_up_rogue()); this.navigating = true; window.location.assign('/');
+        }));
+        for (const [button, dialog] of [['inventoryClose', 'inventoryPanel'], ['shopDismiss', 'shopModal'], ['battleClose', 'battleModal'], ['eventClose', 'eventModal'], ['cardClose', 'cardModal'], ['detailClose', 'detailModal'], ['confirmNo', 'confirmModal']]) this.ui[button].addEventListener('click', () => this.closeDialog(dialog));
+        document.querySelectorAll('dialog').forEach(dialog => {
+            dialog.addEventListener('cancel', event => { if (this.busy) event.preventDefault(); });
+            dialog.addEventListener('click', event => {
+                const bounds = dialog.getBoundingClientRect();
+                if (event.target === dialog && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) this.closeDialog(dialog.id);
+            });
         });
-
-        // 点击确认按钮
-        confirmYes.addEventListener('click', async () => {
-            confirmModal.classList.remove('show');
-            // 这里可以添加重置游戏的逻辑
-            const response = await this.request_processor.give_up_rogue();
-            if(response.state!="success"){
-                this.showSmallMessage("give up","You can't give up");
-                return 
+        this.mapContainer.addEventListener('pointerdown', event => {
+            this.viewedLayer = null;
+            if (event.pointerType !== 'mouse' || event.button !== 0) return;
+            this.drag = {x: event.clientX, y: event.clientY, left: this.mapContainer.scrollLeft, top: this.mapContainer.scrollTop, id: event.pointerId};
+            this.suppressClick = false;
+        });
+        this.mapContainer.addEventListener('pointermove', event => {
+            if (!this.drag || event.pointerId !== this.drag.id) return;
+            const dx = event.clientX - this.drag.x, dy = event.clientY - this.drag.y;
+            if (Math.abs(dx) + Math.abs(dy) > 6) {
+                this.viewedLayer = null;
+                this.suppressClick = true; this.mapContainer.classList.add('dragging'); this.mapContainer.setPointerCapture(event.pointerId);
+                this.mapContainer.scrollLeft = this.drag.left - dx; this.mapContainer.scrollTop = this.drag.top - dy;
             }
-            window.location.href = '/';
         });
-
-        // 点击取消按钮
-        confirmNo.addEventListener('click', () => {
-            confirmModal.classList.remove('show');
+        const endDrag = () => { this.drag = null; this.mapContainer.classList.remove('dragging'); clearTimeout(this.dragTimer); this.dragTimer = setTimeout(() => { this.suppressClick = false; }, 0); };
+        for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) this.mapContainer.addEventListener(event, endDrag);
+        this.mapContainer.addEventListener('dragstart', event => event.preventDefault());
+        this.mapContainer.addEventListener('wheel', event => {
+            if (!event.ctrlKey && !event.metaKey) this.viewedLayer = null;
+            if (event.ctrlKey || event.metaKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+            const target = this.mapContainer.scrollLeft + event.deltaY;
+            if (target >= 0 && target <= this.mapContent.clientWidth - this.mapContainer.clientWidth) { event.preventDefault(); this.mapContainer.scrollLeft = target; }
+        }, {passive: false});
+        this.mapContainer.addEventListener('keydown', event => {
+            if (event.key.startsWith('Arrow')) this.viewedLayer = null;
+            if (event.target !== this.mapContainer) return;
+            if (event.key === 'Home') { event.preventDefault(); this.ui.centerMap.click(); }
+            else if (event.key === '+' || event.key === '=') { event.preventDefault(); this.changeZoom(.1); }
+            else if (event.key === '-') { event.preventDefault(); this.changeZoom(-.1); }
         });
-
-        // 点击背景关闭
-        confirmModal.addEventListener('click', (e) => {
-            if (e.target === confirmModal) {
-                confirmModal.classList.remove('show');
+        this.mapContainer.addEventListener('scroll', () => {
+            if (this.scrollFrame) return;
+            this.scrollFrame = requestAnimationFrame(() => { this.scrollFrame = 0; this.updateViewport(); });
+        }, {passive: true});
+        this.resize = new ResizeObserver(() => {
+            cancelAnimationFrame(this.resizeFrame);
+            this.resizeFrame = requestAnimationFrame(() => {
+                const center = this.mapContainer.scrollLeft + this.viewportWidth / 2;
+                const nearest = this.layers?.[this.viewedLayer]?.[0] || this.layers?.reduce((best, layer) => !best || Math.abs(layer[0].stageX - center) < Math.abs(best.stageX - center) ? layer[0] : best, null);
+                this.viewportWidth = this.mapContainer.clientWidth;
+                this.layoutMap();
+                if (nearest) this.centerNode(this.selectedNode?.layer === nearest.layer ? this.selectedNode : nearest, false);
+            });
+        });
+        this.resize.observe(this.mapContainer);
+        window.addEventListener('pagehide', event => {
+            document.body.classList.add('motion-paused');
+            if (!event.persisted) { this.disposed = true; this.resize.disconnect(); clearTimeout(this.messageTimer); clearTimeout(this.dragTimer); cancelAnimationFrame(this.scrollFrame); cancelAnimationFrame(this.resizeFrame); }
+        });
+        window.addEventListener('pageshow', event => {
+            document.body.classList.toggle('motion-paused', document.hidden || !document.hasFocus());
+            if (event.persisted) {
+                if (this.navigating) { this.navigating = false; this.busy = false; }
+                this.ui.departure.classList.remove('active');
+                this.refreshJourney();
             }
         });
     }
-
+    // Existing page helpers remain available to callers; persistence still belongs to the server.
+    addItem(item) { this.inventory.push(item); this.renderInventory(); }
+    removeItem(name) { this.inventory = this.inventory.filter(item => item.name !== name); this.renderInventory(); }
+    addCurrency(amount) { this.currency += amount; this.ui.runCoins.textContent = this.ui.currencyAmount.textContent = this.currency; }
 }
-
-function generateMapFromArray(mapArray) {
-    if (window.interactiveMap) {
-        window.interactiveMap.generateMapFromArray(mapArray);
-    }
-}
-
-
-
-
-function addInventoryItem(name, icon, description) {
-    if (window.interactiveMap) {
-        window.interactiveMap.addItem({ name, icon, description });
-    }
-}
-
-function removeInventoryItem(itemName) {
-    if (window.interactiveMap) {
-        window.interactiveMap.removeItem(itemName);
-    }
-}
-function addCurrency(amount) {
-    if (window.interactiveMap) {
-        window.interactiveMap.addCurrency(amount);
-    }
-}
-
-function getCurrency() {
-    return window.interactiveMap ? window.interactiveMap.currency : 0;
-}
-
-function arraysEqual(a, b) {
-    return JSON.stringify(a) === JSON.stringify(b);
-}
-// function arraysEqual(a, b) {
-//     if (a.length !== b.length) return false;
-//     return a.every((item, idx) => normalize(item) === normalize(b[idx]));
-// }
-
-
-// function normalize(obj) {
-// return JSON.stringify(
-//     Object.keys(obj).sort().reduce((acc, key) => {
-//     acc[key] = obj[key];
-//     return acc;
-//     }, {})
-// );
-// }
-// 初始化地图
-document.addEventListener('DOMContentLoaded', () => {
-    window.interactiveMap = new InteractiveMap();
-});
+function arraysEqual(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+function generateMapFromArray(mapArray) { window.interactiveMap?.generateMapFromArray(mapArray); }
+function addInventoryItem(name, icon, description) { window.interactiveMap?.addItem({name, icon, description}); }
+function removeInventoryItem(name) { window.interactiveMap?.removeItem(name); }
+function addCurrency(amount) { window.interactiveMap?.addCurrency(amount); }
+function getCurrency() { return window.interactiveMap?.currency || 0; }
+document.addEventListener('DOMContentLoaded', () => { window.interactiveMap = new InteractiveMap(); });

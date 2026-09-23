@@ -328,6 +328,7 @@ class Creature_Prepare_Attack extends Animation{
         this.name='Creature Prepare Attack'
     }
     set_animate(){
+        this.object_hold=Animation.check_hand(this.object_hold,true)
         this.object_hold.battle.mode="attack"
         this.object_hold.battle.moving_cache.push(["rotate_to_point",[this.player.oppo.player_life_ring.position]])
     }
@@ -933,6 +934,29 @@ class Change_Mana extends Animation{
     finished(){
         //console.log(this.player.mana_bar.check_finish())
         return this.player.mana_bar.check_finish()
+    }
+}
+
+class Change_Position extends Animation {
+    constructor(object_hold, player, target_player, target_index) {
+        super(object_hold, player);
+        this.target_player = target_player;
+        this.target_index = target_index;
+        this.name = 'Change_Position';
+    }
+    set_animate() {
+        this.object_hold = Animation.check_hand(this.object_hold, true);
+        const card = this.object_hold.battle;
+        const table = card.table;
+        const source = this.player instanceof Opponent ? table.opponent_battlefield : table.self_battlefield;
+        const target = this.target_player instanceof Opponent ? table.opponent_battlefield : table.self_battlefield;
+        const previousIndex = source.indexOf(card);
+        if (previousIndex !== -1) source.splice(previousIndex, 1);
+        const index = this.target_index === -1 ? target.length : Math.min(Math.max(this.target_index, 0), target.length);
+        target.splice(index, 0, card);
+        card.player = this.target_player.type_name;
+        this.object_hold.player = this.target_player;
+        this.player.music.play_music_effect('card_send');
     }
 }
 
