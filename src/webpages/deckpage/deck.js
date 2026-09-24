@@ -29,4 +29,6 @@ for (let i = 0; i < 10; i++) {
     mote.style.setProperty('--delay', (-i * 2.4) + 's'); motes.append(mote);
 }
 document.querySelector('.ambient').append(motes);
-applyDeckMotion(); pauseDeckMotion(); book.load_page();
+applyDeckMotion(); pauseDeckMotion();
+const collectionReady = book.load_page();
+window.PageTransition?.wait(collectionReady);

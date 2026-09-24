@@ -1009,7 +1009,7 @@ class Win extends Animation{
         client.socket_main.send(values.join('|'));
 
         setTimeout(() => {
-            window.location.href = '/';
+            (window.PageTransition?.navigate || (path => location.assign(path)))('/');
         }, 5000);
     }
 
@@ -1030,7 +1030,7 @@ class Lose extends Animation{
         client.socket_main.send(values.join('|'));
 
         setTimeout(() => {
-            window.location.href = '/';
+            (window.PageTransition?.navigate || (path => location.assign(path)))('/');
         }, 5000);
         
     }

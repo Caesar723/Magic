@@ -17,7 +17,8 @@ class Game_Player{
         this.length=0
         this.message_processor=message_processor
         this.room=room
-        this.set_replay_records()
+        this.ready = this.set_replay_records();
+        window.PageTransition?.wait(this.ready);
         this.init_listen()
     }
     parseFilename(file) {

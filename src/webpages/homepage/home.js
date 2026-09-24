@@ -26,7 +26,7 @@ class Home {
     }
     set_listener() {
         const pages = { draw:'/draw_card', deck:'/deck_building', shop:'/shop', studio:'/studio', tasks:'/task', history:'/game_replay' };
-        Object.entries(pages).forEach(([id,path]) => document.getElementById(id).addEventListener('click', () => { window.location.href = path; }));
+        Object.entries(pages).forEach(([id,path]) => document.getElementById(id).addEventListener('click', () => { (window.PageTransition?.navigate || (path => location.assign(path)))(path); }));
         document.getElementById('start-game').addEventListener('click', () => this.showModes(document.getElementById('mode-picker').hidden));
         document.getElementById('close-modes').addEventListener('click', () => this.showModes(false,true));
         document.addEventListener('pointerdown', event => {
@@ -111,7 +111,7 @@ class Home {
             const success = mode === 'rogue' ? ['success','already in room'].includes(data.state) : data.state === 'find!';
             if (!success) throw new Error(data.state === 'unvalid deck' ? 'This deck cannot be used. Choose another deck or edit it.' : 'Unable to start the game. Please try again.');
             entering = true;
-            window.location.href = {pvp:'/gaming',ai:'/gaming_ai',rogue:'/rogue/rogue_map'}[mode];
+            (window.PageTransition?.navigate || (path => location.assign(path)))({pvp:'/gaming',ai:'/gaming_ai',rogue:'/rogue/rogue_map'}[mode]);
         } catch (error) {
             if (!match.cancelled) this.notify(error.name === 'TimeoutError' ? 'Connection timed out. Please try again.' : error.message || 'Connection failed. Please try again.');
         } finally {

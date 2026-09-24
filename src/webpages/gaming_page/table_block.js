@@ -6,6 +6,7 @@ class Table_graph extends Block{
 
         this.image = new Image();
         this.image.src=img_path;
+        window.PageTransition?.image(this.image);
         
         console.log(this.image);
         this.surface=NaN;

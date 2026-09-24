@@ -271,7 +271,9 @@ async function init() {
     stage.dataset.renderer = 'webgl';
     requestFrame();
 }
-init().catch(error => {
+const lobbyReady = init().catch(error => {
     console.warn('Lobby illustration fallback:', error.message);
     fallback('unavailable');
 });
+
+window.PageTransition?.wait(lobbyReady);

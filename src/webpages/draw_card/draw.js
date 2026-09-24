@@ -65,8 +65,9 @@ window.addEventListener('pagehide', event => {
 });
 window.addEventListener('pageshow', () => { hidden = document.hidden; focused = document.hasFocus(); resumeDrawing(); });
 applyMotion();
-draw_card_system.send_packs_request();
-import('./draw-scene.js').then(({DrawScene}) => {
+const packsReady = draw_card_system.send_packs_request();
+window.PageTransition?.wait(packsReady);
+const drawReady = import('./draw-scene.js').then(({DrawScene}) => {
     if (disposed) return;
     scene = new DrawScene(canvas, stage, render, fallback);
     draw_card_system.scene = scene;
@@ -75,3 +76,5 @@ import('./draw-scene.js').then(({DrawScene}) => {
     stage.dataset.renderer = 'three';
     document.getElementById('rotate-pack').hidden = draw_card_system.state !== 'ready' || !draw_card_system.moving_mouse_obj;
 }).catch(fallback);
+
+window.PageTransition?.wait(drawReady);

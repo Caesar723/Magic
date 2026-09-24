@@ -225,4 +225,6 @@ for (let i = 0; i < 12; i++) {
     motes.append(mote);
 }
 document.querySelector('.ambient').append(motes);
-taskMotionPreference(); pauseTaskMotion(); renderTasks(); updateTaskCurrency();
+taskMotionPreference(); pauseTaskMotion();
+const journalReady = Promise.all([renderTasks(), updateTaskCurrency()]);
+window.PageTransition?.wait(journalReady);

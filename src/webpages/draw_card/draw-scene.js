@@ -69,10 +69,12 @@ export class DrawScene {
     }
     texture(path, fallback) {
         if (this.textures.has(path)) return this.textures.get(path);
+        window.PageTransition?.image(path);
         const texture = this.loader.load(path, () => {
             if (!this.disposed) this.invalidate();
         }, undefined, () => {
             if (!fallback || this.disposed) return;
+            window.PageTransition?.image(fallback);
             this.loader.load(fallback, source => {
                 if (this.disposed) { source.dispose(); return; }
                 texture.image = source.image;

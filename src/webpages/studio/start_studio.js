@@ -104,4 +104,5 @@ async function initinal_state(){
   resizeCanvas();
   main(0,client)
 }
-initinal_state()
+const studioReady = initinal_state();
+window.PageTransition?.wait(studioReady);

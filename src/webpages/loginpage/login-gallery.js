@@ -1,7 +1,8 @@
 (() => {
     const ui = Object.fromEntries([...document.querySelectorAll('[id]')].map(element => [element.id, element]));
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
-    let cards = [], cardIndex = 0;
+    const queue = [];
+    let current = null, batchPromise = null;
     let reduced = false;
     try {
         const saved = localStorage.getItem('login-reduced-motion');
@@ -9,16 +10,12 @@
     } catch (_) {}
 
 
-    let scene, frame = 0, lastTime = 0, time = 0, reveal = null, changing = false, pendingIndex = 0;
+    let scene, frame = 0, lastTime = 0, time = 0, reveal = null, changing = false;
     let disposed = false, inView = true, paused = document.hidden || !document.hasFocus();
-    const images = new Map();
     const isReduced = () => reduced || motion.matches;
     function galleryControls() {
-        const blocked = changing || cards.length < 2;
-        for (const button of [ui.steleNext, ui.previousCard, ui.nextCard]) {
-            button.disabled = cards.length < 2;
-            button.setAttribute('aria-disabled', String(blocked));
-        }
+        ui.steleNext.disabled = !current && changing;
+        ui.steleNext.setAttribute('aria-disabled', String(changing));
         ui.steleStage.setAttribute('aria-busy', String(changing));
     }
     function fitInscription() {
@@ -26,34 +23,50 @@
         ui.stoneStory.style.fontSize = size + 'px';
         while (size > 14 && ui.stoneStory.offsetHeight > ui.stoneStory.parentElement.clientHeight - 3) ui.stoneStory.style.fontSize = --size + 'px';
     }
-    function commit(card, image, index) {
-        cardIndex = index;
-        ui.stoneImage.src = image.src;
+    function commit(card) {
+        current = card;
+        ui.stoneImage.src = card.image.src;
         ui.stoneStory.textContent = card.story || 'No inscription is available for this card.';
-        ui.cardCount.textContent = `${String(index + 1).padStart(2, '0')} / ${String(cards.length).padStart(2, '0')}`;
         fitInscription();
+        if (queue.length <= 2) preloadBatch().catch(() => {});
     }
-    function loadImage(card) {
-        if (!images.has(card.url)) {
-            const image = new Image(); image.src = card.url;
-            const promise = image.decode().then(() => image).catch(error => { images.delete(card.url); throw error; });
-            images.set(card.url, promise);
-        }
-        return images.get(card.url);
-    }
-    async function showCard(index, initial = false) {
-        if (changing || !cards.length || disposed) return;
-        pendingIndex = (index + cards.length) % cards.length;
-        const card = cards[pendingIndex];
-        changing = true; galleryControls(); ui.retryCards.hidden = true; ui.galleryStatus.textContent = 'Loading carving…';
+    async function decodeCard(card) {
+        const image = new Image(); image.src = card.url;
+        let timeout;
         try {
-            const image = await loadImage(card);
+            await Promise.race([image.decode(), new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('Image timed out.')), 20000); })]);
+            return {...card, image};
+        } finally { clearTimeout(timeout); }
+    }
+    function preloadBatch() {
+        if (batchPromise) return batchPromise;
+        batchPromise = (async () => {
+            const response = await fetch('/login/cards_show', {method: 'POST', signal: AbortSignal.timeout(20000)});
+            if (!response.ok) throw new Error('Request failed.');
+            const {image_url: urls, image_story: stories} = await response.json();
+            if (!Array.isArray(urls) || !urls.length || !Array.isArray(stories)) throw new Error('No cards.');
+            const loaded = await Promise.allSettled(urls.slice(0, 5).map((url, index) => decodeCard({
+                url: '/get-images/' + encodeURIComponent(url), story: typeof stories[index] === 'string' ? stories[index] : ''
+            })));
+            const cards = loaded.filter(result => result.status === 'fulfilled').map(result => result.value);
+            if (!cards.length) throw new Error('No carvings could be loaded.');
+            if (!disposed) queue.push(...cards);
+        })().finally(() => { batchPromise = null; });
+        return batchPromise;
+    }
+    async function showNext(initial = false) {
+        if (changing || disposed) return;
+        changing = true; galleryControls(); ui.retryCards.hidden = true;
+        if (!queue.length) ui.galleryStatus.textContent = 'Loading carving…';
+        try {
+            if (!queue.length) await preloadBatch();
             if (disposed) return;
+            const card = queue.shift();
             ui.galleryStatus.textContent = '';
             if (initial || isReduced()) {
-                commit(card, image, pendingIndex); changing = false; galleryControls();
+                commit(card); changing = false; galleryControls();
             } else {
-                reveal = {elapsed: 0, card, image, index: pendingIndex, committed: false};
+                reveal = {elapsed: 0, card, committed: false};
                 ui.steleStage.dataset.revealing = 'true'; requestFrame();
             }
         } catch (_) {
@@ -63,34 +76,10 @@
             ui.retryCards.hidden = false;
         }
     }
-    async function loadCarousel() {
-        if (changing || disposed) return;
-        changing = true; galleryControls(); ui.retryCards.hidden = true; ui.galleryStatus.textContent = 'Loading carvings…';
-        try {
-            const response = await fetch('/login/cards_show', {method: 'POST', signal: AbortSignal.timeout(20000)});
-            if (!response.ok) throw new Error('Request failed.');
-            const {image_url: urls, image_story: stories} = await response.json();
-            if (disposed) return;
-            if (!Array.isArray(urls) || !urls.length || !Array.isArray(stories)) throw new Error('No cards.');
-            cards = urls.map((url, index) => ({url: '/get-images/' + encodeURIComponent(url), story: typeof stories[index] === 'string' ? stories[index] : ''}));
-            changing = false; await showCard(0, true);
-        } catch (_) {
-            if (disposed) return;
-            changing = false; galleryControls();
-            ui.galleryStatus.textContent = 'Carvings are unavailable. Please try again.';
-            ui.retryCards.hidden = false;
-        }
-    }
-    ui.steleNext.addEventListener('click', () => showCard(cardIndex + 1));
-    ui.previousCard.addEventListener('click', () => showCard(cardIndex - 1));
-    ui.nextCard.addEventListener('click', () => showCard(cardIndex + 1));
-    ui.retryCards.addEventListener('click', () => cards.length ? showCard(pendingIndex, true) : loadCarousel());
-    document.querySelector('.stele-showcase').addEventListener('keydown', event => {
-        if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
-        event.preventDefault(); showCard(cardIndex + (event.key === 'ArrowLeft' ? -1 : 1));
-    });
+    ui.steleNext.addEventListener('click', () => showNext(!current));
+    ui.retryCards.addEventListener('click', () => showNext(!current));
     function finishReveal() {
-        if (reveal && !reveal.committed) commit(reveal.card, reveal.image, reveal.index);
+        if (reveal && !reveal.committed) commit(reveal.card);
         reveal = null; changing = false; galleryControls();
         delete ui.steleStage.dataset.revealing;
         ui.steleFlash.style.opacity = ui.steleHalo.style.opacity = '0';
@@ -120,7 +109,7 @@
         if (reveal) {
             reveal.elapsed += dt; elapsed = reveal.elapsed;
             renderEffects(elapsed);
-            if (elapsed >= .5 && !reveal.committed) { commit(reveal.card, reveal.image, reveal.index); reveal.committed = true; }
+            if (elapsed >= .5 && !reveal.committed) { commit(reveal.card); reveal.committed = true; }
             if (elapsed >= 1.9) finishReveal();
         }
         scene?.render(time, dt, isReduced(), elapsed);
@@ -176,14 +165,17 @@
     }
     window.addEventListener('pagehide', event => {
         pauseMotion(true);
-        if (!event.persisted) { disposed = true; resize.disconnect(); visibility.disconnect(); scene?.dispose(); images.clear(); }
+        if (!event.persisted) { disposed = true; resize.disconnect(); visibility.disconnect(); scene?.dispose(); queue.length = 0; current = null; }
     });
     window.addEventListener('pageshow', () => pauseMotion());
-    applyMotion(); pauseMotion(); loadCarousel();
-    import('./login-scene.js').then(({LoginScene}) => {
+    applyMotion(); pauseMotion();
+    const initialCards = showNext(true);
+    window.PageTransition?.wait(initialCards);
+    const sceneReady = import('./login-scene.js').then(({LoginScene}) => {
         if (disposed) return;
         scene = new LoginScene(ui.steleCanvas, ui.steleStage, ui.stelePlane, fallback);
         scene.resize(); scene.render(0, 0, isReduced());
         ui.steleStage.dataset.renderer = 'three'; requestFrame();
     }).catch(fallback);
+    window.PageTransition?.wait(sceneReady);
 })();

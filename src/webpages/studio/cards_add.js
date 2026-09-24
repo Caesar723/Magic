@@ -7,7 +7,8 @@ class Card_Add{
         "Land":null,
         "Sorcery":null,
       }
-      this.send_request()
+      this.ready = this.send_request();
+      window.PageTransition?.wait(this.ready);
     }
     async send_request(){
         const response=await fetch("/get_all_cards_name",{

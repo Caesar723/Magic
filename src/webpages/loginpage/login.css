@@ -49,12 +49,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #b7d8c1; outline-offs
 [data-renderer="three"] .stele-shadow { display: none; }
 .fallback-sparks { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .fallback-sparks i { position: absolute; left: 50%; top: 45%; width: 5px; height: 8px; background: #d3e5c5; border: 1px solid #415e55; opacity: 0; }
-.stele-controls { display: flex; align-items: center; justify-content: center; gap: 18px; margin: -2px auto 0; }
-.carved-arrow { width: 42px; height: 35px; border: 2px solid #314548; border-radius: 3px 6px 3px 4px; color: #dde0c5; background: #607978; box-shadow: inset 0 1px #bbc7ae88, 1px 3px #28424766; font-size: 20px; transition: translate .2s, background .2s; }
-.carved-arrow:hover:enabled:not([aria-disabled="true"]) { background: #7a9185; translate: 0 -2px; }
-.carved-arrow:disabled, .carved-arrow[aria-disabled="true"] { opacity: .5; }
 .stele-face[aria-disabled="true"] { cursor: progress; }
-#cardCount { font-size: 13px; letter-spacing: 3px; min-width: 65px; font-variant-numeric: tabular-nums; color: var(--ink); text-shadow: 0 1px #ece2cba6; }
 #steleHint { font-size: 13px; margin: 14px 0 0; color: var(--ink); text-shadow: 0 1px #ece2cba6; }
 #galleryStatus { min-height: 18px; font-size: 12px; margin: 7px 0 0; color: #eedfbe; }
 #galleryStatus:empty { visibility: hidden; }

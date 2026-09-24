@@ -407,7 +407,7 @@ class Book {
                 await this.remove_original();
             }
             saved = true; this.status('Deck saved. Returning to the lobby…', false);
-            window.location.assign('/');
+            (window.PageTransition?.navigate || (path => location.assign(path)))('/');
         } catch (_) {
             if (created) {
                 this.status('Your updated deck is saved. Removing the original could not be confirmed. Retry Update to finish.');

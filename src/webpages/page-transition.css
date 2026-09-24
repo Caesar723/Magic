@@ -1,0 +1,18 @@
+html.page-booting::before { content: ''; position: fixed; inset: 0; z-index: 2147483647; background: #405b60; }
+#page-loader { position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; padding: 24px; border: 0; border-radius: 0; box-sizing: border-box; color: #e7ddc1; background: radial-gradient(ellipse at 50% 42%, #64807a, #405b60 65%); box-shadow: none; font: 15px/1.5 Georgia, 'Times New Roman', serif; text-align: center; opacity: 1; transition: opacity .38s ease; }
+#page-loader[open] { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
+#page-loader::backdrop { background: transparent; backdrop-filter: none; }
+#page-loader[data-clear="true"] { opacity: 0; pointer-events: none; }
+#page-loader .page-loader-mark { position: relative; width: 90px; height: 90px; padding: 14px; border: 2px solid #263f43; outline: 1px solid #b4c5af; outline-offset: 6px; border-radius: 50%; background: #789086; box-shadow: inset 0 0 0 5px #59786f, 3px 5px #2c454c; }
+#page-loader svg { width: 100%; height: 100%; fill: #e4d8b6; stroke: #273b3e; stroke-width: 1.8; animation: page-compass-turn 6s linear infinite; }
+#page-loader p { margin: 12px 0 0; color: inherit; font: inherit; letter-spacing: 1px; }
+#page-loader .page-loader-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 14px; }
+#page-loader .page-loader-actions[hidden] { display: none; }
+#page-loader button { padding: 9px 17px; border: 2px solid #263f43; border-radius: 3px; color: #263f43; background: #e4d8b6; box-shadow: 2px 3px #263f43; font: inherit; cursor: pointer; }
+#page-loader button:hover { background: #f2e7ce; }
+#page-loader button:focus-visible { outline: 3px solid #d6ebcf; outline-offset: 4px; }
+#page-loader.page-loader-paused svg { animation-play-state: paused; }
+@keyframes page-compass-turn { to { rotate: 360deg; } }
+@media (prefers-reduced-motion: reduce) { #page-loader { transition: none; } #page-loader svg { animation: none; } }
+body.motion-reduced #page-loader { transition: none; }
+body.motion-reduced #page-loader svg { animation: none; }

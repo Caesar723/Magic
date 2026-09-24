@@ -4,11 +4,13 @@ function loadImage(src) {
         img.onload = () => resolve(img);
         img.onerror = reject;
         img.src = src;
+        window.PageTransition?.image(img);
     });
 }
 function loadImage_normal(src) {
     const img = new Image();
     img.src = src;
+    window.PageTransition?.image(img);
     return img;
     
 }

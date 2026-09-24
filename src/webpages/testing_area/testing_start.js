@@ -64,4 +64,5 @@ async function initTestingArea() {
   main(0, client);
 }
 
-initTestingArea();
+const testingReady = initTestingArea();
+window.PageTransition?.wait(testingReady);

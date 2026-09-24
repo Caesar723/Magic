@@ -195,8 +195,8 @@ class Shelf {
 }
 
 const shelf = new Shelf();
-shelf.send_request();
-shelf.get_currency();
+const shopData = Promise.all([shelf.send_request(), shelf.get_currency()]);
+window.PageTransition?.wait(shopData);
 
 // Rendering stays optional; navigation, selection and purchasing are HTML controls.
 const shopMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -251,7 +251,7 @@ window.addEventListener('pageshow', event => {
     if (event.persisted) shelf.get_currency();
 });
 shopPreference();
-import('./shop-scene.js').then(({ShopScene}) => {
+const shopReady = import('./shop-scene.js').then(({ShopScene}) => {
     if (shopDisposed) return;
     shopScene = new ShopScene(shelf.ui['shop-canvas'], shelf.ui['shop-stage'], renderShop, shopFallback);
     shelf.scene = shopScene;
@@ -260,3 +260,5 @@ import('./shop-scene.js').then(({ShopScene}) => {
     shelf.ui['rotate-pack'].hidden = !shelf.selected;
     resumeShop();
 }).catch(shopFallback);
+
+window.PageTransition?.wait(shopReady);

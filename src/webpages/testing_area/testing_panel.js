@@ -34,7 +34,8 @@
       this._bindDestSeg();
       this._bindSpawn();
       this._bindGlobal();
-      this._loadCardNames();
+      this.ready = this._loadCardNames();
+      window.PageTransition?.wait(this.ready);
     }
 
     _bindDrawer() {

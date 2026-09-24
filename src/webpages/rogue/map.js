@@ -12,6 +12,7 @@ class InteractiveMap {
         this.motion = matchMedia('(prefers-reduced-motion: reduce)');
         this.bindEvents(); this.initMotion();
         this.ready = this.refreshJourney();
+        window.PageTransition?.wait(this.ready);
     }
     element(tag, className, text) {
         const element = document.createElement(tag);
@@ -123,7 +124,7 @@ class InteractiveMap {
         this.hasRun = false; this.nodes = []; this.paths = []; this.mapArray = [];
         this.currentNode = null; this.selectedNode = null; this.clearMap(); this.ui.routeOverview.replaceChildren();
         this.ui.routeChoices.replaceChildren(); this.ui.routeChoices.hidden = true;
-        document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
+        document.querySelectorAll('dialog[open]:not(#page-loader)').forEach(dialog => dialog.close());
         this.ui.noRun.hidden = false; this.ui.journeyTitle.textContent = 'Journey ended'; this.ui.journeyProgress.textContent = '';
         this.ui.routeEnter.disabled = true; this.setBusy();
     }
@@ -365,7 +366,7 @@ class InteractiveMap {
             this.navigating = true;
             this.ui.battleModal.close(); this.ui.departure.classList.add('active');
             if (!this.reduced && !document.hidden && document.hasFocus()) await new Promise(resolve => setTimeout(resolve, 650));
-            window.location.assign('/gaming_rogue');
+            (window.PageTransition?.navigate || (path => location.assign(path)))('/gaming_rogue');
         });
     }
     openEvent(event) {
@@ -513,10 +514,10 @@ class InteractiveMap {
         this.ui.cardSearch.addEventListener('input', () => this.renderCards());
         this.ui.giveUpButton.addEventListener('click', () => this.showDialog('confirmModal'));
         this.ui.confirmYes.addEventListener('click', () => this.perform(async () => {
-            this.check(await this.request_processor.give_up_rogue()); this.navigating = true; window.location.assign('/');
+            this.check(await this.request_processor.give_up_rogue()); this.navigating = true; (window.PageTransition?.navigate || (path => location.assign(path)))('/');
         }));
         for (const [button, dialog] of [['inventoryClose', 'inventoryPanel'], ['shopDismiss', 'shopModal'], ['battleClose', 'battleModal'], ['eventClose', 'eventModal'], ['cardClose', 'cardModal'], ['detailClose', 'detailModal'], ['confirmNo', 'confirmModal']]) this.ui[button].addEventListener('click', () => this.closeDialog(dialog));
-        document.querySelectorAll('dialog').forEach(dialog => {
+        document.querySelectorAll('dialog:not(#page-loader)').forEach(dialog => {
             dialog.addEventListener('cancel', event => { if (this.busy) event.preventDefault(); });
             dialog.addEventListener('click', event => {
                 const bounds = dialog.getBoundingClientRect();

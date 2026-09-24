@@ -81,8 +81,10 @@ export class ShopScene {
     }
     texture(style) {
         if (this.textures.has(style.image)) return this.textures.get(style.image);
+        window.PageTransition?.image(style.image);
         const texture = this.loader.load(style.image, () => { if (!this.disposed) this.invalidate(); }, undefined, () => {
             if (style.image === style.fallback || this.disposed) return;
+            window.PageTransition?.image(style.fallback);
             this.loader.load(style.fallback, source => {
                 if (!this.disposed) { texture.image = source.image; texture.needsUpdate = true; this.invalidate(); }
                 source.dispose();

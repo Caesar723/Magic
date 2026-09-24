@@ -12,7 +12,7 @@ document.body.addEventListener('wheel', (event) => {
     
 })
 document.getElementById('company_name').addEventListener('click', function(){
-    window.location.href= 'home.html';
+    (window.PageTransition?.navigate || (path => location.assign(path)))('home.html');
 })
 
 window.addEventListener('resize', function(event) {

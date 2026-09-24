@@ -11,7 +11,8 @@ async function get_currency() {
 }
 const decks=new Decks_Container();
 const home=new Home(decks);
-get_currency();
+const lobbyData = get_currency();
+window.PageTransition?.wait(Promise.all([lobbyData, decks.ready]));
 
 // Reuse the existing audio iframe and music assets; settings affect the real player.
 const preferences={

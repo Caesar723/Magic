@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="/webpages/page-transition.css">
+    <script src="/webpages/page-transition.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#54777a">
@@ -48,10 +50,17 @@
                         </div>
                         <span id="capsLock" role="status" hidden>Caps Lock is on.</span>
                     </div>
+                    <div id="confirmationField" class="form-field" hidden>
+                        <label for="login__password_repeat">Confirm Password</label>
+                        <div class="password-field">
+                            <input autocomplete="new-password" id="login__password_repeat" type="password" name="password_confirmation" placeholder="Repeat your password" minlength="6" disabled aria-describedby="message_confirm capsLock">
+                            <button id="toggleConfirmation" class="password-toggle" type="button" aria-label="Show confirmation password" aria-pressed="false" aria-controls="login__password_repeat"><svg aria-hidden="true"><use href="#eye"/></svg></button>
+                        </div>
+                    </div>
                     <p id="message_confirm" role="status" aria-live="polite"></p>
                     <button id="signIn" class="primary-button" type="submit"><span id="signInLabel">Enter the Hall</span><svg class="submit-compass" aria-hidden="true"><use href="#compass"/></svg></button>
                 </form>
-                <a class="account-link" href="/signup">Create an account <span aria-hidden="true">↗</span></a>
+                <a id="authSwitch" class="account-link" href="/signup">Create an account <span aria-hidden="true">↗</span></a>
                 <div class="demo-section" id="buttom_container"><button id="demo" class="demo-button" type="button"><svg aria-hidden="true"><use href="#compass"/></svg><span id="demoLabel">Try the Demo</span><span aria-hidden="true">→</span></button></div>
             </div>
             <div class="panel-foot" aria-hidden="true"><span></span><i></i><span></span></div>
@@ -71,17 +80,12 @@
                 <div id="steleHalo" class="stele-halo" aria-hidden="true"></div>
                 <div id="fallbackSparks" class="fallback-sparks" aria-hidden="true"></div>
             </div>
-            <div class="stele-controls">
-                <button id="previousCard" class="carved-arrow" type="button" aria-label="Previous carving" disabled>←</button>
-                <span id="cardCount" role="status" aria-live="polite">— / —</span>
-                <button id="nextCard" class="carved-arrow" type="button" aria-label="Next carving" disabled>→</button>
-            </div>
             <p id="steleHint">Touch the stone to reveal another card.</p>
             <p id="galleryStatus" role="status"></p>
             <button id="retryCards" class="text-button" type="button" hidden>Reload Cards ↻</button>
         </section>
     </main>
     <footer class="login-footer"><a href="https://github.com/Caesar723" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></footer>
-    <noscript><p class="script-notice">Enable JavaScript to sign in or play the demo.</p></noscript>
+    <noscript><p class="script-notice">Enable JavaScript to sign in, create an account or play the demo.</p></noscript>
 </body>
 </html>
