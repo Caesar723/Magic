@@ -1,1092 +1,501 @@
-// var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-//   lineNumbers: true,
-//   mode: "python",
-//   theme: "dracula",
-//   indentUnit: 4,
-//   tabSize: 4,
-//   autoCloseBrackets: true,
-//   matchBrackets: true,
-//   showCursorWhenSelecting: true
-// });
-// document.getElementById('card-image').addEventListener('change', function(e) {
-//   var file = e.target.files[0];
-//   var reader = new FileReader();
-//   reader.onload = function(event) {
-//       var img = document.getElementById('image-preview');
-//       img.src = event.target.result;
-//       img.style.display = 'block';
-//   }
-//   reader.readAsDataURL(file);
-// });
-
-// document.getElementById('card-form').addEventListener('submit', function(e) {
-//   e.preventDefault();
-//   // 这里可以添加发送表单数据的逻辑
-//   console.log('表单提交');
-// });
-function handleDrop(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  
-  const files = e.dataTransfer.files;
-  if(files.length) {
-      handleFiles(files[0]);
-  }
-  
-  e.target.classList.remove('drag-over');
-}
-
-function handleDragOver(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  e.target.classList.add('drag-over');
-}
-
-function handleDragLeave(e) {
-  e.preventDefault();
-  e.stopPropagation(); 
-  e.target.classList.remove('drag-over');
-}
-
-function handleFileSelect(e) {
-  const files = e.target.files;
-  if(files.length) {
-      handleFiles(files[0]);
-  }
-}
-
-function handleFiles(file) {
-  if(!file.type.startsWith('image/')) {
-      alert('请上传图片文件!');
-      return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-      const preview = document.getElementById('preview-image');
-      preview.src = e.target.result;
-      preview.style.display = 'block';
-      
-      document.querySelector('.drop-zone-content').style.display = 'none';
-  }
-  reader.readAsDataURL(file);
-}
-
-
-
-
-
-class Editor{
-  constructor(){
-    
-
-    this.creature_json={
-      "init_name":"",
-      "init_actual_live":0,
-      "init_actual_power":0,
-      "init_type_creature":"",
-      "init_type":"",
-      "init_mana_cost":"",
-      "init_color":"",
-      "init_type_card":"",
-      "init_rarity":"",
-      "init_content":"",
-      "init_image_path":"",
-      "init_keyword_list":[],
-      "select_object_range":"",
-      "when_enter_battlefield_function":"",
-      "when_leave_battlefield_function":"",
-      "when_die_function":"",
-      "when_start_turn_function":"",
-      "when_end_turn_function":"",
-      "when_harm_is_done_function":"",
-      "when_being_treated_function":"",
-      "when_become_attacker_function":"",
-      "when_become_defender_function":"",
-      "when_kill_creature_function":"",
-      "when_start_attcak_function":"",
-      "when_start_defend_function":"",
-      "when_a_creature_die_function":"",
-      "when_an_object_hert_function":"",
-      "aura_function":"",
-    }
-    this.land_json={
-      "init_name":"",
-      "init_type":"",
-      "init_mana_cost":"",
-      "init_color":"",
-      "init_type_card":"",
-      "init_rarity":"",
-      "init_content":"",
-      "init_image_path":"",
-      "init_keyword_list":[],
-      "select_object_range":"",
-      "when_enter_battlefield_function":"",
-      "when_clicked_function":"",
-      "when_a_creature_die_function":"",
-      "when_an_object_hert_function":"",
-      "when_kill_creature_function":"",
-      "when_start_turn_function":"",
-      "when_end_turn_function":"",
-      "aura_function":"",
-    }
-    this.instant_json={
-      "init_name":"",
-      "init_type":"",
-      "init_mana_cost":"",
-      "init_color":"",
-      "init_type_card":"",
-      "init_rarity":"",
-      "init_content":"",
-      "init_image_path":"",
-      "init_keyword_list":[],
-      "select_object_range":"",
-      "is_undo":false,
-      "card_ability_function":"",
-      "when_a_creature_die_function":"",
-      "when_an_object_hert_function":"",
-      "when_kill_creature_function":"",
-      "when_start_turn_function":"",
-      "when_end_turn_function":"",
-      "aura_function":"",
-    }
-  
-    this.sorcery_json={
-      "init_name":"",
-      "init_type":"",
-      "init_mana_cost":"",
-      "init_color":"",
-      "init_type_card":"",
-      "init_rarity":"",
-      "init_content":"",
-      "init_image_path":"",
-      "init_keyword_list":[],
-      "select_object_range":"",
-      "card_ability_function":"",
-      "when_a_creature_die_function":"",
-      "when_an_object_hert_function":"",
-      "when_kill_creature_function":"",
-      "when_start_turn_function":"",
-      "when_end_turn_function":"",
-      "aura_function":"",
-    }
-    this.initinal_type_button()
-    this.current_type="Creature"
-    this.current_element=this.button_dict_function["Creature"];
-    console.log(this.current_element)
-    document.getElementById("editor").appendChild(this.current_element)
-  }
-  initinal_type_button(){
-    
-    this.button_dict_function={
-      "Creature":this.create_page_creature(),
-      "Land":this.create_page_land(),
-      "Instant":this.create_page_instant(),
-      "Sorcery":this.create_page_sorcery(),
-    }
-    const element_button=document.createElement("div")
-    element_button.classList.add("button-group")
-    for (const button_name of Object.keys(this.button_dict_function)){
-      const button=document.createElement("button")
-      button.textContent=button_name
-      button.addEventListener("click",()=>{
-        this.current_element.remove()
-        this.current_type=button_name
-        this.current_element=this.button_dict_function[button_name];
-        document.getElementById("editor").appendChild(this.current_element)
-      })
-
-      element_button.appendChild(button)
-    }
-    document.getElementById("editor").appendChild(element_button)
-    // const button_creature=document.createElement("button")
-    // button_creature.textContent="Creature"
-    // button_creature.addEventListener("click",()=>{
-    //   this.current_type="creature"
-    //   this.current_element=this.create_page_creature();
-    //   document.getElementById("editor").appendChild(this.current_element)
-    // })
-  }
-  
-  async send_add_card_request(json_data){
-    const response=await fetch("/add_studio_card",{
-      method:"POST",
-      headers: { "Content-Type": "application/json" },
-      body:JSON.stringify(json_data)
-    })
-    const data=await response.json()
-    if (data.state=="unsuccessful"){
-      alert(data.error)
-    }
-    console.log(data)
-  }
-  async submit_card_request(json_data,image_file){
-    const formData = new FormData();
-    formData.append("json_data", JSON.stringify(json_data)); 
-    formData.append("file", image_file);
-    const response=await fetch("/submit_studio_card",{
-      method:"POST",
-      body:formData
-    })
-    const data=await response.json()
-    console.log(data)
-  }
-  create_page_creature(){
-    const form=document.createElement("form")
-    form.innerHTML=`
-    <label for="name">Name:</label>
-    <input type="text" name="name" required>
-    <label for="mana">Mana:</label>
-    <input type="text" name="mana" required>
-    <label for="color">Color:</label>
-    <select id="color" name="color">
-      <option value="red">red</option>
-      <option value="blue">blue</option>
-      <option value="green">green</option>
-      <option value="gold">white</option>
-      <option value="black">black</option>
-    </select>
-
-    <label for="rarity">Rarity:</label>
-    <select id="rarity" name="rarity">
-      <option value="Common">Common</option>
-      <option value="Uncommon">Uncommon</option>
-      <option value="Rare">Rare</option>
-      <option value="Mythic Rare">Mythic Rare</option>
-    </select>
-    
-    <label for="type_creature">Type Creature:</label>
-    <input type="text" name="type_creature" required>
-    <label for="attack">Attack:</label>
-    <input type="number" name="attack" min="0" required>
-    <label for="health">Health:</label>
-    <input type="number" name="health" min="1" required>
-    <label for="description">Description:</label>
-    <textarea name="description" required></textarea>
-    <label>Buff Selector</label>
-    <div class="buff-options">
-      <span class="buff-option">
-        <input type="checkbox" name="buff" value="reach">
-        <label for="reach">Reach</label>
-      </span>
-      <span class="buff-option">
-        <input type="checkbox" name="buff" value="Trample">
-        <label for="trample">Trample</label>
-      </span>
-      <span class="buff-option">
-        <input type="checkbox" name="buff" value="flying">
-        <label for="flying">Flying</label>
-      </span>
-      <span class="buff-option">
-        <input type="checkbox" name="buff" value="haste">
-        <label for="haste">Haste</label>
-      </span>
-      <span class="buff-option">
-        <input type="checkbox" name="buff" value="summoning_sickness">
-        <label for="summoning_sickness">Summoning Sickness</label>
-      </span>
-      <span class="buff-option">
-        <input type="checkbox" name="buff" value="Flash">
-        <label for="flash">Flash</label>
-      </span>
-      <span class="buff-option">
-        <input type="checkbox" name="buff" value="lifelink">
-        <label for="lifelink">Lifelink</label>
-      </span>
-      <span class="buff-option">
-        <input type="checkbox" name="buff" value="Vigilance">
-        <label for="vigilance">Vigilance</label>
-      </span>
-      <span class="buff-option">
-        <input type="checkbox" name="buff" value="Double strike">
-        <label for="double_strike">Double Strike</label>
-      </span>
-      <span class="buff-option">
-        <input type="checkbox" name="buff" value="Menace">
-        <label for="menace">Menace</label>
-      </span>
-      <span class="buff-option">
-        <input type="checkbox" name="buff" value="Hexproof">
-        <label for="hexproof">Hexproof</label>
-      </span>
-    </div>
-    <label for="selector_target">Selector Target:</label>
-    <select id="selector_target" name="selector_target">
-      <option value="">none</option>
-      <option value="all_roles">all_roles</option>
-      <option value="opponent_roles">opponent_roles</option>
-      <option value="your_roles">your_roles</option>
-      <option value="all_creatures">all_creatures</option>
-      <option value="opponent_creatures">opponent_creatures</option>
-      <option value="your_creatures">your_creatures</option>
-      <option value="all_lands">all_lands</option>
-      <option value="opponent_lands">opponent_lands</option>
-      <option value="your_lands">your_lands</option>
-    </select>
-    `
-    const label_function=document.createElement("label")
-    label_function.textContent="Event Function:"
-    form.appendChild(label_function)
-    const code_area=document.createElement("div")
-    code_area.classList.add("code-editor")
-    
-    const selector_function=document.createElement("select")
-    selector_function.id="selector_function"
-    selector_function.name="selector_function"
-    form.appendChild(selector_function)
-    form.appendChild(code_area)
-    const functions=["when_enter_battlefield_function","when_leave_battlefield_function","when_die_function","when_start_turn_function","when_end_turn_function","when_harm_is_done_function","when_being_treated_function","when_become_attacker_function","when_become_defender_function","when_kill_creature_function","when_start_attcak_function","when_start_defend_function","when_a_creature_die_function","when_an_object_hert_function","aura_function"]
-    const code_editor=new Code_Editor(functions)
-    code_editor.element_create()
-    for (const function_name of functions){
-      const option=document.createElement("option")
-      option.value=function_name
-      option.textContent=function_name
-      selector_function.appendChild(option)
-    }
-    const element = code_editor.element_dict[functions[0]][0];
-    const editor=code_editor.element_dict[functions[0]][1]
-    code_area.innerHTML = "";
-    code_area.appendChild(element);
-    editor.refresh();
-    selector_function.addEventListener("change",()=>{
-
-      const element = code_editor.element_dict[selector_function.value][0];
-      const editor=code_editor.element_dict[selector_function.value][1]
-      code_area.innerHTML = "";
-      console.log(code_editor.element_dict[selector_function.value])
-      code_area.appendChild(element);
-      editor.refresh();
-    })
-
-    const get_data = () => {
-      const formData = new FormData(form);
-
-      this.creature_json.init_name=formData.get("name")
-      this.creature_json.init_mana_cost=formData.get("mana")
-      this.creature_json.init_color=formData.get("color")
-      this.creature_json.init_type_creature=formData.get("type_creature")
-      this.creature_json.init_type_card=formData.get("type_creature")
-      this.creature_json.init_actual_live=Number(formData.get("health"))
-      this.creature_json.init_actual_power=Number(formData.get("attack"))
-      this.creature_json.init_type="Creature"
-      this.creature_json.init_rarity=formData.get("rarity")
-      this.creature_json.init_content=formData.get("description")
-      this.creature_json.init_image_path=preview.querySelector('img').src
-      // for (let [key, value] of formData.entries()) {
-      //   console.log(key, value);
-      // }
-      const selectedBuffs = formData.getAll("buff");
-      this.creature_json.init_keyword_list=selectedBuffs
-      // console.log(selectedBuffs)
-      this.creature_json.select_object_range=formData.get("selector_target")
-
-      for (const name in code_editor.element_dict) {
-        const element=code_editor.element_dict[name][0]
-        const editor=code_editor.element_dict[name][1]
-        this.creature_json[name]=code_editor.get_code_element(editor)
-        // console.log(code_editor.get_code_element(editor))
-      }
-    }
-    const [dropZone,preview]=this.create_image_input()
-    const button_group=document.createElement("div")
-    button_group.classList.add("button-group")
-    const button_group_left=document.createElement("div")
-    button_group_left.classList.add("button-group-left")
-    const button_group_right=document.createElement("div")
-    button_group_right.classList.add("button-group-right")
-    button_group.appendChild(button_group_left)
-    button_group.appendChild(button_group_right)
-
-    const button_test=document.createElement("button")
-    button_test.textContent="Test"
-
-    button_test.addEventListener("click",async (event)=>{
-      event.preventDefault(); 
-      get_data()
-      console.log(this.creature_json)
-
-      await this.send_add_card_request(this.creature_json)
-      
-    })
-
-    const button_submit=document.createElement("button")
-    button_submit.textContent="Submit"
-    button_submit.addEventListener("click",async (event)=>{
-      event.preventDefault(); 
-
-      get_data()
-
-      await this.submit_card_request(this.creature_json,dropZone.files[0])
-    })
-
-    
-    form.appendChild(dropZone)
-    form.appendChild(preview)
-    button_group_left.appendChild(button_test)
-    button_group_right.appendChild(button_submit)
-    form.appendChild(button_group)
-    
-    
-    
-
-    return form
-  }
-  create_page_land(){
-    const form=document.createElement("form")
-    form.innerHTML=`
-    <label for="name">Name:</label>
-    <input type="text" name="name" required>
-    <label for="color">Color:</label>
-    <select id="color" name="color">
-      <option value="red">red</option>
-      <option value="blue">blue</option>
-      <option value="green">green</option>
-      <option value="gold">white</option>
-      <option value="black">black</option>
-    </select>
-
-    <label for="rarity">Rarity:</label>
-    <select id="rarity" name="rarity">
-      <option value="Common">Common</option>
-      <option value="Uncommon">Uncommon</option>
-      <option value="Rare">Rare</option>
-      <option value="Mythic Rare">Mythic Rare</option>
-    </select>
-    
-    <label for="description">Description:</label>
-    <textarea name="description" required></textarea>
-    <label>Buff Selector</label>
-    <div class="buff-options">
-      <span class="buff-option">
-        <input type="checkbox" name="buff" value="Flash">
-        <label for="flash">Flash</label>
-      </span>
-      <span class="buff-option">
-        <input type="checkbox" name="buff" value="lifelink">
-        <label for="lifelink">Lifelink</label>
-      </span>
-      
-    </div>
-    <label for="selector_target">Selector Target:</label>
-    <select id="selector_target" name="selector_target">
-      <option value="">none</option>
-      <option value="all_roles">all_roles</option>
-      <option value="opponent_roles">opponent_roles</option>
-      <option value="your_roles">your_roles</option>
-      <option value="all_creatures">all_creatures</option>
-      <option value="opponent_creatures">opponent_creatures</option>
-      <option value="your_creatures">your_creatures</option>
-      <option value="all_lands">all_lands</option>
-      <option value="opponent_lands">opponent_lands</option>
-      <option value="your_lands">your_lands</option>
-    </select>
-    `
-    const label_function=document.createElement("label")
-    label_function.textContent="Event Function:"
-    form.appendChild(label_function)
-    const code_area=document.createElement("div")
-    code_area.classList.add("code-editor")
-    
-    const selector_function=document.createElement("select")
-    selector_function.id="selector_function"
-    selector_function.name="selector_function"
-    form.appendChild(selector_function)
-    form.appendChild(code_area)
-    const functions=["when_enter_battlefield_function","when_clicked_function","when_a_creature_die_function","when_an_object_hert_function","when_kill_creature_function","when_start_turn_function","when_end_turn_function","aura_function"]
-    const code_editor=new Code_Editor(functions)
-    code_editor.element_create()
-    for (const function_name of functions){
-      const option=document.createElement("option")
-      option.value=function_name
-      option.textContent=function_name
-      selector_function.appendChild(option)
-    }
-    const element = code_editor.element_dict[functions[0]][0];
-    const editor=code_editor.element_dict[functions[0]][1]
-    
-    code_area.innerHTML = "";
-    
-    code_area.appendChild(element);
-    editor.refresh();
-    
-    selector_function.addEventListener("change",()=>{
-
-      const element = code_editor.element_dict[selector_function.value][0];
-      const editor=code_editor.element_dict[selector_function.value][1]
-      
-      code_area.innerHTML = "";
-      console.log(code_editor.element_dict[selector_function.value])
-      code_area.appendChild(element);
-      editor.refresh();
-    })
-    const get_data = () => {
-      const formData = new FormData(form);
-
-      this.land_json.init_name=formData.get("name")
-      this.land_json.init_mana_cost=""
-      this.land_json.init_color=formData.get("color")
-      this.land_json.init_type_card="Land"
-      this.land_json.init_type="Land"
-      this.land_json.init_rarity=formData.get("rarity")
-      this.land_json.init_content=formData.get("description")
-      this.land_json.init_image_path=preview.querySelector('img').src
-      // for (let [key, value] of formData.entries()) {
-      //   console.log(key, value);
-      // }
-      const selectedBuffs = formData.getAll("buff");
-      this.land_json.init_keyword_list=selectedBuffs
-      // console.log(selectedBuffs)
-      this.land_json.select_object_range=formData.get("selector_target")
-
-      for (const name in code_editor.element_dict) {
-        const element=code_editor.element_dict[name][0]
-        const editor=code_editor.element_dict[name][1]
-        this.land_json[name]=code_editor.get_code_element(editor)
-        // console.log(code_editor.get_code_element(editor))
-      }
-    }
-    const [dropZone,preview]=this.create_image_input()
-    const button_group=document.createElement("div")
-    button_group.classList.add("button-group")
-    const button_group_left=document.createElement("div")
-    button_group_left.classList.add("button-group-left")
-    const button_group_right=document.createElement("div")
-    button_group_right.classList.add("button-group-right")
-    button_group.appendChild(button_group_left)
-    button_group.appendChild(button_group_right)
-
-    const button_test=document.createElement("button")
-    button_test.textContent="Test"
-
-    button_test.addEventListener("click",async (event)=>{
-      event.preventDefault(); 
-      get_data()
-      console.log(this.land_json)
-
-      await this.send_add_card_request(this.land_json)
-      
-    })
-
-    const button_submit=document.createElement("button")
-    button_submit.textContent="Submit"
-    button_submit.addEventListener("click",async (event)=>{
-      event.preventDefault(); 
-
-      get_data()
-
-      await this.submit_card_request(this.land_json,dropZone.files[0])
-    })
-
-    
-    form.appendChild(dropZone)
-    form.appendChild(preview)
-    button_group_left.appendChild(button_test)
-    button_group_right.appendChild(button_submit)
-    form.appendChild(button_group)
-    
-    
-    
-
-    return form
-  }
-  create_page_instant(){
-    const form=document.createElement("form")
-    form.innerHTML=`
-    <label for="name">Name:</label>
-    <input type="text" name="name" required>
-    <label for="mana">Mana:</label>
-    <input type="text" name="mana" required>
-    <label for="color">Color:</label>
-    <select id="color" name="color">
-      <option value="red">red</option>
-      <option value="blue">blue</option>
-      <option value="green">green</option>
-      <option value="gold">white</option>
-      <option value="black">black</option>
-    </select>
-
-    <label for="rarity">Rarity:</label>
-    <select id="rarity" name="rarity">
-      <option value="Common">Common</option>
-      <option value="Uncommon">Uncommon</option>
-      <option value="Rare">Rare</option>
-      <option value="Mythic Rare">Mythic Rare</option>
-    </select>
-    
-    <label for="is_undo">Is Undo</label>
-    <span class="buff-option">
-      <input type="checkbox" name="is_undo" value="is_undo">
-    </span>
-    
-
-    <label for="description">Description:</label>
-    <textarea name="description" required></textarea>
-    <label>Buff Selector</label>
-    <div class="buff-options">
-      
-      <span class="buff-option">
-        <input type="checkbox" name="buff" value="lifelink">
-        <label for="lifelink">Lifelink</label>
-      </span>
-      
-    </div>
-    <label for="selector_target">Selector Target:</label>
-    <select id="selector_target" name="selector_target">
-      <option value="">none</option>
-      <option value="all_roles">all_roles</option>
-      <option value="opponent_roles">opponent_roles</option>
-      <option value="your_roles">your_roles</option>
-      <option value="all_creatures">all_creatures</option>
-      <option value="opponent_creatures">opponent_creatures</option>
-      <option value="your_creatures">your_creatures</option>
-      <option value="all_lands">all_lands</option>
-      <option value="opponent_lands">opponent_lands</option>
-      <option value="your_lands">your_lands</option>
-    </select>
-    `
-    const label_function=document.createElement("label")
-    label_function.textContent="Event Function:"
-    form.appendChild(label_function)
-    const code_area=document.createElement("div")
-    code_area.classList.add("code-editor")
-    
-    const selector_function=document.createElement("select")
-    selector_function.id="selector_function"
-    selector_function.name="selector_function"
-    form.appendChild(selector_function)
-    form.appendChild(code_area)
-    const functions=["card_ability_function","when_a_creature_die_function","when_an_object_hert_function","when_kill_creature_function","when_start_turn_function","when_end_turn_function","aura_function"]
-    const code_editor=new Code_Editor(functions)
-    code_editor.element_create()
-    for (const function_name of functions){
-      const option=document.createElement("option")
-      option.value=function_name
-      option.textContent=function_name
-      selector_function.appendChild(option)
-    }
-    const element = code_editor.element_dict[functions[0]][0];
-    const editor=code_editor.element_dict[functions[0]][1]
-    code_area.innerHTML = "";
-    code_area.appendChild(element);
-    editor.refresh();
-    selector_function.addEventListener("change",()=>{
-
-      const element = code_editor.element_dict[selector_function.value][0];
-      const editor=code_editor.element_dict[selector_function.value][1]
-      code_area.innerHTML = "";
-      console.log(code_editor.element_dict[selector_function.value])
-      code_area.appendChild(element);
-      editor.refresh();
-    })
-
-
-    const [dropZone,preview]=this.create_image_input()
-    const get_data = () => {
-      const formData = new FormData(form);
-
-      this.instant_json.init_name=formData.get("name")
-      this.instant_json.init_mana_cost=formData.get("mana")
-      this.instant_json.init_color=formData.get("color")
-      this.instant_json.init_type_card="Instant"
-      this.instant_json.init_type="Instant"
-      this.instant_json.is_undo=formData.get("is_undo")=="is_undo"
-      this.instant_json.init_rarity=formData.get("rarity")
-      this.instant_json.init_content=formData.get("description")
-      this.instant_json.init_image_path=preview.querySelector('img').src
-      // for (let [key, value] of formData.entries()) {
-      //   console.log(key, value);
-      // }
-      const selectedBuffs = formData.getAll("buff");
-      this.instant_json.init_keyword_list=selectedBuffs
-      // console.log(selectedBuffs)
-      this.instant_json.select_object_range=formData.get("selector_target")
-
-      for (const name in code_editor.element_dict) {
-        const element=code_editor.element_dict[name][0]
-        const editor=code_editor.element_dict[name][1]
-        this.instant_json[name]=code_editor.get_code_element(editor)
-        // console.log(code_editor.get_code_element(editor))
-      }
-    }
-
-    const button_group=document.createElement("div")
-    button_group.classList.add("button-group")
-    const button_group_left=document.createElement("div")
-    button_group_left.classList.add("button-group-left")
-    const button_group_right=document.createElement("div")
-    button_group_right.classList.add("button-group-right")
-    button_group.appendChild(button_group_left)
-    button_group.appendChild(button_group_right)
-
-    const button_test=document.createElement("button")
-    button_test.textContent="Test"
-
-    button_test.addEventListener("click",async (event)=>{
-      event.preventDefault(); 
-      get_data()
-      console.log(this.instant_json)
-
-      await this.send_add_card_request(this.instant_json)
-      
-    })
-
-    const button_submit=document.createElement("button")
-    button_submit.textContent="Submit"
-    button_submit.addEventListener("click",async (event)=>{
-      event.preventDefault(); 
-
-      get_data()
-
-      await this.submit_card_request(this.instant_json,dropZone.files[0])
-    })
-
-    
-    form.appendChild(dropZone)
-    form.appendChild(preview)
-    button_group_left.appendChild(button_test)
-    button_group_right.appendChild(button_submit)
-    form.appendChild(button_group)
-    
-    
-    
-
-    return form
-  }
-  create_page_sorcery(){
-    const form=document.createElement("form")
-    form.innerHTML=`
-    <label for="name">Name:</label>
-    <input type="text" name="name" required>
-    <label for="mana">Mana:</label>
-    <input type="text" name="mana" required>
-    <label for="color">Color:</label>
-    <select id="color" name="color">
-      <option value="red">red</option>
-      <option value="blue">blue</option>
-      <option value="green">green</option>
-      <option value="gold">white</option>
-      <option value="black">black</option>
-    </select>
-
-    <label for="rarity">Rarity:</label>
-    <select id="rarity" name="rarity">
-      <option value="Common">Common</option>
-      <option value="Uncommon">Uncommon</option>
-      <option value="Rare">Rare</option>
-      <option value="Mythic Rare">Mythic Rare</option>
-    </select>
-    
-
-    <label for="description">Description:</label>
-    <textarea name="description" required></textarea>
-    <label>Buff Selector</label>
-    <div class="buff-options">
-      
-      <span class="buff-option">
-        <input type="checkbox" name="buff" value="lifelink">
-        <label for="lifelink">Lifelink</label>
-      </span>
-      
-    </div>
-    <label for="selector_target">Selector Target:</label>
-    <select id="selector_target" name="selector_target">
-      <option value="">none</option>
-      <option value="all_roles">all_roles</option>
-      <option value="opponent_roles">opponent_roles</option>
-      <option value="your_roles">your_roles</option>
-      <option value="all_creatures">all_creatures</option>
-      <option value="opponent_creatures">opponent_creatures</option>
-      <option value="your_creatures">your_creatures</option>
-      <option value="all_lands">all_lands</option>
-      <option value="opponent_lands">opponent_lands</option>
-      <option value="your_lands">your_lands</option>
-    </select>
-    `
-    const label_function=document.createElement("label")
-    label_function.textContent="Event Function:"
-    form.appendChild(label_function)
-    const code_area=document.createElement("div")
-    code_area.classList.add("code-editor")
-    
-    const selector_function=document.createElement("select")
-    selector_function.id="selector_function"
-    selector_function.name="selector_function"
-    form.appendChild(selector_function)
-    form.appendChild(code_area)
-    const functions=["card_ability_function","when_a_creature_die_function","when_an_object_hert_function","when_kill_creature_function","when_start_turn_function","when_end_turn_function","aura_function"]
-    const code_editor=new Code_Editor(functions)
-    code_editor.element_create()
-    for (const function_name of functions){
-      const option=document.createElement("option")
-      option.value=function_name
-      option.textContent=function_name
-      selector_function.appendChild(option)
-    }
-    const element = code_editor.element_dict[functions[0]][0];
-    const editor=code_editor.element_dict[functions[0]][1]
-    code_area.innerHTML = "";
-    code_area.appendChild(element);
-    editor.refresh();
-    selector_function.addEventListener("change",()=>{
-
-      const element = code_editor.element_dict[selector_function.value][0];
-      const editor=code_editor.element_dict[selector_function.value][1]
-      code_area.innerHTML = "";
-      console.log(code_editor.element_dict[selector_function.value])
-      code_area.appendChild(element);
-      editor.refresh();
-    })
-
-    const get_data = () => {
-      const formData = new FormData(form);
-
-      this.sorcery_json.init_name=formData.get("name")
-      this.sorcery_json.init_mana_cost=formData.get("mana")
-      this.sorcery_json.init_color=formData.get("color")
-      this.sorcery_json.init_type_card="Sorcery"
-      this.sorcery_json.init_type="Sorcery"
-      this.sorcery_json.init_rarity=formData.get("rarity")
-      this.sorcery_json.init_content=formData.get("description")
-      this.sorcery_json.init_image_path=preview.querySelector('img').src
-      // for (let [key, value] of formData.entries()) {
-      //   console.log(key, value);
-      // }
-      const selectedBuffs = formData.getAll("buff");
-      this.sorcery_json.init_keyword_list=selectedBuffs
-      // console.log(selectedBuffs)
-      this.sorcery_json.select_object_range=formData.get("selector_target")
-
-      for (const name in code_editor.element_dict) {
-        const element=code_editor.element_dict[name][0]
-        const editor=code_editor.element_dict[name][1]
-        this.sorcery_json[name]=code_editor.get_code_element(editor)
-        // console.log(code_editor.get_code_element(editor))
-      }
-    }
-    const [dropZone,preview]=this.create_image_input()
-    const button_group=document.createElement("div")
-    button_group.classList.add("button-group")
-    const button_group_left=document.createElement("div")
-    button_group_left.classList.add("button-group-left")
-    const button_group_right=document.createElement("div")
-    button_group_right.classList.add("button-group-right")
-    button_group.appendChild(button_group_left)
-    button_group.appendChild(button_group_right)
-
-    const button_test=document.createElement("button")
-    button_test.textContent="Test"
-
-    button_test.addEventListener("click",async (event)=>{
-      event.preventDefault(); 
-      get_data()
-      console.log(this.sorcery_json)
-
-      await this.send_add_card_request(this.sorcery_json)
-      
-    })
-
-    const button_submit=document.createElement("button")
-    button_submit.textContent="Submit"
-    button_submit.addEventListener("click",async (event)=>{
-      event.preventDefault(); 
-
-      get_data()
-
-      await this.submit_card_request(this.sorcery_json,dropZone.files[0])
-    })
-
-    
-    form.appendChild(dropZone)
-    form.appendChild(preview)
-    button_group_left.appendChild(button_test)
-    button_group_right.appendChild(button_submit)
-    form.appendChild(button_group)
-    
-    return form
-  }
-
-
-  create_image_input(){
-    const dropZone = document.createElement('div');
-    dropZone.classList.add("drop-zone")
-    const preview = document.createElement('div');
-    preview.classList.add("preview-image")
-    // 阻止默认行为
-    for (const eventName of ['dragenter', 'dragover', 'dragleave']){
-        dropZone.addEventListener(eventName, e => e.preventDefault());
-    }
-
-    // 鼠标拖入时添加视觉提示
-    dropZone.addEventListener('dragover', () => dropZone.classList.add('hover'));
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('hover'));
-
-    // 处理图片拖放
-    dropZone.addEventListener('drop', event => {
-        event.preventDefault();
-        dropZone.classList.remove('hover');
-
-        const files = event.dataTransfer.files; // 获取拖放的文件
-        dropZone.files=files;
-        console.log(files)
-        
-        if (files.length > 0) {
-            const file = files[0];
-
-            // 检查是否是图片文件
+(() => {
+    const commonEvents = ['when_start_turn', 'when_end_turn', 'when_kill_creature', 'when_a_creature_die', 'when_an_object_hert', 'aura'];
+    // Keep the existing API spellings, including attcak and hert.
+    const cardEvents = {
+        Creature: ['when_enter_battlefield', 'when_leave_battlefield', 'when_die', 'when_harm_is_done', 'when_being_treated', 'when_become_attacker', 'when_become_defender', 'when_start_attcak', 'when_start_defend', ...commonEvents],
+        Land: ['when_enter_battlefield', 'when_clicked', ...commonEvents],
+        Instant: ['card_ability', ...commonEvents],
+        Sorcery: ['card_ability', ...commonEvents]
+    };
+    const eventLabels = {
+        when_enter_battlefield: 'Enters the battlefield', when_leave_battlefield: 'Leaves the battlefield',
+        when_die: 'Dies', when_harm_is_done: 'Deals damage', when_being_treated: 'Is healed',
+        when_become_attacker: 'Becomes an attacker', when_become_defender: 'Becomes a defender',
+        when_start_attcak: 'Starts attacking', when_start_defend: 'Starts defending',
+        when_start_turn: 'Your turn begins', when_end_turn: 'Your turn ends',
+        when_kill_creature: 'Kills a creature', when_a_creature_die: 'A creature dies',
+        when_an_object_hert: 'An object takes damage', aura: 'Aura', when_clicked: 'Land is clicked',
+        card_ability: 'Spell resolves'
+    };
+    const keywords = {
+        Creature: ['reach', 'Trample', 'flying', 'haste', 'summoning_sickness', 'Flash', 'lifelink', 'Vigilance', 'Double strike', 'Menace', 'Hexproof'],
+        Land: ['Flash', 'lifelink'], Instant: ['lifelink'], Sorcery: ['lifelink']
+    };
+    const effect = (method, target, amount, color) => 'await self.' + method + '(' + target + ', ' + amount + ', "' + color + '", "Missile_Hit")';
+    const snippets = [
+        { id: 'draw', name: 'Draw cards', note: 'Add cards to your hand', code: n => 'player.draw_card(' + n + ')' },
+        { id: 'heal', name: 'Gain life', note: 'Restore your life', code: n => effect('cure_to_object', 'player', n, 'rgba(105, 175, 148, 0.9)') },
+        { id: 'damage', name: 'Damage opponent', note: 'Hit the opposing player', code: n => effect('attact_to_object', 'opponent', n, 'rgba(182, 100, 80, 0.9)') },
+        { id: 'target-damage', name: 'Damage target', note: 'Hit a creature or player', target: 'role', code: n => effect('attact_to_object', 'selected_object[0]', n, 'rgba(182, 100, 80, 0.9)') },
+        { id: 'target-heal', name: 'Heal target', note: 'Heal a creature or player', target: 'role', code: n => effect('cure_to_object', 'selected_object[0]', n, 'rgba(105, 175, 148, 0.9)') },
+        { id: 'destroy', name: 'Destroy creature', note: 'Remove the chosen creature', target: 'creature', code: () => 'await self.destroy_object(selected_object[0], "rgba(92, 117, 136, 0.9)", "Missile_Hit")' },
+        { id: 'exile', name: 'Exile creature', note: 'Exile the chosen creature', target: 'creature', code: () => 'await self.exile_object(selected_object[0], "rgba(105, 175, 148, 0.9)", "Missile_Hit")' },
+        { id: 'sweep', name: 'Damage all enemies', note: 'Hit each enemy creature', code: n => 'for target in opponent.battlefield:\n    ' + effect('attact_to_object', 'target', n, 'rgba(182, 100, 80, 0.9)') },
+        { id: 'random', name: 'Random enemy', note: 'Hit a random enemy creature', code: n => 'if opponent.battlefield:\n    target = random.choice(opponent.battlefield)\n    ' + effect('attact_to_object', 'target', n, 'rgba(182, 100, 80, 0.9)') },
+        { id: 'low-life', name: 'Low-life draw', note: 'Draw if your life is 10 or less', code: n => 'if player.life <= 10:\n    player.draw_card(' + n + ')' },
+        { id: 'untap', name: 'Untap this card', note: 'Ready this creature or land', permanent: true, code: () => 'self.untap()' },
+        { id: 'counter', name: 'Counter spell', note: 'Undo the top spell on the stack', counter: true, code: () => 'await self.undo_stack(player, opponent)' }
+    ];
+    const $ = id => document.getElementById(id);
+
+    class Editor {
+        constructor() {
+            this.form = $('card-form');
+            this.type = 'Creature';
+            this.drafts = {};
+            this.busy = false;
+            this.fallbackHistory = new WeakMap();
+            this.textarea = $('ability-code');
+            if (window.CodeMirror?.fromTextArea) {
+                this.code = CodeMirror.fromTextArea(this.textarea, {
+                    mode: 'python', lineNumbers: true, indentUnit: 4, tabSize: 4, indentWithTabs: false,
+                    extraKeys: { 'Ctrl-Enter': () => this.send(false), 'Cmd-Enter': () => this.send(false), Tab: cm => cm.replaceSelection('    ', 'end') }
+                });
+                this.code.getInputField().setAttribute('aria-label', 'Ability code');
+                this.code.on('change', () => { if (!this.loading) this.changed(); });
+            }
+            this.textarea.addEventListener('input', () => {
+                this.current.codes.set(this.current.event, this.textarea.value);
+                this.changed();
+            });
+            this.form.addEventListener('submit', event => event.preventDefault());
+            this.form.addEventListener('input', event => {
+                const field = event.target;
+                if (!field.name || ['selector_function', 'selector_target'].includes(field.name)) return;
+                if (field.name === 'buff') this.current.buff = [...this.form.querySelectorAll('[name=buff]:checked')].map(input => input.value);
+                else this.current[field.name] = field.type === 'checkbox' ? field.checked : field.value;
+                this.changed();
+                if (field.name === 'is_undo') this.renderSnippets();
+            });
+            for (const type of Object.keys(cardEvents)) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = type;
+                button.dataset.type = type;
+                button.addEventListener('click', () => this.selectType(type));
+                $('card-types').append(button);
+            }
+            document.querySelectorAll('[data-panel]').forEach(button => button.addEventListener('click', () => this.showPanel(button.dataset.panel)));
+            document.querySelectorAll('[data-next]').forEach(button => button.addEventListener('click', () => this.showPanel(button.dataset.next)));
+            $('selector_function').addEventListener('change', event => this.selectEvent(event.target.value));
+            $('selector_target').addEventListener('change', event => {
+                this.current.target = event.target.value;
+                this.changed();
+                this.renderSnippets();
+            });
+            $('block-search').addEventListener('input', () => this.renderSnippets());
+            $('block-amount').addEventListener('input', () => this.renderSnippets());
+            $('expand-code').addEventListener('click', () => {
+                window.StudioWorkspace?.setView('editor');
+                this.code ? this.code.focus() : this.textarea.focus();
+            });
+            $('undo-code').addEventListener('click', () => {
+                if (this.code) this.code.undo();
+                else {
+                    const history = this.fallbackHistory.get(this.current)?.get(this.current.event) || [];
+                    const previous = history.pop();
+                    if (previous) {
+                        this.textarea.value = previous.value;
+                        this.textarea.setSelectionRange(previous.cursor, previous.cursor);
+                        this.current.codes.set(this.current.event, previous.value);
+                        this.changed();
+                    }
+                }
+            });
+            $('test-card').addEventListener('click', () => this.send(false));
+            $('submit-card').addEventListener('click', () => this.send(true));
+            $('new-card').addEventListener('click', () => {
+                if (!this.current.dirty) { this.reset(); return; }
+                $('reset-card-type').textContent = this.type;
+                $('new-card-dialog').returnValue = 'cancel';
+                $('new-card-dialog').showModal();
+            });
+            $('new-card-dialog').addEventListener('close', () => {
+                if ($('new-card-dialog').returnValue === 'reset') this.reset();
+            });
+            document.addEventListener('studio:resize', () => this.code?.refresh());
+            new ResizeObserver(() => this.code?.refresh()).observe($('code-drop-zone'));
+            this.bindDrop();
+            this.bindArtwork();
+            this.selectType('Creature');
+        }
+
+        get current() { return this.drafts[this.type]; }
+
+        makeDraft(type) {
+            return {
+                name: '', mana: type === 'Land' ? '' : '1G', color: 'green', rarity: 'Common', type_creature: 'Wizard',
+                attack: '2', health: '2', description: '', is_undo: false, buff: [], target: '',
+                event: cardEvents[type][0], codes: new Map(), art: '', file: null, artVersion: 0, dirty: false
+            };
+        }
+
+        selectType(type) {
+            if (this.busy) return;
+            this.type = type;
+            this.drafts[type] ||= this.makeDraft(type);
+            const draft = this.current;
+            for (const name of ['name', 'mana', 'color', 'rarity', 'type_creature', 'attack', 'health', 'description', 'is_undo']) {
+                const field = this.form.elements[name];
+                if (field.type === 'checkbox') field.checked = draft[name];
+                else field.value = draft[name];
+            }
+            $('creature-fields').hidden = type !== 'Creature';
+            for (const name of ['type_creature', 'attack', 'health']) this.form.elements[name].disabled = type !== 'Creature';
+            $('mana-field').hidden = type === 'Land';
+            this.form.elements.mana.disabled = type === 'Land';
+            $('undo-field').hidden = type !== 'Instant';
+            this.form.elements.is_undo.disabled = type !== 'Instant';
+            document.querySelectorAll('#card-types button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.type === type)));
+            $('keyword-list').replaceChildren();
+            for (const keyword of keywords[type]) {
+                const label = document.createElement('label');
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.name = 'buff';
+                input.value = keyword;
+                input.checked = draft.buff.includes(keyword);
+                label.append(input, keyword.replaceAll('_', ' ').replace(/^./, character => character.toUpperCase()));
+                $('keyword-list').append(label);
+            }
+            $('selector_function').replaceChildren(...cardEvents[type].map(event => new Option(eventLabels[event], event)));
+            $('selector_target').value = draft.target;
+            this.selectEvent(draft.event);
+            this.renderArtwork();
+            this.updateHeading();
+            this.status('Create a card, then try it on the battlefield.');
+        }
+
+        selectEvent(event) {
+            this.current.event = event;
+            $('selector_function').value = event;
+            this.loading = true;
+            if (this.code) {
+                if (!this.current.codes.has(event)) this.current.codes.set(event, new CodeMirror.Doc('', 'python'));
+                this.code.swapDoc(this.current.codes.get(event));
+            } else this.textarea.value = this.current.codes.get(event) || '';
+            this.loading = false;
+            const targeted = this.isTargetEvent();
+            $('selector_target').disabled = !targeted;
+            $('target-note').textContent = targeted ? 'Access your chosen target with selected_object[0].' : 'Target selection applies when this card ' + (['Creature', 'Land'].includes(this.type) ? 'enters the battlefield.' : 'resolves.');
+            $('event-label').textContent = eventLabels[event];
+            $('code-status').textContent = 'Drag a block into the code, or click it to insert.';
+            this.renderSnippets();
+            this.updateHeading();
+            this.code?.refresh();
+        }
+
+        isTargetEvent() { return ['when_enter_battlefield', 'card_ability'].includes(this.current.event); }
+
+        codeValue(event) {
+            const value = this.current.codes.get(event);
+            return this.code ? value?.getValue() || '' : value || '';
+        }
+
+        showPanel(panel) {
+            for (const name of ['details', 'abilities', 'artwork']) $('panel-' + name).hidden = name !== panel;
+            document.querySelectorAll('[data-panel]').forEach(button => {
+                if (button.dataset.panel === panel) button.setAttribute('aria-current', 'page');
+                else button.removeAttribute('aria-current');
+            });
+            if (panel === 'abilities') this.code?.refresh();
+        }
+
+        changed() {
+            this.current.dirty = true;
+            this.updateHeading();
+        }
+
+        updateHeading() {
+            $('editor-title').textContent = this.current.name.trim() || 'New Card';
+            $('code-drop-zone').dataset.empty = String(!this.codeValue(this.current.event).trim());
+            $('ability-count').textContent = cardEvents[this.type].filter(event => this.codeValue(event).trim()).length;
+            for (const option of $('selector_function').options) {
+                option.textContent = eventLabels[option.value] + (this.codeValue(option.value).trim() ? ' •' : '');
+            }
+        }
+
+        reset() {
+            this.drafts[this.type] = this.makeDraft(this.type);
+            this.selectType(this.type);
+            this.showPanel('details');
+            this.form.elements.name.focus();
+        }
+
+        blockReason(snippet) {
+            if (['damage', 'target-damage', 'sweep', 'random'].includes(snippet.id) && ['when_harm_is_done', 'when_an_object_hert'].includes(this.current.event)) return 'Use another event to avoid repeated damage triggering itself.';
+            if (snippet.permanent && !['Creature', 'Land'].includes(this.type)) return 'Available for creatures and lands.';
+            if (snippet.counter && (this.type !== 'Instant' || !this.current.is_undo)) return 'Enable Counter spell in Instant details.';
+            if (!snippet.target) return '';
+            if (!this.isTargetEvent()) return 'Choose the entry or spell resolution event first.';
+            if (!this.current.target) return 'Choose a target above first.';
+            if (snippet.target === 'creature' && !this.current.target.endsWith('creatures')) return 'Choose a creature-only target.';
+            if (this.current.target.endsWith('lands')) return 'Choose a creature or player target.';
+            return '';
+        }
+
+        renderSnippets() {
+            const query = $('block-search').value.trim().toLowerCase();
+            const amount = Math.max(1, Math.min(99, Number($('block-amount').value) || 2));
+            $('snippet-list').replaceChildren();
+            for (const snippet of snippets.filter(item => (item.name + ' ' + item.note).toLowerCase().includes(query))) {
+                const reason = this.blockReason(snippet);
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'snippet';
+                button.dataset.snippet = snippet.id;
+                button.disabled = Boolean(reason);
+                button.draggable = !reason;
+                button.title = reason || snippet.code(amount);
+                const content = document.createElement('span');
+                const name = document.createElement('strong');
+                name.textContent = snippet.name;
+                const note = document.createElement('small');
+                note.textContent = reason || snippet.note;
+                content.append(name, note);
+                button.append(content);
+                button.addEventListener('click', () => this.insertSnippet(snippet));
+                button.addEventListener('dragstart', event => {
+                    event.dataTransfer.setData('application/x-magic-studio-block', snippet.id);
+                    event.dataTransfer.effectAllowed = 'copy';
+                });
+                button.addEventListener('dragend', () => $('code-drop-zone').classList.remove('drag-over'));
+                $('snippet-list').append(button);
+            }
+            if (!$('snippet-list').children.length) $('snippet-list').textContent = 'No matching effects.';
+        }
+
+        bindDrop() {
+            const zone = $('code-drop-zone');
+            const isBlock = event => [...event.dataTransfer.types].includes('application/x-magic-studio-block');
+            zone.addEventListener('dragover', event => {
+                if (!isBlock(event)) return;
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'copy';
+                zone.classList.add('drag-over');
+            });
+            zone.addEventListener('dragleave', event => {
+                if (!zone.contains(event.relatedTarget)) zone.classList.remove('drag-over');
+            });
+            zone.addEventListener('drop', event => {
+                if (!isBlock(event)) return;
+                event.preventDefault();
+                event.stopPropagation();
+                zone.classList.remove('drag-over');
+                const snippet = snippets.find(item => item.id === event.dataTransfer.getData('application/x-magic-studio-block'));
+                const position = this.code?.coordsChar({ left: event.clientX, top: event.clientY }, 'window');
+                if (snippet) this.insertSnippet(snippet, position);
+            }, true);
+        }
+
+        insertSnippet(snippet, position) {
+            if (this.busy || this.blockReason(snippet)) return;
+            const amountInput = $('block-amount');
+            if (!amountInput.reportValidity()) return;
+            const value = this.codeValue(this.current.event);
+            const lines = value.split('\n');
+            const lineNumber = this.code ? (position || this.code.getCursor()).line : value.slice(0, this.textarea.selectionStart).split('\n').length - 1;
+            const line = lines[lineNumber] || '';
+            const indent = (line.match(/^\s*/)[0] || '') + (line.trimEnd().endsWith(':') ? '    ' : '');
+            const blank = !line.trim();
+            const inserted = (blank ? '' : '\n') + snippet.code(Number(amountInput.value)).split('\n').map(text => indent + text).join('\n') + '\n' + indent;
+            if (this.code) {
+                const from = { line: lineNumber, ch: blank ? 0 : line.length };
+                this.code.replaceRange(inserted, from, { line: lineNumber, ch: line.length }, 'studio-block');
+                const end = this.code.posFromIndex(this.code.indexFromPos(from) + inserted.length);
+                this.code.setCursor(end);
+                this.code.focus();
+                this.code.scrollIntoView(end, 30);
+                if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    const mark = this.code.markText(from, end, { className: 'code-inserted' });
+                    setTimeout(() => mark.clear(), 750);
+                }
+            } else {
+                if (!this.fallbackHistory.has(this.current)) this.fallbackHistory.set(this.current, new Map());
+                const history = this.fallbackHistory.get(this.current).get(this.current.event) || [];
+                history.push({ value, cursor: this.textarea.selectionStart });
+                this.fallbackHistory.get(this.current).set(this.current.event, history.slice(-50));
+                const index = lines.slice(0, lineNumber).reduce((length, text) => length + text.length + 1, 0);
+                const start = index + (blank ? 0 : line.length);
+                this.textarea.setRangeText(inserted, start, index + line.length, 'end');
+                this.current.codes.set(this.current.event, this.textarea.value);
+                this.textarea.focus();
+                this.changed();
+            }
+            $('code-status').textContent = snippet.name + ' inserted. Edit the code or use Undo.';
+        }
+
+        bindArtwork() {
+            $('art-file').addEventListener('change', event => this.loadArtwork(event.target.files[0]));
+            const zone = $('art-drop-zone');
+            zone.addEventListener('keydown', event => {
+                if (event.target === zone && ['Enter', ' '].includes(event.key)) {
+                    event.preventDefault();
+                    $('art-file').click();
+                }
+            });
+            zone.addEventListener('dragover', event => {
+                event.preventDefault();
+                zone.classList.add('drag-over');
+            });
+            zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+            zone.addEventListener('drop', event => {
+                event.preventDefault();
+                zone.classList.remove('drag-over');
+                this.loadArtwork(event.dataTransfer.files[0]);
+            });
+        }
+
+        async loadArtwork(file) {
+            if (!file || this.busy) return;
             if (!file.type.startsWith('image/')) {
-                alert('Please drag and drop image file');
+                $('art-status').textContent = 'Choose an image file.';
+                $('art-status').dataset.state = 'error';
                 return;
             }
-
-            // 使用 FileReader 读取文件
-            processImage(file, (processedImage) => {
-                console.log("处理后的图片：", processedImage);
-    
-                // 示例：将处理后的图片显示到页面
-                const img = document.createElement('img');
-                //console.log(e.target.result)
-                img.classList.add("preview-image-img")
-                img.src = processedImage;
-                preview.innerHTML = ''; // 清空之前的内容
-                preview.appendChild(img);
-            });
-            // const reader = new FileReader();
-            // reader.onload = e => {
-            //     // 创建 img 元素显示图片
-            //     const img = document.createElement('img');
-            //     console.log(e.target.result)
-            //     img.src = e.target.result;
-            //     preview.innerHTML = ''; // 清空之前的内容
-            //     preview.appendChild(img);
-            // };
-            // reader.readAsDataURL(file);
+            const draft = this.current;
+            const version = ++draft.artVersion;
+            draft.artLoading = true;
+            $('art-status').textContent = 'Preparing illustration…';
+            $('art-status').dataset.state = '';
+            const url = URL.createObjectURL(file);
+            try {
+                const image = new Image();
+                image.src = url;
+                await image.decode();
+                const canvas = document.createElement('canvas');
+                canvas.width = canvas.height = 1024;
+                const scale = Math.max(1024 / image.naturalWidth, 1024 / image.naturalHeight);
+                const width = image.naturalWidth * scale, height = image.naturalHeight * scale;
+                canvas.getContext('2d').drawImage(image, (1024 - width) / 2, (1024 - height) / 2, width, height);
+                if (version !== draft.artVersion) return;
+                draft.art = canvas.toDataURL('image/jpeg');
+                draft.file = file;
+                draft.dirty = true;
+                if (this.current === draft) this.renderArtwork();
+            } catch {
+                if (this.current === draft && version === draft.artVersion) {
+                    $('art-status').textContent = 'This image could not be read. Choose another file.';
+                    $('art-status').dataset.state = 'error';
+                }
+            } finally {
+                URL.revokeObjectURL(url);
+                if (version === draft.artVersion) draft.artLoading = false;
+                $('art-file').value = '';
+            }
         }
-    });
-    return [dropZone,preview]
-  }
-}
 
-class Code_Editor{
-  function_dict={
-    "when_enter_battlefield_function":`async def when_enter_battlefield(self,player,opponent,selected_object):\n\n`,
-    "when_leave_battlefield_function":`async def when_leave_battlefield(self,player= None, opponent = None,name:str='battlefield'):\n\n`,
-    "when_die_function":`async def when_die(self,player= None, opponent = None):\n\n`,
-    "when_start_turn_function":`async def when_start_turn(self,player= None, opponent = None):\n\n`,
-    "when_end_turn_function":`async def when_end_turn(self,player= None, opponent = None):\n\n`,
-    "when_harm_is_done_function":`async def when_harm_is_done(self,card,value,player= None, opponent = None):\n\n`,
-    "when_being_treated_function":`async def when_being_treated(self,card,value,player= None, opponent = None):\n\n`,
-    "when_become_attacker_function":`async def when_become_attacker(self,player= None, opponent = None):\n\n`,
-    "when_become_defender_function":`async def when_become_defender(self,player= None, opponent = None):\n\n`,
-    "when_kill_creature_function":`async def when_kill_creature(self,card,player= None, opponent = None):\n\n`,
-    "when_start_attcak_function":`async def when_start_attack(self,card,player= None, opponent = None):\n\n`,
-    "when_start_defend_function":`async def when_start_defend(self,card,player= None, opponent = None):\n\n`,
-    "when_a_creature_die_function":`async def when_a_creature_die(self,card,player= None, opponent = None):\n\n`,
-    "when_an_object_hert_function":`async def when_an_object_hert(self,card,value,player= None, opponent = None):\n\n`,
-    "aura_function":`async def aura(self,player= None, opponent = None):\n\n`,
-    "card_ability_function":`async def card_ability(self,player,opponent,selected_object):\n\n`,
-    "when_clicked_function":`async def when_clicked(self,player= None, opponent = None):\n\n`,
-    "generate_mana_function":`def generate_mana(self) -> dict:\n\n`,
-  }
-  constructor(code_names){
-    this.code_names=code_names
-    
-  }
-  element_create(){
-    this.element_dict={}
-    this.code_names.forEach(name=>{
-      const code_element=document.createElement("div")
-      code_element.classList.add("code-editor")
-      
-      const textarea=document.createElement("textarea")
-      code_element.appendChild(textarea)
-      const editor = CodeMirror.fromTextArea(textarea, {
-        lineNumbers: true,
-        mode: "python",
-        theme: "dracula",
-        indentUnit: 4,
-        tabSize: 4,
-        autoCloseBrackets: true,
-        matchBrackets: true,
-        showCursorWhenSelecting: true,
-        viewportMargin: Infinity // 确保代码镜像编辑器的高度自适应内容
-      });
-      
-      console.log(editor,name)
-      console.log(this.function_dict[name])
-      // editor.setValue("");
+        renderArtwork() {
+            $('art-preview').hidden = !this.current.art;
+            if (this.current.art) $('art-preview').src = this.current.art;
+            else $('art-preview').removeAttribute('src');
+            $('art-status').textContent = this.current.file?.name || 'Add an illustration before testing or submitting.';
+            $('art-status').dataset.state = '';
+        }
 
-      editor.replaceRange(this.function_dict[name], {line: 0, ch: 0}, {line: 0, ch: editor.getLine(0).length});
-      editor.markText({line: 0, ch: 0}, {line: 0, ch: editor.getLine(0).length}, {
-        readOnly: true,  // 标记为只读
-        inclusiveLeft: true,
-        inclusiveRight: true,
-        indentUnit: 4,
-        tabSize: 4,
-        mode: "python",
-        theme: "dracula",
-        className: "readonly-line"  // 可选：为只读内容添加样式
-      });
-      editor.refresh();
-      this.element_dict[name]=[code_element,editor]
-    })
-  }
-  get_code_element(editor){
-    const firstLineEnd = editor.getLine(0).length; // 第一行长度
-    const totalLines = editor.lineCount(); // 总行数
+        payload() {
+            const draft = this.current;
+            const data = {
+                init_name: draft.name.trim(), init_type: this.type, init_mana_cost: this.type === 'Land' ? '' : draft.mana.trim(),
+                init_color: draft.color, init_type_card: this.type === 'Creature' ? draft.type_creature.trim() : this.type,
+                init_rarity: draft.rarity, init_content: draft.description.trim(), init_image_path: draft.art,
+                init_keyword_list: draft.buff, select_object_range: draft.target
+            };
+            if (this.type === 'Creature') Object.assign(data, {
+                init_actual_live: Number(draft.health), init_actual_power: Number(draft.attack), init_type_creature: draft.type_creature.trim()
+            });
+            if (this.type === 'Instant') data.is_undo = draft.is_undo;
+            for (const event of cardEvents[this.type]) {
+                const body = this.codeValue(event).replace(/\t/g, '    ');
+                // The backend wraps this body in async def user_code().
+                data[event + '_function'] = body.trim() ? body.split('\n').map(line => '    ' + line).join('\n') : '';
+            }
+            return data;
+        }
 
-    // 获取从第二行到最后一行的内容
-    const afterFirstLineCode = editor.getRange(
-        { line: 1, ch: 0 }, // 第二行开始
-        { line: totalLines - 1, ch: editor.getLine(totalLines - 1).length } // 最后一行末尾
-    );
-    return afterFirstLineCode.substring(1)
-  }
-}
+        validate() {
+            for (const field of this.form.querySelectorAll('[name]')) {
+                if (field.disabled) continue;
+                if (field.required && !field.value.trim()) field.setCustomValidity('Please fill out this field.');
+                else field.setCustomValidity('');
+                if (!field.checkValidity()) {
+                    this.showPanel('details');
+                    field.reportValidity();
+                    this.status('Check the highlighted card detail.', 'error');
+                    return false;
+                }
+            }
+            if (this.current.artLoading || !this.current.art || !this.current.file) {
+                this.showPanel('artwork');
+                $('art-drop-zone').focus();
+                this.status(this.current.artLoading ? 'Wait for your illustration to finish loading.' : 'Choose a card illustration before continuing.', 'error');
+                return false;
+            }
+            for (const event of cardEvents[this.type]) {
+                if (/\bselected_object\b/.test(this.codeValue(event)) && (!['when_enter_battlefield', 'card_ability'].includes(event) || !this.current.target)) {
+                    this.showPanel('abilities');
+                    this.selectEvent(event);
+                    this.status('This code uses selected_object. Choose a target and use the entry or spell resolution event.', 'error');
+                    return false;
+                }
+            }
+            return true;
+        }
 
+        status(message, state = '') {
+            $('editor-status').textContent = message;
+            $('editor-status').dataset.state = state;
+        }
 
-document.addEventListener('DOMContentLoaded', () => {
-    // 页面加载完成后执行的初始化代码
-    const editor = new Editor();
-    
-});
+        async send(submit) {
+            if (this.busy || !this.validate()) return;
+            if (!submit && !window.StudioWorkspace?.connected()) {
+                this.status('The test room is not connected yet. Wait, or reload to reconnect.', 'error');
+                return;
+            }
+            const data = this.payload();
+            this.busy = true;
+            const controls = [...document.querySelectorAll('#editor button, #card-form input, #card-form select, #card-form textarea')];
+            const disabled = controls.map(control => control.disabled);
+            controls.forEach(control => { control.disabled = true; });
+            this.code?.setOption('readOnly', true);
+            $('editor').setAttribute('aria-busy', 'true');
+            const action = submit ? $('submit-card') : $('test-card');
+            const oldLabel = action.textContent;
+            action.textContent = submit ? 'Submitting…' : 'Adding to hand…';
+            this.status(submit ? 'Submitting your card…' : 'Sending your card to the battlefield…');
+            try {
+                let body, headers;
+                if (submit) {
+                    body = new FormData();
+                    body.append('json_data', JSON.stringify(data));
+                    body.append('file', this.current.file);
+                } else {
+                    body = JSON.stringify(data);
+                    headers = { 'Content-Type': 'application/json' };
+                }
+                const response = await fetch(submit ? '/submit_studio_card' : '/add_studio_card', { method: 'POST', headers, body });
+                const result = await response.json().catch(() => { throw new Error('The server could not process this request. Please try again.'); });
+                if (!response.ok || result.state !== 'successful') throw new Error(result.error || (result.state === 'no studio room found' ? 'The test room has expired. Reload to reconnect.' : 'The card could not be saved. Please try again.'));
+                if (submit) {
+                    this.current.dirty = false;
+                    this.status('Card submitted successfully.', 'success');
+                } else {
+                    this.status(data.init_name + ' added to your hand. Play it on the battlefield.', 'success');
+                    if (document.body.dataset.view === 'editor') window.StudioWorkspace.setView('split');
+                    if (matchMedia('(max-width: 900px)').matches) $('canvasContainer').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+                }
+            } catch (error) {
+                this.status(error.message || 'The request failed. Please try again.', 'error');
+            } finally {
+                this.busy = false;
+                controls.forEach((control, index) => { control.disabled = disabled[index]; });
+                this.code?.setOption('readOnly', false);
+                $('editor').removeAttribute('aria-busy');
+                action.textContent = oldLabel;
+            }
+        }
+    }
 
-
-function processImage(file, callback) {
-  const reader = new FileReader();
-  const img = new Image();
-
-  reader.onload = function(event) {
-      img.src = event.target.result; // 加载图片
-  };
-
-  img.onload = function() {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-
-      // 设置目标大小为 1024x1024
-      const targetSize = 1024;
-      canvas.width = targetSize;
-      canvas.height = targetSize;
-
-      // 获取图片的原始宽高
-      const { width: imgWidth, height: imgHeight } = img;
-
-      // 计算缩放比例和偏移量（居中裁剪）
-      const scale = Math.max(targetSize / imgWidth, targetSize / imgHeight);
-      const scaledWidth = imgWidth * scale;
-      const scaledHeight = imgHeight * scale;
-      const offsetX = (targetSize - scaledWidth) / 2;
-      const offsetY = (targetSize - scaledHeight) / 2;
-
-      // 绘制缩放和裁剪后的图片到 canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, offsetX, offsetY, scaledWidth, scaledHeight);
-
-      // 导出处理后的图片为 Base64 或 Blob
-      callback(canvas.toDataURL("image/jpeg")); // Base64 格式
-      // 如果需要 Blob，可以用 canvas.toBlob
-  };
-
-  reader.readAsDataURL(file); // 读取文件内容为 Base64
-}
+    document.addEventListener('DOMContentLoaded', () => new Editor());
+})();

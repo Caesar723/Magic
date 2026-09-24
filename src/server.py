@@ -357,10 +357,7 @@ async def delete_studio_room(username: str = Depends(get_current_user(database))
 async def testing_area_page(request: Request, username: str = Depends(get_current_user(database))):
     if type(username)==RedirectResponse:
         return username
-    return templates.TemplateResponse(
-        "webpages/testing_area/testing.html",
-        {"request": request, "data": room_server.get_players_name(username)},
-    )
+    return RedirectResponse(url="/studio", status_code=307)
 
 @app.post("/matching_testing_area")
 async def matching_testing_area(username: str = Depends(get_current_user(database))):

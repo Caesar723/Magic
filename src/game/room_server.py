@@ -1,7 +1,6 @@
 
 from game.room import Room
 from game.player_agent_room import PVE_Room
-from game.studio_room import Studio_Room
 from game.testing_room import Testing_Room
 from game.demo_room import PVE_Demo_Room
 from game.rogue.rogue_room import Rogue_Room
@@ -67,7 +66,7 @@ class RoomServer:
 
 
     async def create_new_studio_room(self,client_1:tuple):
-        room=Studio_Room([client_1],self)
+        room=Testing_Room([client_1],self)
 
         self.client_room[client_1[1]]=room
         print(self.client_room.keys())
@@ -75,10 +74,7 @@ class RoomServer:
         await room.game_start()
 
     async def create_new_testing_room(self,client_1:tuple):
-        room=Testing_Room([client_1],self)
-        self.client_room[client_1[1]]=room
-        print(self.client_room.keys())
-        await room.game_start()
+        await self.create_new_studio_room(client_1)
 
     def delete_studio_room(self,client_name:str):
         if client_name in self.client_room:
@@ -178,4 +174,3 @@ class RoomServer:
 
 
     
-
