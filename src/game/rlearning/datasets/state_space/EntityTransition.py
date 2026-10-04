@@ -2,6 +2,7 @@ import numpy as np
 
 from game.rlearning.datasets.state_space.CVAE import (
     CVAEDataset,
+    card_action_index,
     ensure_list,
     stack_path_numpy,
 )
@@ -162,6 +163,9 @@ class EntityTransitionDataset(CVAEDataset):
 
         result["action"] = action_one_hot
         result["action_index"] = np.asarray(action, dtype=np.int64)
+        result["card_action_index"] = np.asarray(
+            card_action_index(action), dtype=np.int64
+        )
         card_used = dict(data["state"]["card_used"])
         description = card_used["description"]
         card_used["description"] = self.augment_description(description)

@@ -191,7 +191,7 @@ class ActionEncoder(nn.Module):
         d = config["output_dim"]
 
         self.action_embed = nn.Embedding(
-            config["action_size"],  # 33
+            config["action_size"],  # 36
             d
         )
 

@@ -6,6 +6,7 @@ from copy import deepcopy
 
 import numpy as np
 
+from game.rlearning.datasets.state_space.CVAE import card_action_index
 from game.rlearning.datasets.state_space.EntityTransition import (
     EntityTransitionDataset,
     get_state,
@@ -121,6 +122,9 @@ class EntityTransitionMergedDataset(EntityTransitionDataset):
             self.config.get("action_space", 362), dtype=np.float32
         )[action]
         result["action_index"] = np.asarray(action, dtype=np.int64)
+        result["card_action_index"] = np.asarray(
+            card_action_index(action), dtype=np.int64
+        )
 
         card_used = dict(source["card_used"])
         card_used["description"] = self.augment_description(

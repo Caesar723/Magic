@@ -79,7 +79,7 @@ class EntityTransitionSupportPlanBirthZeroMessageCVAETrainer(EntityTransitionPla
         h_s, tokens_s, pad_s, spans_s = models["StateTransformerEncoder"](batch["state"])
 
         # 2) action
-        h_action = models["ActionEncoder"](batch["action_index"])
+        h_action = models["ActionEncoder"](batch["card_action_index"])
         # 3) card_used
         cu = batch["card_used"]
         if "attention_mask" in cu:

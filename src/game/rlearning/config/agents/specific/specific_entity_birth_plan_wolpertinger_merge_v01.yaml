@@ -80,7 +80,7 @@ model:
 
   ActionEncoder:
     class_name: "game.rlearning.net.state_space.StateEncoder.ActionEncoder"
-    action_size: 362
+    action_size: 36
     output_dim: 128
 
   TextEncoder:

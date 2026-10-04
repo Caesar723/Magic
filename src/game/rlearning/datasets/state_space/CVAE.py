@@ -399,6 +399,17 @@ def render_exact_description(bindings, library):
         validate_candidate_spec(binding, library)
 
     return render_candidate_card(candidate_bindings, library)
+
+def card_action_index(action):
+    if 2 <= action <= 11:
+        return 0                         # attack
+    if 12 <= action <= 21:
+        return 1                         # block
+    if 22 <= action <= 31:
+        return 2                         # activate
+    if 32 <= action <= 361:
+        return 3 + (action - 32) % 33    # play
+    raise ValueError(f"Unsupported specific action: {action}")
 # ============================================================
 # Dataset
 # ============================================================
@@ -440,7 +451,6 @@ class CVAEDataset(BaseDataset):
 
     def get_sample(self, data):
         """
-        单个样本结构：
 
         return:
             {
@@ -465,6 +475,10 @@ class CVAEDataset(BaseDataset):
 
         result["action"] = action_one_hot
         result["action_index"] = np.asarray(action, dtype=np.int64)
+        result["card_action_index"] = np.asarray(
+            card_action_index(action),
+            dtype=np.int64,
+        )
 
         card_used = dict(data["state"]["card_used"])
         description = card_used["description"]
@@ -494,9 +508,15 @@ class CVAEDataset(BaseDataset):
             axis=0,
         ).astype(np.int64)
 
+        card_action_index = np.stack(
+            [sample["card_action_index"] for sample in batch],
+            axis=0,
+        ).astype(np.int64)
+
         return {
             "action": torch.as_tensor(action),
             "action_index": torch.as_tensor(action_index),
+            "card_action_index": torch.as_tensor(card_action_index),
         }
 
     def collate_card_used_part(self, batch):

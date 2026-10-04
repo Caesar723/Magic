@@ -795,7 +795,7 @@ class CVAETrainer(BaseTrainer):
             batch["next_state"]
         )
         # 2) action
-        h_action = models["ActionEncoder"](batch["action_index"])
+        h_action = models["ActionEncoder"](batch["card_action_index"])
         # 3) card_used
         cu = batch["card_used"]
         if "attention_mask" in cu:
