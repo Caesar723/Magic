@@ -3,27 +3,20 @@
 import torch
 import torch.nn as nn
 
-from game.rlearning.net.state_space.EntityTransition import (
-    EntityTransitionStateDecoder,
-)
+from game.rlearning.net.state_space.EntityTransition import EntityTransitionStateDecoder
+
 
 
 class EntityTransitionBirthStateDecoder(EntityTransitionStateDecoder):
-    """Decode source-card transitions plus an unordered set of birth slots.
-
-    Source-card outputs retain the source-aligned semantics of
-    :class:`EntityTransitionStateDecoder`.  Birth slots are learned queries
-    without a source-card identity; each can either stay empty or describe a
-    newly created entity in any destination zone.
+    """
+    Decode source-card transitions plus an unordered set of birth slots.
     """
 
     def __init__(self, config):
         super().__init__(config)
 
         self.num_birth_slots = int(config.get("num_birth_slots", 10))
-        if self.num_birth_slots <= 0:
-            raise ValueError("num_birth_slots must be positive.")
-
+        
         self.birth_queries = nn.Parameter(
             torch.empty(1, self.num_birth_slots, self.d_model)
         )
@@ -66,13 +59,9 @@ class EntityTransitionBirthStateDecoder(EntityTransitionStateDecoder):
             dtype=torch.bool,
             device=state_tokens.device,
         )
-        # Keeping both kinds of queries in one decoder target lets births attend
-        # to the current-state entities while preserving the old source spans.
+        
         decoder_tokens = torch.cat([state_tokens, birth_queries], dim=1)
-        decoder_padding_mask = torch.cat(
-            [state_padding_mask, birth_padding_mask],
-            dim=1,
-        )
+        decoder_padding_mask = torch.cat([state_padding_mask, birth_padding_mask],dim=1)
         hidden = self.decoder(
             tgt=decoder_tokens,
             memory=transition_memory,
@@ -82,7 +71,5 @@ class EntityTransitionBirthStateDecoder(EntityTransitionStateDecoder):
 
         source_token_count = state_tokens.shape[1]
         prediction = self.decode_by_spans(hidden[:, :source_token_count], spans)
-        prediction["births"] = self.decode_birth_slots(
-            hidden[:, source_token_count:]
-        )
+        prediction["births"] = self.decode_birth_slots(hidden[:, source_token_count:])
         return prediction

@@ -104,7 +104,7 @@ class Agent_Player(Player):
     
 
     async def send_selection_cards(self,selected_cards:list,selection_random:bool=True,auto_select:bool=True):
-        print(auto_select,selection_random)
+        #print(auto_select,selection_random)
         if auto_select:
             return random.choice(selected_cards)
         async with self.selection_lock:

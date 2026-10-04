@@ -13,6 +13,7 @@ from game.rlearning.utils.data import batch_to_cuda
 from game.rlearning.net.state_space.StateEncoder import squeeze_time_dim_state
 from game.rlearning.states.state_space.specific_entity import color_identity
 from game.rlearning.synthesis.artifacts import (
+    aggregate_reconstruction_metrics,
     write_card_fusion_space_artifact,
     write_reconstruction_artifact,
     write_transition_space_artifact,
@@ -396,6 +397,7 @@ class CVAETrainer(BaseTrainer):
                     f"Synthesis step {self.step}: encoded {batch_end}/{transition_count} transitions."
                 )
 
+        log.sw_loss("synthesis/reconstruction", aggregate_reconstruction_metrics(reconstruction_records), self.step, name=self.name)
         vectors = {
             name: torch.cat(chunks, dim=0).numpy()
             for name, chunks in vector_chunks.items()
@@ -815,8 +817,8 @@ class CVAETrainer(BaseTrainer):
             cu["has_state"].long(),
             cu["color_identity"],
         )
-        # 按你的设计把 text / attr 合成 h_card，维度 = d_model
-        h_card = models["CardFusion"](h_text, h_card_attr)  # 或 Linear(cat(...))
+        
+        h_card = models["CardFusion"](h_text, h_card_attr)
         # 4) CVAE prior / posterior
         mean_p, std_p = models["PriorEncoder"](h_card, h_action, h_s)
         mean_q, std_q = models["PosteriorEncoder"](h_card, h_action, h_s, h_s_next)

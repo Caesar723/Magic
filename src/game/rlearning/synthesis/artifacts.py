@@ -584,3 +584,18 @@ def write_text_embedding_space_artifact(
         generated_at=generated_at,
     )
     return module_path
+
+
+def aggregate_reconstruction_metrics(records):
+    names = ("score", "global_mae", "card_set_jaccard", "card_set_error")
+    result = {"sample_count": float(len(records))}
+    for view in ("prior", "posterior"):
+        for name in names:
+            values = [
+                float(record["predictions"][view]["metrics"][name])
+                for record in records
+                if name in record.get("predictions", {}).get(view, {}).get("metrics", {})
+            ]
+            if values:
+                result[f"{view}/{name}"] = sum(values) / len(values)
+    return result

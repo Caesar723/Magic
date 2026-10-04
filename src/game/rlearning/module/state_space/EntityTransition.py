@@ -11,6 +11,7 @@ from game.rlearning.net.state_space.EntityTransition import (
     squeeze_entity_time_dim,
 )
 from game.rlearning.synthesis.artifacts import (
+    aggregate_reconstruction_metrics,
     write_reconstruction_artifact,
     write_transition_space_artifact,
 )
@@ -533,6 +534,7 @@ class EntityTransitionCVAETrainer(CVAETrainer):
                     f"{self.step}: encoded {batch_end}/{transition_count} transitions."
                 )
 
+        log.sw_loss("synthesis/reconstruction", aggregate_reconstruction_metrics(reconstruction_records), self.step, name=self.name)
         vectors = {
             name: torch.cat(chunks, dim=0).numpy()
             for name, chunks in vector_chunks.items()

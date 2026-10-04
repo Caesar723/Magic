@@ -1,16 +1,9 @@
 import torch
 import torch.nn as nn
 
-from game.rlearning.net.state_space.StateEncoder import (
-    StateTransformerEncoder,
-    TokenTransitionStateDecoder,
-)
-from game.rlearning.states.state_space.specific_entity import (
-    BOARD_ZONE_NAMES,
-    CARD_ZONE_NAMES,
-    ENTITY_ZONE_NAMES,
-    LOCATION_NAMES,
-)
+from game.rlearning.net.state_space.StateEncoder import StateTransformerEncoder,TokenTransitionStateDecoder
+
+from game.rlearning.states.state_space.specific_entity import BOARD_ZONE_NAMES,CARD_ZONE_NAMES,ENTITY_ZONE_NAMES,LOCATION_NAMES
 
 
 # ============================================================
@@ -32,10 +25,6 @@ def squeeze_entity_time_dim(state):
 
     return select_first_frame(state)
 
-
-# ============================================================
-# Entity state encoder
-# ============================================================
 
 class EntityStateTransformerEncoder(StateTransformerEncoder):
     """Encode all card zones with one shared card representation."""
@@ -159,10 +148,6 @@ class EntityStateTransformerEncoder(StateTransformerEncoder):
         return state_embedding, hidden, padding_mask, spans
 
 
-# ============================================================
-# Source-card transition decoder
-# ============================================================
-
 class EntityTransitionStateDecoder(TokenTransitionStateDecoder):
     """Predict the destination and dynamic state of each source card."""
 
@@ -170,11 +155,7 @@ class EntityTransitionStateDecoder(TokenTransitionStateDecoder):
         super().__init__(config)
 
         num_locations = int(config.get("num_locations", len(LOCATION_NAMES)))
-        if num_locations != len(LOCATION_NAMES):
-            raise ValueError(
-                "num_locations must match the entity location schema: "
-                f"expected {len(LOCATION_NAMES)}, got {num_locations}."
-            )
+        
 
         self.num_locations = num_locations
         self.location_head = nn.Linear(self.d_model, num_locations)
@@ -193,13 +174,13 @@ class EntityTransitionStateDecoder(TokenTransitionStateDecoder):
     def decode_by_spans(self, h_next_tokens, spans):
         prediction = {}
 
-        # 1. Global values keep the original decoder and loss semantics.
+        
         start, end = spans["global_state"]
         prediction["global_state"] = self.global_head(
             h_next_tokens[:, start:end]
         )
 
-        # 2. Each output slot remains tied to its source card entity.
+        
         prediction["card_zones"] = {}
         for zone_name in CARD_ZONE_NAMES:
             start, end = spans[zone_name]

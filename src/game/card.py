@@ -282,9 +282,9 @@ class Card:
 
         selection_end=self.create_selection("End Selection",1)
         while cards:
-            print(cards)
+            #print(cards)
             card=await player.send_selection_cards(cards+[selection_end])
-            print(card)
+            #print(card)
             if card=="cancel":
                 await player.send_text("end_select()")
                 for card_remove in cards:

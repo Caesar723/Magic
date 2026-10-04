@@ -308,12 +308,15 @@ def _card_state_signature(card: dict[str, Any]) -> tuple[Any, ...]:
     # IDs of existing cards, while birth-query decoders produce virtual IDs.
     # The zone and rendered card state are the common representation shared by
     # all reconstruction outputs.
+    has_state = bool(card.get("has_state", False))
+    attack = int(card.get("attack", 0)) if has_state else None
+    health = int(card.get("health", 0)) if has_state else None
     return (
         str(card.get("type", "Unknown")),
         mana_cost,
-        int(card.get("attack", 0)),
-        int(card.get("health", 0)),
-        bool(card.get("has_state", False)),
+        attack,
+        health,
+        has_state,
         special_types,
         bool(card.get("tapped", False)),
     )
@@ -369,13 +372,18 @@ def state_reconstruction_metrics(
     card_set_jaccard = intersection / union if union else 1.0
     card_set_error = 1.0 - card_set_jaccard
 
+    global_score = max(0.0, 1.0 - global_mae)
+    score = (global_score + card_set_jaccard) / 2.0
+
+
     return {
         "global_mae": round(global_mae, 6),
+        "global_score": round(global_score, 6),
         "card_set_jaccard": round(card_set_jaccard, 6),
         "card_set_error": round(card_set_error, 6),
         "predicted_card_count": predicted_count,
         "target_card_count": target_count,
-        "score": round(global_mae + card_set_error, 6),
+        "score": round(score, 6),
     }
 
 
