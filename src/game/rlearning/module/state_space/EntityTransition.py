@@ -188,7 +188,8 @@ class EntityTransitionCVAETrainer(CVAETrainer):
         )
 
         # 2. Align every next-state card with its source entity.
-        source_entities, aligned_target = align_next_entities(source, target)
+        alignment = batch.get("entity_alignment")
+        source_entities, aligned_target = alignment[:2] if alignment else align_next_entities(source, target)
         predicted_entities = flatten_entity_predictions(prediction)
         source_valid = source_entities["card_mask"].bool()
         matched = aligned_target["matched"]

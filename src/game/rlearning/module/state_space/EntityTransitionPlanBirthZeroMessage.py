@@ -90,6 +90,7 @@ class EntityTransitionPlanBirthZeroMessageCVAETrainer(
         identity_batch["state"] = current_state
         identity_batch["next_state"] = current_state
         identity_batch["pred_next"] = zero_prediction
+        identity_batch.pop("entity_alignment", None)
 
         identity_result = super().reconstruction_loss(identity_batch)
         identity_loss = identity_result["total_loss"]

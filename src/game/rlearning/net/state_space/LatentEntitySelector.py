@@ -2,8 +2,7 @@ from torch import nn
 import torch
 
 from game.rlearning.net.state_space.CVAE_residual import PosteriorEncoder
-from game.rlearning.synthesis.entity_transition import align_next_entities
-from game.rlearning.synthesis.entity_transition_birth import unmatched_target_entities
+from game.rlearning.synthesis.entity_transition import align_entity_transitions
 
 
 
@@ -23,9 +22,10 @@ def _field_changed(source_value, target_value, atol=1e-6):
     return changed
 
 @torch.no_grad()
-def build_existing_change_targets(source, next_state):
+def build_existing_change_targets(source, next_state, alignment=None):
     """source/next -> changed_mask and existing_count and birth_count."""
-    source_entities, aligned_next = align_next_entities(source,next_state)
+    alignment = alignment or align_entity_transitions(source, next_state)
+    source_entities, aligned_next, _, birth_mask = alignment
 
     source_valid = source_entities["card_mask"].bool()
     matched = aligned_next["matched"].bool()
@@ -42,7 +42,6 @@ def build_existing_change_targets(source, next_state):
     changed_mask = source_valid & (disappeared | moved | attribute_changed)
     existing_count = changed_mask.sum(dim=-1).long()
 
-    _, birth_mask = unmatched_target_entities(source,next_state)
     birth_count = birth_mask.sum(dim=-1).long()
 
     return changed_mask, existing_count, birth_count

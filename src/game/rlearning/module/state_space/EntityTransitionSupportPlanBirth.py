@@ -5,6 +5,7 @@ from game.rlearning.module.state_space.EntityTransitionPlanBirthZeroMessage impo
 from game.rlearning.net.state_space.EntityTransition import squeeze_entity_time_dim
 from game.rlearning.net.state_space.LatentEntitySelector import build_existing_change_targets, strict_topk_mask
 from game.rlearning.states.state_space.specific_entity import CARD_ZONE_NAMES, BOARD_ZONE_NAMES,LOCATION_NAMES
+from game.rlearning.synthesis.entity_transition import align_entity_transitions
 
 
 def extract_entity_tokens(state_tokens,state_padding_mask,spans):
@@ -115,7 +116,8 @@ class EntityTransitionSupportPlanBirthZeroMessageCVAETrainer(EntityTransitionPla
         source_state = squeeze_entity_time_dim(batch["state"])
         next_state = squeeze_entity_time_dim(batch["next_state"])
 
-        changed_mask,existing_count,birth_count = build_existing_change_targets(source_state,next_state)
+        entity_alignment = align_entity_transitions(source_state, next_state)
+        changed_mask,existing_count,birth_count = build_existing_change_targets(source_state,next_state,entity_alignment)
          
         mean_p, std_p = models["PriorEncoder"](h_card,h_action,h_s)
 
@@ -153,6 +155,7 @@ class EntityTransitionSupportPlanBirthZeroMessageCVAETrainer(EntityTransitionPla
             "changed_mask": changed_mask,
             "existing_count": existing_count,
             "birth_count": birth_count,
+            "entity_alignment": entity_alignment,
 
             "mean_p": mean_p,
             "std_p": std_p,

@@ -27,6 +27,7 @@ class JinaTextEncoder(nn.Module):
 
         self._encoder = None
         self._encoder_device = None
+        self._embedding_cache = {}
 
         # A trainable encoder must be registered before ModelTrainer creates
         # its optimizer. Frozen encoders can still keep lazy loading.
@@ -111,11 +112,8 @@ class JinaTextEncoder(nn.Module):
             )
         else:
             with torch.no_grad():
-                embeddings = encoder.encode(
-                    texts,
-                    prompt_name=prompt_name,
-                    max_length=self.max_length,
-                    **encode_kwargs,
+                embeddings = self._encode_cached(
+                    encoder, texts, device, prompt_name, encode_kwargs
                 )
 
         if not isinstance(embeddings, torch.Tensor):
@@ -130,6 +128,29 @@ class JinaTextEncoder(nn.Module):
             embeddings = F.normalize(embeddings, dim=-1)
 
         return embeddings
+
+    def _encode_cached(self, encoder, texts, device, prompt_name, encode_kwargs):
+        keys = [(prompt_name, text) for text in texts]
+        missing = list(dict.fromkeys(key for key in keys if key not in self._embedding_cache))
+        target_device = device or next(encoder.parameters()).device
+        gpu_values = {}
+
+        cached = [key for key in dict.fromkeys(keys) if key in self._embedding_cache]
+        if cached:
+            values = torch.stack([self._embedding_cache[key] for key in cached]).to(target_device)
+            gpu_values.update(zip(cached, values))
+
+        if missing:
+            values = encoder.encode(
+                [key[1] for key in missing], prompt_name=prompt_name,
+                max_length=self.max_length, **encode_kwargs,
+            )
+            values = torch.as_tensor(values, dtype=torch.float32, device=target_device)
+            cached_values = values.detach().cpu()
+            self._embedding_cache.update(zip(missing, cached_values))
+            gpu_values.update(zip(missing, values))
+
+        return torch.stack([gpu_values[key] for key in keys])
 
     def _encode_with_grad(self, encoder, texts, device, prompt_name):
         """Run Jina's embedding steps without its inference-only ``encode``."""

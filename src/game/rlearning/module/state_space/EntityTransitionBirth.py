@@ -49,7 +49,7 @@ class EntityTransitionBirthCVAETrainer(EntityTransitionCVAETrainer):
         births = prediction["births"]
         source = squeeze_entity_time_dim(batch["state"])
         target = squeeze_entity_time_dim(batch["next_state"])
-        aligned = align_birth_slots(births, source, target)
+        aligned = align_birth_slots(births, source, target, batch.get("entity_alignment"))
         matched = aligned["matched"]
         stat_loss_options = _stat_loss_options(self.config)
 

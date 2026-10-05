@@ -124,6 +124,7 @@ model:
     task: 'text-matching'
     truncate_dim: 128
     normalize: True
+    embedding_cache_size: 3000
     trust_remote_code: True
     local_files_only: False
     lazy_load: True

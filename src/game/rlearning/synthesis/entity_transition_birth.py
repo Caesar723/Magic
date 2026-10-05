@@ -20,7 +20,7 @@ from game.rlearning.synthesis.entity_transition import (
     _special_types,
     entity_reconstruction_metrics,
     entity_transition_rows,
-    flatten_state_entities,
+    align_entity_transitions,
     state_from_entity_prediction,
 )
 from game.rlearning.synthesis.state_space import CARD_TYPE_NAMES
@@ -32,30 +32,8 @@ def unmatched_target_entities(source, target):
     This intentionally mirrors source alignment in ``align_next_entities`` so
     movements represented by a shared instance ID are not treated as births.
     """
-    source_entities = flatten_state_entities(source)
-    target_entities = flatten_state_entities(target)
-    source_valid = source_entities["card_mask"].bool()
-    target_valid = target_entities["card_mask"].bool()
-
-    id_matches = (
-        source_entities["card_ids"].unsqueeze(-1)
-        == target_entities["card_ids"].unsqueeze(1)
-    ) & source_valid.unsqueeze(-1) & target_valid.unsqueeze(1)
-    same_zone = (
-        source_entities["zone_indices"].unsqueeze(-1)
-        == target_entities["zone_indices"].unsqueeze(1)
-    )
-    same_zone_matches = id_matches & same_zone
-    source_has_same_zone = same_zone_matches.any(dim=-1)
-    target_used_in_same_zone = same_zone_matches.any(dim=1)
-    cross_zone_matches = (
-        id_matches
-        & ~source_has_same_zone.unsqueeze(-1)
-        & ~target_used_in_same_zone.unsqueeze(1)
-    )
-    preferred_matches = same_zone_matches | cross_zone_matches
-    target_is_existing = preferred_matches.any(dim=1)
-    return target_entities, target_valid & ~target_is_existing
+    _, _, target_entities, unmatched = align_entity_transitions(source, target)
+    return target_entities, unmatched
 
 
 def _value_classes(values, num_classes, value_scale):
@@ -213,14 +191,17 @@ def _hungarian_minimum_assignment(cost: torch.Tensor) -> list[int]:
     return assignment
 
 
-def align_birth_slots(prediction, source, target):
+def align_birth_slots(prediction, source, target, alignment=None):
     """Match unmatched target entities to unordered predicted birth slots.
 
     If a sample has more new entities than configured slots, only the first
     ``num_birth_slots`` in stable flattened-zone order are supervised and the
     remaining count is returned as ``overflow_count`` for monitoring.
     """
-    target_entities, unmatched = unmatched_target_entities(source, target)
+    if alignment is None:
+        target_entities, unmatched = unmatched_target_entities(source, target)
+    else:
+        _, _, target_entities, unmatched = alignment
     presence = prediction["presence"]
     batch_size, num_slots = presence.shape
     device = presence.device

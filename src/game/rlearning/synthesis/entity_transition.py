@@ -103,8 +103,8 @@ def _gather_slots(values, slot_indices):
     return torch.gather(values, dim=1, index=gather_indices)
 
 
-def align_next_entities(source, target):
-    """Match next-state targets to source-card order using instance IDs."""
+def align_entity_transitions(source, target):
+    """Build reusable existing-entity and birth alignment targets."""
     source_entities = flatten_state_entities(source)
     target_entities = flatten_state_entities(target)
 
@@ -149,6 +149,12 @@ def align_next_entities(source, target):
         torch.full_like(target_zone, outside_index),
     )
     aligned_target["matched"] = matched
+    unmatched_target = target_valid & ~preferred_matches.any(dim=1)
+    return source_entities, aligned_target, target_entities, unmatched_target
+
+
+def align_next_entities(source, target):
+    source_entities, aligned_target, _, _ = align_entity_transitions(source, target)
     return source_entities, aligned_target
 
 

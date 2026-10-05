@@ -98,6 +98,7 @@ model:
     task: "text-matching"
     truncate_dim: 128
     normalize: true
+    embedding_cache_size: 3000
     trust_remote_code: true
     local_files_only: false
     lazy_load: true
