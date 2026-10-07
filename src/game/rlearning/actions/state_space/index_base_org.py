@@ -135,7 +135,6 @@ def num2subaction(room:"Base_Agent_Room",agent:"Agent",sub_action:int,select_ran
     type_act=""
 
     
-    sort_function=room.create_sort_function(agent)
     if sub_action==0:
         pass
     elif sub_action>=1 and sub_action<=10:
@@ -143,19 +142,15 @@ def num2subaction(room:"Base_Agent_Room",agent:"Agent",sub_action:int,select_ran
             type_act="opponent_landfield"
             selected_index=sub_action-1
         else:
-            opponent_battlefield=agent.opponent.battlefield
-            opponent_battlefield_sorted=sorted(enumerate(opponent_battlefield), key=lambda x: sort_function(x[1]), reverse=True)
             type_act="opponent_battlefield"
-            selected_index=opponent_battlefield_sorted[sub_action-1][0]
+            selected_index=sub_action-1
         content=f"{selected_index}"
     elif sub_action>=11 and sub_action<=20:
         if select_range in ("all_lands","your_lands"):
             type_act="self_landfield"
             selected_index=sub_action-11
         else:
-            self_battlefield=agent.battlefield
-            self_battlefield_sorted=sorted(enumerate(self_battlefield), key=lambda x: sort_function(x[1]), reverse=True)
-            selected_index=self_battlefield_sorted[sub_action-11][0]
+            selected_index=sub_action-11
             type_act="self_battlefield"
         content=f"{selected_index}"
     elif sub_action==21:
@@ -174,23 +169,18 @@ def subaction2num(room:"Base_Agent_Room",agent:"Agent",sub_content:str)->int:
     if not sub_content:
         return 0
     _,father_class,type_act,content,*_=sub_content.split("|")
-    sort_function=room.create_sort_function(agent)
     if father_class=="field":
         if not type_act:
             return 0
         if type_act=="opponent_battlefield":
-            opponent_battlefield_sorted=sorted(enumerate(agent.opponent.battlefield), key=lambda x: sort_function(x[1]), reverse=True)
             selected_index=int(content)
-            for rank,(idx,_) in enumerate(opponent_battlefield_sorted):
-                if idx==selected_index:
-                    return rank+1
+            if 0<=selected_index<min(len(agent.opponent.battlefield),10):
+                return selected_index+1
             raise ValueError(f"opponent battlefield index {selected_index} not found")
         if type_act=="self_battlefield":
-            self_battlefield_sorted=sorted(enumerate(agent.battlefield), key=lambda x: sort_function(x[1]), reverse=True)
             selected_index=int(content)
-            for rank,(idx,_) in enumerate(self_battlefield_sorted):
-                if idx==selected_index:
-                    return rank+11
+            if 0<=selected_index<min(len(agent.battlefield),10):
+                return selected_index+11
             raise ValueError(f"self battlefield index {selected_index} not found")
         if type_act=="opponent_landfield":
             selected_index=int(content)

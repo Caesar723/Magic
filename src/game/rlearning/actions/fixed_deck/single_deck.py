@@ -283,7 +283,7 @@ def create_action_mask(room:"Base_Agent_Room",agent:"Agent"):
 
 
 
-def add_action_history(agent:"Agent",batch):
+def add_history(agent:"Agent",batch):
     def append_history(agent,action:int):
         if agent.agent.config.get("new_history",False):
             if (action==1 or action==2) and action==agent.action_history[-1] and agent.config.get("history_attack",False)==False:

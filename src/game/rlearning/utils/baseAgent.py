@@ -674,7 +674,6 @@ class EmptyTrainer(BaseTrainer):
     def restore_checkpoint(self, restore_step):
         self.step = 0 if restore_step == -1 else int(restore_step)
 
-    
 
 class ModelTrainer:
 

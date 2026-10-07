@@ -37,7 +37,7 @@ class Agent_Player(Player):
     def choose_action(self,state,isTrain=False):
         batch=self.agent.choose_action([state],isTrain=isTrain)
 
-        self.room.basic_func[self.name]["add_action_history"](self,batch)
+        self.room.basic_func[self.name]["add_history"](self,batch)
         action=batch["action"]
         return action
     #     if self.agent.name=="main":
@@ -45,23 +45,23 @@ class Agent_Player(Player):
     #         #self.agent.embedding_store(state,batch)
         
     #     if action==0:
-    #         self.add_action_history(action)
+    #         self.add_history(action)
     #     elif action==1:
     #         pass
     #     elif action>=2 and action<=11:
-    #         self.add_action_history((1) if self.agent.config.get("new_history",False) else (action-1))
+    #         self.add_history((1) if self.agent.config.get("new_history",False) else (action-1))
     #     elif action>=12 and action<=21:
-    #         self.add_action_history((2) if self.agent.config.get("new_history",False) else (action-1))
+    #         self.add_history((2) if self.agent.config.get("new_history",False) else (action-1))
     #     else:
     #         if self.agent.config.get("new_history",False):
     #             history_action=3+((action-22)//33)
     #         else:
     #             history_action=22+((action-22)//33)
     #         #history_action=22+((action-22)//33)
-    #         self.add_action_history(history_action-1)
+    #         self.add_history(history_action-1)
 
         
-    # def add_action_history(self,action:int):
+    # def add_history(self,action:int):
     #     if self.agent.config.get("new_history",False):
     #         if (action==1 or action==2) and action==self.action_history[-1] and self.agent.config.get("history_attack",False)==False:
     #             return 
