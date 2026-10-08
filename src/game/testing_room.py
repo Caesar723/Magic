@@ -22,15 +22,53 @@ class Testing_Spawn_Creature(Creature):
 
     _seq: ClassVar[int] = 0
 
+    def __new__(
+        cls,
+        player,
+        power=1,
+        toughness=1,
+        flag_keywords=None,
+        current_toughness=None,
+    ):
+        if cls is Testing_Spawn_Creature:
+            cls = type(
+                "Testing_Spawn_Creature_Instance",
+                (Testing_Spawn_Creature,),
+                {
+                    "_saved_power": power,
+                    "_saved_toughness": toughness,
+                    "_saved_keywords": dict(flag_keywords or {}),
+                    "_saved_current_toughness": current_toughness,
+                }
+            )
+
+        return super().__new__(cls)
+
     def __init__(
         self,
         player,
-        power: int=1,
-        toughness: int=1,
-        flag_keywords: dict[str, bool]={},
-        current_toughness: int=None,
+        power: int = None,
+        toughness: int = None,
+        flag_keywords: dict[str, bool] = None,
+        current_toughness: int = None,
     ) -> None:
+
+        cls = type(self)
+
+        if power is None:
+            power = getattr(cls, "_saved_power", 1)
+
+        if toughness is None:
+            toughness = getattr(cls, "_saved_toughness", 1)
+
+        if flag_keywords is None:
+            flag_keywords = dict(getattr(cls, "_saved_keywords", {}))
+
+        if current_toughness is None:
+            current_toughness = getattr(cls, "_saved_current_toughness", None)
+
         super().__init__(player)
+
         Testing_Spawn_Creature._seq += 1
         n = Testing_Spawn_Creature._seq
 
@@ -47,14 +85,16 @@ class Testing_Spawn_Creature(Creature):
         self.color = "blue"
         self.type_card = "Creature — Test"
         self.rarity = "Rare"
-        feature_str=",".join([f"{key}" for key, val in flag_keywords.items() if val])
+
+        feature_str = ",".join(
+            key for key, val in flag_keywords.items() if val
+        )
         self.content = f"Spawned in Testing Lab, {feature_str}"
         self.image_path = "cards/creature/Merfolk Wayfinder/image.jpg"
 
         for key, val in flag_keywords.items():
             if val:
                 self.flag_dict[key] = True
-
 
 class Testing_Room(Studio_Room):
     """
