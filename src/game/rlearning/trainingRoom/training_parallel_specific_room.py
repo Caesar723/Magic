@@ -106,6 +106,17 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         action2num=get_class_by_name(action2num_path)
         result["action2num"]=partial(action2num,self)
 
+        add_history_path=config.get("add_history_function","game.rlearning.actions.fixed_deck.single_deck.add_history")
+        add_history=get_class_by_name(add_history_path)
+        result["add_history"]=add_history
+
+        add_opponent_history_path = config.get(
+            "add_opponent_history_function",
+            "game.rlearning.actions.fixed_deck.single_deck.add_opponent_history",
+        )
+        add_opponent_history = get_class_by_name(add_opponent_history_path)
+        result["add_opponent_history"] = add_opponent_history
+
         create_action_mask=get_class_by_name(config.get("action_mask_function","game.rlearning.actions.fixed_deck.single_deck.create_action_mask"))
         result["create_action_mask"]=partial(create_action_mask,self)
 
@@ -887,6 +898,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         # 获取state，done，计算reward
         #返回new state 和 reward 和 done
         message:str=await self.basic_func[agent.name]["num2action"](agent,action)
+        self.basic_func[agent.opponent.name]["add_opponent_history"](agent.opponent,agent,message)
         #print(message)
         username,type,content=message.split("|")
         #old_reward=self.get_reward_red(agent)

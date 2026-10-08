@@ -17,12 +17,8 @@ if TYPE_CHECKING:
 
 
 def add_history(agent:"Agent",batch):
-    if "lstm_output" in batch:
-        agent.lstm_output = (
-            batch["lstm_output"][0]
-            .detach()
-            .float()
-            .cpu()
-            .numpy()
-            .copy()
-        )
+    pass
+
+
+def add_opponent_history(agent:"Agent",opponent_agent:"Agent",message:str):
+    pass

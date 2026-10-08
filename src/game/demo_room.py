@@ -22,6 +22,7 @@ from game.type_cards.instant import Instant
 from game.type_cards.land import Land
 from game.type_cards.sorcery import Sorcery
 from game.base_agent_room import Base_Agent_Room
+from game.action_validator import validate_player_action
 from game.game_recorder import GameRecorder
 from game.game_function_tool import ORGPATH
 
@@ -85,6 +86,16 @@ class PVE_Demo_Room(Base_Agent_Room):
         }
 
 
+    async def message_receiver(self,message:str):
+        base_message=message.split("||",1)[0]
+        username,_,_=base_message.split("|",2)
+        player=self.players[username]
+        if isinstance(player,Player) and not isinstance(player,Agent):
+            valid,_=validate_player_action(self,message)
+            if valid and player.opponent.name in self.basic_func:
+                self.basic_func[player.opponent.name]["add_opponent_history"](player.opponent,player,message)
+        await super().message_receiver(message)
+
 
 
     async def process_action(self,agent:Agent,action:int)->tuple:
@@ -93,8 +104,6 @@ class PVE_Demo_Room(Base_Agent_Room):
         # 获取state，done，计算reward
         #返回new state 和 reward 和 done
         message:str=await self.basic_func[agent.name]["num2action"](agent,action)
-        print(message)
-        print(self.basic_func[agent.name]["get_reward"](agent)["reward"])
 
         await self.message_receiver(message)
 
@@ -188,7 +197,6 @@ class PVE_Demo_Room(Base_Agent_Room):
             
 
     
-
 
 
 

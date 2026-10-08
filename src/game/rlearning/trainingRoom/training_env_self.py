@@ -127,6 +127,7 @@ class Multi_Agent_Room(Base_Agent_Room):
         #返回new state 和 reward 和 done
         org_state=str(self)
         message:str=await self.basic_func[agent.name]["num2action"](agent,action)
+        self.basic_func[agent.opponent.name]["add_opponent_history"](agent.opponent,agent,message)
         username,type,content=message.split("|")
         #old_reward=self.get_reward_red(agent)
         #print(username,content,type)

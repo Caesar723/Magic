@@ -24,6 +24,9 @@ class Agent_Train(Agent_Player):
 
         self.pedding_store_task=[]
         self.action_history=[0]
+        self.opponent_history=[]
+
+        self.opponent_history_length=agent.config.get("opponent_history_length",1)
         self.action_history_length=agent.config.get("action_history_length",1)
 
         

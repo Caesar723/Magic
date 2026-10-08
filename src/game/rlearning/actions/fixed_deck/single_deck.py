@@ -307,3 +307,7 @@ def add_history(agent:"Agent",batch):
             history_action=22+((action-22)//33)
         #history_action=22+((action-22)//33)
         append_history(agent,history_action-1)
+
+
+def add_opponent_history(agent:"Agent",opponent_agent:"Agent",message:str):
+    pass

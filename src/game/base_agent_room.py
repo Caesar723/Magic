@@ -61,6 +61,13 @@ class Base_Agent_Room(Room):
         add_history=get_class_by_name(add_history_path)
         result["add_history"]=add_history
 
+        add_opponent_history_path = config.get(
+            "add_opponent_history_function",
+            "game.rlearning.actions.fixed_deck.single_deck.add_opponent_history",
+        )
+        add_opponent_history = get_class_by_name(add_opponent_history_path)
+        result["add_opponent_history"] = add_opponent_history
+
         create_action_mask=get_class_by_name(config.get("action_mask_function","game.rlearning.actions.fixed_deck.single_deck.create_action_mask"))
         result["create_action_mask"]=partial(create_action_mask,self)
 

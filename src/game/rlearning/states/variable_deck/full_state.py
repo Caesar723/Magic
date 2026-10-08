@@ -2,9 +2,17 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from game.type_cards.creature import Creature
-from game.type_cards.instant import Instant
-from game.type_cards.land import Land
-from game.type_cards.sorcery import Sorcery
+from game.action_validator import (
+    get_card_select_range,
+    validate_activate_ability,
+    validate_end_bullet,
+    validate_end_step,
+    validate_play_card,
+    validate_select_attacker,
+    validate_select_defender
+)
+
+from game.rlearning.actions.state_space.index_base import num2subaction
 from game.rlearning.states.state_space.specific_entity import color_identity
 from game.rlearning.states.state_space import specific_entity
 
@@ -15,79 +23,43 @@ if TYPE_CHECKING:
     from game.card import Card
 
 
-def select_stage(room:"Base_Agent_Room",selects,index_range,start_index,hand_card):
-    index=start_index
+def select_stage(room:"Base_Agent_Room",agent:"Agent",start_index,hand_card,select_range):
     candidate_actions=[]
-    for select_list,ind_range in zip(selects,index_range):
-        length=min(len(select_list),10)
-        for i in range(length):
-            candidate_actions.append(get_candidate_action(room,hand_card,index+i))
-        index+=ind_range
+    for sub_action in range(1,23):
+        try:
+            select_content=num2subaction(room,agent,sub_action,select_range)
+        except IndexError:
+            continue
+        valid,_=validate_play_card(room,agent,hand_card,select_content)
+        if valid:
+            candidate_actions.append(get_candidate_action(room,hand_card,start_index+sub_action))
     return candidate_actions
 
-def get_card_select_range(card):
-    instance_dict={
-        Creature:"when_enter_battlefield",
-        Instant:"card_ability",
-        Land:"when_enter_landarea",
-        Sorcery:"card_ability"
-    }
-    for cls, ability_name in instance_dict.items():
-        if isinstance(card,cls):
-            return getattr(card,ability_name).select_range
-    return ""
-
-def mask_hand(room:"Base_Agent_Room",agent:"Agent",oppo_agent:"Agent"):
+def mask_hand(room:"Base_Agent_Room",agent:"Agent"):
     candidate_actions=[]
     start_index=32
-
-    select_dict={
-        'all_roles':[oppo_agent.battlefield,agent.battlefield,[1],[1]],
-        'opponent_roles':[oppo_agent.battlefield,[],[],[1]], 
-        'your_roles':[[],agent.battlefield,[1],[]],
-        'all_creatures':[oppo_agent.battlefield,agent.battlefield,[],[]],
-        'opponent_creatures':[oppo_agent.battlefield,[],[],[]],
-        'your_creatures':[[],agent.battlefield,[],[]],
-        'all_lands':[oppo_agent.land_area,agent.land_area,[],[]],
-        'opponent_lands':[oppo_agent.land_area,[],[],[]],
-        'your_lands':[[],agent.land_area,[],[]]
+    select_ranges={
+        "all_roles","opponent_roles","your_roles","all_creatures","opponent_creatures",
+        "your_creatures","all_lands","opponent_lands","your_lands"
     }
-
-    index_range=[10,10,1,1]
-    #getattr(obj, 'my_attribute')
-    card_counter=0
-    for hand_card in agent.hand:
-        if card_counter>=10:
-            break
-
-        if room.get_flag("bullet_time"):
-            if not isinstance(hand_card,Instant) and not hand_card.get_flag("Flash"):
-                start_index+=33
-                card_counter+=1
-                continue
-        
-        if hand_card.check_can_use(agent)[0]:
-            select_range=get_card_select_range(hand_card)
-            #print(select_range)
-            if select_range in select_dict:
-                candidate_actions+=select_stage(select_dict[select_range],index_range,start_index+1,hand_card)#+1 是因为有player a card 不选择
-            elif hand_card.select_range in select_dict:
-                candidate_actions+=select_stage(select_dict[hand_card.select_range],index_range,start_index+1,hand_card)
-            else:
-
+    for hand_card in agent.hand[:10]:
+        select_range=get_card_select_range(hand_card) or getattr(hand_card,"select_range","")
+        valid,_=validate_play_card(room,agent,hand_card,"")
+        if valid:
+            if select_range in select_ranges:
+                candidate_actions+=select_stage(room,agent,start_index,hand_card,select_range)
+            elif not select_range:
                 candidate_actions.append(get_candidate_action(room,hand_card,start_index))
         start_index+=33
-        card_counter+=1
     return candidate_actions
 
-
-def mask_land_abilities(room:"Base_Agent_Room",agent:"Agent",oppo_agent:"Agent"):
+def mask_land_abilities(room:"Base_Agent_Room",agent:"Agent"):
     """Expose usable land abilities in every priority window."""
     candidate_actions=[]
-    for index, land in enumerate(agent.land_area[:10]):
-        if not land.get_flag("tap") and land.check_ability_can_be_used(agent, oppo_agent) and land.content!="":
+    for index,land in enumerate(agent.land_area[:10]):
+        valid,_=validate_activate_ability(room,agent,land,"land_area")
+        if valid:
             candidate_actions.append(get_candidate_action(room,land,22+index))
-            
     return candidate_actions
 
 
@@ -139,36 +111,23 @@ def get_candidate_action(room: "Base_Agent_Room",card:"Card",index:int):
     }
 
 def get_candidate_actions(room:"Base_Agent_Room",agent:"Agent"):
-    oppo_agent=agent.opponent
     candidate_actions=[]
-    candidate_actions+=mask_land_abilities(room,agent,oppo_agent)
-    if room.get_flag('attacker_defenders'):
-
-        candidate_actions.append({"card_info":None,"index":1,"action":None})
-        for i,creat in enumerate(agent.battlefield):
-            if i>=10:break
-            if not creat.get_flag("tap") and \
-    (not room.attacker.get_flag("flying") or (creat.get_flag("flying") or creat.get_flag("reach"))):
-                candidate_actions.append(get_candidate_action(room,creat,12+i))
-        #if agent.battlefield: mask[12:len(agent.battlefield)+12]=True
-        if agent.hand:
-            candidate_actions+=mask_hand(room,agent,oppo_agent)
-    elif room.get_flag("bullet_time"):
-        candidate_actions.append({"card_info":None,"index":1,"action":None})
-        if agent.hand:
-            candidate_actions+=mask_hand(room,agent,oppo_agent)
-    else:
-
+    valid,_=validate_end_step(room,agent)
+    if valid:
         candidate_actions.append({"card_info":None,"index":0,"action":None})
-        for i,creat in enumerate(agent.battlefield):
-            if i>=10:break
-            if (not creat.get_flag("summoning_sickness") or creat.get_flag("haste")) and\
-    not creat.get_flag("tap") and (creat.get_counter_from_dict("attack_counter")>0):
-                candidate_actions.append(get_candidate_action(room,creat,2+i))
-        #if agent.battlefield: mask[2:len(agent.battlefield)+2]=True
-        if agent.hand:
-            candidate_actions+=mask_hand(room,agent,oppo_agent)
-    #print(mask)
+    valid,_=validate_end_bullet(room,agent)
+    if valid:
+        candidate_actions.append({"card_info":None,"index":1,"action":None})
+    for index,creat in enumerate(agent.battlefield[:10]):
+        valid,_=validate_select_attacker(room,agent,creat)
+        if valid:
+            candidate_actions.append(get_candidate_action(room,creat,2+index))
+    for index,creat in enumerate(agent.battlefield[:10]):
+        valid,_=validate_select_defender(room,agent,creat)
+        if valid:
+            candidate_actions.append(get_candidate_action(room,creat,12+index))
+    candidate_actions+=mask_land_abilities(room,agent)
+    candidate_actions+=mask_hand(room,agent)
     return candidate_actions
 
 
@@ -215,7 +174,5 @@ def get_state_from_player(room, agent):
 
 def get_state(room, agent):
     state=get_state_from_player(room, agent)
-    state["oppo_state"]=get_state_from_player(room, agent.opponent)
     state["candidate_actions"]=get_candidate_actions(room,agent)
     return state
-

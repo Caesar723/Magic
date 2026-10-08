@@ -29,6 +29,9 @@ class Agent_Player(Player):
         self.action_history=[0]
         self.action_history_length=self.config.get("action_history_length",1)
 
+        self.opponent_history = [] # 敌方动作历史
+        self.opponent_history_length=self.config.get("opponent_history_length",1)
+
         
         #model_class=get_class_by_name(self.config["trainer"])
         self.agent:"BaseTrainer"=get_model(self.config)
@@ -74,6 +77,10 @@ class Agent_Player(Player):
 
     # def clean_action_history(self):
     #     self.action_history=[0]
+
+    def get_opponent_history(self):
+        return list(self.opponent_history)
+
     
     def get_flag(self,flag_name:str):
         if flag_name=="game_over":

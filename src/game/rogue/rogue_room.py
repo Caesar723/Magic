@@ -22,6 +22,7 @@ from game.type_cards.instant import Instant
 from game.type_cards.land import Land
 from game.type_cards.sorcery import Sorcery
 from game.base_agent_room import Base_Agent_Room
+from game.action_validator import validate_player_action
 from game.game_recorder import GameRecorder
 from game.game_function_tool import ORGPATH
 from game.rlearning.utils.model import get_class_by_name
@@ -92,9 +93,21 @@ class Rogue_Room(Base_Agent_Room):
             "Agent1":GameRecorder(self.player_1,self),
             players[0][1]:GameRecorder(self.player_2,self)
         }
+        self.basic_func = {
+            "Agent1": self.initinal_function(self.player_1.config),
+        }
         print(self.game_recorder,"test")
 
 
+    async def message_receiver(self,message:str):
+        base_message=message.split("||",1)[0]
+        username,_,_=base_message.split("|",2)
+        player=self.players[username]
+        if isinstance(player,Player) and not isinstance(player,Agent):
+            valid,_=validate_player_action(self,message)
+            if valid and player.opponent.name in self.basic_func:
+                self.basic_func[player.opponent.name]["add_opponent_history"](player.opponent,player,message)
+        await super().message_receiver(message)
 
 
     async def process_action(self,agent:Agent,action:int)->tuple:
@@ -102,9 +115,8 @@ class Rogue_Room(Base_Agent_Room):
         #如果是攻击的action，给敌方agent发送动作请求，自己挂起再一次，直到地方action动作做好发送信息给自己，自己结束挂起，计算state
         # 获取state，done，计算reward
         #返回new state 和 reward 和 done
-        message:str=await self.num2action(agent,action)
-        print(message)
-        print(self)
+        message:str=await self.basic_func[agent.name]["num2action"](agent,action)
+
         await self.message_receiver(message)
 
         
@@ -137,8 +149,8 @@ class Rogue_Room(Base_Agent_Room):
     async def ask_agent_do_act(self):
         await asyncio.sleep(1)
         agent:Agent=self.player_1
-        state=self.get_new_state(agent)
-        mask=self.create_action_mask(agent)
+        state=self.basic_func[agent.name]["get_state"](agent)
+        mask=self.basic_func[agent.name]["create_action_mask"](agent)
         state["mask"]=mask
         print("state get")
         action=agent.choose_action(state,isTrain=False)
@@ -202,8 +214,6 @@ class Rogue_Room(Base_Agent_Room):
             
 
     
-
-
 
 
 
