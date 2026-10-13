@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 import numpy as np
-
+from copy import deepcopy
 from game.type_cards.creature import Creature
 from game.action_validator import (
     get_card_select_range,
@@ -13,7 +13,6 @@ from game.action_validator import (
 )
 
 from game.rlearning.actions.state_space.index_base import num2subaction
-from game.rlearning.states.state_space.specific_entity import color_identity
 from game.rlearning.states.state_space import specific_entity
 
 
@@ -98,7 +97,7 @@ def get_candidate_action(room: "Base_Agent_Room",card:"Card",index:int):
         "description": card.content,
         "special_type": np.asarray(special_type, dtype=np.float32),
         "mana_cost": mana_cost,
-        "color_identity": color_identity(card.mana_cost, card.color, card.name),
+        "color_identity": specific_entity.color_identity(card.mana_cost, card.color, card.name),
         "attack": attack,
         "defend": defend,
         "has_state": has_state,
@@ -131,48 +130,102 @@ def get_candidate_actions(room:"Base_Agent_Room",agent:"Agent"):
     return candidate_actions
 
 
-def _card_info(cards, size):
-    fields = {
-        "card_names": "name",
-        "card_descriptions": "content",
-        "card_mana_costs": "mana_cost",
-        "card_colors": "color",
+
+def _zone_cards(room:"Base_Agent_Room",agent:"Agent",include_library:bool):
+    opponent=agent.opponent
+    card_zones={
+        "hand":(agent.hand,10),
+        "graveyard":(agent.graveyard,40),
+        "stack_cards":([item["card"] for item in room.stack],10)
     }
-    result = {name: [""] * size for name in fields}
-    for index, card in enumerate(cards[:size]):
-        for field, attribute in fields.items():
-            result[field][index] = str(getattr(card, attribute, ""))
+    if include_library:
+        card_zones["library"]=(agent.library,40)
+
     return {
-        name: np.asarray(values, dtype=object)
-        for name, values in result.items()
+        "card_zones":card_zones,
+        "board_zones":{
+            "self_board":(agent.battlefield,10),
+            "oppo_board":(opponent.battlefield,10),
+            "self_land":(agent.land_area,20),
+            "oppo_land":(opponent.land_area,20)
+        }
     }
 
-def get_state_from_player(room, agent):
-    state = specific_entity.get_state(room, agent)
-    opponent = agent.opponent
-    del state["action_history"]#action history is not used in the state space
-    zones = {
-        "card_zones": {
-            "hand": (agent.hand, 10),
-            "library": (agent.library, 40),
-            "graveyard": (agent.graveyard, 40),
-            "stack_cards": ([item["card"] for item in room.stack], 10),
-        },
-        "board_zones": {
-            "self_board": (agent.battlefield, 10),
-            "oppo_board": (opponent.battlefield, 10),
-            "self_land": (agent.land_area, 20),
-            "oppo_land": (opponent.land_area, 20),
-        },
+
+def _card_info(cards,size):
+    fields={
+        "card_names":"name",
+        "card_descriptions":"content",
+        "card_mana_costs":"mana_cost",
+        "card_colors":"color"
     }
-    for collection, collection_zones in zones.items():
-        for zone, (cards, size) in collection_zones.items():
-            state[collection][zone].update(_card_info(cards, size))
-    
+    result={field:[""]*size for field in fields}
+
+    for index,card in enumerate(cards[:size]):
+        for field,attribute in fields.items():
+            result[field][index]=str(getattr(card,attribute,""))
+
+    return {
+        field:np.asarray(values,dtype=object)
+        for field,values in result.items()
+    }
+
+
+def _base_stats(cards,size):
+    base_atks=np.zeros(size,dtype=np.float32)
+    base_hps=np.zeros(size,dtype=np.float32)
+
+    for index,card in enumerate(cards[:size]):
+        if isinstance(card,Creature):
+            base_atks[index]=max(0,min(20,card.power))/20
+            base_hps[index]=max(0,min(20,card.live))/20
+
+    return {
+        "card_base_atks":base_atks,
+        "card_base_hps":base_hps
+    }
+
+
+def _add_base_stats(room:"Base_Agent_Room",agent:"Agent",state:dict):
+    zones=_zone_cards(room,agent,include_library=False)
+    for collection,collection_zones in zones.items():
+        for zone_name,(cards,size) in collection_zones.items():
+            state[collection][zone_name].update(_base_stats(cards,size))
+def _remove_rl_text_fields(state:dict):
+    text_fields=("card_names","card_descriptions","card_mana_costs","card_colors")
+    for collection in ("card_zones","board_zones"):
+        for zone in state[collection].values():
+            for field in text_fields:
+                zone.pop(field,None)
+
+def get_state_from_player(room:"Base_Agent_Room",agent:"Agent"):
+    state=specific_entity.get_state(room,agent)
+    state.pop("action_history",None)
+
+    zones=_zone_cards(room,agent,include_library=True)
+    for collection,collection_zones in zones.items():
+        for zone_name,(cards,size) in collection_zones.items():
+            state[collection][zone_name].update(_card_info(cards,size))
     return state
 
 
-def get_state(room, agent):
-    state=get_state_from_player(room, agent)
+
+def get_current_state(room:"Base_Agent_Room",agent:"Agent"):
+    action_embedding_state=get_state_from_player(room,agent)
+
+    state=deepcopy(action_embedding_state)
+    state["card_zones"].pop("library",None)
+    _add_base_stats(room,agent,state)
+    _remove_rl_text_fields(state)
+
     state["candidate_actions"]=get_candidate_actions(room,agent)
+    state["action_embedding_state"]=action_embedding_state
+    return state
+
+def get_state(room:"Base_Agent_Room",agent:"Agent"):
+    state=get_current_state(room,agent)
+    state["history"]=[
+        item for item in agent.get_action_history()
+        if isinstance(item,dict)
+    ]
     return state
