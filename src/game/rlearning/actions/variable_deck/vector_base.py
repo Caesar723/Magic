@@ -51,8 +51,8 @@ def add_history(agent:"Agent",batch):
         "action": action,
         "candidate_slot": first_int(batch["candidate_slot"]),
         "planner": first_numpy(batch["selected_planner"]),
-        "mean_q": first_numpy(batch["selected_mean"]),
-        "std_q": first_numpy(batch["selected_std"]),
+        "mean_p": first_numpy(batch["selected_mean"]),
+        "std_p": first_numpy(batch["selected_std"]),
     }
 
     max_seq_len = agent.config.get("max_seq_len", agent.action_history_length)

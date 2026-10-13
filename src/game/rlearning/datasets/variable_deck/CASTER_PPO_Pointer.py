@@ -188,23 +188,23 @@ def build_sequence(state,max_seq_len,planner_dim,q_dim):
     length=len(frames)
 
     planner=np.zeros((length,4,planner_dim),dtype=np.float32)
-    mean_q=np.zeros((length,q_dim),dtype=np.float32)
-    std_q=np.zeros((length,q_dim),dtype=np.float32)
+    mean_p=np.zeros((length,q_dim),dtype=np.float32)
+    std_p=np.zeros((length,q_dim),dtype=np.float32)
     six_available=np.zeros(length,dtype=np.bool_)
 
     for index,record in enumerate(action_records):
         if record is None:
             continue
         planner[index]=record["planner"]
-        mean_q[index]=record["mean_q"]
-        std_q[index]=record["std_q"]
+        mean_p[index]=record["mean_p"]
+        std_p[index]=record["std_p"]
         six_available[index]=True
 
     return {
         "frames":frames,
         "planner":planner,
-        "mean_q":mean_q,
-        "std_q":std_q,
+        "mean_p":mean_p,
+        "std_p":std_p,
         "six_available":six_available,
         "length":length
     }
@@ -298,19 +298,19 @@ def pad_temporal(sequences):
     batch_size=len(sequences)
     time_steps=max(item["length"] for item in sequences)
     planner_dim=sequences[0]["planner"].shape[-1]
-    q_dim=sequences[0]["mean_q"].shape[-1]
+    q_dim=sequences[0]["mean_p"].shape[-1]
 
     planner=np.zeros((batch_size,time_steps,4,planner_dim),dtype=np.float32)
-    mean_q=np.zeros((batch_size,time_steps,q_dim),dtype=np.float32)
-    std_q=np.zeros((batch_size,time_steps,q_dim),dtype=np.float32)
+    mean_p=np.zeros((batch_size,time_steps,q_dim),dtype=np.float32)
+    std_p=np.zeros((batch_size,time_steps,q_dim),dtype=np.float32)
     six_available=np.zeros((batch_size,time_steps),dtype=np.bool_)
     lengths=np.asarray([item["length"] for item in sequences],dtype=np.int64)
 
     for batch_index,item in enumerate(sequences):
         length=item["length"]
         planner[batch_index,:length]=item["planner"]
-        mean_q[batch_index,:length]=item["mean_q"]
-        std_q[batch_index,:length]=item["std_q"]
+        mean_p[batch_index,:length]=item["mean_p"]
+        std_p[batch_index,:length]=item["std_p"]
         six_available[batch_index,:length]=item["six_available"]
 
     return {
@@ -322,8 +322,8 @@ def pad_temporal(sequences):
         ),
         "candidates":pad_candidates(sequences,time_steps),
         "planner":torch.from_numpy(planner),
-        "mean_q":torch.from_numpy(mean_q),
-        "std_q":torch.from_numpy(std_q),
+        "mean_p":torch.from_numpy(mean_p),
+        "std_p":torch.from_numpy(std_p),
         "six_available":torch.from_numpy(six_available),
         "lengths":torch.from_numpy(lengths)
     }

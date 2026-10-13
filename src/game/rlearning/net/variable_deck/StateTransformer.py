@@ -90,17 +90,17 @@ class ActionTokenAdapter(nn.Module):
 
         self.norm = nn.LayerNorm(self.embed_dim)
 
-    def forward(self,planner,mean_q,std_q,available):
+    def forward(self,planner,mean_p,std_p,available):
 
         available = available.to(dtype=torch.bool,device=planner.device)
 
         planner = planner.masked_fill(~available[..., None, None], 0.0)
-        mean_q = mean_q.masked_fill(~available[..., None], 0.0)
-        std_q = std_q.masked_fill(~available[..., None], 0.0)
+        mean_p = mean_p.masked_fill(~available[..., None], 0.0)
+        std_p = std_p.masked_fill(~available[..., None], 0.0)
 
         p = self.planner_proj(planner)# [B, T, 4, D]
-        mu = self.mean_proj(mean_q).unsqueeze(2) # [B, T, 1, D]
-        std = self.std_proj(std_q).unsqueeze(2)# [B, T, 1, D]
+        mu = self.mean_proj(mean_p).unsqueeze(2) # [B, T, 1, D]
+        std = self.std_proj(std_p).unsqueeze(2)# [B, T, 1, D]
 
         tokens = torch.cat([p,mu,std],dim=2)# [B, T, 6, D]
 
@@ -141,6 +141,7 @@ class StateTransformer(nn.Module):
         self.num_scalars = config["num_scalars"]
         self.max_seq_len = config["max_seq_len"]
         self.candidate_dim = config["candidate_dim"]
+        self.entity_dim = config["entity_dim"]
 
         self.cls_token = nn.Parameter(torch.randn(1, 1, self.embed_dim) * 0.02)
 
@@ -170,7 +171,7 @@ class StateTransformer(nn.Module):
 
     def forward(
         self,global_scalars,entity_features,candidate_features,
-        planner,mean_q,std_q,
+        planner,mean_p,std_p,
         lengths,six_available,
         entity_mask=None,candidate_mask=None,
     ):
@@ -209,8 +210,8 @@ class StateTransformer(nn.Module):
         candidates = self.select_time(candidate_features, flat_time_mask)#[B,T,C,D] → [B*T,C,D] → [N,C,D]
 
         planner = self.select_time(planner, flat_time_mask)#[B,T,4,D] → [B*T,4,D] → [N,4,D]
-        mean_q = self.select_time(mean_q, flat_time_mask)#[B,T,D] → [B*T,D] → [N,D]
-        std_q = self.select_time(std_q, flat_time_mask)#[B,T,D] → [B*T,D] → [N,D]
+        mean_p = self.select_time(mean_p, flat_time_mask)#[B,T,D] → [B*T,D] → [N,D]
+        std_p = self.select_time(std_p, flat_time_mask)#[B,T,D] → [B*T,D] → [N,D]
 
         action_available = self.select_time(six_available, flat_time_mask) # [N]
         entity_mask_valid = self.select_time(entity_mask, flat_time_mask) # [N,E]
@@ -221,7 +222,7 @@ class StateTransformer(nn.Module):
         cls = self.cls_token.expand(num_valid, -1, -1)
         cls_mask = torch.ones(num_valid, 1, dtype=torch.bool, device=device)
 
-        action_tokens, action_mask = self.action_token_adapter(planner, mean_q, std_q, action_available)
+        action_tokens, action_mask = self.action_token_adapter(planner, mean_p, std_p, action_available)
 
         scalar_tokens = self.scalar_norm(
             self.scalar_proj(scalars.unsqueeze(-1)) 
@@ -245,7 +246,7 @@ class StateTransformer(nn.Module):
             [cls, action_tokens, scalar_tokens, entity_tokens], dim=1
         )
         state_mask = torch.cat(
-            [cls_mask, action_mask, scalar_mask, entity_mask_valid, candidate_mask_valid], dim=1
+            [cls_mask, action_mask, scalar_mask, entity_mask_valid], dim=1
         )
 
         fused_tokens = self.state_candidate_fusion_block(
@@ -309,10 +310,10 @@ class ActionPredictionBlock(nn.Module):
             nn.LayerNorm(d),
         )
 
-    def forward(self, planner, mean_q, std_q):
+    def forward(self, planner, mean_p, std_p):
         planner_tokens = self.planner_proj(planner)  # [N,4,D]
-        mean_token = self.mean_proj(mean_q)          # [N,D]
-        std_token = self.std_proj(std_q)             # [N,D]
+        mean_token = self.mean_proj(mean_p)          # [N,D]
+        std_token = self.std_proj(std_p)             # [N,D]
 
         features = torch.cat([
             planner_tokens.flatten(start_dim=1),  # [N,4*D]
