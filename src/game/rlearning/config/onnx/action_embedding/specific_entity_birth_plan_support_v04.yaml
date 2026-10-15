@@ -1,7 +1,7 @@
 training_config_path: game/rlearning/config/agents/specific/specific_entity_birth_plan_support_v04.yaml
 restore_step: 194806
 
-wrapper_class_name: game.rlearning.onnx_export.wrappers.state_space.SpecificEntityBirthPlanSupportV04.PriorActionEmbedderWrapper
+wrapper_class_name: game.rlearning.onnx_export.wrappers.action_embedding.SpecificEntityBirthPlanSupportV04.PriorActionEmbedderWrapper
 
 model_names:
   - StateTransformerEncoder
@@ -12,7 +12,7 @@ model_names:
   - PriorEncoder
 
 checkpoint_group: g
-output_path: checkpoints/onnx/specific_entity_birth_plan_support_v04_step_194806.onnx
+output_path: checkpoints/onnx/action_embedding/specific_entity_birth_plan_support_v04_step_194806.onnx
 
 export:
   device: cpu

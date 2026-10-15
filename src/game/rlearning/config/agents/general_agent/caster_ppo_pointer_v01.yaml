@@ -1,0 +1,156 @@
+###########################
+# Common
+###########################
+
+log_dir: "logs/general_agent/caster_ppo_pointer_v01"
+restore_step: 0
+seed: 1234
+
+cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Creature+3|Ironclad Crusader+Creature+2|Sunlit Priestess+Creature+3|Apocalypse Riders+Sorcery+4|Call to Unity+Sorcery+4|Angelic Blessing+Sorcery+2|Righteous Conviction+Sorcery+2|Spectral Embrace+Sorcery+3|Celestial Convergence+Instant+1|Avenging Light+Instant+1|Plains+Land+15"
+
+max_store: 1024
+max_seq_len: 10
+planner_dim: 128
+q_dim: 128
+
+###########################
+# Dataset and environment
+###########################
+
+dataset_class_name: "game.rlearning.datasets.variable_deck.CASTER_PPO_Pointer.PPOAgentDataset"
+
+dataloader:
+  batch_size: 32
+  num_workers: 0
+  shuffle: true
+  pin_memory: true
+  persistent_workers: false
+
+dataset_multiple: 4
+
+trainer: "game.rlearning.module.variable_deck.CASTER_PPO_Pointer.CASTER_PPO_Pointer"
+reward_function: "game.rlearning.rewards.win_base.get_reward"
+state_function: "game.rlearning.states.variable_deck.full_state.get_state"
+action_transform_function: "game.rlearning.actions.variable_deck.vector_base.num2action"
+action_inverse_transform_function: "game.rlearning.actions.variable_deck.vector_base.action2num"
+action_mask_function: "game.rlearning.actions.variable_deck.vector_base.create_action_mask"
+add_history_function: "game.rlearning.actions.variable_deck.vector_base.add_history"
+add_opponent_history_function: "game.rlearning.actions.variable_deck.vector_base.add_opponent_history"
+
+###########################
+# Frozen pretrained modules
+###########################
+
+extra:
+  onnx:
+    providers:
+      - CUDAExecutionProvider
+    cuda_device_from_rank: true
+
+    action_embedding:
+      path: "checkpoints/onnx/action_embedding/specific_entity_birth_plan_support_v04_step_194806.onnx"
+
+    card_embedding:
+      path: "checkpoints/onnx/card_embedding/specific_entity_birth_plan_support_v04_step_194806.onnx"
+
+###########################
+# PPO
+###########################
+
+ppo:
+  gamma: 0.99
+  lambd: 0.95
+  clip_para: 0.2
+  clip_value_advantage: 50.0
+
+w_act_loss: 1.0
+w_val_loss: 0.5
+w_entropy_loss: 0.01
+
+###########################
+# Optimizer
+###########################
+
+optimizer:
+  learning_rate: 2.0e-4
+  betas: [0.8, 0.99]
+  eps: 1.0e-9
+  weight_decay: 1.0e-2
+  grad_clip_thresh: 1.0
+  n_warmup_steps: 0
+
+scheduler:
+  step_size: 200
+  gamma: 0.998
+
+reset_epoch: false
+reset_learning_rate: false
+moving_average_beta: 0
+
+total_step: 300000
+log_step: 20
+eval_step: 2000
+synthesis_step: 2000
+synthesis_items: 20
+save_step: 2000
+epochs: 5
+n_epoch: 10
+
+###########################
+# Trainable PyTorch models
+###########################
+
+model:
+
+  TextEncoder:
+    class_name: "game.rlearning.net.state_space.jina_text_encoder.JinaTextEncoder"
+    model_name: "jinaai/jina-embeddings-v5-text-small"
+    local_model_path: "models/jina-embeddings-v5-text-small"
+    cache_dir: "models"
+    task: "text-matching"
+    truncate_dim: 128
+    normalize: true
+    embedding_cache_size: 3000
+    trust_remote_code: true
+    local_files_only: false
+    lazy_load: true
+
+  CandidateEncoder:
+    class_name: "game.rlearning.net.variable_deck.StateTransformer.ActionPredictionBlock"
+    embed_dim: 128
+    planner_dim: 128
+    q_dim: 128
+    candidate_hidden_dim: 256
+    dropout: 0.1
+
+  StateTransformer:
+    class_name: "game.rlearning.net.variable_deck.StateTransformer.StateTransformer"
+    embed_dim: 128
+    entity_dim: 133
+    candidate_dim: 128
+    planner_dim: 128
+    q_dim: 128
+    num_scalars: 8
+    max_seq_len: 10
+    num_heads: 4
+    num_layers: 2
+    ffn_dim: 512
+    dropout: 0.1
+    activation: "gelu"
+
+  TemporalBlock:
+    class_name: "game.rlearning.net.variable_deck.TemporalBlock.LSTMBlock"
+    input_dim: 128
+    hidden_dim: 256
+    max_seq_len: 10
+
+  Actor:
+    class_name: "game.rlearning.net.variable_deck.PPOActorCritic.Actor"
+    actor_dim: 256
+    candidate_dim: 128
+    pointer_dim: 128
+
+  Critic:
+    class_name: "game.rlearning.net.variable_deck.PPOActorCritic.Critic"
+    critic_dim: 256
+    critic_hidden_dim: 256

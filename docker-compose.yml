@@ -47,6 +47,15 @@ services:
       - data_volume_cache:/app/src/user_cache
       - data_volume:/app/src/user_data
 
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: magic-cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?Tunnel token is required}
+
 volumes:
   db_data:
   data_volume_cache:

@@ -1,0 +1,18 @@
+training_config_path: game/rlearning/config/agents/specific/specific_entity_birth_plan_support_v04.yaml
+restore_step: 194806
+
+wrapper_class_name: game.rlearning.onnx_export.wrappers.card_embedding.SpecificEntityBirthPlanSupportV04.CardEmbeddingWrapper
+
+model_names:
+  - CardStateEncoder
+  - CardFusion
+
+checkpoint_group: g
+output_path: checkpoints/onnx/card_embedding/specific_entity_birth_plan_support_v04_step_194806.onnx
+
+export:
+  device: cpu
+  opset_version: 18
+  verify: true
+  dynamic_batch: true
+  dynamic_candidates: true
