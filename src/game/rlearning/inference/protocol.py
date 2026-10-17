@@ -17,10 +17,10 @@ class InferenceRequest:
 
 @dataclass
 class InferenceResponse:
-    request_id: int
-    action: int
-    policy_version: RestoreStep
-    error: Optional[str] = None
+    request_id:int
+    result:dict[str,Any]
+    policy_version:RestoreStep
+    error:Optional[str]=None
 
 
 @dataclass
@@ -28,3 +28,4 @@ class PolicyUpdate:
     policy_id: str
     config_path: str
     restore_step: RestoreStep
+

@@ -285,38 +285,40 @@ class StateTransformer(nn.Module):
 
 
 class ActionPredictionBlock(nn.Module):
-    def __init__(self, config):
+    def __init__(self,config):
         super().__init__()
+        d=config["embed_dim"]
+        hidden_dim=config.get("candidate_hidden_dim",d*2)
+        dropout=config.get("dropout",0.1)
 
-        d = config["embed_dim"]
-        planner_dim = config["planner_dim"]
-        q_dim = config["q_dim"]
-        hidden_dim = config.get("candidate_hidden_dim", d * 2)
-        dropout = config.get("dropout", 0.1)
+        self.planner_proj=nn.Linear(config["planner_dim"],d)
+        self.mean_proj=nn.Linear(config["q_dim"],d)
+        self.std_proj=nn.Linear(config["q_dim"],d)
 
-        self.planner_proj = nn.Linear(planner_dim, d)
-        self.mean_proj = nn.Linear(q_dim, d)
-        self.std_proj = nn.Linear(q_dim, d)
-
-        self.input_norm = nn.LayerNorm(6 * d)
-
-        self.mlp = nn.Sequential(
-            nn.Linear(6 * d, hidden_dim),
+        self.input_norm=nn.LayerNorm(6*d)
+        self.mlp=nn.Sequential(
+            nn.Linear(6*d,hidden_dim),
             nn.GELU(),
             nn.Dropout(dropout),
-            nn.Linear(hidden_dim, d),
-            nn.LayerNorm(d),
+            nn.Linear(hidden_dim,d),
+            nn.LayerNorm(d)
         )
 
-    def forward(self, planner, mean_p, std_p):
-        planner_tokens = self.planner_proj(planner)  # [N,4,D]
-        mean_token = self.mean_proj(mean_p)          # [N,D]
-        std_token = self.std_proj(std_p)             # [N,D]
+        self.special_action_embedding=nn.Embedding(2,d)
+        self.special_action_norm=nn.LayerNorm(d)
 
-        features = torch.cat([
-            planner_tokens.flatten(start_dim=1),  # [N,4*D]
-            mean_token,                           # [N,D]
-            std_token,                            # [N,D]
-        ], dim=-1)  # [N,6*D]
+    def forward(self,planner,mean_p,std_p,special_action_ids):
+        planner_features=self.planner_proj(planner).flatten(start_dim=1)
+        mean_features=self.mean_proj(mean_p)
+        std_features=self.std_proj(std_p)
 
-        return self.mlp(self.input_norm(features))  # [N,D]
+        features=torch.cat([planner_features,mean_features,std_features],dim=-1)
+        normal_features=self.mlp(self.input_norm(features))
+
+
+        special_action_ids=special_action_ids.to(device=planner.device,dtype=torch.long)
+        special_mask=(special_action_ids==0)|(special_action_ids==1)
+        special_features=self.special_action_embedding(special_action_ids.clamp(0,1))
+        special_features=self.special_action_norm(special_features)
+
+        return torch.where(special_mask.unsqueeze(-1),special_features,normal_features)

@@ -4,11 +4,9 @@ import time
 import traceback
 from collections import OrderedDict
 
-import numpy as np
 import torch
 
 from game.rlearning.inference.protocol import InferenceResponse, PolicyUpdate
-from game.rlearning.utils.data import batch_to_cuda
 from game.rlearning.utils.file import read_yaml
 from game.rlearning.utils.model import get_class_by_name
 
@@ -62,29 +60,21 @@ class BatchedInferenceServer:
                 self._load_policy(command.config_path, command.restore_step, force=True)
 
     @torch.no_grad()
-    def _infer_group(self, requests):
-        first = requests[0]
-        trainer = self._load_policy(first.config_path, first.restore_step)
-        samples = [trainer.dataset.get_sample_preprocess(request.state) for request in requests]
-        batch = trainer.dataset.collate_state(samples)
-        batch = batch_to_cuda(batch, trainer.rank)
-        for model in trainer.models.values():
-            model.eval()
-        batch = trainer.predict(batch, trainer.models, False, trainer.step, trainer.epoch)
-        scores = batch["actions"]
-        masks = torch.as_tensor(
-            np.concatenate([request.state["mask"] for request in requests], axis=0),
-            dtype=torch.bool,
-            device=scores.device,
-        )
-        scores = scores.masked_fill(~masks, 0)
-        actions = torch.distributions.Categorical(scores).sample().detach().cpu().tolist()
-        return actions, first.restore_step
+    def _infer_group(self,requests):
+        first=requests[0]
+        trainer=self._load_policy(first.config_path,first.restore_step)
+        states=[request.state for request in requests]
+        results=trainer.inference(states,isTrain=False)
+        return results,first.restore_step
 
-    def _respond_error(self, request, error: str):
-        self.communication.response_queues[request.worker_id].put(
-            InferenceResponse(request.request_id, 0, request.restore_step, error)
+    def _respond_error(self,request,error):
+        response=InferenceResponse(
+            request_id=request.request_id,
+            result={},
+            policy_version=request.restore_step,
+            error=error
         )
+        self.communication.response_queues[request.worker_id].put(response)
 
     def run(self):
         while self.running:
@@ -117,15 +107,22 @@ class BatchedInferenceServer:
                 groups.setdefault(key, []).append(request)
             for group in groups.values():
                 try:
-                    actions, version = self._infer_group(group)
-                    for request, action in zip(group, actions):
-                        self.communication.response_queues[request.worker_id].put(
-                            InferenceResponse(request.request_id, action, version)
+                    results,version=self._infer_group(group)
+
+                    if len(results)!=len(group):
+                        raise RuntimeError(f"inference returned {len(results)} results for {len(group)} requests")
+
+                    for request,result in zip(group,results):
+                        response=InferenceResponse(
+                            request_id=request.request_id,
+                            result=result,
+                            policy_version=version
                         )
+                        self.communication.response_queues[request.worker_id].put(response)
                 except Exception:
-                    error = traceback.format_exc()
+                    error=traceback.format_exc()
                     for request in group:
-                        self._respond_error(request, error)
+                        self._respond_error(request,error)
 
 
 def inference_server_process(communication, config: dict):

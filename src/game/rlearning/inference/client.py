@@ -41,4 +41,6 @@ class InferenceClient:
                 )
             if response.error:
                 raise RuntimeError(f"inference failed for {self.policy_id}: {response.error}")
-            return {"action": response.action, "policy_version": response.policy_version}
+            result=dict(response.result)
+            result["policy_version"]=response.policy_version
+            return result

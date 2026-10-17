@@ -52,6 +52,7 @@ enable_bullet_response: true
 max_bullet_actions: 32
 
 max_store: 1024
+preprocess_batch_size: 64
 max_seq_len: 10
 planner_dim: 128
 q_dim: 128

@@ -7,13 +7,16 @@ import torch.nn.functional as F
 from game.game_function_tool import ORGPATH
 from game.rlearning.onnx_export.torch_session import TorchONNXSession
 from game.rlearning.utils.baseAgent import BaseTrainer
-
+from game.rlearning.utils.data import batch_to_cuda,detach_cuda,to_cpu
 
 
 class CASTER_PPO_Pointer(BaseTrainer):
     def __init__(self, config,restore_step, rank=0, n_gpus=1,name="main"):
         super().__init__(config,restore_step, rank, n_gpus,name)
 
+        self.embed_dim=config["model"]["CandidateEncoder"]["embed_dim"]
+        self.planner_dim=config["planner_dim"]
+        self.q_dim=config["q_dim"]
         self.rl_zone_paths=(
             ("card_zones","hand"),
             ("card_zones","graveyard"),
@@ -53,48 +56,43 @@ class CASTER_PPO_Pointer(BaseTrainer):
                 config["providers"]
             )
         }
-    def _forward(self, batch, models, isTrain, step, epoch):
+    def _forward(self,batch,models,isTrain,step,epoch):
         batch=self.predict(batch,models,isTrain,step,epoch)
-        total_loss=0
-
         loss={}
+        total_loss=batch["value"].new_zeros(())
 
         if self.config.get("w_val_loss",0)>0:
-            val_loss=F.mse_loss(batch["rewards_adv"].detach(),batch["value"])
+            val_loss=F.mse_loss(batch["value"],batch["value_target"].detach())
             total_loss+=self.config["w_val_loss"]*val_loss
             loss["val_loss"]=val_loss
 
+        log_ratio=batch["new_prob_log"]-batch["old_prob_log"].detach()
+        ratio=torch.exp(log_ratio)
+
         if self.config.get("w_act_loss",0)>0:
-            
-            rate=torch.exp(batch["new_prob_log"]-batch["old_prob_log"].detach()).unsqueeze(1)
-
-            adv = batch["advantage"].detach()
-            surr1=rate*adv
-            surr2=torch.clamp(rate,1-self.config["ppo"]["clip_para"],1+self.config["ppo"]["clip_para"])*adv
-            
-            act_loss=-torch.min(surr1,surr2).squeeze(1)#-0.01*batch["entropy"]
-            act_loss=act_loss.mean()
-
+            advantage=batch["advantage"].detach()
+            surr1=ratio*advantage
+            surr2=torch.clamp(
+                ratio,
+                1-self.config["ppo"]["clip_para"],
+                1+self.config["ppo"]["clip_para"]
+            )*advantage
+            act_loss=-torch.min(surr1,surr2).mean()
             total_loss+=self.config["w_act_loss"]*act_loss
             loss["act_loss"]=act_loss
 
         if self.config.get("w_kl_loss",0)>0:
-            old_dist=torch.distributions.Categorical(batch["old_actions"])
-            kl_per_state = torch.distributions.kl.kl_divergence(old_dist, batch["dist"])
-            #print(kl_per_state,kl_per_state.shape)
-            kl_loss=kl_per_state.mean()
+            kl_loss=((ratio-1)-log_ratio).mean()
             total_loss+=self.config["w_kl_loss"]*kl_loss
             loss["kl_loss"]=kl_loss
 
         if self.config.get("w_entropy_loss",0)>0:
-
-            entropy_loss=-batch["entropy"]
-            entropy_loss=entropy_loss.mean()
+            entropy_loss=-batch["entropy"].mean()
             total_loss+=self.config["w_entropy_loss"]*entropy_loss
             loss["entropy_loss"]=entropy_loss
 
-        
-        return batch, loss
+        loss["total_loss"]=total_loss
+        return loss
 
 
     @staticmethod
@@ -338,3 +336,27 @@ class CASTER_PPO_Pointer(BaseTrainer):
             batch["action"]=environment_action.item() if batch_size==1 else environment_action
 
         return batch
+
+    @torch.no_grad()
+    def choose_action(self,batch,extra_keys=None,isTrain=False):
+        extra_keys=extra_keys or []
+        models=self.models
+
+        for model in models.values():
+            model.train() if isTrain else model.eval()
+
+        batch=[self.dataset.get_sample_preprocess(b,extra_keys) for b in batch]
+
+        batch=self.dataset.collate_state(batch,extra_keys)
+        batch=batch_to_cuda(batch,self.rank)
+        return self.predict(batch,models,isTrain,self.step,self.epoch)
+
+    def build_inference_result(self,batch,index):
+        action=batch["environment_action"][index]
+        return {
+            "action":int(action.detach().cpu().item()),
+            "candidate_slot":batch["candidate_slot"][index:index+1].detach().cpu().numpy(),
+            "selected_planner":batch["selected_planner"][index:index+1].detach().cpu().numpy(),
+            "selected_mean":batch["selected_mean"][index:index+1].detach().cpu().numpy(),
+            "selected_std":batch["selected_std"][index:index+1].detach().cpu().numpy()
+        }

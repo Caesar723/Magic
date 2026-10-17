@@ -388,53 +388,44 @@ class PPOAgentDataset(BaseDataset):
 
     @torch.no_grad()
     def data_preprocess(self,trainer):
-        actions=torch.tensor(
-            [int(item["action"]) for item in self.datas],
-            dtype=torch.long
-        )
+        actions=torch.tensor([int(item["action"]) for item in self.datas],dtype=torch.long)
         candidate_slots=torch.tensor([
             get_candidate_slot(item["state"],item["action"])
             for item in self.datas
         ],dtype=torch.long)
-        rewards=torch.tensor([
-            scalar_value(item["reward"])
-            for item in self.datas
-        ],dtype=torch.float32)
-        done=torch.tensor([
-            scalar_value(item["done"])
-            for item in self.datas
-        ],dtype=torch.float32)
+        rewards=torch.tensor([scalar_value(item["reward"]) for item in self.datas],dtype=torch.float32)
+        done=torch.tensor([scalar_value(item["done"]) for item in self.datas],dtype=torch.float32)
 
-        state_result=trainer.choose_action(self.datas,["state"])
-        next_state_result=trainer.choose_action(self.datas,["next_state"])
+        values=[]
+        next_values=[]
+        old_prob_logs=[]
+        preprocess_batch_size=self.config.get("preprocess_batch_size",self.config["dataloader"]["batch_size"])
 
-        device=state_result["value"].device
-        actions=actions.to(device)
-        candidate_slots=candidate_slots.to(device)
-        rewards=rewards.to(device)
-        done=done.to(device)
+        for start in range(0,len(self.datas),preprocess_batch_size):
+            end=min(start+preprocess_batch_size,len(self.datas))
+            items=self.datas[start:end]
 
-        values=state_result["value"]
-        next_values=next_state_result["value"]
-        delta=(
-            rewards
-            +self.config["ppo"]["gamma"]*next_values*(1.0-done)
-            -values
-        )
+            state_result=trainer.choose_action(items,["state"])
+            slots=candidate_slots[start:end].to(state_result["value"].device)
+            values.append(state_result["value"].detach().cpu())
+            old_prob_logs.append(state_result["dist"].log_prob(slots).detach().cpu())
+            del state_result
 
+            next_state_result=trainer.choose_action(items,["next_state"])
+            next_values.append(next_state_result["value"].detach().cpu())
+            del next_state_result
+
+        values=torch.cat(values)
+        next_values=torch.cat(next_values)
+        old_prob_log=torch.cat(old_prob_logs)
+
+        delta=rewards+self.config["ppo"]["gamma"]*next_values*(1.0-done)-values
         advantage=self.calculate_advantage(delta,done)
         value_target=advantage+values
         advantage=self.normalize_advantage(advantage)
 
         clip_value=self.config["ppo"].get("clip_value_advantage",50.0)
         advantage=advantage.clamp(-clip_value,clip_value)
-        old_prob_log=state_result["dist"].log_prob(candidate_slots)
-
-        actions=actions.cpu()
-        candidate_slots=candidate_slots.cpu()
-        advantage=advantage.cpu()
-        value_target=value_target.cpu()
-        old_prob_log=old_prob_log.cpu()
 
         for index,item in enumerate(self.datas):
             item["environment_action"]=actions[index]
