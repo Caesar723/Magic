@@ -191,6 +191,7 @@ def build_sequence(state,max_seq_len,planner_dim,q_dim):
     mean_p=np.zeros((length,q_dim),dtype=np.float32)
     std_p=np.zeros((length,q_dim),dtype=np.float32)
     six_available=np.zeros(length,dtype=np.bool_)
+    special_action_ids=np.full(length,-1,dtype=np.int64)
 
     for index,record in enumerate(action_records):
         if record is None:
@@ -199,6 +200,8 @@ def build_sequence(state,max_seq_len,planner_dim,q_dim):
         mean_p[index]=record["mean_p"]
         std_p[index]=record["std_p"]
         six_available[index]=True
+        if int(record["action"]) in (0,1):
+            special_action_ids[index]=int(record["action"])
 
     return {
         "frames":frames,
@@ -206,6 +209,7 @@ def build_sequence(state,max_seq_len,planner_dim,q_dim):
         "mean_p":mean_p,
         "std_p":std_p,
         "six_available":six_available,
+        "special_action_ids":special_action_ids,
         "length":length
     }
 
@@ -304,6 +308,7 @@ def pad_temporal(sequences):
     mean_p=np.zeros((batch_size,time_steps,q_dim),dtype=np.float32)
     std_p=np.zeros((batch_size,time_steps,q_dim),dtype=np.float32)
     six_available=np.zeros((batch_size,time_steps),dtype=np.bool_)
+    special_action_ids=np.full((batch_size,time_steps),-1,dtype=np.int64)
     lengths=np.asarray([item["length"] for item in sequences],dtype=np.int64)
 
     for batch_index,item in enumerate(sequences):
@@ -312,6 +317,7 @@ def pad_temporal(sequences):
         mean_p[batch_index,:length]=item["mean_p"]
         std_p[batch_index,:length]=item["std_p"]
         six_available[batch_index,:length]=item["six_available"]
+        special_action_ids[batch_index,:length]=item["special_action_ids"]
 
     return {
         "rl_state":pad_nested_frames(sequences,"rl_state",time_steps),
@@ -325,6 +331,7 @@ def pad_temporal(sequences):
         "mean_p":torch.from_numpy(mean_p),
         "std_p":torch.from_numpy(std_p),
         "six_available":torch.from_numpy(six_available),
+        "special_action_ids":torch.from_numpy(special_action_ids),
         "lengths":torch.from_numpy(lengths)
     }
 

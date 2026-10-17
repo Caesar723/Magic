@@ -6,14 +6,14 @@ if TYPE_CHECKING:
     from game.room import Room
 from game.type_action.actions import List_Action_Processor
 from game.rlearning.utils.baseAgent import BaseTrainer
-from game.agent import Agent_Player
+from game.agent import Agent_Player,select_deck
 from game.player import Player
 
 class Agent_Train(Agent_Player):
 
     def __init__(self, name: str,room:"Room",agent:BaseTrainer) -> None:
         
-        decks_detail=agent.config["cards"]
+        decks_detail=select_deck(agent.config)
         self.id_dict={}
         Player.__init__(self,name, decks_detail,room)
         self.agent=agent

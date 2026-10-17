@@ -34,7 +34,9 @@ class PVE_Room(Base_Agent_Room):
     """
 
     def __init__(self,players:list[tuple],room_server) -> None:
-        
+        self.agent_response_running=False
+        self.agent_response_pending=0
+        self.agent_follow_up=False
         super().__init__(players,room_server)
 
 
@@ -82,13 +84,41 @@ class PVE_Room(Base_Agent_Room):
 
     async def message_receiver(self,message:str):
         base_message=message.split("||",1)[0]
-        username,_,_=base_message.split("|",2)
+        username,action_type,_=base_message.split("|",2)
         player=self.players[username]
+        agent_message=username=="Agent1" and action_type in self.message_process_dict
         if isinstance(player,Player) and not isinstance(player,Agent):
             valid,_=validate_player_action(self,message)
             if valid and player.opponent.name in self.basic_func:
                 self.basic_func[player.opponent.name]["add_opponent_history"](player.opponent,player,message)
-        await super().message_receiver(message)
+        elif agent_message:
+            self.agent_response_pending+=1
+        try:
+            await super().message_receiver(message)
+        except Exception:
+            if agent_message and self.agent_response_pending>0:
+                self.agent_response_pending-=1
+            raise
+
+    async def message_process(self):
+        while self.gamming:
+            if not self.message_process_queue:
+                async with self.message_process_condition:
+                    await self.message_process_condition.wait_for(lambda: len(self.message_process_queue)>0)
+            func,args=self.message_process_queue.pop(0)
+            username=args[0] if args else None
+            completed=False
+            try:
+                await func(*args)
+                await self.check_death()
+                completed=True
+            finally:
+                if username=="Agent1" and self.agent_response_pending>0:
+                    self.agent_response_pending-=1
+            if completed and self.agent_response_pending==0 and self.agent_follow_up:
+                self.agent_follow_up=False
+                if self.gamming:
+                    await self.ask_agent_do_act()
 
 
     async def process_action(self,agent:Agent,action:int)->tuple:
@@ -107,68 +137,126 @@ class PVE_Room(Base_Agent_Room):
     
     def get_flag(self,flag_name:str):
         key="{}_bullet_time_flag"
-        if flag_name==key.format("Agent1") and not (self.get_flag('attacker_defenders') and not self.attacker in self.player_1.battlefield):
-            return True
-        if flag_name in self.flag_dict:
-            
-            return self.flag_dict[flag_name]
-        else:
-            return False
+        enable_bullet_response=self.enable_agent_bullet_response()
+
+        if flag_name==key.format("Agent1") and not enable_bullet_response:
+            if not (super().get_flag("attacker_defenders") and self.attacker not in self.player_1.battlefield):
+                return True
+
+        return super().get_flag(flag_name)
     
 
 
 
 
-        
+    def enable_agent_bullet_response(self):
+        return self.player_1.config.get("enable_bullet_response",False)
+
+
+    def reset_bullet_pass(self):
+        for player_name in self.players:
+            self.flag_dict[f"{player_name}_bullet_time_flag"]=False
+
+    async def request_agent_response(self,username,result,reset_bullet_pass=True):
+        if username=="Agent1":
+            return
+        if result is not None and not result[0]:
+            return
+        if not self.get_flag("bullet_time") or not self.gamming:
+            return
+        if reset_bullet_pass:
+            self.reset_bullet_pass()
+        await self.ask_agent_do_act()
 
 
 
-
-
+    async def continue_agent_action(self):
+        if not self.gamming:
+            return
+        if self.agent_response_pending>0:
+            self.agent_follow_up=True
+            return
+        await self.ask_agent_do_act()
 
     async def ask_agent_do_act(self):
-        await asyncio.sleep(1)
-        agent:Agent=self.player_1
-        state=self.basic_func[agent.name]["get_state"](agent)
-        mask=self.basic_func[agent.name]["create_action_mask"](agent)
-        state["mask"]=mask
-        print("state get")
-        action=agent.choose_action(state,isTrain=False)
-        print("action choose")
-        # print(action)
-        return await self.process_action(agent,action)
+        if not self.gamming or self.agent_response_running or self.agent_response_pending>0:
+            return
+        self.agent_response_running=True
+        try:
+            await asyncio.sleep(1)
+            agent:Agent=self.player_1
+            state=self.basic_func[agent.name]["get_state"](agent)
+            mask=self.basic_func[agent.name]["create_action_mask"](agent)
+            state["mask"]=mask
+            print("state get")
+            action=agent.choose_action(state,isTrain=False)
+            print("action choose")
+            return await self.process_action(agent,action)
+        finally:
+            self.agent_response_running=False
 
+    async def play_card(self,username:str,content:str):
+        result=await super().play_card(username,content)
+        success=result is None or result[0]
+
+        if success and username=="Agent1" and self.enable_agent_bullet_response():
+            self.reset_bullet_pass()
+        elif username!="Agent1" and self.enable_agent_bullet_response():
+            await self.request_agent_response(username,result)
+
+        return (True,"success") if result is None else result
 
     async def end_bullet_time(self):
 
         result= await super().end_bullet_time() 
         print(self.active_player.name)
         if self.active_player.name=="Agent1":
-            await self.ask_agent_do_act()
+            await self.continue_agent_action()
+        return result
+
+    async def end_bullet(self,username:str,content:str):
+        result=await super().end_bullet(username,content)
+        if username!="Agent1" and result[0] and self.enable_agent_bullet_response() and self.get_flag("bullet_time"):
+            await self.request_agent_response(username,result,reset_bullet_pass=False)
         return result
     
-    async def select_attacker(self, username: str, content: str):
-        result=await super().select_attacker(username, content)
+    async def select_attacker(self,username:str,content:str):
+        result=await super().select_attacker(username,content)
+
         if username!="Agent1" and result[0]:
-            print(await self.ask_agent_do_act())
+            await self.request_agent_response(username,result)
+        elif username=="Agent1" and result[0] and self.enable_agent_bullet_response():
+            self.reset_bullet_pass()
+
         return result
     
     async def end_turn_time(self):
         await super().end_turn_time()
         print(self.active_player.name)
         if self.active_player.name=="Agent1":
-            await self.ask_agent_do_act()
+            await self.continue_agent_action()
 
     async def game_start(self):
         await super().game_start()
         if self.active_player.name=="Agent1":
-            await self.ask_agent_do_act()
+            await self.continue_agent_action()
 
-    async def select_defender(self, username: str, content: str):
-        result= await super().select_defender(username, content)
-        if username=="Agent1":
+    async def select_defender(self,username:str,content:str):
+        result=await super().select_defender(username,content)
+
+        if username=="Agent1" and result[0]:
+            if self.enable_agent_bullet_response():
+                self.reset_bullet_pass()
             await self.message_receiver("Agent1|end_bullet|")
-            
+        elif self.enable_agent_bullet_response():
+            await self.request_agent_response(username,result)
+
+        return result
+
+    async def activate_ability(self,username:str,content:str):
+        result=await super().activate_ability(username,content)
+        if username=="Agent1" and result[0]:
+            await self.continue_agent_action()
         return result
 
 
@@ -186,8 +274,6 @@ class PVE_Room(Base_Agent_Room):
             
 
     
-
-
 
 
 

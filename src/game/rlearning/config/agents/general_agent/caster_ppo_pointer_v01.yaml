@@ -6,7 +6,50 @@ log_dir: "logs/general_agent/caster_ppo_pointer_v01"
 restore_step: 0
 seed: 1234
 
-cards: "Elite Squire+Creature+2|Celestial Skyweaver+Creature+2|Pious Courser+Creature+3|Ironclad Crusader+Creature+2|Sunlit Priestess+Creature+3|Apocalypse Riders+Sorcery+4|Call to Unity+Sorcery+4|Angelic Blessing+Sorcery+2|Righteous Conviction+Sorcery+2|Spectral Embrace+Sorcery+3|Celestial Convergence+Instant+1|Avenging Light+Instant+1|Plains+Land+15"
+decks:
+  - "Chronostrider+Creature+1|Time Warp+Instant+1|Thalassian Tidecaller+Creature+2|Essence Channeler+Creature+2|Thornroot Druid+Creature+3|Mistweaver Adept+Creature+3|Temporal Reversal+Instant+1|Arcane Intervention+Instant+2|Wild Growth+Instant+2|Thornwood Ranger+Creature+3|Island+Land+10|Forest+Land+10"
+  - "Thalassian Tidecaller+Creature+2|Dreamweaver Archivist+Creature+3|Aetherweaver+Creature+1|Ephemeral Insight+Instant+2|Arcane Reflection+Instant+2|Temporal Manipulation+Instant+1|Time Warp+Instant+1|Temporal Reversal+Instant+1|Mage's Veto+Instant+2|Mistweaver Adept+Creature+3|Voidwisp Harbinger+Creature+2|Island+Land+20"
+  - "Thalassian Tidecaller+Creature+2|Storm Bringer+Creature+2|Mindshaper Sphinx+Creature+2|Aetherweaver+Creature+1|Mystic Insight+Sorcery+3|Mindful Reflection+Sorcery+3|Arcane Convergence+Sorcery+2|Dreamweaver Archivist+Creature+2|Harbinger of the Eternal Tides+Creature+2|Mistweaver Adept+Creature+1|Island+Land+20"
+  - "Thalassian Tidecaller+Creature+2|Voidwisp Harbinger+Creature+3|Harbinger of the Eternal Tides+Creature+3|Tidal Sprite+Creature+3|Mage's Veto+Instant+2|Mindweave+Instant+2|Mystical Barrier+Instant+1|Ephemeral Response+Instant+1|Mistweaver Adept+Creature+3|Island+Land+20"
+  - "Tidal Sprite+Creature+3|Mistweaver Drake+Creature+3|Voidwisp Harbinger+Creature+3|Harbinger of the Eternal Tides+Creature+3|Mystic Tidecaller+Creature+1|Merfolk Wayfinder+Creature+3|Arcane Intervention+Instant+2|Mage's Veto+Instant+2|Island+Land+20"
+  - "Mistweaver Adept+Creature+3|Mystic Tidecaller+Creature+1|Voidwisp Harbinger+Creature+3|Tidal Sprite+Creature+3|Temporal Reversal+Instant+1|Arcane Intervention+Instant+2|Rift in Reality+Sorcery+2|Ethereal Reversal+Instant+1|Mage's Veto+Instant+2|Mystic Insight+Sorcery+2|Island+Land+20"
+  - "Chronostrider+Creature+1|Time Warp+Instant+1|Thalassian Tidecaller+Creature+2|Dreamweaver Archivist+Creature+3|Mistweaver Adept+Creature+3|Mage's Veto+Instant+2|Arcane Intervention+Instant+3|Mindful Reflection+Sorcery+2|Mystic Insight+Sorcery+2|Voidwisp Harbinger+Creature+1|Island+Land+14|Forest+Land+6"
+  - "Tidal Sprite+Creature+3|Merfolk Wayfinder+Creature+3|Mistweaver Drake+Creature+3|Voidwisp Harbinger+Creature+2|Harbinger of the Eternal Tides+Creature+2|Storm Bringer+Creature+1|Mindshaper Sphinx+Creature+2|Call of the Tides+Sorcery+2|Mystic Insight+Sorcery+2|Island+Land+20"
+  - "Flame Tinkerer+Creature+3|Flameblade Pyromancer+Creature+3|Raging Firekin+Creature+3|Emberheart Salamander+Creature+3|Arcane Inferno+Instant+1|Pyroblast Surge+Instant+2|Flames of Fury+Sorcery+2|Fiery Blast+Instant+1|Blazeburst+Instant+2|Mountain+Land+20"
+  - "Ralgar, the Inferno King+Creature+1|Flameblade Pyromancer+Creature+3|Igni the Pyromancer+Creature+2|Raging Firekin+Creature+3|Emberheart Salamander+Creature+2|Arcane Inferno+Instant+1|Pyroblast Surge+Instant+2|Flames of Fury+Sorcery+2|Fiery Burst+Sorcery+2|Blazeburst+Instant+2|Mountain+Land+20"
+  - "Eternal Phoenix+Creature+3|Raging Firekin+Creature+3|Flame Tinkerer+Creature+3|Emberheart Salamander+Creature+2|Ephemeral Eruption+Sorcery+2|Cataclysmic Surge+Sorcery+1|Pyroblast Surge+Instant+2|Flameblast+Sorcery+1|Fiery Blast+Instant+3|Mountain+Land+20"
+  - "Blazeheart Berserker+Creature+3|Emberheart Dragonrider+Creature+3|Inferno Titan+Creature+1|Emberheart Salamander+Creature+2|Raging Firekin+Creature+3|Thunderstrike+Sorcery+2|Flameblast+Sorcery+2|Arcane Inferno+Instant+1|Pyroblast Surge+Instant+3|Mountain+Land+20"
+  - "Flame Tinkerer+Creature+3|Flameblade Pyromancer+Creature+3|Raging Firekin+Creature+3|Emberheart Salamander+Creature+2|Chaotic Eruption+Sorcery+2|Cataclysmic Inferno+Sorcery+1|Pyroblast Surge+Instant+3|Flames of Fury+Sorcery+2|Fiery Burst+Sorcery+1|Mountain+Land+20"
+  - "Inferno Titan+Creature+1|Eternal Phoenix+Creature+2|Emberheart Salamander+Creature+2|Flame Tinkerer+Creature+3|Cataclysmic Inferno+Sorcery+1|Ephemeral Eruption+Sorcery+1|Thunderstrike+Sorcery+2|Arcane Inferno+Instant+1|Flamespark+Instant+2|Fiery Blast+Instant+2|Raging Firekin+Creature+2|Blazeburst+Instant+1|Mountain+Land+20"
+  - "Essence Channeler+Creature+2|Thornroot Druid+Creature+3|Sylvan Harmonist+Creature+3|Verdant Titan+Creature+1|Verdant Wyrm+Creature+3|Thornwood Ranger+Creature+3|Wild Growth+Instant+2|Overgrowth+Sorcery+2|Verdant Growth+Instant+1|Forest+Land+20"
+  - "Thornwood Ranger+Creature+3|Thornwood Sentinel+Creature+3|Verdant Wyrm+Creature+3|Thornwood Guardian+Creature+2|Thunderclap Behemoth+Creature+2|Ancient Stonewood+Creature+2|Titan's Strength+Instant+2|Overgrowth Surge+Instant+2|Wild Growth Rush+Instant+1|Forest+Land+20"
+  - "Essence Channeler+Creature+2|Thornwood Ranger+Creature+3|Thornwood Sentinel+Creature+3|Thornroot Druid+Creature+2|Verdant Growth+Instant+2|Overgrowth Surge+Instant+3|Verdant Surge+Instant+3|Wild Growth Rush+Instant+2|Forest+Land+20"
+  - "Essence Channeler+Creature+2|Thornroot Druid+Creature+3|Sylvan Harmonist+Creature+2|Wild Growth+Instant+2|Overgrowth+Sorcery+2|Forest's Embrace+Sorcery+1|Verdant Titan+Creature+1|Titan Giant+Creature+1|Thornwood Ranger+Creature+3|Thornwood Sentinel+Creature+3|Forest+Land+20"
+  - "Essence Channeler+Creature+2|Thornroot Druid+Creature+3|Thornwood Ranger+Creature+3|Thornwood Sentinel+Creature+2|Eldritch Rebirth+Sorcery+2|Awaken the Elemental+Sorcery+2|Harvest Blessing+Sorcery+2|Verdant Surge+Instant+2|Verdant Wyrm+Creature+2|Forest+Land+20"
+  - "Nature's Embrace+Sorcery+1|Blightsteel Colossus+Creature+1|Vorinclex, Apex of Mutation+Creature+1|Thundering Behemoth+Creature+2|Titan Giant+Creature+2|Verdant Wyrm+Creature+3|Thornwood Ranger+Creature+3|Thornroot Druid+Creature+3|Wild Growth+Instant+2|Essence Channeler+Creature+2|Forest+Land+20"
+  - "Elite Squire+Creature+3|Pious Courser+Creature+3|Sunlit Priestess+Creature+3|Angelic Protector+Creature+3|Celestial Sentinel+Creature+3|Call to Unity+Sorcery+2|Righteous Conviction+Sorcery+2|Divine Blessing+Sorcery+1|Plains+Land+20"
+  - "Elite Squire+Creature+3|Ironclad Crusader+Creature+3|Celestial Sentinel+Creature+3|Celestial Guardian+Creature+2|Honorable Protection+Instant+2|Celestial Intervention+Instant+3|Swift Ward+Instant+2|Phantom Shield+Instant+1|Pious Courser+Creature+1|Plains+Land+20"
+  - "Pious Courser+Creature+3|Sunlit Priestess+Creature+3|Celestial Guardian+Creature+3|Luminous Guardian+Creature+3|Luminous Angel+Creature+2|Righteous Conviction+Sorcery+2|Angelic Blessing+Sorcery+2|Divine Blessing+Sorcery+2|Plains+Land+20"
+  - "Elite Squire+Creature+3|Angelic Protector+Creature+3|Call to Unity+Sorcery+3|Spectral Embrace+Sorcery+2|Unyielding Resolve+Sorcery+1|Sacred Reinforcement+Instant+2|Honorable Protection+Instant+2|Celestial Sentinel+Creature+2|Divine Intervention+Sorcery+1|Pious Courser+Creature+1|Plains+Land+20"
+  - "Luminous Guardian+Creature+3|Celestial Seraph+Creature+1|Celestial Guardian+Creature+3|Avenging Light+Instant+3|Divine Reckoning+Sorcery+2|Celestial Intervention+Instant+2|Celestial Purge+Sorcery+2|Phantom Shield+Instant+1|Angelic Protector+Creature+2|Celestial Sentinel+Creature+1|Plains+Land+20"
+  - "Angelic Protector+Creature+3|Pious Courser+Creature+3|Celestial Guardian+Creature+3|Luminous Guardian+Creature+2|Astral Resurgence+Instant+2|Divine Rebirth+Sorcery+1|Divine Reckoning+Sorcery+1|Call to Unity+Sorcery+2|Righteous Conviction+Sorcery+2|Elite Squire+Creature+1|Plains+Land+20"
+  - "Night Stalker+Creature+3|Ravaging Ghoul+Creature+3|Nighthaunt Assassin+Creature+3|Shadow Stalker+Creature+2|Kothar the Soul Reaper+Creature+1|Soul Siphon+Sorcery+3|Shadowstrike+Instant+2|Dark Offering+Sorcery+2|Vampiric Revelry+Sorcery+1|Swamp+Land+20"
+  - "Nighthaunt Assassin+Creature+3|Kothar the Soul Reaper+Creature+1|Soul Devourer+Creature+2|Ravaging Ghoul+Creature+3|Shadowform Surge+Instant+3|Shadowstrike+Instant+3|Vengeful Wrath+Instant+2|Vengeful Retribution+Instant+1|Witch's Curse Counter+Instant+2|Swamp+Land+20"
+  - "Night Stalker+Creature+3|Shadow Stalker+Creature+3|Oblivion Devourer+Creature+2|Ravaging Ghoul+Creature+2|Dark Offering+Sorcery+3|Call of the Ancient Ones+Sorcery+2|Soul Siphon+Sorcery+2|Vampiric Revelry+Sorcery+1|Shadow Snare+Instant+1|Warlock's Dark Pact+Instant+1|Swamp+Land+20"
+  - "Ravaging Ghoul+Creature+3|Nighthaunt Assassin+Creature+3|Soul Devourer+Creature+2|Kothar the Soul Reaper+Creature+1|Call of the Ancient Ones+Sorcery+3|Soul Transfer+Sorcery+1|Dark Offering+Sorcery+2|Shadowform Surge+Instant+2|Vampiric Revelry+Sorcery+2|Vengeful Wrath+Instant+1|Swamp+Land+20"
+  - "Night Stalker+Creature+3|Ravaging Ghoul+Creature+3|Soul Siphon+Sorcery+3|Vampiric Revelry+Sorcery+3|Dark Offering+Sorcery+3|Shadow Stalker+Creature+2|Nighthaunt Assassin+Creature+2|Shadowstrike+Instant+1|Swamp+Land+20"
+  - "Celestial Skyweaver+Creature+3|Thalassian Tidecaller+Creature+2|Celestial Sentinel+Creature+3|Luminous Guardian+Creature+2|Voidwisp Harbinger+Creature+2|Mistweaver Drake+Creature+2|Ephemeral Insight+Instant+2|Arcane Intervention+Instant+2|Celestial Intervention+Instant+1|Avenging Light+Instant+1|Plains+Land+12|Island+Land+8"
+  - "Elite Squire+Creature+3|Angelic Protector+Creature+3|Flame Tinkerer+Creature+3|Raging Firekin+Creature+3|Call to Unity+Sorcery+2|Arcane Inferno+Instant+1|Pyroblast Surge+Instant+2|Flames of Fury+Sorcery+2|Honorable Protection+Instant+1|Plains+Land+12|Mountain+Land+8"
+  - "Elite Squire+Creature+3|Ironclad Crusader+Creature+3|Angelic Protector+Creature+3|Call to Unity+Sorcery+2|Apocalypse Riders+Sorcery+2|Resurgence+Instant+1|Spectral Embrace+Sorcery+1|Flame Tinkerer+Creature+2|Honorable Protection+Instant+2|Plains+Land+14|Mountain+Land+7"
+  - "Essence Channeler+Creature+2|Thornwood Ranger+Creature+3|Verdant Wyrm+Creature+3|Verdant Titan+Creature+1|Raging Firekin+Creature+3|Emberheart Salamander+Creature+2|Arcane Inferno+Instant+1|Pyroblast Surge+Instant+2|Cataclysmic Inferno+Sorcery+1|Wild Growth+Instant+2|Forest+Land+12|Mountain+Land+8"
+  - "Essence Channeler+Creature+2|Sylvan Harmonist+Creature+3|Thornroot Druid+Creature+3|Wild Growth+Instant+3|Overgrowth+Sorcery+2|Dragon Lord+Creature+1|Thunderclap Behemoth+Creature+2|Raging Firekin+Creature+2|Arcane Inferno+Instant+1|Verdant Titan+Creature+1|Forest+Land+12|Mountain+Land+8"
+  - "Essence Channeler+Creature+2|Thornroot Druid+Creature+3|Thornwood Ranger+Creature+2|Ravaging Ghoul+Creature+3|Nighthaunt Assassin+Creature+2|Eldritch Rebirth+Sorcery+2|Kothar the Soul Reaper+Creature+1|Shadowform Surge+Instant+2|Soul Siphon+Sorcery+2|Verdant Wyrm+Creature+1|Forest+Land+12|Swamp+Land+8"
+  - "Ravaging Ghoul+Creature+3|Night Stalker+Creature+2|Raging Firekin+Creature+3|Eternal Phoenix+Creature+2|Flame Tinkerer+Creature+2|Ephemeral Eruption+Sorcery+1|Kothar the Soul Reaper+Creature+1|Shadowstrike+Instant+2|Soul Siphon+Sorcery+2|Pyroblast Surge+Instant+1|Vengeful Retribution+Instant+1|Mountain+Land+11|Swamp+Land+9"
+  - "Thalassian Tidecaller+Creature+2|Voidwisp Harbinger+Creature+2|Dreamweaver Archivist+Creature+2|Nighthaunt Assassin+Creature+2|Shadow Stalker+Creature+2|Mage's Veto+Instant+2|Mindweave+Instant+2|Arcane Intervention+Instant+2|Shadowstrike+Instant+2|Soul Siphon+Sorcery+2|Island+Land+12|Swamp+Land+8"
+  - "Pious Courser+Creature+2|Sunlit Priestess+Creature+2|Luminous Guardian+Creature+3|Angelic Protector+Creature+2|Ravaging Ghoul+Creature+2|Nighthaunt Assassin+Creature+2|Dark Offering+Sorcery+2|Soul Siphon+Sorcery+2|Avenging Light+Instant+2|Righteous Conviction+Sorcery+1|Plains+Land+12|Swamp+Land+8"
+
+enable_bullet_response: true
+max_bullet_actions: 32
 
 max_store: 1024
 max_seq_len: 10
@@ -138,7 +181,13 @@ model:
     dropout: 0.1
     activation: "gelu"
 
-  TemporalBlock:
+  TemporalBlockActor:
+    class_name: "game.rlearning.net.variable_deck.TemporalBlock.LSTMBlock"
+    input_dim: 128
+    hidden_dim: 256
+    max_seq_len: 10
+
+  TemporalBlockCritic:
     class_name: "game.rlearning.net.variable_deck.TemporalBlock.LSTMBlock"
     input_dim: 128
     hidden_dim: 256

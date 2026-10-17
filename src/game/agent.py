@@ -15,14 +15,24 @@ from game.rlearning.utils.file import read_yaml
 from game.rlearning.utils.model import get_class_by_name,get_model
 
 
-
+def select_deck(config):
+    decks=config.get("decks")
+    if decks is None:
+        if "cards" not in config:
+            raise KeyError("agent config must contain 'cards' or 'decks'")
+        return config["cards"]
+    if not isinstance(decks,list) or not decks:
+        raise ValueError("agent config 'decks' must be a non-empty list")
+    if not all(isinstance(deck,str) and deck for deck in decks):
+        raise ValueError("every item in agent config 'decks' must be a non-empty string")
+    return random.choice(decks)
 
 
 class Agent_Player(Player):
 
     def __init__(self, name: str,room:"Room",config_path:str=f"{ORGPATH}/game/rlearning/weights/white/ppo_lstm2.yaml") -> None:
         self.config=read_yaml(config_path)
-        decks_detail=self.config["cards"]
+        decks_detail=select_deck(self.config)
         self.id_dict={}
         super().__init__(name, decks_detail, room)
 

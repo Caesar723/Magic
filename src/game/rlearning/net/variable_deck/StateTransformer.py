@@ -74,43 +74,40 @@ class FusionLayer(nn.Module):
 
 
 class ActionTokenAdapter(nn.Module):
-
-    def __init__(self, config):
+    def __init__(self,config):
         super().__init__()
-        self.config = config
-        self.embed_dim = config["embed_dim"]
-        self.planner_dim = config["planner_dim"]
-        self.q_dim = config["q_dim"]
+        d=config["embed_dim"]
+        self.embed_dim=d
 
-        self.planner_proj = nn.Linear(self.planner_dim, self.embed_dim)
-        self.mean_proj = nn.Linear(self.q_dim, self.embed_dim)
-        self.std_proj = nn.Linear(self.q_dim, self.embed_dim)
+        self.planner_proj=nn.Linear(config["planner_dim"],d)
+        self.mean_proj=nn.Linear(config["q_dim"],d)
+        self.std_proj=nn.Linear(config["q_dim"],d)
 
-        self.slot_embedding = nn.Parameter(torch.randn(1, 1, 6, self.embed_dim) * 0.02)
+        self.special_action_embedding=nn.Embedding(2,d)
+        self.special_action_proj=nn.Linear(d,6*d)
 
-        self.norm = nn.LayerNorm(self.embed_dim)
+        self.slot_embedding=nn.Parameter(torch.randn(1,6,d)*0.02)
+        self.norm=nn.LayerNorm(d)
 
-    def forward(self,planner,mean_p,std_p,available):
+    def forward(self,planner,mean_p,std_p,available,special_action_ids):
+        available=available.to(device=planner.device,dtype=torch.bool)
+        special_action_ids=special_action_ids.to(device=planner.device,dtype=torch.long)
 
-        available = available.to(dtype=torch.bool,device=planner.device)
+        planner_tokens=self.planner_proj(planner)
+        mean_token=self.mean_proj(mean_p).unsqueeze(1)
+        std_token=self.std_proj(std_p).unsqueeze(1)
+        normal_tokens=torch.cat([planner_tokens,mean_token,std_token],dim=1)
 
-        planner = planner.masked_fill(~available[..., None, None], 0.0)
-        mean_p = mean_p.masked_fill(~available[..., None], 0.0)
-        std_p = std_p.masked_fill(~available[..., None], 0.0)
+        special_features=self.special_action_embedding(special_action_ids.clamp_min(0))
+        special_tokens=self.special_action_proj(special_features).view(-1,6,self.embed_dim)
 
-        p = self.planner_proj(planner)# [B, T, 4, D]
-        mu = self.mean_proj(mean_p).unsqueeze(2) # [B, T, 1, D]
-        std = self.std_proj(std_p).unsqueeze(2)# [B, T, 1, D]
+        special_mask=special_action_ids>=0
+        tokens=torch.where(special_mask[:,None,None],special_tokens,normal_tokens)
+        tokens=self.norm(tokens+self.slot_embedding)
 
-        tokens = torch.cat([p,mu,std],dim=2)# [B, T, 6, D]
-
-        
-        tokens = self.norm(tokens + self.slot_embedding)
-
-        mask = available.unsqueeze(2).expand(-1, -1, 6)  # [B, T, 6]
-        
-        tokens = tokens.masked_fill(~mask.unsqueeze(-1),0.0)
-        return tokens, mask
+        mask=available.unsqueeze(1).expand(-1,6)
+        tokens=tokens.masked_fill(~mask.unsqueeze(-1),0.0)
+        return tokens,mask
 
 class StateCandidateFusionBlock(nn.Module):
     def __init__(self, config):
@@ -172,7 +169,7 @@ class StateTransformer(nn.Module):
     def forward(
         self,global_scalars,entity_features,candidate_features,
         planner,mean_p,std_p,
-        lengths,six_available,
+        lengths,six_available,special_action_ids,
         entity_mask=None,candidate_mask=None,
     ):
         batch_size, time_steps, num_scalars = global_scalars.shape
@@ -214,6 +211,7 @@ class StateTransformer(nn.Module):
         std_p = self.select_time(std_p, flat_time_mask)#[B,T,D] → [B*T,D] → [N,D]
 
         action_available = self.select_time(six_available, flat_time_mask) # [N]
+        special_action_ids = self.select_time(special_action_ids, flat_time_mask) # [N]
         entity_mask_valid = self.select_time(entity_mask, flat_time_mask) # [N,E]
         candidate_mask_valid = self.select_time(candidate_mask, flat_time_mask) # [N,C]
 
@@ -222,7 +220,7 @@ class StateTransformer(nn.Module):
         cls = self.cls_token.expand(num_valid, -1, -1)
         cls_mask = torch.ones(num_valid, 1, dtype=torch.bool, device=device)
 
-        action_tokens, action_mask = self.action_token_adapter(planner, mean_p, std_p, action_available)
+        action_tokens, action_mask = self.action_token_adapter(planner, mean_p, std_p, action_available, special_action_ids)
 
         scalar_tokens = self.scalar_norm(
             self.scalar_proj(scalars.unsqueeze(-1)) 
