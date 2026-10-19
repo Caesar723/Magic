@@ -158,7 +158,8 @@ class Multi_Agent_Parallel_Room(Base_Agent_Room):
         if model_info["success_opponent_update"]:
             self.player_2.agent.restore_checkpoint(model_info["model_opponent_path"])
         #self.player_2.agent.restore_checkpoint(AgentSchedule.get_restore_step(self.player_2))
-
+        self.player_1.agent.reset_rollout_context()
+        self.player_2.agent.reset_rollout_context()
     # def get_random_restore_step(self,agent:Agent_Train):
     #     save_step=agent.agent.config["save_step"]
     #     max_restore=max(int(agent.agent.max_step//save_step)-1,0)

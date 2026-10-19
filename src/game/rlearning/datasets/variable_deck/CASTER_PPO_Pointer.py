@@ -164,38 +164,21 @@ def process_frame(state):
     }
 
 
-def build_sequence(state,max_seq_len,planner_dim,q_dim):
-    history=[
-        item for item in state.get("history",[])
-        if isinstance(item,dict)
-    ]
-    current_state={
-        key:value
-        for key,value in state.items()
-        if key not in ("history","sequence")
-    }
-
-    if len(history)>=max_seq_len:
-        records=history[-max_seq_len:]
-        raw_frames=[record["state"] for record in records[1:]]+[current_state]
-        action_records=records
-    else:
-        records=history[-(max_seq_len-1):] if max_seq_len>1 else []
-        raw_frames=[record["state"] for record in records]+[current_state]
-        action_records=[None]+records
-
-    frames=[process_frame(frame) for frame in raw_frames]
-    length=len(frames)
-
+def build_sequence(states,planner_dim,q_dim):
+    length=len(states)
+    frames=[process_frame(state) for state in states]
     planner=np.zeros((length,4,planner_dim),dtype=np.float32)
     mean_p=np.zeros((length,q_dim),dtype=np.float32)
     std_p=np.zeros((length,q_dim),dtype=np.float32)
     six_available=np.zeros(length,dtype=np.bool_)
     special_action_ids=np.full(length,-1,dtype=np.int64)
 
-    for index,record in enumerate(action_records):
+    for index,state in enumerate(states):
+        history=state.get("history",[])
+        record=history[-1] if history and isinstance(history[-1],dict) else None
         if record is None:
             continue
+
         planner[index]=record["planner"]
         mean_p[index]=record["mean_p"]
         std_p[index]=record["std_p"]
@@ -213,6 +196,25 @@ def build_sequence(state,max_seq_len,planner_dim,q_dim):
         "length":length
     }
 
+def collate_lstm_states(states,hidden_dim):
+    hidden=[]
+    cell=[]
+
+    for state in states:
+        if state is None:
+            h=torch.zeros((1,1,hidden_dim),dtype=torch.float32)
+            c=torch.zeros_like(h)
+        else:
+            h,c=state
+            h=torch.as_tensor(h,dtype=torch.float32).detach().cpu().clone()
+            c=torch.as_tensor(c,dtype=torch.float32).detach().cpu().clone()
+        hidden.append(h)
+        cell.append(c)
+
+    return {
+        "h":torch.cat(hidden,dim=1),
+        "c":torch.cat(cell,dim=1)
+    }
 
 def pad_nested_frames(sequences,state_key,time_steps):
     batch_size=len(sequences)
@@ -338,12 +340,35 @@ def pad_temporal(sequences):
 class PPOAgentDataset(BaseDataset):
     def __init__(self,config):
         super().__init__(config)
-        self.max_seq_len=config["max_seq_len"]
         self.planner_dim=config["planner_dim"]
         self.q_dim=config["q_dim"]
+        self.train_seq_len=config["train_seq_len"]
+        self.actor_hidden_dim=config["model"]["TemporalBlockActor"]["hidden_dim"]
+        self.critic_hidden_dim=config["model"]["TemporalBlockCritic"]["hidden_dim"]
+        self.segments=[]
 
-        if self.max_seq_len<1:
-            raise ValueError("max_seq_len must be at least 1")
+    def __len__(self):
+        return len(self.segments)
+
+    def __getitem__(self,index):
+        start,end=self.segments[index]
+        items=self.datas[start:end]
+        states=[item["state"] for item in items]
+        record=states[0]["decision_record"]
+
+        return {
+            "sequence":build_sequence(states,self.planner_dim,self.q_dim),
+            "items":items,
+            "actor_state_in":record["actor_state_in"],
+            "critic_state_in":record["critic_state_in"]
+        }
+
+    def is_full(self):
+        return len(self.datas)>self.config.get("max_store",1000)
+
+    def clear_data(self):
+        super().clear_data()
+        self.segments=[]
 
     def normalize_advantage(self,advantage):
         return (advantage-advantage.mean())/(advantage.std(unbiased=False)+1e-5)
@@ -361,12 +386,7 @@ class PPOAgentDataset(BaseDataset):
         return advantage
 
     def get_sample(self,state):
-        state["sequence"]=build_sequence(
-            state,
-            self.max_seq_len,
-            self.planner_dim,
-            self.q_dim
-        )
+        state["sequence"]=build_sequence([state],self.planner_dim,self.q_dim)
         return state
 
     def select_states(self,batch,extra_keys):
@@ -376,15 +396,15 @@ class PPOAgentDataset(BaseDataset):
         return states
 
     def collate_state(self,batch,extra_keys=None):
-        extra_keys=extra_keys or []
-        states=self.select_states(batch,extra_keys)
+        states=self.select_states(batch,extra_keys or [])
 
         for state in states:
-            if "sequence" not in state:
-                self.get_sample(state)
+            self.get_sample(state)
 
-        sequences=[state["sequence"] for state in states]
-        return pad_temporal(sequences)
+        result=pad_temporal([state["sequence"] for state in states])
+        result["actor_state_in"]=collate_lstm_states([state["actor_state_in"] for state in states],self.actor_hidden_dim)
+        result["critic_state_in"]=collate_lstm_states([state["critic_state_in"] for state in states],self.critic_hidden_dim)
+        return result
 
     @torch.no_grad()
     def data_preprocess(self,trainer):
@@ -418,35 +438,48 @@ class PPOAgentDataset(BaseDataset):
             item["advantage"]=advantage[index]
             item["value_target"]=value_target[index]
             item["old_prob_log"]=old_prob_log[index]
-
+        self.build_segments()
         return self.datas
 
+    def build_segments(self):
+        self.segments=[]
+        start=0
+
+        for index,item in enumerate(self.datas):
+            end=index+1
+            if scalar_value(item["done"]) or end-start>=self.train_seq_len:
+                self.segments.append((start,end))
+                start=end
+
+        if start<len(self.datas):
+            self.segments.append((start,len(self.datas)))
+
     def collate_fn(self,batch):
-        result=self.collate_state(batch,["state"])
+        result=pad_temporal([item["sequence"] for item in batch])
+        batch_size=len(batch)
+        time_steps=int(result["lengths"].max().item())
+        lengths=result["lengths"]
 
-        if "candidate_slot" not in batch[0]:
-            return result
+        result["valid_mask"]=torch.arange(time_steps).unsqueeze(0)<lengths.unsqueeze(1)
+        result["actor_state_in"]=collate_lstm_states([item["actor_state_in"] for item in batch],self.actor_hidden_dim)
+        result["critic_state_in"]=collate_lstm_states([item["critic_state_in"] for item in batch],self.critic_hidden_dim)
 
-        result.update({
-            "action":torch.tensor([
-                scalar_value(item["candidate_slot"])
-                for item in batch
-            ],dtype=torch.long),
-            "environment_action":torch.tensor([
-                scalar_value(item["environment_action"])
-                for item in batch
-            ],dtype=torch.long),
-            "advantage":torch.tensor([
-                scalar_value(item["advantage"])
-                for item in batch
-            ],dtype=torch.float32),
-            "value_target":torch.tensor([
-                scalar_value(item["value_target"])
-                for item in batch
-            ],dtype=torch.float32),
-            "old_prob_log":torch.tensor([
-                scalar_value(item["old_prob_log"])
-                for item in batch
-            ],dtype=torch.float32)
-        })
+        fields={
+            "action":("candidate_slot",torch.long,0),
+            "environment_action":("environment_action",torch.long,-1),
+            "reward":("reward",torch.float32,0),
+            "done":("done",torch.float32,0),
+            "global_reward":("global_reward",torch.float32,0),
+            "advantage":("advantage",torch.float32,0),
+            "value_target":("value_target",torch.float32,0),
+            "old_prob_log":("old_prob_log",torch.float32,0)
+        }
+
+        for target,(source,dtype,fill_value) in fields.items():
+            values=torch.full((batch_size,time_steps),fill_value,dtype=dtype)
+            for index,sample in enumerate(batch):
+                items=sample["items"]
+                values[index,:len(items)]=torch.tensor([scalar_value(item[source]) for item in items],dtype=dtype)
+            result[target]=values
+
         return result

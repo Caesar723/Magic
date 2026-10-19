@@ -53,10 +53,13 @@ max_bullet_actions: 32
 
 max_store: 1024
 preprocess_batch_size: 64
-max_seq_len: 10
+train_seq_len: 32
 planner_dim: 128
 q_dim: 128
 
+rollout_state_fields:
+  actor_state_in: actor_state_out
+  critic_state_in: critic_state_out
 ###########################
 # Dataset and environment
 ###########################

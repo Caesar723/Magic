@@ -39,6 +39,16 @@ def first_int(value):
     if torch.is_tensor(value):
         value = value.detach().cpu().numpy()
     return int(np.asarray(value).reshape(-1)[0])
+    
+def first_lstm_state(state):
+    if state is None:
+        return None
+    result=[]
+    for value in state:
+        if torch.is_tensor(value):
+            value=value.detach().cpu().numpy()
+        result.append(np.asarray(value)[:,0:1].copy())
+    return tuple(result)
 
 def add_history(agent:"Agent",batch):
     required = ("selected_planner", "selected_mean", "selected_std")
@@ -55,6 +65,8 @@ def add_history(agent:"Agent",batch):
         "planner": first_numpy(batch["selected_planner"]),
         "mean_p": first_numpy(batch["selected_mean"]),
         "std_p": first_numpy(batch["selected_std"]),
+        "actor_state_in": first_lstm_state(batch["actor_state_in"]),
+        "critic_state_in": first_lstm_state(batch["critic_state_in"]),
     }
 
     max_seq_len = agent.config.get("max_seq_len", agent.action_history_length)

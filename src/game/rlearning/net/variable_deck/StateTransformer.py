@@ -277,6 +277,7 @@ class StateTransformer(nn.Module):
 
         return {
             "state_features": state_features,
+            "all_candidates":all_candidates,
             "last_state_feature": state_features[batch_indices, last_indices],
             "last_candidates": all_candidates[batch_indices, last_indices],
             "last_candidate_mask": candidate_mask[batch_indices, last_indices],

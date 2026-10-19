@@ -58,25 +58,28 @@ class CASTER_PPO_Pointer(BaseTrainer):
         }
     def _forward(self,batch,models,isTrain,step,epoch):
         batch=self.predict(batch,models,isTrain,step,epoch)
+        mask=batch["valid_mask"].bool() & batch["time_mask"]
         loss={}
-        total_loss=batch["value"].new_zeros(())
+
+        value=batch["value"][mask]
+        value_target=batch["value_target"][mask].detach()
+        new_prob_log=batch["new_prob_log"][mask]
+        old_prob_log=batch["old_prob_log"][mask].detach()
+        advantage=batch["advantage"][mask].detach()
+        entropy=batch["entropy"][mask]
+        total_loss=value.new_zeros(())
 
         if self.config.get("w_val_loss",0)>0:
-            val_loss=F.mse_loss(batch["value"],batch["value_target"].detach())
+            val_loss=F.mse_loss(value,value_target)
             total_loss+=self.config["w_val_loss"]*val_loss
             loss["val_loss"]=val_loss
 
-        log_ratio=batch["new_prob_log"]-batch["old_prob_log"].detach()
+        log_ratio=new_prob_log-old_prob_log
         ratio=torch.exp(log_ratio)
 
         if self.config.get("w_act_loss",0)>0:
-            advantage=batch["advantage"].detach()
             surr1=ratio*advantage
-            surr2=torch.clamp(
-                ratio,
-                1-self.config["ppo"]["clip_para"],
-                1+self.config["ppo"]["clip_para"]
-            )*advantage
+            surr2=torch.clamp(ratio,1-self.config["ppo"]["clip_para"],1+self.config["ppo"]["clip_para"])*advantage
             act_loss=-torch.min(surr1,surr2).mean()
             total_loss+=self.config["w_act_loss"]*act_loss
             loss["act_loss"]=act_loss
@@ -87,7 +90,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
             loss["kl_loss"]=kl_loss
 
         if self.config.get("w_entropy_loss",0)>0:
-            entropy_loss=-batch["entropy"].mean()
+            entropy_loss=-entropy.mean()
             total_loss+=self.config["w_entropy_loss"]*entropy_loss
             loss["entropy_loss"]=entropy_loss
 
@@ -298,44 +301,59 @@ class CASTER_PPO_Pointer(BaseTrainer):
             candidate_mask=candidates["mask"]
         )
 
-        temporal_feature_actor=models["TemporalBlockActor"](state_result["state_features"],lengths)
-        temporal_feature_critic=models["TemporalBlockCritic"](state_result["state_features"],lengths)
-        logits=models["Actor"](temporal_feature_actor,state_result["last_candidates"],state_result["last_candidate_mask"])
-        dist=torch.distributions.Categorical(logits=logits)
-        value=models["Critic"](temporal_feature_critic)
+        actor_state_in=(batch["actor_state_in"]["h"],batch["actor_state_in"]["c"])
+        critic_state_in=(batch["critic_state_in"]["h"],batch["critic_state_in"]["c"])
 
-        batch.update(state_result)
-        batch["temporal_feature_actor"]=temporal_feature_actor
-        batch["temporal_feature_critic"]=temporal_feature_critic
-        batch["logits"]=logits
-        batch["actions"]=dist.probs
-        batch["dist"]=dist
-        batch["entropy"]=dist.entropy()
-        batch["value"]=value
-        batch["time_mask"]=time_mask
+        actor_output,actor_state_out=models["TemporalBlockActor"](state_result["state_features"],lengths,actor_state_in)
+        critic_output,critic_state_out=models["TemporalBlockCritic"](state_result["state_features"],lengths,critic_state_in)
+
+        actor_features=self._select_time(actor_output,flat_time_mask)
+        critic_features=self._select_time(critic_output,flat_time_mask)
+        candidate_features=self._select_time(state_result["all_candidates"],flat_time_mask)
+        candidate_mask=self._select_time(candidates["mask"],flat_time_mask)
+
+        logits=models["Actor"](actor_features,candidate_features,candidate_mask)
+        dist=torch.distributions.Categorical(logits=logits)
+        value=models["Critic"](critic_features)
 
         training_action="action" in batch
-        candidate_slot=batch["action"].long().reshape(-1) if training_action else dist.sample()
-        batch["candidate_slot"]=candidate_slot
+        candidate_slot=self._select_time(batch["action"],flat_time_mask).long() if training_action else dist.sample()
+        action_log_prob=dist.log_prob(candidate_slot)
 
-        batch["new_prob_log"]=dist.log_prob(candidate_slot)
-        if not training_action:
-            batch["sampled_log_prob"]=batch["new_prob_log"]
+        batch.update(state_result)
+        batch["temporal_feature_actor"]=actor_output
+        batch["temporal_feature_critic"]=critic_output
+        batch["actor_state_out"]={"h":actor_state_out[0],"c":actor_state_out[1]}
+        batch["critic_state_out"]={"h":critic_state_out[0],"c":critic_state_out[1]}
+        batch["time_mask"]=time_mask
+        batch["dist"]=dist
 
-        batch_indices=torch.arange(batch_size,device=device)
-        last_time_indices=lengths-1
-        last_valid_indices=lengths.cumsum(0)-1
+        batch["logits"]=self._restore_time(logits,valid_indices,batch_size,time_steps)
+        batch["actions"]=self._restore_time(dist.probs,valid_indices,batch_size,time_steps)
+        batch["entropy"]=self._restore_time(dist.entropy(),valid_indices,batch_size,time_steps)
+        batch["value"]=self._restore_time(value,valid_indices,batch_size,time_steps)
+        batch["candidate_slot"]=self._restore_time(candidate_slot,valid_indices,batch_size,time_steps)
+        batch["new_prob_log"]=self._restore_time(action_log_prob,valid_indices,batch_size,time_steps)
 
-        batch["selected_planner"]=candidates["planner"][last_valid_indices,candidate_slot]
-        batch["selected_mean"]=candidates["mean_p"][last_valid_indices,candidate_slot]
-        batch["selected_std"]=candidates["std_p"][last_valid_indices,candidate_slot]
+        if training_action:
+            return batch
 
-        environment_action=batch["candidates"]["indices"][batch_indices,last_time_indices,candidate_slot]
-        batch["environment_action"]=environment_action
+        batch["sampled_log_prob"]=batch["new_prob_log"]
+        row_indices=torch.arange(candidate_slot.shape[0],device=device)
 
-        if not training_action:
-            batch["action"]=environment_action.item() if batch_size==1 else environment_action
+        selected_planner=candidates["planner"][row_indices,candidate_slot]
+        selected_mean=candidates["mean_p"][row_indices,candidate_slot]
+        selected_std=candidates["std_p"][row_indices,candidate_slot]
+        candidate_indices=self._select_time(batch["candidates"]["indices"],flat_time_mask)
+        environment_action=candidate_indices[row_indices,candidate_slot]
 
+        batch["selected_planner"]=self._restore_time(selected_planner,valid_indices,batch_size,time_steps)
+        batch["selected_mean"]=self._restore_time(selected_mean,valid_indices,batch_size,time_steps)
+        batch["selected_std"]=self._restore_time(selected_std,valid_indices,batch_size,time_steps)
+        batch["environment_action"]=self._restore_time(environment_action,valid_indices,batch_size,time_steps)
+
+        actions=batch["environment_action"][:,0]
+        batch["action"]=int(actions[0].item()) if batch_size==1 else actions
         return batch
 
     @torch.no_grad()
@@ -353,13 +371,21 @@ class CASTER_PPO_Pointer(BaseTrainer):
         return self.predict(batch,models,isTrain,self.step,self.epoch)
 
     def build_inference_result(self,batch,index):
-        action=batch["environment_action"][index]
+        def get_lstm_state(key):
+            state=batch[key]
+            return tuple(state[name][:,index:index+1].detach().cpu().numpy().copy() for name in ("h","c"))
+
+        action=batch["environment_action"][index,0]
         return {
             "action":int(action.detach().cpu().item()),
-            "candidate_slot":batch["candidate_slot"][index:index+1].detach().cpu().numpy(),
-            "selected_planner":batch["selected_planner"][index:index+1].detach().cpu().numpy(),
-            "selected_mean":batch["selected_mean"][index:index+1].detach().cpu().numpy(),
-            "selected_std":batch["selected_std"][index:index+1].detach().cpu().numpy(),
-            "sampled_log_prob":batch["sampled_log_prob"][index:index+1].detach().cpu().numpy(),
-            "value":batch["value"][index:index+1].detach().cpu().numpy()
+            "candidate_slot":batch["candidate_slot"][index,0:1].detach().cpu().numpy(),
+            "selected_planner":batch["selected_planner"][index,0:1].detach().cpu().numpy(),
+            "selected_mean":batch["selected_mean"][index,0:1].detach().cpu().numpy(),
+            "selected_std":batch["selected_std"][index,0:1].detach().cpu().numpy(),
+            "sampled_log_prob":batch["sampled_log_prob"][index,0:1].detach().cpu().numpy(),
+            "value":batch["value"][index,0:1].detach().cpu().numpy(),
+            "actor_state_in":get_lstm_state("actor_state_in"),
+            "critic_state_in":get_lstm_state("critic_state_in"),
+            "actor_state_out":get_lstm_state("actor_state_out"),
+            "critic_state_out":get_lstm_state("critic_state_out")
         }

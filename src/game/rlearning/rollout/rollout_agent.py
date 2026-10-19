@@ -36,10 +36,21 @@ class RolloutAgent:
             communication, worker_id, policy_id, config_path, restore_step
         )
 
+        self.rollout_state_fields=self.config.get("rollout_state_fields",{})
+        self.reset_rollout_context()
+    def reset_rollout_context(self):
+        self.rollout_context={key:None for key in self.rollout_state_fields}
     def choose_action(self, batch, extra_keys=None, isTrain=False):
         if len(batch) != 1:
             raise ValueError("RolloutAgent expects one environment state per request")
-        return self.client.choose_action(batch[0])
+        state=batch[0]
+        state.update(self.rollout_context)
+        result=self.client.choose_action(state)
+        self.rollout_context={
+            input_key:result[output_key]
+            for input_key,output_key in self.rollout_state_fields.items()
+        }
+        return result
 
     def store(self, data: dict):
         self.dataset.store_data(data)
