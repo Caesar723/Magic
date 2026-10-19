@@ -318,8 +318,9 @@ class CASTER_PPO_Pointer(BaseTrainer):
         candidate_slot=batch["action"].long().reshape(-1) if training_action else dist.sample()
         batch["candidate_slot"]=candidate_slot
 
-        if training_action:
-            batch["new_prob_log"]=dist.log_prob(candidate_slot)
+        batch["new_prob_log"]=dist.log_prob(candidate_slot)
+        if not training_action:
+            batch["sampled_log_prob"]=batch["new_prob_log"]
 
         batch_indices=torch.arange(batch_size,device=device)
         last_time_indices=lengths-1
@@ -358,5 +359,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
             "candidate_slot":batch["candidate_slot"][index:index+1].detach().cpu().numpy(),
             "selected_planner":batch["selected_planner"][index:index+1].detach().cpu().numpy(),
             "selected_mean":batch["selected_mean"][index:index+1].detach().cpu().numpy(),
-            "selected_std":batch["selected_std"][index:index+1].detach().cpu().numpy()
+            "selected_std":batch["selected_std"][index:index+1].detach().cpu().numpy(),
+            "sampled_log_prob":batch["sampled_log_prob"][index:index+1].detach().cpu().numpy(),
+            "value":batch["value"][index:index+1].detach().cpu().numpy()
         }

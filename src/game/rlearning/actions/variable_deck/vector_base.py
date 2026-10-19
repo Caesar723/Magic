@@ -49,6 +49,8 @@ def add_history(agent:"Agent",batch):
     record = {
         "state": get_current_state(agent.room, agent),
         "action": action,
+        "sampled_log_prob": first_numpy(batch["sampled_log_prob"]),
+        "value": first_numpy(batch["value"]),
         "candidate_slot": first_int(batch["candidate_slot"]),
         "planner": first_numpy(batch["selected_planner"]),
         "mean_p": first_numpy(batch["selected_mean"]),
@@ -57,6 +59,7 @@ def add_history(agent:"Agent",batch):
 
     max_seq_len = agent.config.get("max_seq_len", agent.action_history_length)
     append_history(record, agent.action_history, max_seq_len)
+    return record
 
 
 def add_opponent_history(agent:"Agent",opponent_agent:"Agent",message:str):
@@ -68,6 +71,7 @@ def add_opponent_history(agent:"Agent",opponent_agent:"Agent",message:str):
         "action":index_to_action(index)
     }
     append_history(info,agent.opponent_history,agent.opponent_history_length)
+    return info
 
 
 def num2subaction(room:"Base_Agent_Room",agent:"Agent",sub_action:int,select_range:str=""):

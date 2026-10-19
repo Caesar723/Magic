@@ -396,28 +396,13 @@ class PPOAgentDataset(BaseDataset):
         rewards=torch.tensor([scalar_value(item["reward"]) for item in self.datas],dtype=torch.float32)
         done=torch.tensor([scalar_value(item["done"]) for item in self.datas],dtype=torch.float32)
 
-        values=[]
-        next_values=[]
-        old_prob_logs=[]
-        preprocess_batch_size=self.config.get("preprocess_batch_size",self.config["dataloader"]["batch_size"])
-
-        for start in range(0,len(self.datas),preprocess_batch_size):
-            end=min(start+preprocess_batch_size,len(self.datas))
-            items=self.datas[start:end]
-
-            state_result=trainer.choose_action(items,["state"])
-            slots=candidate_slots[start:end].to(state_result["value"].device)
-            values.append(state_result["value"].detach().cpu())
-            old_prob_logs.append(state_result["dist"].log_prob(slots).detach().cpu())
-            del state_result
-
-            next_state_result=trainer.choose_action(items,["next_state"])
-            next_values.append(next_state_result["value"].detach().cpu())
-            del next_state_result
-
-        values=torch.cat(values)
-        next_values=torch.cat(next_values)
-        old_prob_log=torch.cat(old_prob_logs)
+        records=[item["state"]["decision_record"] for item in self.datas]
+        values=torch.tensor([scalar_value(record["value"]) for record in records],dtype=torch.float32)
+        old_prob_log=torch.tensor([scalar_value(record["sampled_log_prob"]) for record in records],dtype=torch.float32)
+        next_values=torch.tensor([
+            0.0 if scalar_value(item["done"]) else scalar_value(item["next_state"]["decision_record"]["value"])
+            for item in self.datas
+        ],dtype=torch.float32)
 
         delta=rewards+self.config["ppo"]["gamma"]*next_values*(1.0-done)-values
         advantage=self.calculate_advantage(delta,done)

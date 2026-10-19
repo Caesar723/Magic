@@ -5,7 +5,7 @@ from game.rlearning.trainingRoom.training_parallel_room import Multi_Agent_Paral
 class Multi_Agent_Parallel_Variable_Deck_Room(Multi_Agent_Parallel_Room):
     def __init__(self,env_config,info_communication,worker_id,inference_communication=None):
         super().__init__(env_config,info_communication,worker_id,inference_communication)
-        self.response_transitions=[]
+        self.pending_transitions={}
 
     def initinal_player(self,players,is_initinal=True):
         super().initinal_player(players,is_initinal)
@@ -24,16 +24,33 @@ class Multi_Agent_Parallel_Variable_Deck_Room(Multi_Agent_Parallel_Room):
         for player_name in self.players:
             self.flag_dict[f"{player_name}_bullet_time_flag"]=False
 
-    def get_agent_state_action(self,agent,use_model=True):
+    async def get_agent_state_action(self,agent,use_model=True):
         if not use_model:
             return None,None,1
+
         state=self.basic_func[agent.name]["get_state"](agent)
         mask=self.basic_func[agent.name]["create_action_mask"](agent)
         state["mask"]=mask
+
+        if agent==self.player_1:
+            await self.finish_pending_transition(agent,state)
+
         action=agent.choose_action(state,isTrain=True)
         return state,mask,action
 
-    async def execute_action(self,agent,action,snapshot_next_state=False,reset_response=False):
+    async def finish_pending_transition(self,agent,next_state,terminal=False):
+        pending=self.pending_transitions.pop(agent.name,None)
+        if pending is None:
+            return
+
+        state,action,reward_func=pending
+
+        async def collect_transition():
+            return await reward_func(next_state,terminal)
+
+        await agent.store_data(state,action,collect_transition)
+
+    async def execute_action(self,agent,action,reset_response=False):
         action=int(action)
         message=await self.basic_func[agent.name]["num2action"](agent,action)
         self.basic_func[agent.opponent.name]["add_opponent_history"](agent.opponent,agent,message)
@@ -51,9 +68,8 @@ class Multi_Agent_Parallel_Variable_Deck_Room(Multi_Agent_Parallel_Room):
         result=await self.message_process_dict[action_type](username,content)
         await self.check_death()
         success=result is None or result[0]
-        saved_transition=None
 
-        async def collect_transition():
+        async def next_state_function(next_state,terminal=False):
             current_rewards=self.basic_func[agent.name]["get_reward"](agent,selected_creature,attacker)
             current_reward=current_rewards["reward"]
             reward=(current_reward-old_reward)/5
@@ -64,27 +80,11 @@ class Multi_Agent_Parallel_Variable_Deck_Room(Multi_Agent_Parallel_Room):
                 reward=0
 
             reward=max(min(reward,0.3),-0.3)
-            died=await self.check_player_die()
-            done=False
+            done=terminal or await self.check_player_die()
 
-            if died and agent.life<=0:
-                reward=-1
-                done=True
-            elif died:
-                reward=1
-                done=True
-            if action==1 and not self.enable_bullet_response(agent):
-                done=False
+            if done:
+                reward=-1 if await agent.check_dead() else 1
 
-            next_state=self.basic_func[agent.name]["get_state"](agent)
-            return next_state,reward,done,current_reward,current_rewards
-
-        if success and snapshot_next_state:
-            saved_transition=await collect_transition()
-
-        async def next_state_function():
-            transition=saved_transition if saved_transition is not None else await collect_transition()
-            next_state,reward,done,current_reward,current_rewards=transition
             current_info_index=len(self.game_recorder[agent.name].datas) if action==0 else info_index
             await self.game_recorder[agent.name].store_game_reward(current_info_index,message,reward,old_rewards,current_rewards)
             return next_state,reward,done,current_reward
@@ -103,15 +103,15 @@ class Multi_Agent_Parallel_Variable_Deck_Room(Multi_Agent_Parallel_Room):
 
             force_model=first_response and trigger_action_type=="select_attacker"
             use_model=force_model or self.enable_bullet_response(current_agent)
-            state,mask,action=self.get_agent_state_action(current_agent,use_model)
-            snapshot_next_state=use_model and self.enable_bullet_response(current_agent)
-            action_type,success,reward_func=await self.execute_action(current_agent,action,snapshot_next_state,reset_response=True)
+            state,mask,action=await self.get_agent_state_action(current_agent,use_model)
+            action_type,success,reward_func=await self.execute_action(current_agent,action,reset_response=True)
+
+            if current_agent==self.player_1 and use_model:
+                self.pending_transitions[current_agent.name]=(state,action,reward_func)
 
             if not success:
                 first_response=False
                 continue
-            if current_agent==self.player_1 and use_model:
-                self.response_transitions.append((current_agent,state,action,reward_func))
             if not self.get_flag("bullet_time") or not self.gamming:
                 return
             if action_type!="activate_ability":
@@ -121,53 +121,30 @@ class Multi_Agent_Parallel_Variable_Deck_Room(Multi_Agent_Parallel_Room):
 
         raise RuntimeError(f"bullet response exceeded max_bullet_actions={max_bullet_actions}")
 
-    async def process_action(self,agent,action):
-        if not self.enable_bullet_response(agent) and not self.enable_bullet_response(agent.opponent):
-            return await super().process_action(agent,action)
+    async def process_action(self,agent,action,state):
+        action_type,success,reward_func=await self.execute_action(agent,action)
 
-        snapshot_next_state=self.enable_bullet_response(agent)
-        action_type,success,reward_func=await self.execute_action(agent,action,snapshot_next_state)
+        if agent==self.player_1:
+            self.pending_transitions[agent.name]=(state,action,reward_func)
 
         if success and self.trigger_bullet_response(action_type) and self.get_flag("bullet_time") and self.gamming:
             await self.run_bullet_response(agent,action_type)
 
         return reward_func
 
-    async def store_response_transitions(self):
-        for agent,state,action,reward_func in self.response_transitions:
-            await agent.store_data(state,action,reward_func)
-        self.response_transitions.clear()
-
     async def action_process_system(self):
-        repeat_train=True
-
-        while repeat_train:
+        while True:
             while self.gamming:
-                self.response_transitions.clear()
                 agent=self.active_player
-                state=self.basic_func[agent.name]["get_state"](agent)
-                mask=self.basic_func[agent.name]["create_action_mask"](agent)
-                state["mask"]=mask
-                action=agent.choose_action(state,isTrain=True)
-                reward_func=await self.process_action(agent,action)
-                oppo_agent=agent.opponent
-
-                if agent==self.player_1:
-                    if action!=0:
-                        await agent.store_data(state,action,reward_func)
-                    else:
-                        async def store_data_func(agent=agent,state=state,action=action,reward_func=reward_func):
-                            await agent.store_data(state,action,reward_func)
-                        agent.add_pedding_store_task(store_data_func)
-
-                await self.store_response_transitions()
-
+                state,mask,action=await self.get_agent_state_action(agent)
+                await self.process_action(agent,action,state)
                 await self.check_death()
 
-            if agent==self.player_1:
-                self.send_data_to_host(agent)
-            else:
-                self.send_data_to_host(oppo_agent)
+            if self.player_1.name in self.pending_transitions:
+                terminal_state=self.basic_func[self.player_1.name]["get_state"](self.player_1)
+                await self.finish_pending_transition(self.player_1,terminal_state,terminal=True)
 
+            self.send_data_to_host(self.player_1)
+            self.pending_transitions.clear()
             self.gamming=True
             await self.initinal_environmrnt()

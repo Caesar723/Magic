@@ -33,6 +33,7 @@ src/game/game_records
 
 models
 
+tmp/
 .tmux-magic.conf
 .tmux-magic-zdotdir
 local-tls/
