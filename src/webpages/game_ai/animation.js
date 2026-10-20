@@ -328,9 +328,6 @@ class Creature_Prepare_Attack extends Animation{
         this.name='Creature Prepare Attack'
     }
     set_animate(){
-        if (this.player instanceof Opponent){
-            this.player.table.client.tutor.analysis_situation_atteck(this.object_hold)
-        }
         
         this.object_hold.battle.mode="attack"
         this.object_hold.battle.moving_cache.push(["rotate_to_point",[this.player.oppo.player_life_ring.position]])
@@ -504,7 +501,6 @@ class Add_Buff extends Select_Object{
         
     }
     set_animate(){
-        this.player.table.client.tutor.add_buff()
         this.selected_object.append_buff(this.buff)
         //console.log(this.selected_object)
         if (this.selected_object.type=="Creature"){
@@ -859,7 +855,6 @@ class Summon extends Animation{
                 this.player.table.opponent_battlefield.push(this.object_hold.battle)
             }
             else{
-                this.player.table.client.tutor.summon_creature()
                 this.player.table.self_battlefield.push(this.object_hold.battle)
             }
             
@@ -869,7 +864,6 @@ class Summon extends Animation{
                 this.player.table.opponent_landfield.push(this.object_hold.battle)
             }
             else{
-                this.player.table.client.tutor.analysis_situation(false)
                 this.player.table.self_landfield.push(this.object_hold.battle)
             }
         }
@@ -900,7 +894,6 @@ class Turn extends Animation{
             this.player.table.player_self.my_turn=false
         }
         else{
-            this.player.table.client.tutor.turn_start()
             this.player.table.timmer_turn.change_green()
             this.player.table.player_self.my_turn=true
         }

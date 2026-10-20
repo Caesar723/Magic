@@ -12,7 +12,6 @@
     <link rel="shortcut icon" href="webpages/homepage/coin.png" type="image/x-icon" /> 
     <link href="https://fonts.googleapis.com/css?family=Merriweather:400,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="webpages/gaming_page/gaming.css">
-    <link rel="stylesheet" type="text/css" href="webpages/game_ai/tutor.css">
     <script src="webpages/gaming_page/battle_renderer.js"></script>
     <script src="webpages/gaming_page/fundation_func.js"></script>
     <script src="webpages/gaming_page/timmer.js"></script>
@@ -45,8 +44,6 @@
     <script src="webpages/gaming_page/buff.js"></script>
     <script src="webpages/gaming_page/button.js"></script>
     <script src="webpages/game_ai/gaming.js"></script>
-    <script src="webpages/mark.js"></script>
-    <script src="webpages/purify.js"></script>
     
     
     
@@ -66,17 +63,6 @@
 </head>
 <body>
     
-    <div class="ai-avatar" id="aiAvatar">
-        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" alt="AI">
-    </div>
-
-    <!-- 聊天框 -->
-    <div class="chat-box" id="chatBox">
-    <div class="chat-messages" id="chatMessages">
-        <!-- <div class="message ai">Hi, welcome to the game!</div> -->
-    </div>
-    
-    </div>
     <div class="overlay">
         <div id="canvasContainer">
             <canvas id="myCanvas" tabindex="0"></canvas>
@@ -89,7 +75,6 @@
             window.dataFromBackend = {{ data | tojson }};
             
         </script>
-        <script src="webpages/tutor.js"></script>
         <script src="webpages/gaming_page/start_game.js"></script>
         
     </div>

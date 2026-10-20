@@ -506,15 +506,13 @@ class Card_Hand extends Card{
         this.position_in_screen=new_points_pos;
         if (ctx.battleRenderer?.active) {
             if (this.player instanceof Self && this.check_weather_can_used() && (this.player.my_turn || this instanceof Instant_Hand || get_dict(this.flag_dict, 'Flash'))) {
-                ctx.battleRenderer.glow(this, this.arr_poses, camera.position[2], '#539e4e');
+                ctx.battleRenderer.glow(this, this.arr_poses, camera.position[2], '#88dfb4');
             }
             ctx.battleRenderer.quad(this, this.final_image, this.arr_poses, camera.position[2]);
             return;
         }
         if (this.player instanceof Self && this.check_weather_can_used() && (this.player.my_turn || this instanceof Instant_Hand || get_dict(this.flag_dict,"Flash"))){
             this.draw_blur_ring(ctx)
-            this.draw_blur_ring(ctx)
-            //this.draw_blur_ring(ctx)
         }
 
         let col_left_up=this.average_p(new_points_pos[2],new_points_pos[3],COL-0,COL);
@@ -551,45 +549,22 @@ class Card_Hand extends Card{
         
     }
     draw_blur_ring(ctx){
-        ctx.save()
-        
-        
+        const center = this.position_in_screen.reduce((p, q) => [p[0] + q[0] / 4, p[1] + q[1] / 4], [0, 0]);
+        const points = this.position_in_screen.map(p => p.map((v, i) => center[i] + (v - center[i]) * 1.035));
+        ctx.save();
         ctx.beginPath();
-            
-        ctx.moveTo(this.position_in_screen[0][0], this.position_in_screen[0][1]);
-        ctx.lineTo(this.position_in_screen[1][0], this.position_in_screen[1][1]);
-        
-        ctx.lineTo(this.position_in_screen[2][0], this.position_in_screen[2][1]);
-        
-        ctx.lineTo(this.position_in_screen[3][0], this.position_in_screen[3][1]);
-        
-        ctx.lineTo(this.position_in_screen[0][0], this.position_in_screen[0][1]);
-        
-        
-        
+        points.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p));
         ctx.closePath();
-        ctx.strokeStyle = 'rgb(83,158,78)';
-        ctx.shadowColor = 'rgba(83,158,78)'; // 半透明的蓝色光晕
-        ctx.fillStyle = 'rgba(83,158,78)';
-        ctx.lineCap = 'round';
-        ctx.shadowBlur = 20;
-        // 设置阴影的偏移量
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
-        ctx.lineWidth = 1;
-        ctx.fill(); // 描绘边框
-        //ctx.stroke()
-        ctx.restore()
-        //ctx.restore()
-        //ctx.stroke(); // 描绘边框
-
-        // ctx.shadowColor = 'transparent';
-        // ctx.shadowBlur = 0;
-        // ctx.shadowOffsetX = 0;
-        // ctx.shadowOffsetY = 0;
-        
-            
-
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = ctx.shadowColor = '#88dfb4';
+        ctx.shadowBlur = 18;
+        ctx.lineWidth = 5;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#efffe0';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
     }
     append_buff(buff){
         this.buff_list.push(buff)

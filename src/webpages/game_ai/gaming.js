@@ -31,7 +31,6 @@ class Game_Client{
 
         this.selectionPage=new Selection_Page(this.canvas_table,this.ctx_table,this.table,this.self_player,this.oppo_player)
         
-        this.tutor=new Tutor(this)
         //////////////////////////////
         //const canvas=this.card_frame.generate_card("blue","Caesar","creature","Common","shausoaishaisuhai","cards/creature/Angelic Protector/image.jpg")
         //const card=new Creature_Hand(4,5.62,[0,0,60],1.6,canvas,"3U",20,20,20,20,"Caesar",1122334455)
@@ -702,89 +701,6 @@ class Game_Client{
     // select_object(){
 
     // }
-    get_situation(contain_land=true){
-        let cards_text=''
-        for (let card of this.self_player.cards){
-            if (!(card.check_weather_can_used() && (card.player.my_turn || card instanceof Instant_Hand || get_dict(card.flag_dict,"Flash")))){
-                continue
-            }
-            if (!contain_land){
-                if (card.type=='Land'){
-                    continue
-                }
-            }
-            if (card.type=='Creature'){
-                cards_text+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content} damage:${card.Damage} life:${card.Life}], \n`
-            }
-            else{
-                cards_text+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content}], \n`
-            }
-        }
-        let cards_text_battle=''
-        for (let card of this.table.self_battlefield){
-            card=card.card
-            if (get_dict(card.flag_dict,'tap')){
-                continue
-            }
-            if (card.type=='Creature'){
-                cards_text_battle+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content} damage:${card.Damage} life:${card.Life}], \n`
-            }
-            else{
-                cards_text_battle+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content}], \n`
-            }
-        }
-        let cards_text_battle_oppo=''
-        for (let card of this.table.opponent_battlefield){
-            card=card.card
-            if (get_dict(card.flag_dict,'tap')){
-                continue
-            }
-            if (card.type=='Creature'){
-                cards_text_battle_oppo+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content} damage:${card.Damage} life:${card.Life}], \n`
-            }
-            else{
-                cards_text_battle_oppo+=`[name:${card.name} mana:${card.color_fee} type:${card.type} content:${card.card_content}], \n`
-            }
-        }
-
-        if (cards_text_battle==''){
-            cards_text_battle='战场没有随从'
-        }
-        if (cards_text_battle_oppo==''){
-            cards_text_battle_oppo='没有敌方战场没有随从'
-        }
-        if (cards_text==''){
-            cards_text='没有手牌'
-        }
-        let manas=`
-        [
-        blue:${this.self_player.total_manas[0]},
-        white:${this.self_player.total_manas[1]},
-        black:${this.self_player.total_manas[2]},
-        red:${this.self_player.total_manas[3]},
-        green:${this.self_player.total_manas[4]}
-        
-        ]
-        `
-        
-        let result=`
-        法力值:{${manas}}
-
-        可用手牌:{${cards_text}}
-        
-        我方战场:{${cards_text_battle}}
-
-        敌方战场:{${cards_text_battle_oppo}}
-        
-        我方生命值:{${Math.round(this.self_player.player_life_ring.life)}}
-
-        敌方生命值:{${Math.round(this.oppo_player.player_life_ring.life)}}
-        `
-        console.log(result)
-        
-        
-        return result
-    }
 
 }
 

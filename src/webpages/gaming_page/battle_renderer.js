@@ -139,16 +139,25 @@ class BattleRenderer {
             image = document.createElement('canvas');
             image.width = image.height = 256;
             const ctx = image.getContext('2d');
-            ctx.fillStyle = ctx.shadowColor = color;
-            ctx.shadowBlur = 16;
-            ctx.fillRect(20, 20, 216, 216);
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(28, 28, 200, 200, 12);
+            else ctx.rect(28, 28, 200, 200);
+            ctx.strokeStyle = ctx.shadowColor = color;
+            ctx.shadowBlur = 24;
+            ctx.lineWidth = 12;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = '#efffe0';
+            ctx.lineWidth = 4;
+            ctx.stroke();
             image._renderVersion = 1;
             this.glows.set(color, image);
         }
         const center = points[0].map((_, axis) => points.reduce((sum, p) => sum + p[axis], 0) / 4);
-        const expanded = points.map(p => p.map((v, axis) => center[axis] + (v - center[axis]) * 1.16));
+        const expanded = points.map(p => p.map((v, axis) => center[axis] + (v - center[axis]) * 1.28));
         owner._glowOwner ||= {};
-        this.quad(owner._glowOwner, image, expanded, zOffset);
+        const opacity = this.reducedMotion ? 1 : .9 + Math.sin(performance.now() * .003) * .1;
+        this.quad(owner._glowOwner, image, expanded, zOffset, 0xffffff, opacity);
     }
 
     render() {
