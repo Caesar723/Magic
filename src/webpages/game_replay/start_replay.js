@@ -42,10 +42,12 @@ function renderFrame(elapsed) {
   client.ctx_table.clearRect(0, 0, client.canvas_table.width, client.canvas_table.height);
   client.update();
   client.draw();
+  client.table.renderer?.render();
 }
 
 function main(time) {
   animationFrame = null;
+  if (document.hidden || !document.hasFocus()) return;
   const deltaTime = Math.min((time - lastTime) / 1000, 0.1);
   lastTime = time;
 
@@ -61,7 +63,7 @@ function main(time) {
 }
 
 window.startReplayRender = () => {
-  if (animationFrame === null) {
+  if (animationFrame === null && !document.hidden && document.hasFocus()) {
     lastTime = performance.now();
     animationFrame = requestAnimationFrame(main);
   }
@@ -73,6 +75,15 @@ window.stopReplayRender = () => {
     animationFrame = null;
   }
 };
+
+function updateReplayVisibility() {
+  if (document.hidden || !document.hasFocus()) window.stopReplayRender();
+  else if (!client.game_player.pause_flag && !client.game_player.isFinished()) window.startReplayRender();
+}
+document.addEventListener('visibilitychange', updateReplayVisibility);
+window.addEventListener('blur', updateReplayVisibility);
+window.addEventListener('focus', updateReplayVisibility);
+window.addEventListener('pagehide', window.stopReplayRender);
 
 const canvas = document.getElementById("myCanvas");
 

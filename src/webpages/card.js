@@ -148,10 +148,16 @@ class Card{
 
 
     update(){
-        this.dynamic_canvas[1].clearRect(0, 0, this.dynamic_canvas[0].width, this.dynamic_canvas[0].height);
-        this.dynamic_canvas[1].drawImage(this.dynamic_canvas[2],0,0,this.dynamic_canvas[2].width,this.dynamic_canvas[2].height);
-        
-        this.create_fee(this.dynamic_canvas[1],this.color_fee,...Array.from({length: 6}, (_, i) => this.images_fee[i]));
+        const face = this.dynamic_canvas[0];
+        const signature = [this.dynamic_canvas[2]._renderVersion || 0, this.color_fee, this.Damage, this.Life, ...this.images_fee.map(image => image.complete && image.naturalWidth > 0)].join('|');
+        this.faceChanged = !this._battleRenderer?.ready || face._faceSignature !== signature;
+        if (this.faceChanged) {
+            this.dynamic_canvas[1].clearRect(0, 0, face.width, face.height);
+            this.dynamic_canvas[1].drawImage(this.dynamic_canvas[2],0,0,this.dynamic_canvas[2].width,this.dynamic_canvas[2].height);
+            this.create_fee(this.dynamic_canvas[1],this.color_fee,...Array.from({length: 6}, (_, i) => this.images_fee[i]));
+            face._faceSignature = signature;
+            face._renderVersion = (face._renderVersion || 0) + 1;
+        }
         
         this.arr_poses=this.get_position_points();
 
@@ -578,6 +584,8 @@ class Card_frame{
 
             
             this.create_canvas_battle(canvas_battle,ctx_canvas_battle,images[0],name,images[1])
+            canvas._renderVersion = (canvas._renderVersion || 0) + 1;
+            canvas_battle._renderVersion = (canvas_battle._renderVersion || 0) + 1;
 
             //this.create_fee(ctx,color_fee,...Array.from({length: 6}, (_, i) => images[3+i]));
             

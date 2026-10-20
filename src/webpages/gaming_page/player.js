@@ -83,11 +83,13 @@ class Opponent extends Player{
     }
 
     draw(){
+        if (this.ctx.battleRenderer) this.ctx.battleRenderer.drawing = true;
         for (let card_i in this.cards){
             this.cards[card_i].draw(this.camera,this.ctx,this.canvas)
             //console.log(this.cards[card_i].position)
             
         }
+        if (this.ctx.battleRenderer) this.ctx.battleRenderer.drawing = false;
     }
 
     arrange_cards(){
@@ -227,10 +229,12 @@ class Self extends Player{
     draw(){
         const cards_arr=this.sort_cards()
         this.mana_bar.draw(this.canvas,this.ctx,this.camera)
+        if (this.ctx.battleRenderer) this.ctx.battleRenderer.drawing = true;
         for (let card_i in cards_arr){
             cards_arr[card_i].draw(this.camera,this.ctx,this.canvas)
             
         }
+        if (this.ctx.battleRenderer) this.ctx.battleRenderer.drawing = false;
     }
 
     arrange_cards(){

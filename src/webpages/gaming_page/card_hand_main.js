@@ -15,7 +15,7 @@ class Creature_Hand extends Card_Hand {
     update(){
         //console.log(this.player)
         super.update();
-        this.print_life_damage();
+        if (this.faceChanged) this.print_life_damage();
         
 
         

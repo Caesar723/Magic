@@ -1,6 +1,7 @@
 class Ring_Record{
     constructor(position,size){
         this.position=position
+        this.position_in_screen = Array.from({length: 4}, () => [0, 0]);
         this.size=size
         const width=1
         const height=1
@@ -187,6 +188,12 @@ class Ring_Record{
         ctx.restore();
     }
     draw(camera,ctx,canvas){
+        if (ctx.battleRenderer?.active) {
+            this.position_in_screen = this.arr_poses.map(p => [canvas.width / 2 + camera.similar_tri_2(p[0], p[2]), canvas.height / 2 + camera.similar_tri_2(p[1], p[2])]);
+            this.position_in_screen_z = (this.arr_poses[0][2] + this.arr_poses[2][2]) / 2;
+            ctx.battleRenderer.quad(this, this.canvas, this.arr_poses);
+            return;
+        }
         
         const new_points_pos=[];
 

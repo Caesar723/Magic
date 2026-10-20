@@ -137,6 +137,12 @@ class Table_graph extends Block{
 
 class Table_side extends Plane{
     draw(camera,canvas,ctx){
+        const renderer = ctx.battleRenderer;
+        if (renderer?.active) {
+            const light = Math.max(0, Math.min(255, Math.round(100 - 255 * this.angle_from_cam(camera) / 360)));
+            renderer.quad(this, null, this.indexs_plane.map(i => this.arr[i]), 0, light * 0x010101);
+            return;
+        }
         
         const angle=this.angle_from_cam(camera);
         const light=(100-255*angle/360).toString();
@@ -243,6 +249,11 @@ class Table_surface extends Plane{
         ctx.restore();
     }
     draw(camera,canvas,ctx){
+        if (ctx.battleRenderer?.active) {
+            this.position_in_screen = this.indexs_plane.map(i => this.arr[i]);
+            ctx.battleRenderer.quad(this, this.image, this.position_in_screen);
+            return;
+        }
         
         
         const new_points_pos=[];

@@ -24,6 +24,7 @@ class Card_Battle{
         this.vel_y=0;
         this.vel_z=0;
         this.arr_poses=NaN;
+        this.position_in_screen = Array.from({length: 4}, () => [0, 0]);
         this.size=size
         this.points=this.get_org_position(this.size);
         this.card=card
@@ -204,47 +205,20 @@ class Card_Battle{
         ctx.restore();
     }
     update(camera){
-        this.check_moving()
-        //console.log(this,this.moving)
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        this.ctx.save()
-        let filter= '';
-
-        if(this.activated==true){
-            
-            filter =filter + "brightness(50%)"
-            
+        this.check_moving();
+        const frozen = this.buff_list.some(buff => buff.content === 'frozen');
+        const signature = [this.image._renderVersion || 0, this.image.width, this.image.height, this.activated, this.Damage, this.Life, frozen].join('|');
+        this.faceChanged = !this._battleRenderer?.ready || this._faceSignature !== signature;
+        if (this.faceChanged) {
+            this._faceSignature = signature;
+            this.canvas._renderVersion = (this.canvas._renderVersion || 0) + 1;
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.save();
+            this.ctx.filter = (this.activated ? 'brightness(50%)' : '') + (frozen ? ' hue-rotate(180deg) saturate(1.2)' : '');
+            this.ctx.drawImage(this.image, 0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.restore();
         }
-
-        for (const buff of this.buff_list){
-            if (buff.content=="frozen"){
-                filter=filter + " hue-rotate(180deg) saturate(1.2)"
-                break
-            }
-        }
-        
-
-        // if(this.activated==true){
-        //     this.ctx.filter = 'brightness(50%)';
-        //     this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
-        //     this.ctx.filter = '';
-        // }
-        // else{
-        
-        this.ctx.filter=filter
-        this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
-        // }
-        this.ctx.filter = '';
-        
-        //this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
-        this.ctx.restore()
-        //this.create_fee(this.dynamic_canvas[1],this.color_fee,...Array.from({length: 6}, (_, i) => this.images_fee[i]));
-        
-        this.arr_poses=this.get_position_points(camera);
-
-        
-
+        this.arr_poses = this.get_position_points(camera);
     }
     draw(camera,ctx,canvas){
         
@@ -272,6 +246,12 @@ class Card_Battle{
         const COL=4;
         const ROW=4;
         this.position_in_screen=new_points_pos;
+        if (ctx.battleRenderer?.active) {
+            this.position_in_screen_z = (new_points_z[0] + new_points_z[2]) / 2;
+            if (this.select_flag) ctx.battleRenderer.glow(this, this.arr_poses, 0, '#7ea3ff');
+            ctx.battleRenderer.quad(this, this.canvas, this.arr_poses);
+            return;
+        }
 
         if (this.select_flag){
             this.draw_blur_ring(ctx)
@@ -356,6 +336,13 @@ class Card_Battle{
             const rotated=math.multiply(xy_rotate_camera,position_by_camera);
             //this.matrix_pos=rotated
             var pos_rotate=rotated;
+
+            if (ctx.battleRenderer?.active) {
+                this._shadowOwner ||= {};
+                const points = this.corners.map((_, i) => [0, 1, 2].map(axis => pos_rotate.get([axis, i])));
+                ctx.battleRenderer.quad(this._shadowOwner, null, points, 0, 0x171717, .6);
+                return;
+            }
 
 
 

@@ -37,6 +37,7 @@ var TIME_INTERVAL = 2;
         client.ctx_table.clearRect(0, 0, canvas.width, canvas.height);
         client.update();
         client.draw();
+        client.table.renderer?.render();
         frame = requestAnimationFrame(render);
     }
 

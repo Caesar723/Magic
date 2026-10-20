@@ -24,7 +24,7 @@ class Creature_Battle extends Card_Battle {
     
     update(camera){
         super.update(camera);
-        this.print_life_damage();
+        if (this.faceChanged) this.print_life_damage();
 
         this.check_flying()
         this.flying_motion()
@@ -191,6 +191,7 @@ class Creature_Battle extends Card_Battle {
     }
 
     flying_motion(){
+        if (this.table.renderer?.reducedMotion) return;
         if(this.flying && !this.moving && this.move_to_fly_flag){
             this.flying_x+=Math.PI/64
             this.accurate_position[1]+=Math.sin(this.flying_x)*0.05;

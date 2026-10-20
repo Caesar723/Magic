@@ -10,9 +10,11 @@ var TIME_INTERVAL=2
 const client = new Game_Client();
 
 let lastTime = 0;
+let animationFrame = 0;
 function main(time){
-
-  const deltaTime = (time - lastTime) / 1000;
+  animationFrame = 0;
+  if (document.hidden || !document.hasFocus()) { lastTime = 0; return; }
+  const deltaTime = lastTime ? Math.min((time - lastTime) / 1000, .05) : 1 / 60;
   
   lastTime = time;
 
@@ -27,12 +29,24 @@ function main(time){
   //console.timeEnd('update');
   //console.time('game');
   client.draw()
+  client.table.renderer?.render();
   //console.timeEnd('game');
   
   
   
-  requestAnimationFrame(main);
+  animationFrame = requestAnimationFrame(main);
 }
+
+function updatePlayback() {
+  cancelAnimationFrame(animationFrame);
+  animationFrame = 0;
+  lastTime = 0;
+  if (!document.hidden && document.hasFocus()) animationFrame = requestAnimationFrame(main);
+}
+window.addEventListener('blur', updatePlayback);
+window.addEventListener('focus', updatePlayback);
+document.addEventListener('visibilitychange', updatePlayback);
+window.addEventListener('pagehide', () => cancelAnimationFrame(animationFrame));
 
 const canvas = document.getElementById('myCanvas');
 
@@ -68,4 +82,4 @@ window.addEventListener('resize', resizeCanvas);
 // 初始化canvas大小
 resizeCanvas();
 
-main()
+updatePlayback();

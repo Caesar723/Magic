@@ -609,6 +609,7 @@ class Game_Client{
     }
 
     blur_effect(grayscale,blur_value){
+        if (this.table.renderer?.ready) this.table.renderer.filter = `blur(${blur_value}px) grayscale(${grayscale}%)`;
         this.ctx_table.filter =  `blur(${blur_value}px) grayscale(${grayscale}%)`;
         this.ctx_table.drawImage(this.canvas_table, 0, 0, this.canvas_table.width, this.canvas_table.height);
         this.ctx_table.filter =  "none";

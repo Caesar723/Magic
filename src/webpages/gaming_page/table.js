@@ -10,6 +10,7 @@ class Table{
 
         //this.canvas =this.canvas.transferControlToOffscreen();
         this.ctx = this.canvas.getContext("2d");
+        this.renderer = typeof BattleRenderer === 'undefined' ? null : new BattleRenderer(this.canvas, this.ctx);
         this.time_interval=0.02//每隔0.02秒进行一次刷新
         this.table_graph=new Table_graph(2,1,1,[0,0,0],20,"webpages/image_source/game/background.jpg");
         this.deck_self_graph=new Deck_battle(4,2,5.62,[-28.5,-20-3,-15],0.5,"webpages/image_source/card/back.png?v=compass")
@@ -213,6 +214,7 @@ class Table{
     }
     
     draw(){//先画背景再画影子最后画图片
+        this.renderer?.begin();
         this.table_graph.draw(this.camera,this.canvas,this.ctx)
         
         for (let i_self in this.self_battlefield){
@@ -274,6 +276,7 @@ class Table{
         this.player_self.player_life_ring.draw(this.camera,this.ctx,this.canvas)
         this.player_oppo.player_life_ring.draw(this.camera,this.ctx,this.canvas)
         this.special_effects.draw(this.camera,this.ctx,this.canvas)
+        if (this.renderer) this.renderer.drawing = false;
 
     }
 

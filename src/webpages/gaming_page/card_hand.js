@@ -504,6 +504,13 @@ class Card_Hand extends Card{
         const ROW=4;
 
         this.position_in_screen=new_points_pos;
+        if (ctx.battleRenderer?.active) {
+            if (this.player instanceof Self && this.check_weather_can_used() && (this.player.my_turn || this instanceof Instant_Hand || get_dict(this.flag_dict, 'Flash'))) {
+                ctx.battleRenderer.glow(this, this.arr_poses, camera.position[2], '#539e4e');
+            }
+            ctx.battleRenderer.quad(this, this.final_image, this.arr_poses, camera.position[2]);
+            return;
+        }
         if (this.player instanceof Self && this.check_weather_can_used() && (this.player.my_turn || this instanceof Instant_Hand || get_dict(this.flag_dict,"Flash"))){
             this.draw_blur_ring(ctx)
             this.draw_blur_ring(ctx)
@@ -636,6 +643,11 @@ class Card_Hand_Oppo extends Card{
         
     }
     draw(camera,ctx,canvas){
+        if (ctx.battleRenderer?.active) {
+            this.position_in_screen = this.arr_poses.map(p => [canvas.width / 2 + camera.similar_tri(p[0], p[2]), canvas.height / 2 + camera.similar_tri(p[1], p[2])]);
+            ctx.battleRenderer.quad(this, this.back_img, this.arr_poses, camera.position[2]);
+            return;
+        }
         
         const new_points_pos=[];
         
