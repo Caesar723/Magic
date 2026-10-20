@@ -112,6 +112,10 @@ def validate_select_defender(room:"Room",player:"Player",card:"Card")->tuple[boo
         return False,"There is no attacker"
     if card.get_flag("tap"):
         return False,"Creature is tapped"
+    for item in room.stack:
+        message=(item.get("message") or "").split("||",1)[0]
+        if item.get("card") is card and message.startswith(f"{player.name}|select_defender|"):
+            return False,"Creature is already queued as a defender"
     if attacker.get_flag("flying") and not (card.get_flag("flying") or card.get_flag("reach")):
         return False,"Creature can't block flying"
     if not room.check_landwalk(attacker,player):
@@ -205,6 +209,8 @@ def validate_activate_ability(room:"Room",player:"Player",card:"Card",area:str)-
         return False,"Land is not in the land area"
     if card.get_flag("tap"):
         return False,"Land is already tapped"
+    if card.content=="":
+        return False,"Land has no ability description"
     check_ability=getattr(card,"check_ability_can_be_used",None)
     if check_ability is None:
         return False,"Card has no activatable ability"

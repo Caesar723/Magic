@@ -415,7 +415,13 @@ class PPOAgentDataset(BaseDataset):
         ],dtype=torch.long)
         rewards=torch.tensor([scalar_value(item["reward"]) for item in self.datas],dtype=torch.float32)
         done=torch.tensor([scalar_value(item["done"]) for item in self.datas],dtype=torch.float32)
-
+        if trainer.rank==0 and done.bool().any():
+            batch_extra={
+                "reward":rewards,
+                "done":done,
+                "global_reward":[scalar_value(item["global_reward"]) for item in self.datas]
+            }
+            self.log_data(trainer,batch_extra)
         records=[item["state"]["decision_record"] for item in self.datas]
         values=torch.tensor([scalar_value(record["value"]) for record in records],dtype=torch.float32)
         old_prob_log=torch.tensor([scalar_value(record["sampled_log_prob"]) for record in records],dtype=torch.float32)

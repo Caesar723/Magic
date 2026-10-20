@@ -67,7 +67,7 @@ rollout_state_fields:
 dataset_class_name: "game.rlearning.datasets.variable_deck.CASTER_PPO_Pointer.PPOAgentDataset"
 
 dataloader:
-  batch_size: 32
+  batch_size: 2
   num_workers: 0
   shuffle: true
   pin_memory: true

@@ -14,4 +14,4 @@ inference:
 
 rollout_torch_threads: 1
 
-num_worker: 1
+num_worker: 25

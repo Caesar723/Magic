@@ -90,6 +90,9 @@ class Multi_Agent_Parallel_Room(Base_Agent_Room):
 
         
 
+    async def auto_close(self):
+        pass
+
     def initinal_player(self,players:list[tuple],is_initinal:bool=True):
         agents_deck="Eternal Phoenix+Creature+4|Raging Firekin+Creature+4|Emberheart Salamander+Creature+4|Arcane Inferno+Instant+4|Pyroblast Surge+Instant+4|Fiery Blast+Instant+4|Inferno Titan+Creature+4|Flame Tinkerer+Creature+4|Mountain+Land+24"
 

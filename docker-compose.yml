@@ -3,6 +3,7 @@ version: '3.8'
 services:
   db:
     image: mysql:8.3
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: 20040723Caesar  # 设置 root 用户的密码为 20040723Caesar
       MYSQL_DATABASE: Magic_fan_made  # 创建的数据库名称
@@ -15,8 +16,8 @@ services:
 
   mongo:
     image: mongo:6
+    restart: unless-stopped
     container_name: mongo-magic
-    restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 20040723Caesar
@@ -29,6 +30,7 @@ services:
 
   web:
     image: registry.cn-shanghai.aliyuncs.com/magic_fan_made/server_magic
+    restart: unless-stopped
     platform: linux/amd64
     ports:
       - "10086:443"
@@ -52,7 +54,7 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: magic-cloudflared
     restart: unless-stopped
-    command: tunnel --no-autoupdate run
+    command: tunnel --no-autoupdate --protocol http2 run
     environment:
       TUNNEL_TOKEN: ${TUNNEL_TOKEN:?Tunnel token is required}
 
