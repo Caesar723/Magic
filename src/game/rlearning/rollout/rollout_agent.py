@@ -29,7 +29,7 @@ class RolloutAgent:
         # GameRecorder keeps its existing per-policy output location.  The
         # rollout process does not own a trainer, but it still needs these two
         # metadata fields used by Base_Agent_Room.
-        self.logdir = f"{ORGPATH}/../{CHECKPOINT_ROOT_PATH}/{self.config['log_dir']}"
+        self.logdir = f"{CHECKPOINT_ROOT_PATH}/{self.config['log_dir']}"
         self.step = self._numeric_step(restore_step)
         self.dataset = RolloutBuffer()
         self.client = InferenceClient(

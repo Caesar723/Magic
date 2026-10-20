@@ -53,7 +53,7 @@ class Parallel_Env(BaseParallelEnv):
                 if not self.info_communication.check_model_update(worker_id):
                     agent_path,config=random.choice(list(self.config_list.items()))
                     
-                    logdir=f"{ORGPATH}/../{CHECKPOINT_ROOT_PATH}/{config['log_dir']}"
+                    logdir=f"{CHECKPOINT_ROOT_PATH}/{config['log_dir']}"
                     restore_step=AgentSchedule.get_restore_step(logdir)
                     #print(agent_path,restore_step)
                     self.info_communication.update_model_opponent(worker_id,agent_path,restore_step)

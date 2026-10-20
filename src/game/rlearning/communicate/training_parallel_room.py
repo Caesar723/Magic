@@ -2,6 +2,7 @@ from torch.multiprocessing import Queue
 from queue import Full, Empty
 import random
 from initinal_file import ORGPATH
+from game.rlearning.utils.file import read_yaml
 
 
 class Info_Communication:
@@ -13,7 +14,9 @@ class Info_Communication:
 
         self.update_model(0,0)
         for i in range(self.num_worker):
-            self.update_model_opponent(i,random.choice(self.config_path_list),0)
+            opponent_path=random.choice(self.config_path_list)
+            opponent_config=read_yaml(opponent_path)
+            self.update_model_opponent(i,opponent_path,opponent_config["restore_step"])
 
     def store_game_data(self,data:list[dict]):
         # for _ in range(3):
