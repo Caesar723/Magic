@@ -16,6 +16,8 @@ from security import Security
 from game.room_server import RoomServer,Room
 from game.studio_room import Studio_Room
 from game.rogue.rogue import get_router
+from social.router import get_social_router
+from social.connections import SocialConnections
 from initinal_file import CARD_DICTION
 from packs import *
 from tasks import TASK_DICT
@@ -27,8 +29,10 @@ database=DataBase()
 ras=Security()
 room_server=RoomServer(database)
 templates = Jinja2Templates(directory=f"{ORGPATH}")
+social_connections = SocialConnections()
 
 app.include_router(get_router(ras,database,room_server,templates))
+app.include_router(get_social_router(database, social_connections, room_server))
 
 ###cryptography
 

@@ -36,8 +36,26 @@ class RoomServer:
         self.client_room[client_1[1]]=room
         self.client_room[client_2[1]]=room
 
-        await room.game_start()
+        try:
+            await room.game_start()
+        except BaseException:
+            await self.discard_room(room)
+            raise
+        return room
 
+    async def discard_room(self, room):
+        room.gamming = False
+        for username in room.players:
+            if self.client_room.get(username) is room:
+                del self.client_room[username]
+
+        tasks = list(room.tasks)
+        tasks.extend([room.task_timer, room.task_close])
+        tasks = {task for task in tasks if task is not None}
+        for task in tasks:
+            task.cancel()
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
 
     async def create_new_pveroom(self,client_1:tuple):
         room=PVE_Room([client_1],self)

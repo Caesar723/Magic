@@ -101,6 +101,7 @@ def reset_table():
 
 def ensure_database_schema():
     """Create missing tables and synchronize built-in task definitions safely."""
+    from social import models as social_models
     Base.metadata.create_all(engine)
     reset_tasks()
 
