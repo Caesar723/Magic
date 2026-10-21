@@ -508,7 +508,7 @@ class Card_Hand extends Card{
 
         this.position_in_screen=new_points_pos;
         if (ctx.battleRenderer?.active) {
-            ctx.battleRenderer.quad(this, this.final_image, this.arr_poses, camera.position[2]);
+            ctx.battleRenderer.quad(this, this.final_image, this.arr_poses, camera.position[2], 0xffffff, 1, true);
             if (this.player instanceof Self && this.check_weather_can_used() && (this.player.my_turn || this instanceof Instant_Hand || get_dict(this.flag_dict, 'Flash'))) {
                 ctx.battleRenderer.glow(this, this.arr_poses, camera.position[2], '#8bdcb5');
             }

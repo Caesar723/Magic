@@ -248,7 +248,7 @@ class Card_Battle{
         this.position_in_screen=new_points_pos;
         if (ctx.battleRenderer?.active) {
             this.position_in_screen_z = (new_points_z[0] + new_points_z[2]) / 2;
-            ctx.battleRenderer.quad(this, this.canvas, this.arr_poses);
+            ctx.battleRenderer.quad(this, this.canvas, this.arr_poses, 0, 0xffffff, 1, true);
             if (this.select_flag) ctx.battleRenderer.glow(this, this.arr_poses, 0, '#7ea3ff');
             return;
         }

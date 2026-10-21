@@ -27,10 +27,9 @@ class BattleRenderer {
         this.surface = document.createElement('canvas');
         this.surface.className = 'battle-webgl';
         this.surface.setAttribute('aria-hidden', 'true');
-        this.renderer = new THREE.WebGLRenderer({canvas: this.surface, alpha: true, antialias: true, powerPreference: 'high-performance'});
+        this.renderer = new THREE.WebGLRenderer({canvas: this.surface, alpha: true, antialias: true, depth: false, powerPreference: 'high-performance'});
         // Logical canvas dimensions also define every existing pointer hit test.
         this.renderer.setPixelRatio(1);
-        this.renderer.setSize(this.canvas.width, this.canvas.height, false);
         this.renderer.setClearColor(0x000000, 0);
         this.renderer.outputColorSpace = THREE.SRGBColorSpace;
         this.scene = new THREE.Scene();
@@ -54,8 +53,11 @@ class BattleRenderer {
 
     resize(width, height) {
         if (!this.ready) return;
-        this.renderer.setPixelRatio(Math.min(1, 2048 / Math.max(width, height), Math.sqrt(2400000 / (width * height))));
-        this.renderer.setSize(width, height, false);
+        const bounds = this.canvas.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const w = (bounds.width || width) * dpr, h = (bounds.height || height) * dpr;
+        const limit = Math.min(4096, this.renderer.capabilities.maxTextureSize);
+        const scale = Math.min(1, limit / Math.max(w, h), Math.sqrt(8388608 / (w * h)));
+        this.renderer.setSize(Math.max(1, Math.floor(w * scale)), Math.max(1, Math.floor(h * scale)), false);
         this.camera.aspect = width / height;
         this.camera.fov = 2 * Math.atan(height / 1800) * 180 / Math.PI;
         this.camera.updateProjectionMatrix();
@@ -83,6 +85,18 @@ class BattleRenderer {
         for (const entry of this.meshes.values()) entry.mesh.visible = false;
     }
 
+    createTexture(image) {
+        const texture = new this.THREE.Texture(image);
+        texture.flipY = false;
+        texture.colorSpace = this.THREE.SRGBColorSpace;
+        const artwork = image instanceof HTMLImageElement;
+        texture.minFilter = artwork ? this.THREE.LinearMipmapLinearFilter : this.THREE.LinearFilter;
+        texture.magFilter = this.THREE.LinearFilter;
+        texture.generateMipmaps = artwork;
+        texture.anisotropy = artwork ? Math.min(8, this.renderer.capabilities.getMaxAnisotropy() || 1) : 1;
+        return texture;
+    }
+
     texture(image) {
         let entry = this.textures.get(image);
         if (entry && (entry.width !== image.width || entry.height !== image.height)) {
@@ -91,13 +105,7 @@ class BattleRenderer {
             entry = null;
         }
         if (!entry) {
-            const texture = new this.THREE.Texture(image);
-            texture.flipY = false;
-            texture.colorSpace = this.THREE.SRGBColorSpace;
-            texture.minFilter = this.THREE.LinearFilter;
-            texture.magFilter = this.THREE.LinearFilter;
-            texture.generateMipmaps = false;
-            entry = {texture, width: image.width, height: image.height};
+            entry = {texture: this.createTexture(image), width: image.width, height: image.height};
             this.textures.set(image, entry);
         }
         const version = image instanceof HTMLImageElement ? image.currentSrc : image._renderVersion;
@@ -110,7 +118,38 @@ class BattleRenderer {
         return entry.texture;
     }
 
-    quad(owner, image, points, zOffset = 0, color = 0xffffff, opacity = 1) {
+    textTexture(owner, image) {
+        // Prefilter text at its projected pixel size, avoiding both undersampling
+        // the original and blending overly small mip levels into fine glyphs.
+        const p = owner.position_in_screen, sx = this.surface.width / this.canvas.width, sy = this.surface.height / this.canvas.height;
+        const edge = (a, b) => Math.hypot((p[a][0] - p[b][0]) * sx, (p[a][1] - p[b][1]) * sy);
+        const width = Math.max(1, Math.min(image.width, Math.ceil(Math.max(edge(0, 3), edge(1, 2)) / 4) * 4));
+        const height = Math.max(1, Math.min(image.height, Math.ceil(Math.max(edge(0, 1), edge(2, 3)) / 4) * 4));
+        let entry = this.textures.get(owner);
+        // A small tolerance prevents reallocating textures for subpixel motion.
+        if (!entry || entry.image !== image || Math.abs(entry.width - width) > 4 || Math.abs(entry.height - height) > 4) {
+            entry?.texture.dispose();
+            const canvas = Object.assign(document.createElement('canvas'), {width, height});
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingQuality = 'high';
+            entry = {image, width, height, canvas, ctx, texture: this.createTexture(canvas)};
+            // Preserve glyph coverage while interpolating the prefiltered face.
+            // The face material decodes sRGB after sampling rather than before it.
+            entry.texture.internalFormat = 'RGBA8';
+            this.textures.set(owner, entry);
+        }
+        if (!entry.uploaded || image._renderVersion === undefined || entry.version !== image._renderVersion) {
+            entry.ctx.clearRect(0, 0, entry.width, entry.height);
+            entry.ctx.drawImage(image, 0, 0, entry.width, entry.height);
+            entry.texture.needsUpdate = true;
+            entry.version = image._renderVersion;
+            entry.uploaded = true;
+        }
+        entry.frame = this.frame;
+        return entry.texture;
+    }
+
+    quad(owner, image, points, zOffset = 0, color = 0xffffff, opacity = 1, text = false) {
         if (!this.active) return false;
         if (image && (!image.width || !image.height || (image instanceof HTMLImageElement && (!image.complete || !image.naturalWidth)))) return true;
         let entry = this.meshes.get(owner);
@@ -124,16 +163,25 @@ class BattleRenderer {
             // with separate cameras. The vertices retain real perspective depth.
             const material = new THREE.MeshBasicMaterial({transparent: true, side: THREE.DoubleSide, depthTest: false, depthWrite: false, toneMapped: false});
             material.forceSinglePass = true;
+            const textSampling = {value: false};
+            if (text) {
+                material.onBeforeCompile = shader => {
+                    shader.uniforms.battleTextSampling = textSampling;
+                    const map = THREE.ShaderChunk.map_fragment.replace('diffuseColor *= sampledDiffuseColor;', 'if (battleTextSampling) sampledDiffuseColor = sRGBTransferEOTF(sampledDiffuseColor);\n\tdiffuseColor *= sampledDiffuseColor;');
+                    shader.fragmentShader = 'uniform bool battleTextSampling;\n' + shader.fragmentShader.replace('#include <map_fragment>', map);
+                };
+            }
             const mesh = new THREE.Mesh(geometry, material);
             mesh.frustumCulled = false;
             this.scene.add(mesh);
-            entry = {mesh};
+            entry = {mesh, textSampling};
             this.meshes.set(owner, entry);
         }
         const mesh = entry.mesh, positions = mesh.geometry.attributes.position;
         for (let i = 0; i < 4; i++) positions.setXYZ(i, points[i][0], points[i][1], points[i][2] - zOffset);
         positions.needsUpdate = true;
-        mesh.material.map = image ? this.texture(image) : null;
+        entry.textSampling.value = text && image instanceof HTMLCanvasElement;
+        mesh.material.map = image ? (text && image instanceof HTMLCanvasElement ? this.textTexture(owner, image) : this.texture(image)) : null;
         mesh.material.color.setHex(color);
         mesh.material.opacity = opacity;
         mesh.visible = true;
