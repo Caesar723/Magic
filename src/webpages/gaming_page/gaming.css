@@ -40,3 +40,114 @@ body {
   background-color: transparent;
   z-index: 1;
 }
+
+/* Decorative layers stay below both the WebGL surface and the input canvas. */
+.battle-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  contain: strict;
+  pointer-events: none;
+  user-select: none;
+  background:
+    radial-gradient(ellipse at 50% 34%, #6a858b55, transparent 67%),
+    linear-gradient(170deg, #344b54 4%, #496b71 48%, #2d424b 100%);
+  animation: battle-sky-reveal 1.4s ease-out both;
+}
+
+.battle-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, #182a35a6, transparent 27%, transparent 70%, #172932b3),
+    linear-gradient(90deg, #1b2d3659, transparent 22%, transparent 78%, #1b2d3666);
+}
+
+.battle-clouds {
+  position: absolute;
+  inset: -5% -12%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 700'%3E%3Cg fill='%23bcc5b4' stroke='%232f4950' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M-100 178q40-22 75-14-4-23 22-31 4-27 30-23 22-22 46-2 35-12 51 17 27-6 39 17 31-7 55 11 42-10 74 14 45-6 79 11H-100Z'/%3E%3Cpath d='M778 389q28-17 57-12-3-21 20-29 2-26 25-26 20-19 42-2 29-10 47 12 27-7 41 14 25-4 49 12 40-7 68 12 37-5 73 12H778Z'/%3E%3Cpath d='M50 635q39-21 67-13 14-24 38-17-5-25 20-37 21-22 46-4 35-5 53 18 29-7 49 13 35-4 61 12 41-4 74 14 35-4 58 14H50Z'/%3E%3Cpath d='M-2 152q25-5 42 3m21-28q15-2 27 8m37 22q27-7 49 4m673 207q24-7 43 1m26-32q14-3 25 7m20 28q24-5 41 6M141 616q24-8 44 1m23-29q13-4 25 3m28 29q23-5 39 4' fill='none'/%3E%3C/g%3E%3C/svg%3E") left center / 1250px 100% repeat-x;
+  opacity: .2;
+  animation: battle-cloud-drift 68s ease-in-out infinite alternate;
+}
+
+.battle-clouds--near {
+  inset: 13% -18% -16%;
+  background-position: 370px center;
+  background-size: 1600px 100%;
+  opacity: .13;
+  animation-duration: 43s;
+  animation-direction: alternate-reverse;
+}
+
+.battle-ruin {
+  position: absolute;
+  display: block;
+  width: clamp(260px, 45vmin, 580px);
+  aspect-ratio: 2 / 3;
+  object-fit: contain;
+  opacity: .68;
+  animation: battle-ruin-float 13s ease-in-out infinite alternate;
+}
+
+.battle-ruin--tower { left: -7vmin; top: -6%; }
+.battle-ruin--arch {
+  width: clamp(260px, 48vmin, 640px);
+  right: -10vmin;
+  bottom: 2%;
+  opacity: .57;
+  animation-duration: 16s;
+  animation-delay: -8s;
+}
+
+.battle-ruin--distant,
+.battle-ruin--distant-right {
+  width: clamp(80px, 14vmin, 190px);
+  left: 52%;
+  top: -5%;
+  opacity: .18;
+  filter: brightness(.65) saturate(.5);
+  animation-duration: 21s;
+  animation-delay: -6s;
+}
+
+.battle-ruin--distant-right { left: 82%; top: 12%; width: clamp(55px, 10vmin, 130px); opacity: .13; }
+.battle-dust { position: absolute; inset: 0; }
+.battle-dust i {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: #b4e4cf;
+  box-shadow: 0 0 6px #80c8ac99;
+  opacity: 0;
+  animation: battle-dust-rise var(--duration) linear var(--delay) infinite both;
+}
+
+.battle-backdrop.is-paused,
+.battle-backdrop.is-paused * { animation-play-state: paused !important; }
+
+@keyframes battle-sky-reveal { from { opacity: 0; } to { opacity: 1; } }
+@keyframes battle-cloud-drift { from { transform: translate3d(-35px, 0, 0); } to { transform: translate3d(35px, -5px, 0); } }
+@keyframes battle-ruin-float { from { transform: translate3d(0, -4px, 0) rotate(-.25deg); } to { transform: translate3d(0, 4px, 0) rotate(.25deg); } }
+@keyframes battle-dust-rise {
+  0% { opacity: 0; transform: translate3d(0, 18px, 0) scale(.6); }
+  22% { opacity: .65; }
+  75% { opacity: .4; }
+  100% { opacity: 0; transform: translate3d(var(--drift), -100px, 0) scale(1); }
+}
+
+@media (max-width: 600px) {
+  .battle-ruin--tower { left: -15vmin; top: -4%; width: 260px; }
+  .battle-ruin--arch { right: -22vmin; bottom: 5%; width: 300px; }
+  .battle-dust i:nth-child(n + 17) { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-backdrop, .battle-backdrop * { animation: none !important; }
+  .battle-dust { display: none; }
+}

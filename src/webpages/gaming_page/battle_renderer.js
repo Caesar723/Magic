@@ -15,6 +15,7 @@ class BattleRenderer {
         ctx.battleRenderer = this;
         canvas.dataset.renderer = 'canvas';
         this.installTouch();
+        this.installBackdrop();
         const loading = BattleRenderer.library.then(THREE => this.initialize(THREE)).catch(() => this.dispose());
         window.PageTransition?.wait(loading);
         window.addEventListener('pagehide', () => this.dispose(), {once: true});
@@ -50,6 +51,43 @@ class BattleRenderer {
 
     get active() { return this.ready && this.drawing; }
     get reducedMotion() { return this.motion.matches; }
+
+    installBackdrop() {
+        // Full-screen battles share gaming.css; Studio retains its own viewport frame.
+        if (this.canvas.parentElement.id !== 'canvasContainer') return;
+        const backdrop = document.createElement('div');
+        backdrop.className = 'battle-backdrop';
+        backdrop.setAttribute('aria-hidden', 'true');
+        for (const layer of ['far', 'near']) {
+            const cloud = document.createElement('div');
+            cloud.className = 'battle-clouds battle-clouds--' + layer;
+            backdrop.append(cloud);
+        }
+        for (const [kind, source] of [['distant', 'tower'], ['distant-right', 'arch'], ['tower', 'tower'], ['arch', 'arch']]) {
+            const image = new Image();
+            image.alt = '';
+            image.className = 'battle-ruin battle-ruin--' + kind;
+            image.src = '/webpages/gaming_page/art/sky-' + source + '.webp';
+            image.draggable = false;
+            backdrop.append(image);
+            window.PageTransition?.image(image);
+        }
+        const dust = document.createElement('div');
+        dust.className = 'battle-dust';
+        for (let i = 0; i < 24; i++) {
+            const mote = document.createElement('i');
+            const x = i % 3 === 0 ? 18 + i * 17 % 64 : i % 2 ? 2 + i * 7 % 10 : 88 + i * 3 % 10;
+            mote.style.cssText = `--x:${x}%;--y:${8 + i * 29 % 88}%;--size:${2 + i % 2}px;--duration:${9 + i % 7}s;--delay:${-i * 1.7}s;--drift:${12 + i % 5 * 6}px`;
+            dust.append(mote);
+        }
+        backdrop.append(dust);
+        this.canvas.before(backdrop);
+        const pause = event => backdrop.classList.toggle('is-paused', event?.type === 'blur' || document.hidden || !document.hasFocus());
+        window.addEventListener('blur', pause);
+        window.addEventListener('focus', pause);
+        document.addEventListener('visibilitychange', pause);
+        pause();
+    }
 
     resize(width, height) {
         if (!this.ready) return;
