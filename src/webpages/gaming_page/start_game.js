@@ -52,29 +52,11 @@ const canvas = document.getElementById('myCanvas');
 
 
 function resizeCanvas() {
-  const body = document.body;
-  
-  const canvasAspectRatio = 10/6;
-  const windowWidth = body.clientWidth;
-  const windowHeight = body.clientHeight;
-  const windowRatio = windowWidth / windowHeight;
-  //console.log(windowWidth,windowHeight,canvas.width,canvas.height)
-
-  let scale;
-
-  if (windowRatio > canvasAspectRatio) {
-      // 如果窗口比较宽，基于高度来设置缩放
-      scale = windowHeight / 742;
-  } else {
-      // 如果窗口比较窄，基于宽度来设置缩放
-      scale = windowWidth / (10*742/6);
-  }
-
-  canvas.style.transform = `scaleX(0.841) scaleY(1) scale(${scale})`;
-  canvas.style.transformOrigin = 'top left';
-  canvas.style.left = `${(windowWidth - (10*742/6) * scale) / 2}px`;
-  canvas.style.top = `${(windowHeight - 742 * scale) }px`;
+  client.table.resizeViewport(canvas.parentElement);
 }
+
+new ResizeObserver(resizeCanvas).observe(canvas.parentElement);
+window.visualViewport?.addEventListener('resize', resizeCanvas);
 
 // 监听窗口大小变化事件
 window.addEventListener('resize', resizeCanvas);

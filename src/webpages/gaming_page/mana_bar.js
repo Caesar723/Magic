@@ -29,9 +29,12 @@ class Mana_Bar{
         }
     }
     draw(canvas,ctx,camera){
+        ctx.save();
+        ctx.translate(canvas.width - 1470, 0);
         for(let color in this.bars){
             this.bars[color].draw(canvas,ctx,camera)
         }
+        ctx.restore();
     }
 
     set_mana(manas){//list of mana[blue,white,black,red,green]

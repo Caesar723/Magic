@@ -316,14 +316,14 @@ class Camera{
         return [x_screen*(z_expect-this.position[2])/this.dis_from_screen,y_screen*(z_expect-this.position[2])/this.dis_from_screen]
     }
     similar_tri_reverse_middle(x_screen,y_screen,z_expect){
-        return [(x_screen-1470/2)*(z_expect-this.position[2])/this.dis_from_screen,(y_screen-742/2)*(z_expect-this.position[2])/this.dis_from_screen]
+        return [(x_screen-(this.viewport?.width || 1470)/2)*(z_expect-this.position[2])/this.dis_from_screen,(y_screen-(this.viewport?.height || 742)/2)*(z_expect-this.position[2])/this.dis_from_screen]
     }
 
     similar_tri_reverse_2(x_screen,y_screen,y_expect,z_expect){
         
         const pos=math.matrix([
-            [(x_screen-1470/2)*(z_expect)/this.dis_from_screen],
-            [(y_screen-742/2)*(z_expect)/this.dis_from_screen],
+            [(x_screen-(this.viewport?.width || 1470)/2)*(z_expect)/this.dis_from_screen],
+            [(y_screen-(this.viewport?.height || 742)/2)*(z_expect)/this.dis_from_screen],
             [z_expect]
         ])
         //console.log(pos)

@@ -59,6 +59,21 @@ class Table{
 
     }
 
+    resizeViewport(viewport) {
+        const {width, height} = viewport.getBoundingClientRect();
+        if (!width || !height) return;
+        // Keep the existing scene scale and proportions; extend only the viewport.
+        const scale = Math.min(width / (1470 * .841), height / 742);
+        const w = Math.round(width / (scale * .841)), h = Math.round(height / scale);
+        if (this.canvas.width !== w) this.canvas.width = w;
+        if (this.canvas.height !== h) this.canvas.height = h;
+        this.canvas.hand_scale = Math.max(1, .75 / scale);
+        Object.assign(this.canvas.style, {transform: `scale(${scale * .841}, ${scale})`, transformOrigin: 'top left', left: '0px', top: '0px'});
+        for (const camera of [this.camera, this.player_self.camera, this.player_oppo.camera, this.client.show_2d.camera, this.client.selectionPage.camera]) camera.viewport = this.canvas;
+        if (this.client.action_bar.canvas.height !== h) this.client.action_bar.canvas.height = h;
+        this.renderer?.resize(w, h);
+    }
+
     arrange_cards_battle(arr,unit){//1:self,-1:opponent
         const card_len=6
         const max_len=11

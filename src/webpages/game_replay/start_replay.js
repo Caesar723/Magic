@@ -88,18 +88,11 @@ window.addEventListener('pagehide', window.stopReplayRender);
 const canvas = document.getElementById("myCanvas");
 
 function resizeCanvas() {
-  const canvasAspectRatio = 10 / 6;
-  const windowWidth = document.body.clientWidth;
-  const windowHeight = document.body.clientHeight;
-  const scale = windowWidth / windowHeight > canvasAspectRatio
-    ? windowHeight / 742
-    : windowWidth / (10 * 742 / 6);
-
-  canvas.style.transform = `scaleX(0.841) scaleY(1) scale(${scale})`;
-  canvas.style.transformOrigin = "top left";
-  canvas.style.left = `${(windowWidth - (10 * 742 / 6) * scale) / 2}px`;
-  canvas.style.top = `${windowHeight - 742 * scale}px`;
+  client.table.resizeViewport(canvas.parentElement);
 }
+
+new ResizeObserver(resizeCanvas).observe(canvas.parentElement);
+window.visualViewport?.addEventListener('resize', resizeCanvas);
 
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();

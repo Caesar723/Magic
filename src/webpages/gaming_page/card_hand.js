@@ -48,6 +48,9 @@ class Card_Hand extends Card{
     }
 
 
+    get_org_position(size) {
+        return super.get_org_position(size * (this.hand_scale || 1));
+    }
     change_size(size){
         this.size=size
         this.points=this.get_org_position(this.size);
@@ -505,14 +508,11 @@ class Card_Hand extends Card{
 
         this.position_in_screen=new_points_pos;
         if (ctx.battleRenderer?.active) {
-            if (this.player instanceof Self && this.check_weather_can_used() && (this.player.my_turn || this instanceof Instant_Hand || get_dict(this.flag_dict, 'Flash'))) {
-                ctx.battleRenderer.glow(this, this.arr_poses, camera.position[2], '#88dfb4');
-            }
             ctx.battleRenderer.quad(this, this.final_image, this.arr_poses, camera.position[2]);
+            if (this.player instanceof Self && this.check_weather_can_used() && (this.player.my_turn || this instanceof Instant_Hand || get_dict(this.flag_dict, 'Flash'))) {
+                ctx.battleRenderer.glow(this, this.arr_poses, camera.position[2], '#8bdcb5');
+            }
             return;
-        }
-        if (this.player instanceof Self && this.check_weather_can_used() && (this.player.my_turn || this instanceof Instant_Hand || get_dict(this.flag_dict,"Flash"))){
-            this.draw_blur_ring(ctx)
         }
 
         let col_left_up=this.average_p(new_points_pos[2],new_points_pos[3],COL-0,COL);
@@ -537,6 +537,9 @@ class Card_Hand extends Card{
             col_left_up=col_left_down;
             col_right_up=col_right_down;
         }
+        if (this.player instanceof Self && this.check_weather_can_used() && (this.player.my_turn || this instanceof Instant_Hand || get_dict(this.flag_dict,"Flash"))){
+            this.draw_blur_ring(ctx)
+        }
         
         
         // if (this.check_weather_can_used()){
@@ -549,22 +552,7 @@ class Card_Hand extends Card{
         
     }
     draw_blur_ring(ctx){
-        const center = this.position_in_screen.reduce((p, q) => [p[0] + q[0] / 4, p[1] + q[1] / 4], [0, 0]);
-        const points = this.position_in_screen.map(p => p.map((v, i) => center[i] + (v - center[i]) * 1.035));
-        ctx.save();
-        ctx.beginPath();
-        points.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p));
-        ctx.closePath();
-        ctx.lineJoin = 'round';
-        ctx.strokeStyle = ctx.shadowColor = '#88dfb4';
-        ctx.shadowBlur = 18;
-        ctx.lineWidth = 5;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = '#efffe0';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        ctx.restore();
+        BattleRenderer.drawOutline(ctx, this.position_in_screen, '#8bdcb5');
     }
     append_buff(buff){
         this.buff_list.push(buff)
@@ -669,6 +657,9 @@ class Card_Hand_Oppo extends Card{
             col_right_up=col_right_down;
         }
         this.position_in_screen=new_points_pos;
+    }
+    get_org_position(size) {
+        return super.get_org_position(size * (this.hand_scale || 1));
     }
     change_size(size){
         this.size=size

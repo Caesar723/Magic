@@ -19,11 +19,7 @@ var TIME_INTERVAL = 2;
 
     function resizeCanvas() {
         if (!client || !viewport.clientWidth || !viewport.clientHeight) return;
-        const scale = Math.min(viewport.clientWidth / (canvas.width * .841), viewport.clientHeight / canvas.height);
-        canvas.style.transformOrigin = 'top left';
-        canvas.style.transform = 'scale(' + scale * .841 + ', ' + scale + ')';
-        canvas.style.left = (viewport.clientWidth - canvas.width * scale * .841) / 2 + 'px';
-        canvas.style.top = (viewport.clientHeight - canvas.height * scale) / 2 + 'px';
+        client.table.resizeViewport(viewport);
         if (document.body.dataset.view === 'split' && divider.offsetWidth) {
             const total = document.getElementById('canvasContainer').offsetWidth + document.getElementById('editor').offsetWidth;
             divider.setAttribute('aria-valuenow', String(Math.round(document.getElementById('canvasContainer').offsetWidth / total * 100)));

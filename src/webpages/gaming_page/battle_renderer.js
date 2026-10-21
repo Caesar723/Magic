@@ -46,11 +46,22 @@ class BattleRenderer {
         this.canvas.style.zIndex = '1';
         this.ready = true;
         this.canvas.dataset.renderer = 'threejs';
-        this.syncViewport();
+        this.resize(this.canvas.width, this.canvas.height);
     }
 
     get active() { return this.ready && this.drawing; }
     get reducedMotion() { return this.motion.matches; }
+
+    resize(width, height) {
+        if (!this.ready) return;
+        this.renderer.setPixelRatio(Math.min(1, 2048 / Math.max(width, height), Math.sqrt(2400000 / (width * height))));
+        this.renderer.setSize(width, height, false);
+        this.camera.aspect = width / height;
+        this.camera.fov = 2 * Math.atan(height / 1800) * 180 / Math.PI;
+        this.camera.updateProjectionMatrix();
+        this.viewportStyle = null;
+        this.syncViewport();
+    }
 
     syncViewport() {
         const style = this.canvas.style.cssText;
@@ -132,32 +143,45 @@ class BattleRenderer {
         return true;
     }
 
+    static drawOutline(ctx, points, color) {
+        const edge = Math.min(...points.map((p, i) => Math.hypot(p[0] - points[(i + 1) % 4][0], p[1] - points[(i + 1) % 4][1])));
+        ctx.save();
+        ctx.beginPath();
+        points.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p));
+        ctx.closePath();
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = color;
+        ctx.shadowBlur = Math.min(12, edge * .05);
+        ctx.lineWidth = Math.max(.75, Math.min(3, edge * .012));
+        ctx.strokeStyle = color;
+        ctx.globalAlpha *= .95;
+        ctx.stroke();
+        ctx.stroke();
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#e3ffe9';
+        ctx.lineWidth *= .4;
+        ctx.stroke();
+        ctx.restore();
+    }
+
     glow(owner, points, zOffset, color) {
         if (!this.active) return;
         let image = this.glows.get(color);
         if (!image) {
             image = document.createElement('canvas');
-            image.width = image.height = 256;
-            const ctx = image.getContext('2d');
-            ctx.beginPath();
-            if (ctx.roundRect) ctx.roundRect(28, 28, 200, 200, 12);
-            else ctx.rect(28, 28, 200, 200);
-            ctx.strokeStyle = ctx.shadowColor = color;
-            ctx.shadowBlur = 24;
-            ctx.lineWidth = 12;
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-            ctx.strokeStyle = '#efffe0';
-            ctx.lineWidth = 4;
-            ctx.stroke();
+            image.width = image.height = 352;
+            BattleRenderer.drawOutline(image.getContext('2d'), [[304, 304], [304, 48], [48, 48], [48, 304]], color);
             image._renderVersion = 1;
             this.glows.set(color, image);
         }
+        // Transparent padding holds only the fading halo; its bright contour
+        // maps back to the card's exact edge, without an enlarged backplate.
         const center = points[0].map((_, axis) => points.reduce((sum, p) => sum + p[axis], 0) / 4);
-        const expanded = points.map(p => p.map((v, axis) => center[axis] + (v - center[axis]) * 1.28));
+        const halo = points.map(p => p.map((v, axis) => center[axis] + (v - center[axis]) * (352 / 256)));
         owner._glowOwner ||= {};
-        const opacity = this.reducedMotion ? 1 : .9 + Math.sin(performance.now() * .003) * .1;
-        this.quad(owner._glowOwner, image, expanded, zOffset, 0xffffff, opacity);
+        const opacity = this.reducedMotion ? 1 : .96 + Math.sin(performance.now() * .0015) * .04;
+        this.quad(owner._glowOwner, image, halo, zOffset, 0xffffff, opacity);
     }
 
     render() {

@@ -26,6 +26,29 @@ class Player{
     draw_life(){
 
     }
+    scale_hand() {
+        if (!this.camera.viewport) return;
+        const count = Math.max(1, this.cards.length), self = this.type_name === 'self';
+        const angle = self ? Math.PI / 360 : Math.min(Math.PI / 90, Math.PI / (12 * count)) / 2;
+        const span = (self ? 1000 : 200) * Math.sin(Math.min(Math.PI / 2, angle * (count - 1))) + (self ? 16 : 8);
+        this.hand_scale = Math.min(self ? this.canvas.hand_scale : 1, (this.canvas.width - 48) / (18 * span));
+        for (const card of this.cards) {
+            if (card.hand_scale === this.hand_scale) continue;
+            card.hand_scale = this.hand_scale;
+            card.change_size(card.size);
+        }
+    }
+    hand_position(position) {
+        if (!this.camera.viewport) return position;
+        // Translate the original fan as one group, retaining its spacing and angles.
+        const pixelsPerUnit = this.camera.dis_from_screen / -this.camera.position[2];
+        const self = this.type_name === 'self';
+        const scale = this.hand_scale || 1;
+        const dx = (this.canvas.width - 1470 * scale) / (2 * pixelsPerUnit);
+        const dy = (this.canvas.height - 742 * scale) / (2 * pixelsPerUnit);
+        const horizontal = self ? (this.cards_mode === 'focus' ? 0 : dx) : -dx;
+        return [position[0] * scale + horizontal, position[1] * scale + (self ? dy : -dy), position[2]];
+    }
     start_selection(){
         this.select_flag=true
         this.player_life_ring.select_flag=true
@@ -72,6 +95,7 @@ class Opponent extends Player{
 
     update(){
 
+        this.scale_hand();
         this.arrange_cards()
         for (let card_i in this.cards){
             this.cards[card_i].update()
@@ -114,7 +138,7 @@ class Opponent extends Player{
             //position=math.multiply(rotateZ(-angle_between),position);
             
             const position_arr=[position.get([0,0])-20,position.get([1,0])-radius-20,position.get([2,0])]
-            this.cards[card_i].start_moving("move_to",[position_arr])
+            this.cards[card_i].start_moving("move_to",[this.hand_position(position_arr)])
             this.cards[card_i].angle_z=-start_angle-card_i*angle_between
             //this.cards[card_i].change_size(1)
 
@@ -181,7 +205,7 @@ class Self extends Player{
                 //position=math.multiply(rotateZ(-angle_between),position);
                 
                 const position_arr=[position.get([0,0])+20,position.get([1,0])+radius+20,position.get([2,0])]
-                this.cards[card_i].start_moving("small",[position_arr])
+                this.cards[card_i].start_moving("small",[this.hand_position(position_arr)])
                 //this.cards[card_i].moving_cache.push(["enlarge",[position_arr]])
                 this.cards[card_i].angle_z=start_angle+card_i*angle_between
             }
@@ -203,7 +227,7 @@ class Self extends Player{
                 //position=math.multiply(rotateZ(-angle_between),position);
                 
                 const position_arr=[position.get([0,0]),position.get([1,0])+radius+13,position.get([2,0])]
-                this.cards[card_i].start_moving("enlarge",[position_arr])
+                this.cards[card_i].start_moving("enlarge",[this.hand_position(position_arr)])
                 //this.cards[card_i].moving_cache.push(["enlarge",[position_arr]])
                 this.cards[card_i].angle_z=start_angle+card_i*angle_between
             }
@@ -214,6 +238,7 @@ class Self extends Player{
         //console.log(this.cards)
         this.collect_all_manas()
         //console.log(this.total_manas)
+        this.scale_hand();
         this.arrange_cards()
         for (let card_i in this.cards){
             this.cards[card_i].update()
@@ -251,7 +276,7 @@ class Self extends Player{
                 //position=math.multiply(rotateZ(-angle_between),position);
                 
                 const position_arr=[position.get([0,0])+20,position.get([1,0])+radius+20,position.get([2,0])]
-                this.cards[card_i].start_moving("move_to",[position_arr])
+                this.cards[card_i].start_moving("move_to",[this.hand_position(position_arr)])
                 this.cards[card_i].angle_z=start_angle+card_i*angle_between
                 //this.cards[card_i].change_size(1)
 
@@ -271,7 +296,7 @@ class Self extends Player{
                 //position=math.multiply(rotateZ(-angle_between),position);
                 
                 const position_arr=[position.get([0,0]),position.get([1,0])+radius+13,position.get([2,0])]
-                this.cards[card_i].start_moving("move_to",[position_arr])
+                this.cards[card_i].start_moving("move_to",[this.hand_position(position_arr)])
                 this.cards[card_i].angle_z=start_angle+card_i*angle_between
             }
         }

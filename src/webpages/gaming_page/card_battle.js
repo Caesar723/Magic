@@ -248,15 +248,9 @@ class Card_Battle{
         this.position_in_screen=new_points_pos;
         if (ctx.battleRenderer?.active) {
             this.position_in_screen_z = (new_points_z[0] + new_points_z[2]) / 2;
-            if (this.select_flag) ctx.battleRenderer.glow(this, this.arr_poses, 0, '#7ea3ff');
             ctx.battleRenderer.quad(this, this.canvas, this.arr_poses);
+            if (this.select_flag) ctx.battleRenderer.glow(this, this.arr_poses, 0, '#7ea3ff');
             return;
-        }
-
-        if (this.select_flag){
-            this.draw_blur_ring(ctx)
-            this.draw_blur_ring(ctx)
-            //this.draw_blur_ring(ctx)
         }
 
         let col_left_up=this.average_p(new_points_pos[2],new_points_pos[3],COL-0,COL);
@@ -284,6 +278,7 @@ class Card_Battle{
             col_right_up=col_right_down;
         }
         
+        if (this.select_flag) this.draw_blur_ring(ctx);
         this.position_in_screen_z=(new_points_z[0]+new_points_z[2])/2
     }
     average_p(p_1,p_2,n,t){
@@ -758,45 +753,7 @@ class Card_Battle{
     }
 
     draw_blur_ring(ctx){
-        ctx.save()
-        
-        
-        ctx.beginPath();
-            
-        ctx.moveTo(this.position_in_screen[0][0], this.position_in_screen[0][1]);
-        ctx.lineTo(this.position_in_screen[1][0], this.position_in_screen[1][1]);
-        
-        ctx.lineTo(this.position_in_screen[2][0], this.position_in_screen[2][1]);
-        
-        ctx.lineTo(this.position_in_screen[3][0], this.position_in_screen[3][1]);
-        
-        ctx.lineTo(this.position_in_screen[0][0], this.position_in_screen[0][1]);
-        
-        
-        
-        ctx.closePath();
-        ctx.strokeStyle = 'rgba(126,163,255)';
-        ctx.shadowColor = 'rgba(126,163,255)'; // 半透明的蓝色光晕
-        ctx.fillStyle = 'rgba(126,163,255)';
-        ctx.lineCap = 'round';
-        ctx.shadowBlur = 20;
-        // 设置阴影的偏移量
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
-        ctx.lineWidth = 1;
-        ctx.fill(); // 描绘边框
-        //ctx.stroke()
-        ctx.restore()
-        //ctx.restore()
-        //ctx.stroke(); // 描绘边框
-
-        // ctx.shadowColor = 'transparent';
-        // ctx.shadowBlur = 0;
-        // ctx.shadowOffsetX = 0;
-        // ctx.shadowOffsetY = 0;
-        
-            
-
+        BattleRenderer.drawOutline(ctx, this.position_in_screen, '#7ea3ff');
     }
 
     append_buff(buff){

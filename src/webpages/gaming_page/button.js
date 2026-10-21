@@ -132,6 +132,7 @@ class Button_Auto_Pass{
     }
 
     update(){
+      this.x = this.client.canvas_table.width - 140;
       if (this.changing_color){
         this.color_change()
       }
