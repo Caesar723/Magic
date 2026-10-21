@@ -45,7 +45,8 @@ class Home {
         document.getElementById('tutorial').addEventListener('click', () => this.requestMode('ai'));
         document.getElementById('rogue').addEventListener('click', () => this.requestMode('rogue'));
         document.getElementById('guide-practice').addEventListener('click', () => {
-            document.getElementById('guide-dialog').close(); this.requestMode('ai');
+            document.getElementById('guide-dialog').close();
+            (window.PageTransition?.navigate || (path => location.assign(path)))('/webpages/tutorial/index.html');
         });
         document.getElementById('close-decks').addEventListener('click', () => this.decks.close_all('cancel'));
         document.getElementById('deck-dialog').addEventListener('close', event => {

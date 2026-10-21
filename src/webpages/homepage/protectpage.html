@@ -96,15 +96,25 @@
         <label class="setting-row">Music <input id="music-enabled" type="checkbox" checked></label>
         <label class="setting-row">Reduce Motion <input id="reduce-motion" type="checkbox"></label>
     </dialog>
-    <dialog id="guide-dialog" class="parchment small-dialog" aria-labelledby="guide-title">
+    <dialog id="guide-dialog" class="parchment guide-dialog" aria-labelledby="guide-title">
         <button class="close-button" data-close-dialog aria-label="Close tutorial">×</button>
         <h2 id="guide-title">Game Tutorial</h2>
-        <ol class="guide-steps">
-            <li>Open packs in <b>Draw Cards</b>.</li>
-            <li>Create a deck in <b>Deck Building</b>, then select it in <b>Choose Deck</b>.</li>
-            <li>Select <b>Start Game</b> for PVP or an AI match, or enter <b>Rogue</b>.</li>
-        </ol>
-        <button id="guide-practice" class="solid-button">Practice vs AI</button>
+        <p class="guide-intro">Learn through prepared scenes, guided arrows and animated gestures.</p>
+        <div class="guide-overview">
+            <div class="guide-map" role="img" aria-label="Example table: opponent above, creatures in the middle, your lands and hand below.">
+                <span class="guide-map-opponent">Opponent</span><i class="guide-map-life">20</i>
+                <div class="guide-map-field">Battlefield<span>✧</span></div>
+                <span class="guide-map-lands">Your Lands</span><i class="guide-map-life guide-map-life-self">20</i>
+                <div class="guide-map-hand"><i></i><i></i><i></i></div><span class="guide-map-hand-label">Your Hand</span>
+            </div>
+            <div class="guide-chapters">
+                <details name="guide-chapter" open><summary><span>01</span> Read the table</summary><p>Find your hand, life, deck, mana and timers. Learn what the card's cost, rules and combat numbers mean.</p></details>
+                <details name="guide-chapter"><summary><span>02</span> Play your first cards</summary><p>Open your hand, play a land, generate mana and cast a card. Arrows follow the actual objects as you play.</p></details>
+                <details name="guide-chapter"><summary><span>03</span> Attack and respond</summary><p>Pick any lesson. Practice Bullet Time, counters, multiple defenders and keywords.</p></details>
+            </div>
+        </div>
+        <button id="guide-practice" class="solid-button">Start Tutorial <span aria-hidden="true">→</span></button>
+        <p class="guide-practice-note">Offline practice · cards included · no deck or matchmaking needed. Complete each action, then win the final duel.</p>
         <a class="text-link" href="/tech_doc/en">Game Documentation ↗</a>
     </dialog>
     <dialog id="matching-dialog" class="parchment small-dialog" aria-labelledby="matching-title">

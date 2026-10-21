@@ -114,9 +114,34 @@ dialog::backdrop { background: #243d42b3; backdrop-filter: blur(3px); }
 .solid-button:hover { background: #52766f; }
 .quiet-button:hover { background: #263b3e12; }
 .text-link { display: block; margin-top: 20px; text-underline-offset: 4px; font-size: 13px; }
-.guide-steps { padding-left: 22px; margin: 0 0 25px; font-size: 15px; line-height: 1.7; }
-.guide-steps li { margin: 12px 0; }
-.guide-steps b { font-weight: normal; font-style: italic; }
+.guide-dialog { width: min(800px, 94vw); }
+.guide-dialog .guide-intro { margin: -8px 0 24px; font-size: 15px; }
+.guide-overview { display: grid; grid-template-columns: .85fr 1fr; gap: 30px; align-items: center; margin-bottom: 27px; }
+.guide-map { position: relative; height: 300px; color: #e7dfc3; background: #4e6b6d; border: 3px solid var(--ink); border-radius: 5px 15px 4px 9px; box-shadow: inset 0 0 0 6px #84968a, 3px 5px 0 #344e51; text-align: center; font-size: 12px; }
+.guide-map-opponent { position: absolute; top: 12px; inset-inline: 0; }
+.guide-map-life { position: absolute; top: 35px; left: calc(50% - 17px); width: 34px; height: 34px; display: grid; place-items: center; border: 2px solid var(--ink); border-radius: 50%; background: #b7bfaa; color: var(--ink); font-style: normal; }
+.guide-map-life-self { top: auto; bottom: 65px; }
+.guide-map-field { position: absolute; inset: 80px 17px 130px; display: grid; place-items: center; border-block: 1px solid #b3c6b1; background: #d6d2b9; color: var(--ink); }
+.guide-map-field span { font-size: 23px; }
+.guide-map-lands { position: absolute; left: 19px; bottom: 105px; font-size: 11px; }
+.guide-map-hand { position: absolute; left: calc(50% - 45px); bottom: 16px; display: flex; gap: 3px; }
+.guide-map-hand i { display: block; width: 28px; height: 40px; border: 1px solid var(--ink); background: #344f5b url('/webpages/image_source/card/back.png?v=compass') center / cover; transform: rotate(-12deg); }
+.guide-map-hand i:nth-child(2) { transform: translateY(-5px); }
+.guide-map-hand i:nth-child(3) { transform: rotate(12deg); }
+.guide-map-hand-label { position: absolute; right: 14px; bottom: 13px; font-size: 11px; }
+.guide-chapters details { border-bottom: 1px solid #556b6266; padding: 15px 0; }
+.guide-chapters summary { cursor: pointer; font-size: 17px; line-height: 1.4; }
+.guide-chapters summary span { color: #986052; margin-right: 8px; font-size: 13px; }
+.guide-chapters p { margin: 12px 0 0; }
+#guide-practice { display: flex; justify-content: space-between; width: 100%; font-size: 17px; }
+.guide-dialog .guide-practice-note { font-size: 12px; margin-bottom: 0; }
+@media (max-width: 600px) {
+    .guide-overview { grid-template-columns: 1fr; gap: 18px; }
+    .guide-map { height: 230px; }
+    .guide-map-field { top: 65px; bottom: 105px; }
+    .guide-map-lands { bottom: 88px; }
+    .guide-map-life-self { bottom: 45px; }
+}
 .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 17px 0; border-top: 1px solid #263b3e35; }
 .setting-row input { width: 19px; height: 19px; accent-color: #4f756c; }
 #matching-dialog { text-align: center; }

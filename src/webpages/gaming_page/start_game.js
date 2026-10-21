@@ -7,7 +7,7 @@ const size_rat=7/10;
 var SIZE=1000*size_rat;
 var POSITION=[2000,-700,3000];
 var TIME_INTERVAL=2
-const client = new Game_Client();
+const client = typeof Tutorial_Client === 'undefined' ? new Game_Client() : new Tutorial_Client();
 
 let lastTime = 0;
 let animationFrame = 0;
@@ -65,3 +65,10 @@ window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
 updatePlayback();
+
+// Demo alone offers the live guide. Offline lessons bootstrap their own controller.
+if (location.pathname === '/game_demo') {
+  const guide = import('./battle-guide.js').then(({mountBattleGuide}) => mountBattleGuide(client))
+    .catch(error => console.warn('Battle guide unavailable:', error.message));
+  window.PageTransition?.wait(guide);
+}
