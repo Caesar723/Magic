@@ -251,6 +251,35 @@ class BattleRenderer {
         ctx.restore();
     }
 
+    particleStream(owner, image, positions, count, strength) {
+        if (!this.active) return false;
+        let entry = this.meshes.get(owner);
+        if (!entry) {
+            const T = this.THREE, geometry = new T.BufferGeometry();
+            geometry.setAttribute('position', new T.BufferAttribute(positions, 3).setUsage(T.DynamicDrawUsage));
+            const uv = new Float32Array(positions.length / 3 * 2);
+            for (let i = 0; i < uv.length; i += 12) uv.set([0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1], i);
+            geometry.setAttribute('uv', new T.BufferAttribute(uv, 2));
+            const material = new T.MeshBasicMaterial({transparent: true, side: T.DoubleSide, depthTest: false, depthWrite: false, toneMapped: false});
+            material.forceSinglePass = true;
+            const mesh = new T.Mesh(geometry, material);
+            mesh.frustumCulled = false;
+            this.scene.add(mesh);
+            entry = {mesh, calm: new T.Color(0x99dace), urgent: new T.Color(0xf1ead1)};
+            this.meshes.set(owner, entry);
+        }
+        const mesh = entry.mesh;
+        mesh.geometry.attributes.position.needsUpdate = true;
+        mesh.geometry.setDrawRange(0, count * 6);
+        mesh.material.map = this.texture(image);
+        mesh.material.color.copy(entry.calm).lerp(entry.urgent, strength);
+        mesh.material.opacity = .58 + strength * .25;
+        mesh.visible = true;
+        mesh.renderOrder = ++this.order;
+        entry.frame = this.frame;
+        return true;
+    }
+
     glow(owner, points, zOffset, color) {
         if (!this.active) return;
         let image = this.glows.get(color);

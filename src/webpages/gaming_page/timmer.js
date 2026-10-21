@@ -319,6 +319,80 @@ class Timmer extends Ring_Record{
         this.current_color=[255,223,56]
         this.min_difference=[0,0,0]
     }
+
+    draw(camera, ctx, canvas) {
+        this.draw_waterfall(camera, ctx, canvas);
+        super.draw(camera, ctx, canvas);
+    }
+
+    draw_waterfall(camera, ctx, canvas) {
+        this._fallMotion ||= matchMedia('(prefers-reduced-motion: reduce)');
+        if (this._fallMotion.matches || !this.arr_poses?.length) return;
+        if (!this._fallPositions) {
+            this._fallPositions = new Float32Array(96 * 18);
+            this._fallOwner = {};
+            this._fallPhase = 0;
+            this._fallStrength = .12;
+        }
+        // Read the latest server target, rather than the animated display value.
+        const remaining = this.moving ? this.moving_store[1] : this.time;
+        const threshold = this.name === 'bullet' ? 5 : 60;
+        const urgent = Number.isFinite(remaining) && remaining > 0 && remaining <= threshold;
+        const target = urgent ? .7 + .3 * (1 - remaining / threshold) : remaining > 0 ? .22 : .12;
+        const dt = Math.min(.05, Math.max(0, TIME_INTERVAL / 120));
+        this._fallStrength += (target - this._fallStrength) * (1 - Math.exp(-dt * 8));
+        const strength = this._fallStrength, count = Math.round(24 + strength * 72);
+        this._fallPhase += dt * (.85 + strength * 1.65);
+        const p = this.arr_poses, center = p[0].map((v, i) => (v + p[2][i]) / 2);
+        const xAxis = p[0].map((v, i) => (v - p[3][i]) / (2 * this.size));
+        const zAxis = p[1].map((v, i) => (v - p[0][i]) / (2 * this.size));
+        const sy = Math.sin(camera.angle_y), down = [Math.sin(camera.angle_x) * sy, Math.cos(camera.angle_y), Math.cos(camera.angle_x) * sy];
+        const height = Math.max(0, -20 - this.position[1]), radius = this.size * .57;
+        const positions = this._fallPositions;
+        for (let i = 0; i < count; i++) {
+            const angle = i * 2.399963, age = (this._fallPhase * (.65 + i % 7 * .055) + i * .618034) % 1;
+            const tail = Math.max(0, age - .16 - strength * .18), splash = i % 5 === 0;
+            const r1 = radius + (splash ? age * .6 : age * age * (.16 + strength * .24));
+            const r0 = radius + (splash ? tail * .6 : tail * tail * (.16 + strength * .24));
+            const y1 = splash ? height - .02 - Math.sin(age * Math.PI) * .12 : height * Math.pow(age, 1.45);
+            const y0 = splash ? height - .02 - Math.sin(tail * Math.PI) * .12 : height * Math.pow(tail, 1.45);
+            const cos = Math.cos(angle), sin = Math.sin(angle);
+            const ax = xAxis[0] * cos + zAxis[0] * sin, ay = xAxis[1] * cos + zAxis[1] * sin, az = xAxis[2] * cos + zAxis[2] * sin;
+            const hx = center[0] + ax * r1 + down[0] * y1, hy = center[1] + ay * r1 + down[1] * y1, hz = center[2] + az * r1 + down[2] * y1;
+            const tx = center[0] + ax * r0 + down[0] * y0, ty = center[1] + ay * r0 + down[1] * y0, tz = center[2] + az * r0 + down[2] * y0;
+            const length = Math.hypot(hx - tx, hy - ty) || 1;
+            const width = (.07 + i % 3 * .025 + strength * .06) * Math.sin(age * Math.PI);
+            const wx = -(hy - ty) / length * width, wy = (hx - tx) / length * width;
+            for (let j = 0; j < 6; j++) {
+                const head = j === 0 || j === 3 || j === 5, sign = j === 0 || j === 1 || j === 3 ? 1 : -1, k = i * 18 + j * 3;
+                positions[k] = (head ? hx : tx) + wx * sign;
+                positions[k + 1] = (head ? hy : ty) + wy * sign;
+                positions[k + 2] = head ? hz : tz;
+            }
+        }
+        if (!Timmer.waterfallSprite) {
+            const image = document.createElement('canvas');
+            image.width = 32; image.height = 96;
+            const ink = image.getContext('2d');
+            ink.beginPath(); ink.moveTo(16, 3); ink.lineTo(27, 72); ink.quadraticCurveTo(28, 93, 16, 93); ink.quadraticCurveTo(4, 93, 5, 72); ink.closePath();
+            ink.fillStyle = '#edf9ef'; ink.fill(); ink.strokeStyle = '#526e7080'; ink.lineWidth = 1; ink.stroke();
+            image._renderVersion = 1;
+            Timmer.waterfallSprite = image;
+        }
+        if (ctx.battleRenderer?.particleStream?.(this._fallOwner, Timmer.waterfallSprite, positions, count, strength)) return;
+        // The same camera-space ribbons remain visible in the Canvas fallback.
+        ctx.save(); ctx.beginPath();
+        for (let i = 0; i < count; i++) {
+            for (const j of [0, 1, 2, 5]) {
+                const k = i * 18 + j * 3, x = canvas.width / 2 + camera.similar_tri_2(positions[k], positions[k + 2]);
+                const y = canvas.height / 2 + camera.similar_tri_2(positions[k + 1], positions[k + 2]);
+                if (j === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+        }
+        ctx.fillStyle = urgent ? '#e5e0c5' : '#a9ddd1'; ctx.globalAlpha = .58 + strength * .25; ctx.fill(); ctx.restore();
+    }
+
     animate_set(val,current_val){
         this.moving_precentage=0
         const different=val-current_val
