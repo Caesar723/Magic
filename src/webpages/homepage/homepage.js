@@ -33,6 +33,15 @@ document.querySelectorAll('.object-button:not(#studio) .object-art').forEach(art
     image.setAttribute('href',image.getAttribute('href').replace('props.png','props-active.png'));
     art.after(active);
 });
+// SVG letterboxing must not expose neighboring props outside the atlas crop.
+document.querySelectorAll('.object-art, .hero-sprite, .studio-brush, .platform-art').forEach((art,index)=>{
+    const crop=art.viewBox.baseVal, ns='http://www.w3.org/2000/svg';
+    const clip=document.createElementNS(ns,'clipPath'), rect=document.createElementNS(ns,'rect');
+    clip.id=`lobby-crop-${index}`;
+    for(const key of ['x','y','width','height'])rect.setAttribute(key,crop[key]);
+    clip.append(rect);art.prepend(clip);
+    art.querySelector('image').setAttribute('clip-path',`url(#${clip.id})`);
+});
 function pauseEffects(){document.body.classList.toggle('motion-paused',document.hidden||!document.hasFocus());}
 window.addEventListener('blur',()=>document.body.classList.add('motion-paused'));
 window.addEventListener('focus',pauseEffects);

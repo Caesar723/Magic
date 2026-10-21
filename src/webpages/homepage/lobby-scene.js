@@ -31,7 +31,7 @@ function requestFrame() {
 }
 function tick(now) {
     raf = 0;
-    if (disposed || document.hidden || !focused || isReduced()) return;
+    if (disposed || document.hidden || !focused || isReduced()) { stop(); return; }
     if (!last || now - last >= 32) {
         const dt = last ? Math.min((now - last) / 1000, .06) : .033;
         last = now;
@@ -66,7 +66,10 @@ async function init() {
     camera.position.z = 1000;
     const loader = new THREE.TextureLoader();
     await Promise.all(['battle-map', 'platform', 'props', 'props-active'].map(async name => {
-        const texture = await loader.loadAsync(`/webpages/homepage/art/${name}.png${name.startsWith('props') ? '?v=2' : ''}`);
+        const source = name === 'battle-map' ? document.querySelector('.map-art').src
+            : name === 'platform' ? document.querySelector('.platform-art image').getAttribute('href')
+            : `/webpages/homepage/art/${name}.png${name.startsWith('props') ? '?v=2' : ''}`;
+        const texture = await loader.loadAsync(source);
         if (disposed) { texture.dispose(); return; }
         texture.colorSpace = THREE.SRGBColorSpace;
         texture.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
