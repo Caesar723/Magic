@@ -370,7 +370,16 @@ class BaseTrainer:
                 if self.rank == 0:
                     log.info(f"error restore model {k}, but continue.")
                 error_keys.append(k)
-        
+        if self.name.startswith("inference:"):
+            # Skip loading optims and scheds
+            if error_keys:
+                raise RuntimeError(
+                    f"Failed to load inference models: {error_keys}"
+                )
+
+            self.step = int(state_dict.get("step", 0))
+            self.epoch = int(state_dict.get("epoch", 0))
+            return
         #there might be error if d model is not found, fix later
         if len(error_keys) == 0:
             for k in self.optims:

@@ -5,3 +5,6 @@ info_communication: "game.rlearning.communicate.training_parallel_specific_room.
 num_worker: 25
 env: "game.rlearning.parallel_env.training_parallel_specific_env.Parallel_Env"
 room: "game.rlearning.trainingRoom.training_parallel_specific_room.Multi_Agent_Parallel_Specific_Room"
+
+evaluation_config: game/rlearning/config/evaluation/standard_v1.yaml
+evaluation_interval: 2000

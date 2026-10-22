@@ -11,6 +11,7 @@ import random
 
 
 from initinal_file import ORGPATH
+import game.rlearning.utils.log as log
 from game.rlearning.utils.common import CHECKPOINT_ROOT_PATH
 from game.rlearning.utils.model import get_class_by_name
 from game.rlearning.utils.file import read_yaml
@@ -48,7 +49,25 @@ class Parallel_Env(BaseParallelEnv):
                         config_path=self.config_path,
                         restore_step=-1,
                     ))
-                
+            if self.evaluator is not None:
+                report = self.evaluator.poll_evaluation()
+
+                if report is not None:
+                    self.log_evaluation(report)
+
+                interval = int(self.env_config.get("evaluation_interval", 10000))
+
+                if (
+                    is_update
+                    and self.evaluator.active is None
+                    and self.agent1.step - self.last_evaluation_step >= interval
+                ):
+                    self.agent1.save_checkpoint()
+
+                    self.evaluator.start_evaluation(self.agent1.step)
+
+                    self.last_evaluation_step = self.agent1.step
+                            
             for worker_id in range(self.num_worker):
                 if not self.info_communication.check_model_update(worker_id):
                     agent_path,config=random.choice(list(self.config_list.items()))
@@ -63,3 +82,30 @@ class Parallel_Env(BaseParallelEnv):
                     self.agent1.save_checkpoint() 
                 self.stop_inference_server()
                 return 
+
+    def log_evaluation(self, report):
+        step = report["step"]
+
+        prefix = f"evaluation/{report['benchmark_id']}"
+
+        if report["score"] is not None:
+            log.sw_scalar(f"{prefix}/score", report["score"], step)
+
+        # log.sw_scalar(f"{prefix}/valid", int(report["valid"]), step)
+
+        # for name in ("games", "completed", "truncated", "errors"):
+        #     log.sw_scalar(f"{prefix}/{name}", report[name], step)
+
+        if log.SW is not None:
+            log.SW.flush()
+
+    def start_worker(self):
+        self.evaluator = None
+        self.last_evaluation_step = self.agent1.step
+        super().start_worker()
+        path = self.env_config.get("evaluation_config")
+        if path is None:
+            return
+        config = read_yaml(f"{ORGPATH}/{path}")
+        self.evaluator = get_class_by_name(config["env"])(config, agent_config=self.env_config["agent_config"])
+        self.evaluator.start_worker()

@@ -1,0 +1,38 @@
+env: game.rlearning.parallel_env.evaluation_parallel_env.Parallel_Env
+
+info_communication: game.rlearning.communicate.evaluation_parallel_room.Info_Communication
+
+room: game.rlearning.trainingRoom.evaluation_parallel_variable_deck_room.Multi_Agent_Parallel_Evaluation_Room
+
+evaluation_function: game.rlearning.evaluations.win_rate.get_score
+
+opponent_config:
+  - game/rlearning/config/agents/pair_excercise/v1/01_ug_time_tempo.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/10_red_ralgar_midrange.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/17_green_combat_tricks.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/24_white_human_army.yaml
+  - game/rlearning/config/agents/pair_excercise/v1/31_black_lifedrain_control.yaml
+
+inference:
+  max_batch_size: 32
+  max_wait_ms: 5
+
+num_worker: 4
+rollout_torch_threads: 1
+
+evaluation:
+  benchmark_version: magic_eval_v1
+  seed: 1234
+
+  pairs_per_matchup: 10
+  max_actions: 2000
+
+  load_timeout: 300
+  evaluation_timeout: 3600
+
+  opponent_steps:
+    game/rlearning/config/agents/pair_excercise/v1/01_ug_time_tempo.yaml: 1000000
+    game/rlearning/config/agents/pair_excercise/v1/10_red_ralgar_midrange.yaml: 871055
+    game/rlearning/config/agents/pair_excercise/v1/17_green_combat_tricks.yaml: 1000000
+    game/rlearning/config/agents/pair_excercise/v1/24_white_human_army.yaml: 1000000
+    game/rlearning/config/agents/pair_excercise/v1/31_black_lifedrain_control.yaml: 1000000

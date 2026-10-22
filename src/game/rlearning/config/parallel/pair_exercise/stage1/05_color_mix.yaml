@@ -14,3 +14,6 @@ inference:
   max_cached_policies: 8
 rollout_torch_threads: 1
 num_worker: 5
+
+evaluation_config: game/rlearning/config/evaluation/standard_v1.yaml
+evaluation_interval: 2000

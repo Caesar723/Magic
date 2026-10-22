@@ -2,8 +2,7 @@ import queue
 import signal
 import time
 import traceback
-from collections import OrderedDict
-
+from copy import deepcopy
 import torch
 
 from game.rlearning.inference.protocol import InferenceResponse, PolicyUpdate
@@ -18,33 +17,67 @@ class BatchedInferenceServer:
         self.communication = communication
         self.max_batch_size = config.get("max_batch_size", 32)
         self.max_wait_seconds = config.get("max_wait_ms", 5) / 1000
-        self.max_cached_policies = config.get("max_cached_policies", 8)
-        self.policies = OrderedDict()
+        self.policies = {}
         self.running = True
 
-    def _load_policy(self, config_path: str, restore_step, force: bool = False):
-        key = (config_path, str(restore_step))
-        current = self.policies.get(key)
-        if current and not force:
-            self.policies.move_to_end(key)
-            return current["trainer"]
-        if current:
-            del self.policies[key]
+    def _load_policy(self, config_path, restore_step, force=False):
+        try:
+            step = int(restore_step)
+        except (TypeError, ValueError):
+            step = restore_step
 
-        config = read_yaml(config_path)
-        trainer_class = get_class_by_name(config["trainer"])
-        trainer = trainer_class(config, restore_step, name=f"inference:{key[1]}")
-        trainer.pbar = None
-        self.policies[key] = {
-            "trainer": trainer,
-            "config_path": config_path,
-            "restore_step": restore_step,
-        }
-        while len(self.policies) > self.max_cached_policies:
-            _, evicted = self.policies.popitem(last=False)
-            del evicted
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+        version = str(step)
+        current = self.policies.get(config_path)
+
+        if current is None:
+            config = read_yaml(config_path)
+            trainer_class = get_class_by_name(config["trainer"])
+
+            trainer = trainer_class(
+                config, 0, name="inference:shared"
+            )
+            trainer.pbar = None
+
+            initial_weights = {
+                name: deepcopy({
+                    key: value.detach().cpu()
+                    if torch.is_tensor(value) else value
+                    for key, value in model.state_dict().items()
+                })
+                for name, model in trainer._models.items()
+            }
+
+            current = {
+                "trainer": trainer,
+                "restore_step": None,
+                "initial_weights": initial_weights,
+            }
+            self.policies[config_path] = current
+
+        trainer = current["trainer"]
+
+        if not force and current["restore_step"] == version:
+            return trainer
+
+        current["restore_step"] = None
+
+        if step == 0:
+            for name, state in current["initial_weights"].items():
+                model = trainer._models[name]
+                model.load_state_dict(state, strict=False)
+
+                evaluation_model = trainer.models_test[name]
+                if evaluation_model is not model:
+                    evaluation_model.load_state_dict(
+                        state, strict=False
+                    )
+
+            trainer.step = 0
+            trainer.epoch = 0
+        else:
+            trainer.restore_checkpoint(step)
+
+        current["restore_step"] = version
         return trainer
 
     def _apply_controls(self):
