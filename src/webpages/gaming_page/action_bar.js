@@ -31,6 +31,7 @@ class Action_Bar{
         this.card_mode="hide"
         this.action_showed=undefined
         this.moving=false
+        this.touch_mode=false
 
 
 
@@ -141,10 +142,10 @@ class Action_Bar{
 
     check_mouse(mouse_pos){
         
-        if (mouse_pos[0]<(this.canvas.width-70)){
+        if (!this.touch_mode && mouse_pos[0]<(this.canvas.width-70)){
             this.mode="show"//show hide
         }
-        else{
+        else if (!this.touch_mode){
             this.mode="hide"//show hide
         }
         

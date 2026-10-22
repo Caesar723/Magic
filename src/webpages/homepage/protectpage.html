@@ -14,6 +14,7 @@
     <script defer src="/webpages/homepage/home.js"></script>
     <script defer src="/webpages/homepage/homepage.js"></script>
     <script type="module" src="/webpages/homepage/lobby-scene.js"></script>
+    <script type="module" src="/webpages/social/friends.js" data-social-account="{{ username | default('') | e }}"></script>
 </head>
 <body>
     <iframe src="/webpages/audio/audio_hall.html" hidden id="audio-frame" title="Background music"></iframe>

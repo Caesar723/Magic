@@ -1,7 +1,7 @@
 // GPU presentation of the existing camera-space geometry. Gameplay and hit tests
 // keep using the same objects and coordinates; the input canvas remains the UI.
 class BattleRenderer {
-    constructor(canvas, ctx) {
+    constructor(canvas, ctx, client) {
         this.canvas = canvas;
         this.ctx = ctx;
         this.ready = false;
@@ -14,7 +14,7 @@ class BattleRenderer {
         this.motion = matchMedia('(prefers-reduced-motion: reduce)');
         ctx.battleRenderer = this;
         canvas.dataset.renderer = 'canvas';
-        this.installTouch();
+        this.installTouch(client);
         this.installBackdrop();
         const loading = BattleRenderer.library.then(THREE => this.initialize(THREE)).catch(() => this.dispose());
         window.PageTransition?.wait(loading);
@@ -320,34 +320,71 @@ class BattleRenderer {
         catch (_) { this.dispose(); }
     }
 
-    installTouch() {
-        let pointer = null;
+    installTouch(client) {
+        let pointer = null, press = null, lastTap = null;
         this.canvas.style.touchAction = 'none';
         const mouse = (type, event) => this.canvas.dispatchEvent(new MouseEvent(type, {
             clientX: event.clientX, clientY: event.clientY, button: 0,
             buttons: type === 'mouseup' || type === 'mouseleave' ? 0 : 1
         }));
+        const closeHistory = () => {
+            client.action_bar.mode = client.action_bar.card_mode = 'hide';
+            client.action_bar.action_showed = undefined;
+        };
         this.canvas.addEventListener('pointerdown', event => {
-            if (event.pointerType === 'mouse' || pointer !== null) return;
+            if (event.pointerType === 'mouse') { client.action_bar.touch_mode = false; lastTap = null; return; }
+            if (pointer !== null) return;
             event.preventDefault();
-            pointer = event.pointerId;
-            this.canvas.setPointerCapture(pointer);
+            pointer = event.pointerId; this.canvas.setPointerCapture(pointer);
+            const pos = client.get_mouse_pos(event, this.canvas), bar = client.action_bar;
+            const card = client.find_cards_by_mouse(pos), selecting = client.selectionPage.in_selection;
+            bar.touch_mode = true;
+            press = {card, x: event.clientX, y: event.clientY, history: false, board: !selecting && card instanceof Card_Battle};
+            if (!selecting && bar.mode === 'show') {
+                press.history = true; lastTap = null;
+                if (pos[0] >= bar.canvas.width - 70) closeHistory();
+                else {
+                    const action = bar.check_mouse(pos);
+                    bar.card_mode = action ? 'show' : 'hide'; bar.action_showed = action || undefined;
+                }
+                return;
+            }
+            const edge = Math.max(bar.canvas.width - 70, 24 * this.canvas.width / this.canvas.getBoundingClientRect().width);
+            if (!selecting && !card && !client.find_timers_by_mouse(pos) && !client.find_button_by_mouse(pos) && pos[0] < edge) {
+                bar.mode = 'show'; press.history = true; lastTap = null; client.show_2d.delete_mouse_card(); return;
+            }
+            client.show_2d.delete_mouse_card();
             mouse('mousedown', event);
+            // Only field cards change their tap behavior. Hands keep the original mouse bridge.
+            if (press.board && client.card_hold[0] === card) client.card_hold[1] = card.card_hold[0] = false;
         });
         this.canvas.addEventListener('pointermove', event => {
+            if (event.pointerType === 'mouse') { client.action_bar.touch_mode = false; return; }
             if (event.pointerId !== pointer) return;
             event.preventDefault();
-            mouse('mousemove', event);
+            if (Math.hypot(event.clientX - press.x, event.clientY - press.y) > 10) press.moved = true;
+            if (!press.history) mouse('mousemove', event);
         });
         const release = event => {
             if (event.pointerId !== pointer) return;
             event.preventDefault();
-            mouse(event.type === 'pointercancel' ? 'mouseleave' : 'mouseup', event);
+            const cancelled = event.type === 'pointercancel';
+            if (cancelled) { lastTap = null; mouse('mouseleave', event); }
+            else if (!press.history && press.board && !press.moved && Math.hypot(event.clientX - press.x, event.clientY - press.y) <= 10 && !client.selectionPage.in_selection) {
+                mouse('mouseleave', event);
+                const card = press.card, double = lastTap?.card === card && event.timeStamp - lastTap.time <= 420;
+                lastTap = double ? null : {card, time: event.timeStamp};
+                if (double && card instanceof Land_Battle && client.judge_click(card) && location.pathname !== '/game_replay') client.battle_click_activate(card);
+                else client.show_2d.set_mouse_card(card.card, card.position);
+            } else if (!press.history) { lastTap = null; mouse('mouseup', event); }
             if (this.canvas.hasPointerCapture(pointer)) this.canvas.releasePointerCapture(pointer);
-            pointer = null;
+            pointer = press = null;
         };
         this.canvas.addEventListener('pointerup', release);
         this.canvas.addEventListener('pointercancel', release);
+        document.addEventListener('pointerdown', event => {
+            if (client.action_bar?.touch_mode && !event.composedPath().includes(this.canvas)) closeHistory();
+        }, true);
     }
 
     dispose() {

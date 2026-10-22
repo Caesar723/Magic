@@ -10,7 +10,7 @@ class Table{
 
         //this.canvas =this.canvas.transferControlToOffscreen();
         this.ctx = this.canvas.getContext("2d");
-        this.renderer = typeof BattleRenderer === 'undefined' ? null : new BattleRenderer(this.canvas, this.ctx);
+        this.renderer = typeof BattleRenderer === 'undefined' ? null : new BattleRenderer(this.canvas, this.ctx, client);
         this.time_interval=0.02//每隔0.02秒进行一次刷新
         this.table_graph=new Table_graph(2,1,1,[0,0,0],20,"webpages/image_source/game/background.jpg");
         this.deck_self_graph=new Deck_battle(4,2,5.62,[-28.5,-20-3,-15],0.5,"webpages/image_source/card/back.png?v=compass")
