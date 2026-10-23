@@ -43,7 +43,10 @@ class BaseParallelEnv:
         self.inference_communication = None
         self.inference_process = None
         if "inference" in self.env_config:
-            inference_config = self.env_config["inference"]
+            inference_config = {
+                **self.env_config["inference"],
+                "opponent_config": self.env_config["opponent_config"],
+            }
             self.inference_communication = InferenceCommunication(self.num_worker)
             self.inference_process = Process(
                 target=inference_server_process,
@@ -109,6 +112,19 @@ class BaseParallelEnv:
             self.manager.shutdown()
             self.manager = None
 
+    def check_workers(self):
+        if self.inference_process is not None and not self.inference_process.is_alive():
+            raise RuntimeError("Inference server exited")
+
+        for worker_id, process in enumerate(self.worker_process):
+            if not process.is_alive():
+                registration = self.env_config.get("inference", {}).get("opponent_registration")
+
+                if registration is not None and self.inference_communication is not None:
+                    self.inference_communication.control_queue.put(("release", worker_id))
+
+                raise RuntimeError(f"Worker {worker_id} exited: {process.exitcode}")
+
 async def run_parallel_room(
     env_config,
     info_communication,
@@ -138,12 +154,16 @@ def worker_process(
     # OpenMP oversubscription when many environments run together.
     import torch
     torch.set_num_threads(env_config.get("rollout_torch_threads", 1))
-    asyncio.run(
-        run_parallel_room(
+    try:
+        asyncio.run(run_parallel_room(
             env_config,
             info_communication,
             inference_communication,
             worker_id,
-            room_class
-        )
-    )
+            room_class,
+        ))
+    finally:
+        registration = env_config.get("inference", {}).get("opponent_registration")
+
+        if registration is not None and inference_communication is not None:
+            inference_communication.control_queue.put(("release", worker_id))

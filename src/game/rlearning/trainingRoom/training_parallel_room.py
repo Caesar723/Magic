@@ -96,7 +96,18 @@ class Multi_Agent_Parallel_Room(Base_Agent_Room):
     def initinal_player(self,players:list[tuple],is_initinal:bool=True):
         agents_deck="Eternal Phoenix+Creature+4|Raging Firekin+Creature+4|Emberheart Salamander+Creature+4|Arcane Inferno+Instant+4|Pyroblast Surge+Instant+4|Fiery Blast+Instant+4|Inferno Titan+Creature+4|Flame Tinkerer+Creature+4|Mountain+Land+24"
 
-        model_info= self.info_communication.get_model_info(self.worker_id)
+        registration = self.env_config.get("inference", {}).get("opponent_registration")
+
+        if registration is not None:
+            communication = self.inference_communication
+
+            communication.control_queue.put(("opponent", self.worker_id))
+
+            opponent = communication.response_queues[self.worker_id].get()
+
+            self.info_communication.update_model_opponent(self.worker_id, opponent["config_path"], opponent["restore_step"])
+
+        model_info = self.info_communication.get_model_info(self.worker_id)
         #print(model_info)
 
         players=[(agents_deck,"Agent1"),(agents_deck,"Agent2")]

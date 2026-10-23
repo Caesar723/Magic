@@ -47,6 +47,10 @@ inference:
   max_batch_size: 32
   max_wait_ms: 5
 
+  opponent_registration:
+    games_per_checkpoint: 10
+    per_config: {}
+
 rollout_torch_threads: 1
 
 num_worker: 25

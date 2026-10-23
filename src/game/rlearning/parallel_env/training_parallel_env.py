@@ -8,7 +8,7 @@ if __name__=="__main__":
     
 from typing import TYPE_CHECKING
 import random
-
+from queue import Empty
 
 from initinal_file import ORGPATH
 import game.rlearning.utils.log as log
@@ -37,17 +37,20 @@ class Parallel_Env(BaseParallelEnv):
 
 
         while True:
-            data=self.info_communication.get_game_data()
+            self.check_workers()
+
+            data = self.info_communication.get_game_data()
             self.agent1.store_round_data(data)
 
             is_update=self.agent1.update()
             if is_update:
-                self.info_communication.update_model(self.agent1.step,-1)
+                step = self.agent1.step
+                self.info_communication.update_model(step,step)
                 if self.inference_communication is not None:
                     self.inference_communication.control_queue.put(PolicyUpdate(
                         policy_id="main",
                         config_path=self.config_path,
-                        restore_step=-1,
+                        restore_step=step,
                     ))
             if self.evaluator is not None:
                 report = self.evaluator.poll_evaluation()
@@ -66,14 +69,19 @@ class Parallel_Env(BaseParallelEnv):
 
                     self.last_evaluation_step = self.agent1.step
                                 
-            for worker_id in range(self.num_worker):
-                if not self.info_communication.check_model_update(worker_id):
-                    agent_path,config=random.choice(list(self.config_list.items()))
-                    
-                    logdir=f"{CHECKPOINT_ROOT_PATH}/{config['log_dir']}"
-                    restore_step=AgentSchedule.get_restore_step(logdir)
-                    #print(agent_path,restore_step)
-                    self.info_communication.update_model_opponent(worker_id,agent_path,restore_step)
+            registration = self.env_config.get("inference", {}).get("opponent_registration")
+
+            if registration is None:
+                for worker_id in range(self.num_worker):
+                    if not self.info_communication.check_model_update(worker_id):
+                        agent_path,config=random.choice(list(self.config_list.items()))
+
+                        logdir = f"{CHECKPOINT_ROOT_PATH}/{config['log_dir']}"
+
+                        restore_step = AgentSchedule.get_restore_step(logdir)
+
+                        self.info_communication.update_model_opponent(worker_id, agent_path, restore_step)
+
 
             if self.agent1.step >= self.agent1.total_step:  
                 if self.agent1.rank == 0:
