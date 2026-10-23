@@ -164,55 +164,51 @@ class Parallel_Env(BaseParallelEnv):
         )
 
         if pairs <= 0 or len(set(indices)) != len(indices):
-            raise ValueError(
-                "pairs_per_matchup 必须为正数，套牌索引不可重复"
-            )
+            raise ValueError("pairs_per_matchup must be a positive number, and the deck indices cannot be repeated")
 
         cases = []
 
         for opponent_path, config in self.opponent_configs.items():
-            for agent_index in indices:
-                if not 0 <= agent_index < len(agent_decks):
-                    raise ValueError(
-                        f"无效套牌索引：{agent_index}"
-                    )
+            agent_index = rng.choice(indices)
+            if not 0 <= agent_index < len(agent_decks):
+                raise ValueError(f"Invalid agent deck index: {agent_index}")
 
-                for opponent_index, opponent_deck in enumerate(
-                    self.decks(config)
-                ):
-                    matchup = (
-                        f"{opponent_path}"
-                        f"|{agent_index}"
-                        f"|{opponent_index}"
-                    )
+            for opponent_index, opponent_deck in enumerate(
+                self.decks(config)
+            ):
+                matchup = (
+                    f"{opponent_path}"
+                    f"|{agent_index}"
+                    f"|{opponent_index}"
+                )
 
-                    for opening in range(pairs):
-                        seeds = [
-                            rng.randrange(2**32)
-                            for _ in range(3)
-                        ]
+                for opening in range(pairs):
+                    seeds = [
+                        rng.randrange(2**32)
+                        for _ in range(3)
+                    ]
 
-                        # 相同牌序，交换先后手。
-                        for first_player in ("Agent1", "Agent2"):
-                            cases.append({
-                                "match_id": len(cases),
-                                "matchup": matchup,
-                                "opening": opening,
+                    # The same sequence, swap the first and second player.
+                    for first_player in ("Agent1", "Agent2"):
+                        cases.append({
+                            "match_id": len(cases),
+                            "matchup": matchup,
+                            "opening": opening,
 
-                                "opponent_config": opponent_path,
-                                "opponent_step": (
-                                    self.opponent_steps[opponent_path]
-                                ),
+                            "opponent_config": opponent_path,
+                            "opponent_step": (
+                                self.opponent_steps[opponent_path]
+                            ),
 
-                                "agent_deck": agent_decks[agent_index],
-                                "opponent_deck": opponent_deck,
+                            "agent_deck": agent_decks[agent_index],
+                            "opponent_deck": opponent_deck,
 
-                                "first_player": first_player,
+                            "first_player": first_player,
 
-                                "agent_shuffle_seed": seeds[0],
-                                "opponent_shuffle_seed": seeds[1],
-                                "game_seed": seeds[2],
-                            })
+                            "agent_shuffle_seed": seeds[0],
+                            "opponent_shuffle_seed": seeds[1],
+                            "game_seed": seeds[2],
+                        })
 
         return cases
 
@@ -225,7 +221,7 @@ class Parallel_Env(BaseParallelEnv):
         for process in processes:
             if not process.is_alive():
                 raise RuntimeError(
-                    "评估进程退出："
+                    "Evaluation process exited: "
                     f"pid={process.pid}, "
                     f"exitcode={process.exitcode}"
                 )
@@ -253,16 +249,14 @@ class Parallel_Env(BaseParallelEnv):
                 continue
 
             if result["id"] != command_id:
-                raise RuntimeError(
-                    "收到非预期的模型加载通知"
-                )
+                raise RuntimeError("Received unexpected model load notification")
 
             if result["error"]:
                 raise RuntimeError(result["error"])
 
             return
 
-        raise TimeoutError("评估模型加载超时")
+        raise TimeoutError("Evaluation model load timeout")
 
     def start_worker(self):
         self.inference_process = Process(

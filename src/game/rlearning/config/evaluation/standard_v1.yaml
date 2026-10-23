@@ -14,10 +14,10 @@ opponent_config:
   - game/rlearning/config/agents/pair_excercise/v1/31_black_lifedrain_control.yaml
 
 inference:
-  max_batch_size: 32
+  max_batch_size: 1000
   max_wait_ms: 5
 
-num_worker: 4
+num_worker: 50
 rollout_torch_threads: 1
 
 evaluation:

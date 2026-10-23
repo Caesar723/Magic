@@ -32,7 +32,7 @@ class Vengeful_Wrath(Instant):
 
     @select_object("all_creatures",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
-        if selected_object[0]:
+        if selected_object:
             player.action_store.start_record()
             power,life=selected_object[0].state
             await self.destroy_object(selected_object[0],"rgba(0,0,0,0.5)","Missile_Hit")

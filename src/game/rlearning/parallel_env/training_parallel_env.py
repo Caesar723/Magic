@@ -62,12 +62,10 @@ class Parallel_Env(BaseParallelEnv):
                     and self.evaluator.active is None
                     and self.agent1.step - self.last_evaluation_step >= interval
                 ):
-                    self.agent1.save_checkpoint()
-
                     self.evaluator.start_evaluation(self.agent1.step)
 
                     self.last_evaluation_step = self.agent1.step
-                            
+                                
             for worker_id in range(self.num_worker):
                 if not self.info_communication.check_model_update(worker_id):
                     agent_path,config=random.choice(list(self.config_list.items()))
@@ -109,3 +107,12 @@ class Parallel_Env(BaseParallelEnv):
         config = read_yaml(f"{ORGPATH}/{path}")
         self.evaluator = get_class_by_name(config["env"])(config, agent_config=self.env_config["agent_config"])
         self.evaluator.start_worker()
+
+    def shutdown(self):
+        try:
+            evaluator = getattr(self, "evaluator", None)
+
+            if evaluator is not None:
+                evaluator.shutdown()
+        finally:
+            super().shutdown()
