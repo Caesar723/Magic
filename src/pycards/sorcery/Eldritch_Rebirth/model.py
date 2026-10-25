@@ -35,7 +35,8 @@ class Eldritch_Rebirth(Sorcery):
         creatures = [c for c in player.graveyard if isinstance(c, Creature) and sum(c.cost.values()) <= 3]
         for creature in creatures[:]:
             player.remove_card(creature, "graveyard")
-            player.append_card(creature, "battlefield")
+            new_creature = type(creature)(player)
+            player.append_card(new_creature, "battlefield")
 
 
 

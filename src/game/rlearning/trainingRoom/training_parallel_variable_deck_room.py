@@ -1,6 +1,6 @@
 from game.train_agent import Agent_Train
 from game.rlearning.trainingRoom.training_parallel_room import Multi_Agent_Parallel_Room
-
+from game.rlearning.utils.stack_simulation import get_stack_reward
 
 class Multi_Agent_Parallel_Variable_Deck_Room(Multi_Agent_Parallel_Room):
     def __init__(self,env_config,info_communication,worker_id,inference_communication=None):
@@ -59,32 +59,34 @@ class Multi_Agent_Parallel_Variable_Deck_Room(Multi_Agent_Parallel_Room):
         if reset_response and self.get_flag("bullet_time") and self.trigger_bullet_response(action_type):
             self.reset_bullet_pass()
 
-        old_rewards=self.basic_func[agent.name]["get_reward"](agent)
+        old_rewards=await get_stack_reward(self, agent)
         old_reward=old_rewards["reward"]
         info_index=len(self.game_recorder[agent.name].datas)
-        attacker=self.attacker if action==1 or 12<=action<=21 else None
-        selected_creature=agent.battlefield[int(content)] if 2<=action<=21 else None
-
         result=await self.message_process_dict[action_type](username,content)
         await self.check_death()
         success=result is None or result[0]
 
         async def next_state_function(next_state,terminal=False):
-            current_rewards=self.basic_func[agent.name]["get_reward"](agent,selected_creature,attacker)
+            current_rewards=await get_stack_reward(self, agent)
             current_reward=current_rewards["reward"]
-            reward=(current_reward-old_reward)/5
+            gamma = agent.agent.config["ppo"]["gamma"]
+            shaping_weight = 0.1
 
-            if action==0:
-                reward/=50
-            if self.config.get("long_sight",False) and (2<=action<=11 or action==0):
-                reward=0
-
-            reward=max(min(reward,0.3),-0.3)
-            done=terminal or await self.check_player_die()
+            done = terminal or await self.check_player_die()
+            task_reward = 0.0
 
             if done:
-                reward=-1 if await agent.check_dead() else 1
+                self_dead = await agent.check_dead()
+                opponent_dead = await agent.opponent.check_dead()
+                task_reward = float(opponent_dead) - float(self_dead)
 
+            next_potential = 0.0 if done else current_reward
+
+            shaping_reward = shaping_weight * (
+                gamma * next_potential - old_reward
+            )
+
+            reward = task_reward + shaping_reward
             current_info_index=len(self.game_recorder[agent.name].datas) if action==0 else info_index
             await self.game_recorder[agent.name].store_game_reward(current_info_index,message,reward,old_rewards,current_rewards)
             return next_state,reward,done,current_reward

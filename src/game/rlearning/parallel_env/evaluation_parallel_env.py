@@ -89,7 +89,6 @@ class Parallel_Env(BaseParallelEnv):
 
         identity = {
             "evaluation": self.evaluation_config,
-            "agent_config": self.config,
             "opponent_configs": self.opponent_configs,
             "opponent_steps": self.opponent_steps,
             "cases": self.cases,

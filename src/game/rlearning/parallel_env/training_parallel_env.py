@@ -84,8 +84,6 @@ class Parallel_Env(BaseParallelEnv):
 
 
             if self.agent1.step >= self.agent1.total_step:  
-                if self.agent1.rank == 0:
-                    self.agent1.save_checkpoint() 
                 self.stop_inference_server()
                 return 
 
