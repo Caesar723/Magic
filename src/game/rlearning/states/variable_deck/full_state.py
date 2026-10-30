@@ -12,7 +12,7 @@ from game.action_validator import (
     validate_select_defender
 )
 
-from game.rlearning.actions.state_space.index_base import num2subaction
+
 from game.rlearning.states.state_space import specific_entity
 
 
@@ -22,16 +22,16 @@ if TYPE_CHECKING:
     from game.card import Card
 
 
-def select_stage(room:"Base_Agent_Room",agent:"Agent",start_index,hand_card,select_range):
-    candidate_actions=[]
-    for sub_action in range(1,23):
-        try:
-            select_content=num2subaction(room,agent,sub_action,select_range)
-        except IndexError:
-            continue
-        valid,_=validate_play_card(room,agent,hand_card,select_content)
+def select_stage(room, agent, start_index, hand_card, select_range):
+    from game.rlearning.actions.variable_deck.vector_base import num2subaction
+    candidate_actions = []
+    for sub_action in range(1, 23):
+        select_content = num2subaction(room, agent, sub_action, select_range)
+        valid, _ = validate_play_card(room, agent, hand_card, select_content)
         if valid:
-            candidate_actions.append(get_candidate_action(room,hand_card,start_index+sub_action))
+            candidate_actions.append(
+                get_candidate_action(room, hand_card, start_index + sub_action)
+            )
     return candidate_actions
 
 def mask_hand(room:"Base_Agent_Room",agent:"Agent"):

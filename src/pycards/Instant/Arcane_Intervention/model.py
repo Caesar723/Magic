@@ -26,7 +26,7 @@ class Arcane_Intervention(Instant):
         self.content:str="Return target permanent to its owner's hand. Draw a card."
         self.image_path:str="cards/Instant/Arcane Intervention/image.jpg"
 
-    @select_object("all_roles",1)
+    @select_object("all_creatures",1)
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
         if not selected_object:
             return

@@ -134,22 +134,26 @@ def subaction2num(room:"Base_Agent_Room",agent:"Agent",sub_content:str)->int:
             selected_index=int(content)
             if 0<=selected_index<min(len(agent.opponent.battlefield),10):
                 return selected_index+1
-            raise ValueError(f"opponent battlefield index {selected_index} not found")
+            else:
+                return min(max(selected_index,0),9)+1
         if type_act=="self_battlefield":
             selected_index=int(content)
             if 0<=selected_index<min(len(agent.battlefield),10):
                 return selected_index+11
-            raise ValueError(f"self battlefield index {selected_index} not found")
+            else:
+                return min(max(selected_index,0),9)+11
         if type_act=="opponent_landfield":
             selected_index=int(content)
             if 0<=selected_index<min(len(agent.opponent.land_area),10):
                 return selected_index+1
-            raise ValueError(f"opponent land index {selected_index} not found")
+            else:
+                return min(max(selected_index,0),9)+1
         if type_act=="self_landfield":
             selected_index=int(content)
             if 0<=selected_index<min(len(agent.land_area),10):
                 return selected_index+11
-            raise ValueError(f"self land index {selected_index} not found")
+            else:
+                return min(max(selected_index,0),9)+11
         if type_act=="oppo":
             return 21
         if type_act=="self":
