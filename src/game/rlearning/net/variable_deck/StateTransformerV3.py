@@ -226,6 +226,16 @@ class StateTransformer(nn.Module):
             +stack_position_features
             +self.stack_owner_embedding(owner_id)
         )
+        card_stack_relation = self.build_stack_relation(
+            stack_action,
+            owner_id,
+            entity_mask_valid[:, stack_start:stack_end],
+            num_entities,
+        ).to(dtype=entity_tokens.dtype)
+        heads = self.stack_relation_beta.shape[0]
+        bias = self.stack_relation_beta.view(1, heads, 1, 1) * card_stack_relation[:, None]
+        attn_mask = bias.reshape(num_valid * heads, card_stack_relation.shape[-1], card_stack_relation.shape[-1])
+
         entity_tokens=torch.cat([entity_tokens[:,:stack_start],stack_tokens,entity_tokens[:,stack_end:]],dim=1)
 
         entity_tokens = self.entity_norm(entity_tokens)
@@ -250,6 +260,7 @@ class StateTransformer(nn.Module):
             candidate_tokens,
             token_mask=state_mask,
             candidate_mask=candidate_mask_valid,
+            attn_mask=attn_mask,
         )
 
         fused_tokens = self.output_norm(fused_tokens)
