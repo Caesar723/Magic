@@ -1,4 +1,4 @@
-agent_config: game/rlearning/config/agents/general_agent/caster_ppo_pointer_v05.yaml
+agent_config: game/rlearning/config/agents/general_agent/caster_ppo_pointer_v06.yaml
 opponent_config:
   - game/rlearning/config/agents/pair_excercise/v1/01_ug_time_tempo.yaml
   - game/rlearning/config/agents/pair_excercise/v1/02_blue_time_value.yaml
