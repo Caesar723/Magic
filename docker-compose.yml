@@ -48,6 +48,15 @@ services:
       - ./local-tls:/app/tls:ro
       - data_volume_cache:/app/src/user_cache
       - data_volume:/app/src/user_data
+      - /mnt/data/trainData:/mnt/data/trainData:ro
+      - ./checkpoints:/app/checkpoints:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
 
   cloudflared:

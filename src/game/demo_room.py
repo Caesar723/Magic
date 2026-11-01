@@ -13,7 +13,7 @@ import asyncio
 #from game.train_agent import Agent_Train_Red as Agent_Train
 from game.room import Room
 from game.player import Player
-from game.agent import Agent_Player as Agent
+from game.agent import Agent_Player as Agent,select_deck
 import torch
 import random
 from torch import nn
@@ -35,7 +35,7 @@ class PVE_Demo_Room(Base_Agent_Room):
     """
 
     def __init__(self,players:list[tuple],room_server) -> None:
-        
+        self.agent_response_running=False
         super().__init__(players,room_server)
 
 
@@ -54,7 +54,7 @@ class PVE_Demo_Room(Base_Agent_Room):
             f"{ORGPATH}/game/rlearning/weights/white2/ppo_lstm3.yaml",
             # f"{ORGPATH}/game/rlearning/weights/test/test.yaml",
         ]
-        return random.choice(agents)
+        return "/mnt/data/trainData/checkpoints/logs/general_agent/caster_ppo_pointer_v06/ckpt/config_212370.yaml"
 
     def initinal_player(self,players:list[tuple]):
         #agents_deck="Eternal Phoenix+Creature+4|Raging Firekin+Creature+4|Emberheart Salamander+Creature+4|Arcane Inferno+Instant+4|Pyroblast Surge+Instant+4|Fiery Blast+Instant+4|Inferno Titan+Creature+4|Flame Tinkerer+Creature+4|Mountain+Land+24"
@@ -62,7 +62,7 @@ class PVE_Demo_Room(Base_Agent_Room):
         # Agent_para=[(agents_deck,"Agent1")]
         print(self.stack)
         self.player_1=Agent("Agent1",self,self.choose_agent_config())
-        self.player_2=Player(players[0][1],self.player_1.config["cards"],self)
+        self.player_2=Player(players[0][1],select_deck(self.player_1.config),self)
         self.player_1.set_opponent_player(self.player_2,self)
         self.player_2.set_opponent_player(self.player_1,self)
 
@@ -90,7 +90,7 @@ class PVE_Demo_Room(Base_Agent_Room):
         base_message=message.split("||",1)[0]
         username,_,_=base_message.split("|",2)
         player=self.players[username]
-        if isinstance(player,Player) and not isinstance(player,Agent):
+        if self.record_opponent_history and isinstance(player,Player) and not isinstance(player,Agent):
             valid,_=validate_player_action(self,message)
             if valid and player.opponent.name in self.basic_func:
                 self.basic_func[player.opponent.name]["add_opponent_history"](player.opponent,player,message)
@@ -128,17 +128,20 @@ class PVE_Demo_Room(Base_Agent_Room):
 
 
     async def ask_agent_do_act(self):
-        await asyncio.sleep(1)
-        agent:Agent=self.player_1
-        state=self.basic_func[agent.name]["get_state"](agent)
-        mask=self.basic_func[agent.name]["create_action_mask"](agent)
-        print(mask)
-        print(state)
-        state["mask"]=mask
-        action=agent.choose_action(state,isTrain=False)
-        # print(action)
-        return await self.process_action(agent,action)
+        if not self.gamming or self.agent_response_running:
+            return
 
+        self.agent_response_running=True
+        try:
+            await asyncio.sleep(1)
+            agent:Agent=self.player_1
+            state=self.basic_func[agent.name]["get_state"](agent)
+            mask=self.basic_func[agent.name]["create_action_mask"](agent)
+            state["mask"]=mask
+            action=await agent.choose_action_async(state,isTrain=False)
+            return await self.process_action(agent,action)
+        finally:
+            self.agent_response_running=False
 
     async def end_bullet_time(self):
         result= await super().end_bullet_time() 

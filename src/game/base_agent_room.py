@@ -35,7 +35,7 @@ from game.rlearning.utils.file import read_yaml
 
 class Base_Agent_Room(Room):
 
-
+    record_opponent_history=False
     def __init__(self,players:list[tuple],room_server) -> None:#((deck,user_name1),...)
 
         super().__init__(players,room_server)

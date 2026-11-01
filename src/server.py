@@ -9,6 +9,7 @@ from pydantic import ValidationError
 import os
 import aiofiles.os
 import uuid
+from contextlib import asynccontextmanager
 
 from server_function_tool import *
 from database import DataBase
@@ -24,7 +25,15 @@ from tasks import TASK_DICT
 
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app):
+    room_server.pve_inference.start()
+    try:
+        yield
+    finally:
+        await room_server.pve_inference.stop()
+
+app=FastAPI(lifespan=lifespan)
 database=DataBase()
 ras=Security()
 room_server=RoomServer(database)

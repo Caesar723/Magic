@@ -112,7 +112,7 @@ ppo:
 
 w_act_loss: 1.0
 w_val_loss: 0.5
-w_entropy_loss: 0.01
+#w_entropy_loss: 0.01
 w_kl_loss: 0.01
 ###########################
 # Optimizer

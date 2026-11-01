@@ -37,8 +37,9 @@ class Rogue_Room(Base_Agent_Room):
 
     def __init__(self,players:list[tuple],rogue_info:dict,room_server) -> None:
         self.rogue_info=rogue_info
-        
+        self.agent_response_running=False
         super().__init__(players,room_server)
+        
 
 
         self.action_process_condition=asyncio.Condition()#等待直到agent_cache不是空
@@ -103,7 +104,7 @@ class Rogue_Room(Base_Agent_Room):
         base_message=message.split("||",1)[0]
         username,_,_=base_message.split("|",2)
         player=self.players[username]
-        if isinstance(player,Player) and not isinstance(player,Agent):
+        if self.record_opponent_history and isinstance(player,Player) and not isinstance(player,Agent):
             valid,_=validate_player_action(self,message)
             if valid and player.opponent.name in self.basic_func:
                 self.basic_func[player.opponent.name]["add_opponent_history"](player.opponent,player,message)
@@ -147,16 +148,20 @@ class Rogue_Room(Base_Agent_Room):
 
 
     async def ask_agent_do_act(self):
-        await asyncio.sleep(1)
-        agent:Agent=self.player_1
-        state=self.basic_func[agent.name]["get_state"](agent)
-        mask=self.basic_func[agent.name]["create_action_mask"](agent)
-        state["mask"]=mask
-        print("state get")
-        action=agent.choose_action(state,isTrain=False)
-        print("action choose")
-        # print(action)
-        return await self.process_action(agent,action)
+        if not self.gamming or self.agent_response_running:
+            return
+
+        self.agent_response_running=True
+        try:
+            await asyncio.sleep(1)
+            agent:Agent=self.player_1
+            state=self.basic_func[agent.name]["get_state"](agent)
+            mask=self.basic_func[agent.name]["create_action_mask"](agent)
+            state["mask"]=mask
+            action=await agent.choose_action_async(state,isTrain=False)
+            return await self.process_action(agent,action)
+        finally:
+            self.agent_response_running=False
 
 
     async def end_bullet_time(self):

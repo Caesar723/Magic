@@ -87,7 +87,7 @@ class PVE_Room(Base_Agent_Room):
         username,action_type,_=base_message.split("|",2)
         player=self.players[username]
         agent_message=username=="Agent1" and action_type in self.message_process_dict
-        if isinstance(player,Player) and not isinstance(player,Agent):
+        if self.record_opponent_history and isinstance(player,Player) and not isinstance(player,Agent):
             valid,_=validate_player_action(self,message)
             if valid and player.opponent.name in self.basic_func:
                 self.basic_func[player.opponent.name]["add_opponent_history"](player.opponent,player,message)
@@ -189,7 +189,7 @@ class PVE_Room(Base_Agent_Room):
             mask=self.basic_func[agent.name]["create_action_mask"](agent)
             state["mask"]=mask
             print("state get")
-            action=agent.choose_action(state,isTrain=False)
+            action=await agent.choose_action_async(state,isTrain=False)
             print("action choose")
             return await self.process_action(agent,action)
         finally:

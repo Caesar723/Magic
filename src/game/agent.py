@@ -2,7 +2,7 @@ import random
 import torch
 import os
 from typing import TYPE_CHECKING
-
+from pathlib import Path
 from torch._inductor.config import batch_fusion
 if TYPE_CHECKING:
     from game.room import Room
@@ -13,6 +13,7 @@ from initinal_file import CARD_DICTION
 from game.game_function_tool import ORGPATH
 from game.rlearning.utils.file import read_yaml
 from game.rlearning.utils.model import get_class_by_name,get_model
+from game.rlearning.rollout.pve_agent import PveAgent
 
 
 def select_deck(config):
@@ -31,21 +32,21 @@ def select_deck(config):
 class Agent_Player(Player):
 
     def __init__(self, name: str,room:"Room",config_path:str=f"{ORGPATH}/game/rlearning/weights/white/ppo_lstm2.yaml") -> None:
-        self.config=read_yaml(config_path)
+        self.config_path=str(Path(config_path).expanduser().resolve(strict=True))
+        self.config=read_yaml(self.config_path)
         decks_detail=select_deck(self.config)
         self.id_dict={}
-        super().__init__(name, decks_detail, room)
+        super().__init__(name,decks_detail,room)
 
         self.action_history=[0]
         self.action_history_length=self.config.get("action_history_length",1)
-
-        self.opponent_history = [] # 敌方动作历史
+        self.opponent_history=[]
         self.opponent_history_length=self.config.get("opponent_history_length",1)
 
-        
-        #model_class=get_class_by_name(self.config["trainer"])
-        self.agent:"BaseTrainer"=get_model(self.config)
-        self.select_content:str=f'{name}|cancel'
+        room_server=getattr(room,"room_server",None)
+        inference=getattr(room_server,"pve_inference",None)
+        self.agent=PveAgent(self.config_path,self.config,inference) if inference is not None else get_model(self.config)
+        self.select_content:str=f"{name}|cancel"
                 
     def choose_action(self,state,isTrain=False):
         batch=self.agent.choose_action([state],isTrain=isTrain)
@@ -149,4 +150,14 @@ class Agent_Player(Player):
 
     
 
-        
+    async def choose_action_async(self,state:dict,isTrain:bool=False):
+        if not isinstance(self.agent,PveAgent):
+            return self.choose_action(state,isTrain=isTrain)
+        if isTrain:
+            raise RuntimeError("PVE inference cannot be used for training")
+
+        batch=await self.agent.choose_action_async(state)
+        record=self.room.basic_func[self.name]["add_history"](self,batch)
+        if record is not None:
+            state["decision_record"]=record
+        return batch["action"]

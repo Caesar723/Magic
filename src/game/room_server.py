@@ -10,6 +10,8 @@ import uuid
 import asyncio
 
 import game.custom_print
+from game.rlearning.inference.pve import PveInference
+
 class RoomServer:
     
 
@@ -21,6 +23,8 @@ class RoomServer:
         self.queue_dict={}
 
         self.database=database
+
+        self.pve_inference=PveInference(max_batch_size=32,max_wait_ms=10,timeout=120)
 
     def find_player_room(self,player_name:str):
         if player_name in self.client_room:
