@@ -15,6 +15,7 @@ class Aetheric_Nexus(Land):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"mana_amount":1}
 
         self.fixed_id:int=163
 
@@ -26,19 +27,19 @@ class Aetheric_Nexus(Land):
         self.color:str="gold"
         self.type_card:str="Land"
         self.rarity:str="Rare"
-        self.content:str="Aetheric Nexus enters the battlefield untapped and adds one colorless mana to your mana pool. You may also tap Aetheric Nexus to add one mana of any color, but only if you control a creature."
+        self.content:str="Aetheric Nexus enters the battlefield untapped and adds {mana_amount_word} colorless mana to your mana pool. You may also tap Aetheric Nexus to add {mana_amount_word} mana of any color, but only if you control a creature."
         self.image_path:str="cards/land/Aetheric Nexus/image.jpg"
 
 
     @select_object("",1)
     async def when_enter_landarea(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
         self.tap()
-        player.mana["colorless"]+=1
+        player.mana["colorless"]+=self.effect_params["mana_amount"]
         player.action_store.add_action(actions.Change_Mana(self, player, player.get_manas()))
 
     def generate_mana(self) -> dict:
         if self.player.battlefield:
-            return {"colorless":1}
+            return {"colorless":self.effect_params["mana_amount"]}
         else:
             return {}
 

@@ -12,6 +12,7 @@ class Ashwing_Tyrant(Creature):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":3}
 
         self.fixed_id:int=264
 
@@ -26,7 +27,7 @@ class Ashwing_Tyrant(Creature):
         self.color:str="red"
         self.type_card:str="Creature - Dragon"
         self.rarity:str="Mythic Rare"
-        self.content:str="Flying. When Ashwing Tyrant enters the battlefield, it deals 3 damage to your opponent."
+        self.content:str="Flying. When Ashwing Tyrant enters the battlefield, it deals {damage} damage to your opponent."
         self.image_path:str="cards/creature/Ashwing Tyrant/image.jpg"
         self.flag_dict["flying"]=True
 
@@ -34,6 +35,6 @@ class Ashwing_Tyrant(Creature):
     async def when_enter_battlefield(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"]=()):
         player.action_store.start_record()
         try:
-            await self.attact_to_object(opponent,3,"rgba(243, 0, 0, 0.9)","Missile_Hit")
+            await self.attact_to_object(opponent,self.effect_params["damage"],"rgba(243, 0, 0, 0.9)","Missile_Hit")
         finally:
             player.action_store.end_record()

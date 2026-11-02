@@ -14,6 +14,7 @@ class Swift_Response(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_threshold":2}
 
         self.fixed_id:int=67
 
@@ -25,12 +26,12 @@ class Swift_Response(Instant):
         self.color:str="gold"
         self.type_card:str="Instant"
         self.rarity:str="Common"
-        self.content:str="Instantly destroy target attacking or blocking creature with power 2 or less."
+        self.content:str="Instantly destroy target attacking or blocking creature with power {power_threshold} or less."
         self.image_path:str="cards/Instant/Swift Response/image.jpg"
 
     @select_object("opponent_creatures",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
-        if selected_object and selected_object[0].power <= 2:
+        if selected_object and selected_object[0].power <= self.effect_params["power_threshold"]:
             await self.destroy_object(selected_object[0], "rgba(255,0,0,0.5)", "Missile_Hit")
 
 

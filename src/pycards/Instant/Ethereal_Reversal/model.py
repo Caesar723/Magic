@@ -14,6 +14,7 @@ class Ethereal_Reversal(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Ethereal Reversal"
 
@@ -35,7 +36,7 @@ class Ethereal_Reversal(Instant):
                 owner=target.player
                 if target in owner.battlefield:
                     owner.remove_card(target,"battlefield")
-                    owner.append_card(type(target)(owner),"hand")
+                    owner.append_card(target.copy_for_player(owner),"hand")
                 bounced_mv=sum(target.cost.values())
         if bounced_mv<=0:
             return

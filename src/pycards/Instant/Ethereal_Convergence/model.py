@@ -14,6 +14,7 @@ class Ethereal_Convergence(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=23
 
@@ -34,7 +35,7 @@ class Ethereal_Convergence(Instant):
         for creature in all_creatures:
             owner = creature.player
             owner.remove_card(creature, "battlefield")
-            owner.append_card(type(creature)(owner), "hand")
+            owner.append_card(creature.copy_for_player(owner), "hand")
 
 
 

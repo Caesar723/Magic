@@ -12,6 +12,7 @@ class Furnace_Sweep(Sorcery):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":5,"opponent_damage":2}
 
         self.fixed_id:int=259
 
@@ -21,7 +22,7 @@ class Furnace_Sweep(Sorcery):
         self.color:str="red"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Furnace Sweep deals 5 damage to each creature your opponent controls and 2 damage to your opponent."
+        self.content:str="Furnace Sweep deals {damage} damage to each creature your opponent controls and {opponent_damage} damage to your opponent."
         self.image_path:str="cards/sorcery/Furnace Sweep/image.jpg"
 
     @select_object("",1)
@@ -29,7 +30,7 @@ class Furnace_Sweep(Sorcery):
         player.action_store.start_record()
         try:
             for creature in list(opponent.battlefield):
-                await self.attact_to_object(creature,5,"rgba(243, 0, 0, 0.9)","Missile_Hit")
-            await self.attact_to_object(opponent,2,"rgba(243, 0, 0, 0.9)","Missile_Hit")
+                await self.attact_to_object(creature,self.effect_params["damage"],"rgba(243, 0, 0, 0.9)","Missile_Hit")
+            await self.attact_to_object(opponent,self.effect_params["opponent_damage"],"rgba(243, 0, 0, 0.9)","Missile_Hit")
         finally:
             player.action_store.end_record()

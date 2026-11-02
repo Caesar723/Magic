@@ -14,6 +14,7 @@ class Flamespark(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":3,"damage_high":5}
 
         self.fixed_id:int=28
 
@@ -25,15 +26,15 @@ class Flamespark(Instant):
         self.color:str="red"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
-        self.content:str="Flamespark deals 3 damage to any target. If you control a Mountain, it deals 5 damage instead."
+        self.content:str="Flamespark deals {damage} damage to any target. If you control a Mountain, it deals {damage_high} damage instead."
         self.image_path:str="cards/Instant/Flamespark/image.jpg"
 
     @select_object("all_roles",1)
     async def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
-        damage=3
+        damage=self.effect_params["damage"]
         if selected_object:
             for land in player.land_area:
                 if isinstance(land,Mountain):
-                    damage=5
+                    damage=self.effect_params["damage_high"]
             await self.attact_to_object(selected_object[0],damage,"rgba(255,0,0,1)","Missile_Hit")
         

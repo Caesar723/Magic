@@ -15,6 +15,7 @@ class Nighthaunt_Assassin(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"mana_threshold":2}
 
         self.name:str="Nighthaunt Assassin"
         self.live:int=1
@@ -29,7 +30,7 @@ class Nighthaunt_Assassin(Creature):
         self.color:str="black"
         self.type_card:str="Human Rogue"
         self.rarity:str="Rare"
-        self.content:str="When Nighthaunt Assassin enters the battlefield, you may destroy random opponent's creature with converted mana cost 2 or less."
+        self.content:str="When Nighthaunt Assassin enters the battlefield, you may destroy random opponent's creature with converted mana cost {mana_threshold} or less."
         self.image_path:str="cards/creature/Nighthaunt Assassin/image.jpg"
 
 
@@ -38,7 +39,7 @@ class Nighthaunt_Assassin(Creature):
     async def when_enter_battlefield(self,player:'Player',opponent:'Player',selected_object:tuple['Card']=()):
         random_creatures=[]
         for creature in opponent.battlefield:
-            if sum(creature.cost.values())<=2:
+            if sum(creature.cost.values())<=self.effect_params["mana_threshold"]:
                 random_creatures.append(creature)
         
         if random_creatures:

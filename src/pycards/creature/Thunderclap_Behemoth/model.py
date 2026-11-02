@@ -14,6 +14,7 @@ class Thunderclap_Behemoth(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":3,"power_threshold":4}
 
         self.fixed_id:int=154
 
@@ -30,7 +31,7 @@ class Thunderclap_Behemoth(Creature):
         self.color:str="green"
         self.type_card:str="Beast Creature - Beast"
         self.rarity:str="Rare"
-        self.content:str="Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.), Whenever Thunderclap Behemoth attacks, it deals 3 damage to each creature defending player controls if you control another creature with power 4 or greater."
+        self.content:str="Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.), Whenever Thunderclap Behemoth attacks, it deals {damage} damage to each creature defending player controls if you control another creature with power {power_threshold} or greater."
         self.image_path:str="cards/creature/Thunderclap Behemoth/image.jpg"
         self.flag_dict["Trample"]=True
 
@@ -39,12 +40,12 @@ class Thunderclap_Behemoth(Creature):
         for creature in player.battlefield:
             if creature is self:
                 continue
-            if creature.state[0]>=4:
+            if creature.state[0]>=self.effect_params["power_threshold"]:
                 flag=True
                 break
         if flag:
             #for creature in opponent.battlefield:
-            await self.attact_to_object(defender,3,"rgba(243, 243, 243, 0.9)","Missile_Hit")
+            await self.attact_to_object(defender,self.effect_params["damage"],"rgba(243, 243, 243, 0.9)","Missile_Hit")
 
 
         

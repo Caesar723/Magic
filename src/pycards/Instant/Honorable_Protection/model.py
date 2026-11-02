@@ -14,6 +14,7 @@ class Honorable_Protection(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":1,"toughness_bonus":1}
 
         self.fixed_id:int=29
 
@@ -25,7 +26,7 @@ class Honorable_Protection(Instant):
         self.color:str="gold"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
-        self.content:str="Target creature you control gains indestructible until end of turn. If it's a Knight, put a +1/+1 counter on it."
+        self.content:str="Target creature you control gains indestructible until end of turn. If it's a Knight, put a +{power_bonus}/+{toughness_bonus} counter on it."
         self.image_path:str="cards/Instant/Honorable Protection/image.jpg"
 
 
@@ -36,5 +37,5 @@ class Honorable_Protection(Instant):
             buff_i.set_end_of_turn()
             selected_object[0].gain_buff(buff_i,self)
             if "Knight" in selected_object[0].type_card:
-                buff=StateBuff(self,selected_object[0],1,1)
+                buff=StateBuff(self,selected_object[0],self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
                 selected_object[0].gain_buff(buff,self)

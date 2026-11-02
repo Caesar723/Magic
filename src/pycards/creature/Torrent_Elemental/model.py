@@ -14,6 +14,7 @@ class Torrent_Elemental(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Torrent Elemental"
         self.live:int=3

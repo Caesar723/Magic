@@ -14,6 +14,7 @@ class Verdant_Harvest(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1}
 
         self.name:str="Verdant Harvest"
 
@@ -23,7 +24,7 @@ class Verdant_Harvest(Sorcery):
         self.color:str="green"
         self.type_card:str="Sorcery"
         self.rarity:str="Uncommon"
-        self.content:str="Search your library for a basic land card and put it onto the battlefield tapped, then shuffle your library. Draw a card."
+        self.content:str="Search your library for a basic land card and put it onto the battlefield tapped, then shuffle your library. Draw {draw_count_article} card{draw_count_plural}."
         self.image_path:str="cards/sorcery/Verdant Harvest/image.jpg"
 
     @select_object("",1)
@@ -40,7 +41,7 @@ class Verdant_Harvest(Sorcery):
             player.remove_card(land, "library")
             player.append_card(land, "land_area")
             land.tap()
-            player.draw_card(1)
+            player.draw_card(self.effect_params["draw_count"])
 
 
 

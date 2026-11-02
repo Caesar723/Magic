@@ -13,6 +13,7 @@ class Island(Land):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"mana_amount":1}
 
         self.fixed_id:int=169
 
@@ -28,6 +29,6 @@ class Island(Land):
         self.image_path:str="cards/land/Island/image.jpg"
 
     def generate_mana(self) -> dict:
-        return {"U":1}
+        return {"U":self.effect_params["mana_amount"]}
 
         

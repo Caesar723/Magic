@@ -14,6 +14,7 @@ class Monk_s_Inner_Rebound(Instant_Undo):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=33
 
@@ -32,7 +33,7 @@ class Monk_s_Inner_Rebound(Instant_Undo):
     async def card_ability(self,player:Player,opponent:Player,selected_object:tuple[Card]):
         func,card=await self.undo_stack(player,opponent)
         if (isinstance(card,Instant) and not isinstance(card,Instant_Undo)) or isinstance(card,Sorcery):
-            new_card=type(card)(player)
+            new_card=card.copy_for_player(player)
             new_func=await new_card.card_ability(player,opponent,auto_select=True)
             self.stack.append({"prepared_function":new_func,"card":new_card})
         

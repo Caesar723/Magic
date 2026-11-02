@@ -14,6 +14,7 @@ class Seraph_of_the_Eternal_Flame(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Seraph of the Eternal Flame"
         self.live:int=4

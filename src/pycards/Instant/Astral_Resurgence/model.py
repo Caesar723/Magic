@@ -17,6 +17,7 @@ class Astral_Resurgence(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=7
 
@@ -37,7 +38,7 @@ class Astral_Resurgence(Instant):
         die_creatures=player.get_cards_by_pos_type("graveyard",Creature)
         if die_creatures:
             creature:Creature=random.choice(die_creatures)
-            new_creature=type(creature)(player)
+            new_creature=creature.copy_for_player(player)
             #player.remove_card(creature,"graveyard")
             player.append_card(new_creature,"battlefield")
             buff_key=KeyBuff(self,new_creature,"lifelink")

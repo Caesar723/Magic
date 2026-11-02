@@ -15,6 +15,7 @@ class Druid_s_Natural_Fury(Instant_Undo):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"token_count":1}
 
         self.fixed_id:int=18
 
@@ -26,15 +27,16 @@ class Druid_s_Natural_Fury(Instant_Undo):
         self.color:str="green"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Counter target spell. Then, create a green Beast creature token with power and toughness equal to that spell's mana cost."
+        self.content:str="Counter target spell. Then, create {token_count_article} green Beast creature token{token_count_plural} with power and toughness equal to that spell's mana cost."
         self.image_path:str="cards/Instant/Druid's Natural Fury/image.jpg"
 
     @select_object("",1)
     async def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
         func,card=await self.undo_stack(player,opponent)
         cost=sum(card.cost.values())
-        token=Druid_s_Natural_Fury_token(player,cost,cost)
-        player.append_card(token,"battlefield")
+        for _ in range(self.effect_params["token_count"]):
+            token=Druid_s_Natural_Fury_token(player,cost,cost)
+            player.append_card(token,"battlefield")
 
 
 
@@ -42,6 +44,7 @@ class Druid_s_Natural_Fury_token(Creature):
 
     def __init__(self,player,live=1,power=1) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Beast"
         self.live:int=live

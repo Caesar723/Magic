@@ -15,6 +15,7 @@ class Thalassian_Tidecaller(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1}
 
         self.fixed_id:int=149
 
@@ -31,12 +32,12 @@ class Thalassian_Tidecaller(Creature):
         self.color:str="blue"
         self.type_card:str="Merfolk Creature"
         self.rarity:str="Rare"
-        self.content:str="Whenever you cast a blue spell, you may draw a card."
+        self.content:str="Whenever you cast a blue spell, you may draw {draw_count_article} card{draw_count_plural}."
         self.image_path:str="cards/creature/Thalassian Tidecaller/image.jpg"
 
     async def when_play_a_card(self, card: "Card", player: "Player", opponent: "Player"):
         if card.color=="blue" and self in player.battlefield:
-            player.draw_card(1)
+            player.draw_card(self.effect_params["draw_count"])
         
 
         

@@ -15,6 +15,7 @@ class Fleeting_Insight(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1,"discard_count":1}
 
         self.name:str="Fleeting Insight"
 
@@ -24,13 +25,14 @@ class Fleeting_Insight(Sorcery):
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Common"
-        self.content:str="Draw a card, then randomly discard a card."
+        self.content:str="Draw {draw_count_article} card{draw_count_plural}, then randomly discard {discard_count_article} card{discard_count_plural}."
         self.image_path:str="cards/sorcery/Fleeting Insight/image.jpg"
 
     @select_object("",1)
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
-        player.draw_card(1)
-        if player.hand:
-            card=random.choice(player.hand)
-            player.discard(card)
+        player.draw_card(self.effect_params["draw_count"])
+        for _ in range(self.effect_params["discard_count"]):
+            if player.hand:
+                card=random.choice(player.hand)
+                player.discard(card)
 

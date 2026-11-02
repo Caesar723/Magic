@@ -16,6 +16,7 @@ class Blazeheart_Berserker__(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":1,"toughness_bonus":0}
 
         self.fixed_id:int=93
 
@@ -32,13 +33,13 @@ class Blazeheart_Berserker__(Creature):
         self.color:str="red"
         self.type_card:str="Human Warrior"
         self.rarity:str="Uncommon"
-        self.content:str="Whenever Blazeheart Berserker attacks, it gets +1/+0 until end of turn for each Mountain you control."
+        self.content:str="Whenever Blazeheart Berserker attacks, it gets +{power_bonus}/+{toughness_bonus} until end of turn for each Mountain you control."
         self.image_path:str="cards/creature/Blazeheart Berserker/image.jpg"
 
     async def when_start_attcak(self, card: "Creature | Player", player: "Player" = None, opponent: "Player" = None):
         for land in player.land_area:
             if isinstance(land,Mountain):
-                buff=StateBuff(self,self,1,0)
+                buff=StateBuff(self,self,self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
                 buff.set_end_of_turn()
                 self.gain_buff(buff,self)
                 

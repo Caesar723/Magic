@@ -14,6 +14,7 @@ class Shadowtide_Leviathan(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=140
 
@@ -39,6 +40,6 @@ class Shadowtide_Leviathan(Creature):
     @select_object("opponent_creatures",1)
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         if selected_object:
-            new_card=type(selected_object[0])(opponent)
+            new_card=selected_object[0].copy_for_player(opponent)
             opponent.remove_card(selected_object[0],"battlefield")
             opponent.append_card(new_card,"hand")

@@ -14,6 +14,7 @@ class Flameblast(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":5}
 
         self.fixed_id:int=208
 
@@ -25,13 +26,13 @@ class Flameblast(Sorcery):
         self.color:str="red"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Flameblast deals 5 damage to any target."
+        self.content:str="Flameblast deals {damage} damage to any target."
         self.image_path:str="cards/sorcery/Flameblast/image.jpg"
 
     @select_object("all_roles",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         if selected_object:
-            await self.attact_to_object(selected_object[0], 5, "rgba(255,0,0,1)", "Missile_Hit")
+            await self.attact_to_object(selected_object[0], self.effect_params["damage"], "rgba(255,0,0,1)", "Missile_Hit")
 
 
         

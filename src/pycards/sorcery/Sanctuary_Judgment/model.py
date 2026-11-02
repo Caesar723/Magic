@@ -13,6 +13,7 @@ class Sanctuary_Judgment(Sorcery):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"token_power":2,"token_toughness":2,"token_count":2}
 
         self.fixed_id:int=265
 
@@ -22,7 +23,7 @@ class Sanctuary_Judgment(Sorcery):
         self.color:str="gold"
         self.type_card:str="Sorcery"
         self.rarity:str="Mythic Rare"
-        self.content:str="Destroy all creatures, then create two 2/2 white Knight creature tokens."
+        self.content:str="Destroy all creatures, then create {token_count_word} {token_power}/{token_toughness} white Knight creature token{token_count_plural}."
         self.image_path:str="cards/sorcery/Sanctuary Judgment/image.jpg"
 
     @select_object("",1)
@@ -31,8 +32,9 @@ class Sanctuary_Judgment(Sorcery):
         try:
             for creature in list(player.battlefield)+list(opponent.battlefield):
                 await self.destroy_object(creature,"rgba(245, 238, 145, 0.8)","Missile_Hit")
-            for _ in range(2):
-                player.append_card(Sanctuary_Judgment_Knight(player),"battlefield")
+            for _ in range(self.effect_params["token_count"]):
+                token=self.create_token(Sanctuary_Judgment_Knight,player)
+                player.append_card(token,"battlefield")
         finally:
             player.action_store.end_record()
 
@@ -41,6 +43,7 @@ class Sanctuary_Judgment_Knight(Creature):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Knight"
         self.live:int=2

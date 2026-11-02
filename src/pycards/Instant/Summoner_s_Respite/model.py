@@ -15,6 +15,7 @@ class Summoner_s_Respite(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"heal":4,"power_bonus":1,"toughness_bonus":1}
 
         self.fixed_id:int=66
 
@@ -26,7 +27,7 @@ class Summoner_s_Respite(Instant):
         self.color:str="gold"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Prevent all combat damage that would be dealt this turn. You gain 4 life. Put a +1/+1 counter on each creature you control."
+        self.content:str="Prevent all combat damage that would be dealt this turn. You gain {heal} life. Put a +{power_bonus}/+{toughness_bonus} counter on each creature you control."
         self.image_path:str="cards/Instant/Summoner's Respite/image.jpg"
 
     @select_object("",1)
@@ -34,9 +35,9 @@ class Summoner_s_Respite(Instant):
         from game.buffs import StateBuff
         self.flag_dict["start_receive"]=True
         
-        await self.cure_to_object(player, 4, "rgba(0,255,0,0.5)", "Missile_Hit")
+        await self.cure_to_object(player, self.effect_params["heal"], "rgba(0,255,0,0.5)", "Missile_Hit")
         for creature in player.battlefield:
-            buff = StateBuff(self, creature, 1, 1)
+            buff = StateBuff(self, creature, self.effect_params["power_bonus"], self.effect_params["toughness_bonus"])
             creature.gain_buff(buff, self)
 
     async def when_an_object_hert(self,object:"Player|Creature",value:int,player: "Player" = None, opponent: "Player" = None):#当一个card or 人物收到伤害，object是card 或者 player

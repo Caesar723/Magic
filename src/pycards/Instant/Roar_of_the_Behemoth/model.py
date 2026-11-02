@@ -16,7 +16,7 @@ class Roar_of_the_Behemoth_Buff(Buff):
     def __init__(self,card:"Card",selected_card:"Card") -> None:
         super().__init__(card,selected_card)
         self.buff_name=f"{card.name}"
-        self.content="0 power until the end of this turn."
+        self.content=f"{card.effect_params['power_set']} power until the end of this turn."
         self.color_missile="rgba(203, 203, 203, 0.9)"
         self.buff_missile="Missile_Hit"
         self.card_type:str="State"#这个buff是用在那个类型的
@@ -25,7 +25,7 @@ class Roar_of_the_Behemoth_Buff(Buff):
         previews_func=card.calculate_state
         def calculate_state(self_card):
             power,live=previews_func()
-            power=0
+            power=self.card.effect_params["power_set"]
             return (power,live)
         card.calculate_state = types.MethodType(calculate_state, card)
 
@@ -43,6 +43,7 @@ class Roar_of_the_Behemoth(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_set":0}
 
         self.fixed_id:int=59
 
@@ -54,7 +55,7 @@ class Roar_of_the_Behemoth(Instant):
         self.color:str="green"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="All enemy creatures get 0 power until the end of this turn."
+        self.content:str="All enemy creatures get {power_set} power until the end of this turn."
         self.image_path:str="cards/Instant/Roar of the Behemoth/image.jpg"
 
 

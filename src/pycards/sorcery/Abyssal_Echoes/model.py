@@ -14,6 +14,7 @@ class Abyssal_Echoes(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"mana_threshold":7}
 
         self.fixed_id:int=180
 
@@ -25,7 +26,7 @@ class Abyssal_Echoes(Sorcery):
         self.color:str="black"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Search your library for a creature card with a mana value of 7 or greater and put it onto the battlefield."
+        self.content:str="Search your library for a creature card with a mana value of {mana_threshold} or greater and put it onto the battlefield."
         self.image_path:str="cards/sorcery/Abyssal Echoes/image.jpg"
 
     @select_object("",1)
@@ -33,7 +34,7 @@ class Abyssal_Echoes(Sorcery):
         cards_library=player.get_cards_by_pos_type("library",(Creature))
         cards_library=[
             card for card in cards_library 
-            if card.cost["colorless"]+card.cost["B"]+card.cost["R"]+card.cost["G"]+card.cost["U"]+card.cost["W"]>=7
+            if card.cost["colorless"]+card.cost["B"]+card.cost["R"]+card.cost["G"]+card.cost["U"]+card.cost["W"]>=self.effect_params["mana_threshold"]
         ]
         if cards_library:
             card_library:"Creature"=random.choice(cards_library)

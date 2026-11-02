@@ -12,6 +12,7 @@ class Dawnforged_Sovereign(Creature):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"heal":8,"token_power":2,"token_toughness":2,"token_count":2}
 
         self.fixed_id:int=270
 
@@ -26,7 +27,7 @@ class Dawnforged_Sovereign(Creature):
         self.color:str="gold"
         self.type_card:str="Creature - Angel Noble"
         self.rarity:str="Mythic Rare"
-        self.content:str="Flying, vigilance. When Dawnforged Sovereign enters the battlefield, you gain 8 life and create two 2/2 white Knight creature tokens."
+        self.content:str="Flying, vigilance. When Dawnforged Sovereign enters the battlefield, you gain {heal} life and create {token_count_word} {token_power}/{token_toughness} white Knight creature token{token_count_plural}."
         self.image_path:str="cards/creature/Dawnforged Sovereign/image.jpg"
         self.flag_dict["flying"]=True
         self.flag_dict["Vigilance"]=True
@@ -35,9 +36,10 @@ class Dawnforged_Sovereign(Creature):
     async def when_enter_battlefield(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"]=()):
         player.action_store.start_record()
         try:
-            await self.cure_to_object(player,8,"rgba(245, 238, 145, 0.8)","Cure")
-            for _ in range(2):
-                player.append_card(Dawnforged_Sovereign_Knight(player),"battlefield")
+            await self.cure_to_object(player,self.effect_params["heal"],"rgba(245, 238, 145, 0.8)","Cure")
+            for _ in range(self.effect_params["token_count"]):
+                token=self.create_token(Dawnforged_Sovereign_Knight,player)
+                player.append_card(token,"battlefield")
         finally:
             player.action_store.end_record()
 
@@ -46,6 +48,7 @@ class Dawnforged_Sovereign_Knight(Creature):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Knight"
         self.live:int=2

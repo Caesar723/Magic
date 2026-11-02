@@ -34,7 +34,7 @@ class Witch_s_Curse_Counter_Buff(Buff):
 
     def when_end_turn(self):
         self.turn_counter+=1
-        if self.turn_counter>=3:
+        if self.turn_counter>=self.card.effect_params["duration"]:
             self.selected_card.loss_buff(self,self.card)
             self.selected_card.player.remove_card_from_dict("end_step_buff",self)
 
@@ -44,6 +44,7 @@ class Witch_s_Curse_Counter(Instant_Undo):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"duration":3}
 
         self.fixed_id:int=87
 
@@ -55,7 +56,7 @@ class Witch_s_Curse_Counter(Instant_Undo):
         self.color:str="black"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Counter target spell. Then, its controller's creatures gains a curse for three turns, reducing their strength and stamina by half."
+        self.content:str="Counter target spell. Then, its controller's creatures gains a curse for {duration_word} turns, reducing their strength and stamina by half."
         self.image_path:str="cards/Instant/Witch's Curse Counter/image.jpg"
 
 

@@ -14,6 +14,7 @@ class Pious_Courser(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"heal":2}
 
         self.fixed_id:int=132
 
@@ -30,9 +31,9 @@ class Pious_Courser(Creature):
         self.color:str="gold"
         self.type_card:str="Human Cleric"
         self.rarity:str="Common"
-        self.content:str="When Pious Courser enters the battlefield, you gain 2 life."
+        self.content:str="When Pious Courser enters the battlefield, you gain {heal} life."
         self.image_path:str="cards/creature/Pious Courser/image.jpg"
 
     @select_object("",1)
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
-        await self.cure_to_object(player,2,"rgba(245, 238, 145, 0.8)","Missile_Hit")
+        await self.cure_to_object(player,self.effect_params["heal"],"rgba(245, 238, 145, 0.8)","Missile_Hit")

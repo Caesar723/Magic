@@ -14,6 +14,7 @@ class Mistweaver_Adept(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"scry_count":2}
 
         self.fixed_id:int=125
 
@@ -30,7 +31,7 @@ class Mistweaver_Adept(Creature):
         self.color:str="blue"
         self.type_card:str="Human Wizard"
         self.rarity:str="Uncommon"
-        self.content:str="When Mistweaver Adept enters the battlefield, you may return target creature to its owner's hand. If you do, scry 2."
+        self.content:str="When Mistweaver Adept enters the battlefield, you may return target creature to its owner's hand. If you do, scry {scry_count}."
         self.image_path:str="cards/creature/Mistweaver Adept/image.jpg"
 
     @select_object("",1)
@@ -38,13 +39,13 @@ class Mistweaver_Adept(Creature):
         if selected_object and selected_object[0].content != "Do nothing":
             target = selected_object[0]
             target.player.remove_card(target, "battlefield")
-            new_card = type(target)(target.player)
+            new_card = target.copy_for_player(target.player)
             target.player.append_card(new_card, "hand")
-            await self.Scry(player, opponent, 2)
+            await self.Scry(player, opponent, self.effect_params["scry_count"])
 
 
     async def selection_step(self, player: "Player" = None, opponent: "Player" = None,selection_random:bool=False):
-        selection1=self.create_selection("scry 2-return target creature to its owner's hand",1)
+        selection1=self.create_selection("scry {scry_count}-return target creature to its owner's hand",1)
         selection2=self.create_selection("Do nothing",2)
         card=await player.send_selection_cards([selection1,selection2],selection_random)
         if card != "cancel" and card.selection_index == 1:

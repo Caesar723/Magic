@@ -41,6 +41,7 @@ class Soul_Transfer(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=229
 

@@ -14,6 +14,7 @@ class Spectral_Embrace(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":2,"toughness_bonus":2}
 
         self.fixed_id:int=230
 
@@ -25,14 +26,14 @@ class Spectral_Embrace(Sorcery):
         self.color:str="gold"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Spectral Embrace gives all creatures you control +2/+2 until end of turn and prevents all damage that would be dealt to them this turn."
+        self.content:str="Spectral Embrace gives all creatures you control +{power_bonus}/+{toughness_bonus} until end of turn and prevents all damage that would be dealt to them this turn."
         self.image_path:str="cards/sorcery/Spectral Embrace/image.jpg"
 
 
     @select_object("",1)
     async def card_ability(self,player:Player,opponent:Player,selected_object:tuple[Card]):
         for creature in player.battlefield:
-            buff=StateBuff(self,creature,2,2)
+            buff=StateBuff(self,creature,self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
             buff.set_end_of_turn()
             creature.gain_buff(buff,self)
             buff=Indestructible(self,creature)

@@ -17,6 +17,7 @@ class Aetherweaver(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"look_count":3}
 
         self.name:str="Aetherweaver"
         self.live:int=3
@@ -31,15 +32,15 @@ class Aetherweaver(Creature):
         self.color:str="blue"
         self.type_card:str="Human Wizard"
         self.rarity:str="Mythic Rare"
-        self.content:str="When Aetherweaver enters the battlefield, look at the top three cards of your library. You may put an instant or sorcery card from among them into your hand. Put the rest on the bottom of your library in any order."
+        self.content:str="When Aetherweaver enters the battlefield, look at the top {look_count_word} cards of your library. You may put an instant or sorcery card from among them into your hand. Put the rest on the bottom of your library in any order."
         self.image_path:str="cards/creature/Aetherweaver/image.jpg"
 
     @select_object("",1)
     async def when_enter_battlefield(self,player:"Player",opponent:"Player",selected_object:tuple['Card']=()):
         cards=player.get_cards_by_pos_type("library",(Instant,Sorcery))
         print(cards)
-        if len(cards)>=3:
-            cards_selection=cards[0:3]
+        if len(cards)>=self.effect_params["look_count"]:
+            cards_selection=cards[0:self.effect_params["look_count"]]
         elif cards:
             cards_selection=cards[0:len(cards)]
         else:

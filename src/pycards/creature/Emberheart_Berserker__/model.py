@@ -15,6 +15,7 @@ class Emberheart_Berserker__(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":0,"toughness_bonus":1}
 
         self.fixed_id:int=106
 
@@ -31,14 +32,14 @@ class Emberheart_Berserker__(Creature):
         self.color:str="red"
         self.type_card:str="Human"
         self.rarity:str="Common"
-        self.content:str="Whenever Emberheart Berserker defends, it gets +0/+1 until end of turn for each Mountain you control."
+        self.content:str="Whenever Emberheart Berserker defends, it gets +{power_bonus}/+{toughness_bonus} until end of turn for each Mountain you control."
         self.image_path:str="cards/creature/Emberheart Berserker/image.jpg"
 
 
     async def when_start_defend(self, card: "Creature | Player", player: "Player" = None, opponent: "Player" = None):
         for land in player.land_area:
             if isinstance(land,Mountain):
-                buff=StateBuff(self,self,0,1)
+                buff=StateBuff(self,self,self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
                 buff.set_end_of_turn()
                 self.gain_buff(buff,self)
                 

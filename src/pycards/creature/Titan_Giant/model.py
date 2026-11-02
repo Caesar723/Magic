@@ -14,6 +14,7 @@ class Titan_Giant(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_threshold":5}
 
         self.fixed_id:int=157
 
@@ -30,15 +31,15 @@ class Titan_Giant(Creature):
         self.color:str="green"
         self.type_card:str="Creature - Giant"
         self.rarity:str="Rare"
-        self.content:str="Whenever Titan Giant enters the battlefield, destroy all other creatures with power less than 5."
+        self.content:str="Whenever Titan Giant enters the battlefield, destroy all other creatures with power less than {power_threshold}."
         self.image_path:str="cards/creature/Titan Giant/image.jpg"
 
 
     @select_object("",1)
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         for creature in player.battlefield:
-            if creature.state[0]<5:
+            if creature.state[0]<self.effect_params["power_threshold"]:
                 await self.destroy_object(creature,creature.color,"Missile_Hit")
         for creature in player.opponent.battlefield:
-            if creature.state[0]<5:
+            if creature.state[0]<self.effect_params["power_threshold"]:
                 await self.destroy_object(creature,creature.color,"Missile_Hit")

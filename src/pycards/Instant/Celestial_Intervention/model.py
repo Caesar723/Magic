@@ -14,6 +14,7 @@ class Celestial_Intervention(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1}
 
         self.fixed_id:int=13
 
@@ -25,7 +26,7 @@ class Celestial_Intervention(Instant):
         self.color:str="gold"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Until end of turn, creatures you control gain indestructible. You draw a card."
+        self.content:str="Until end of turn, creatures you control gain indestructible. You draw {draw_count_article} card{draw_count_plural}."
         self.image_path:str="cards/Instant/Celestial Intervention/image.jpg"
 
 
@@ -35,6 +36,6 @@ class Celestial_Intervention(Instant):
             buff=Indestructible(self,creature)
             buff.set_end_of_turn()
             creature.gain_buff(buff,self)
-        player.draw_card(1)
+        player.draw_card(self.effect_params["draw_count"])
 
         

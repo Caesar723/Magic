@@ -14,6 +14,7 @@ class Raging_Firekin(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Raging Firekin"
         self.live:int=2

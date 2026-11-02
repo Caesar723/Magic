@@ -14,6 +14,7 @@ class Ephemeral_Vision(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1,"scry_count":2}
 
         self.name:str="Ephemeral Vision"
 
@@ -23,11 +24,11 @@ class Ephemeral_Vision(Instant):
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Common"
-        self.content:str="Draw a card. Scry 2."
+        self.content:str="Draw {draw_count_article} card{draw_count_plural}. Scry {scry_count}."
         self.image_path:str="cards/Instant/Ephemeral Vision/image.jpg"
 
     @select_object("",1)
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
-        player.draw_card(1)
-        await self.Scry(player,opponent,2)
+        player.draw_card(self.effect_params["draw_count"])
+        await self.Scry(player,opponent,self.effect_params["scry_count"])
 

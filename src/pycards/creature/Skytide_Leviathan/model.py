@@ -12,6 +12,7 @@ class Skytide_Leviathan(Creature):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":2}
 
         self.fixed_id:int=260
 
@@ -26,7 +27,7 @@ class Skytide_Leviathan(Creature):
         self.color:str="blue"
         self.type_card:str="Creature - Leviathan"
         self.rarity:str="Rare"
-        self.content:str="Flying. When Skytide Leviathan enters the battlefield, draw two cards."
+        self.content:str="Flying. When Skytide Leviathan enters the battlefield, draw {draw_count_word} card{draw_count_plural}."
         self.image_path:str="cards/creature/Skytide Leviathan/image.jpg"
         self.flag_dict["flying"]=True
 
@@ -34,6 +35,6 @@ class Skytide_Leviathan(Creature):
     async def when_enter_battlefield(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"]=()):
         player.action_store.start_record()
         try:
-            player.draw_card(2)
+            player.draw_card(self.effect_params["draw_count"])
         finally:
             player.action_store.end_record()

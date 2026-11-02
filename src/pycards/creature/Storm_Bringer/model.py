@@ -15,6 +15,7 @@ class Storm_Bringer(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":3,"heal":3}
 
         self.fixed_id:int=144
 
@@ -31,7 +32,7 @@ class Storm_Bringer(Creature):
         self.color:str="blue"
         self.type_card:str="Creature - Elemental"
         self.rarity:str="Rare"
-        self.content:str="Flying. When Storm Bringer enters the battlefield, it deals 3 damage to each opponent and you gain 3 life."
+        self.content:str="Flying. When Storm Bringer enters the battlefield, it deals {damage} damage to each opponent and you gain {heal} life."
         self.image_path:str="cards/creature/Storm Bringer/image.jpg"
 
 
@@ -43,9 +44,9 @@ class Storm_Bringer(Creature):
 
 
         for card in opponent.battlefield:
-            await self.attact_to_object(card,3,self.random_blue_rgba(),"Cure")
-        await self.attact_to_object(opponent,3,self.random_blue_rgba(),"Cure")
-        await self.cure_to_object(player,3,"rgba(100, 243, 100, 0.9)","Cure")
+            await self.attact_to_object(card,self.effect_params["damage"],self.random_blue_rgba(),"Cure")
+        await self.attact_to_object(opponent,self.effect_params["damage"],self.random_blue_rgba(),"Cure")
+        await self.cure_to_object(player,self.effect_params["heal"],"rgba(100, 243, 100, 0.9)","Cure")
 
         
     def random_blue_rgba(self,alpha=0.9):

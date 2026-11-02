@@ -12,6 +12,7 @@ class Twin_Current_Recall(Sorcery):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":2,"power_threshold":3}
 
         self.fixed_id:int=258
 
@@ -21,7 +22,7 @@ class Twin_Current_Recall(Sorcery):
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Return all creatures your opponent controls with power 3 or less to their owners' hands. Draw two cards."
+        self.content:str="Return all creatures your opponent controls with power {power_threshold} or less to their owners' hands. Draw {draw_count_word} card{draw_count_plural}."
         self.image_path:str="cards/sorcery/Twin Current Recall/image.jpg"
 
     @select_object("",1)
@@ -29,10 +30,10 @@ class Twin_Current_Recall(Sorcery):
         player.action_store.start_record()
         try:
             for creature in list(opponent.battlefield):
-                if creature.state[0]<=3:
+                if creature.state[0]<=self.effect_params["power_threshold"]:
                     owner=creature.player
                     owner.remove_card(creature,"battlefield")
-                    owner.append_card(type(creature)(owner),"hand")
-            player.draw_card(2)
+                    owner.append_card(creature.copy_for_player(owner),"hand")
+            player.draw_card(self.effect_params["draw_count"])
         finally:
             player.action_store.end_record()

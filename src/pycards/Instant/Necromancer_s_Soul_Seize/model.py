@@ -17,6 +17,7 @@ class Necromancer_s_Soul_Seize(Instant_Undo):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=49
 
@@ -50,7 +51,7 @@ class Necromancer_s_Soul_Seize(Instant_Undo):
 
             if card_random_list:
                 card_random=random.choice(card_random_list)
-                new_card=type(card_random)(player)
+                new_card=card_random.copy_for_player(player)
                 player.remove_card(card_random,"graveyard")
                 player.append_card(new_card,"hand")
         

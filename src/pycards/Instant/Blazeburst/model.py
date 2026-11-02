@@ -14,6 +14,7 @@ class Blazeburst(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":3}
 
         self.fixed_id:int=10
 
@@ -25,13 +26,13 @@ class Blazeburst(Instant):
         self.color:str="red"
         self.type_card:str="Instant"
         self.rarity:str="Common"
-        self.content:str="Blazeburst deals 3 damage to any target."
+        self.content:str="Blazeburst deals {damage} damage to any target."
         self.image_path:str="cards/Instant/Blazeburst/image.jpg"
 
     @select_object("all_roles",1)
     async def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
         if selected_object:
-            await self.attact_to_object(selected_object[0],3,"rgba(243, 0, 0, 0.9)","Missile_Hit")
+            await self.attact_to_object(selected_object[0],self.effect_params["damage"],"rgba(243, 0, 0, 0.9)","Missile_Hit")
 
 
         

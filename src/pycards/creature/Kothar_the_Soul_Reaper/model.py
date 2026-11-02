@@ -15,6 +15,7 @@ class Kothar_the_Soul_Reaper(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":1,"toughness_bonus":1}
 
         self.fixed_id:int=119
 
@@ -31,7 +32,7 @@ class Kothar_the_Soul_Reaper(Creature):
         self.color:str="black"
         self.type_card:str="Demon Creature"
         self.rarity:str="Mythic Rare"
-        self.content:str="When Kothar the Soul Reaper enters the battlefield, each opponent sacrifices a creature randomly. Whenever a creature dies, Kothar gets a +1/+1 counter."
+        self.content:str="When Kothar the Soul Reaper enters the battlefield, each opponent sacrifices a creature randomly. Whenever a creature dies, Kothar gets a +{power_bonus}/+{toughness_bonus} counter."
         self.image_path:str="cards/creature/Kothar the Soul Reaper/image.jpg"
 
 
@@ -43,5 +44,5 @@ class Kothar_the_Soul_Reaper(Creature):
 
     async def when_a_creature_die(self,creature:"Creature",player: "Player" = None, opponent: "Player" = None):#当随从死亡时（放入一个死亡随从的参数）
         if self in player.battlefield:  
-            buff=StateBuff(self,self,1,1)
+            buff=StateBuff(self,self,self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
             self.gain_buff(buff,self)

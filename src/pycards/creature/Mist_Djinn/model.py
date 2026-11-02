@@ -14,6 +14,7 @@ class Mist_Djinn(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Mist Djinn"
         self.live:int=6

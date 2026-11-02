@@ -14,6 +14,7 @@ class Chronostrider(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"extra_turns":1}
 
         self.name:str="Chronostrider"
         self.live:int=4
@@ -28,7 +29,7 @@ class Chronostrider(Creature):
         self.color:str="green"
         self.type_card:str="Human Wizard"
         self.rarity:str="Mythic Rare"
-        self.content:str="Flash, Haste. When Chronostrider enters the battlefield, you may take an extra turn after this one."
+        self.content:str="Flash, Haste. When Chronostrider enters the battlefield, you may take {extra_turns_article_an} extra turn{extra_turns_plural} after this one."
         self.image_path:str="cards/creature/Chronostrider/image.jpg"
 
         self.flag_dict["haste"]=True
@@ -37,5 +38,5 @@ class Chronostrider(Creature):
     @select_object("",1)
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
 
-        player.add_counter_dict("extra_turn",1)
+        player.add_counter_dict("extra_turn",self.effect_params["extra_turns"])
         

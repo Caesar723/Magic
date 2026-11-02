@@ -13,6 +13,7 @@ class Cryptwake_Colossus(Creature):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"heal":3,"life_loss":3}
 
         self.fixed_id:int=261
 
@@ -27,7 +28,7 @@ class Cryptwake_Colossus(Creature):
         self.color:str="black"
         self.type_card:str="Creature - Giant Construct"
         self.rarity:str="Rare"
-        self.content:str="Lifelink. When Cryptwake Colossus enters the battlefield, your opponent loses 3 life and you gain 3 life."
+        self.content:str="Lifelink. When Cryptwake Colossus enters the battlefield, your opponent loses {life_loss} life and you gain {heal} life."
         self.image_path:str="cards/creature/Cryptwake Colossus/image.jpg"
         self.flag_dict["lifelink"]=True
 
@@ -35,9 +36,9 @@ class Cryptwake_Colossus(Creature):
     async def when_enter_battlefield(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"]=()):
         player.action_store.start_record()
         try:
-            opponent.life-=3
+            opponent.life-=self.effect_params["life_loss"]
             player.action_store.add_action(actions.Attack_To_Object(self,player,opponent,"rgba(80, 0, 120, 0.9)","Missile_Hit",[opponent.life]))
             await opponent.check_dead()
-            await self.cure_to_object(player,3,"rgba(100, 220, 140, 0.9)","Cure")
+            await self.cure_to_object(player,self.effect_params["heal"],"rgba(100, 220, 140, 0.9)","Cure")
         finally:
             player.action_store.end_record()

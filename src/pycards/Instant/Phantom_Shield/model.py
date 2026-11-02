@@ -33,6 +33,7 @@ class Phantom_Shield(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=53
 

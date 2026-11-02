@@ -12,6 +12,7 @@ class Rootwatch_Guardian(Creature):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"heal":2}
 
         self.fixed_id:int=252
 
@@ -26,7 +27,7 @@ class Rootwatch_Guardian(Creature):
         self.color:str="green"
         self.type_card:str="Creature - Treefolk"
         self.rarity:str="Uncommon"
-        self.content:str="Reach. When Rootwatch Guardian enters the battlefield, you gain 2 life."
+        self.content:str="Reach. When Rootwatch Guardian enters the battlefield, you gain {heal} life."
         self.image_path:str="cards/creature/Rootwatch Guardian/image.jpg"
         self.flag_dict["reach"]=True
 
@@ -34,6 +35,6 @@ class Rootwatch_Guardian(Creature):
     async def when_enter_battlefield(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"]=()):
         player.action_store.start_record()
         try:
-            await self.cure_to_object(player,2,"rgba(100, 220, 140, 0.9)","Cure")
+            await self.cure_to_object(player,self.effect_params["heal"],"rgba(100, 220, 140, 0.9)","Cure")
         finally:
             player.action_store.end_record()

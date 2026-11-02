@@ -14,6 +14,7 @@ class Ephemeral_Response(Instant_Undo):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"scry_count":1,"mana_threshold":2}
 
         self.name:str="Ephemeral Response"
 
@@ -23,7 +24,7 @@ class Ephemeral_Response(Instant_Undo):
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Common"
-        self.content:str="Counter target spell unless its controller pays 2. If it is countered this way, scry 1."
+        self.content:str="Counter target spell unless its controller pays {mana_threshold}. If it is countered this way, scry {scry_count}."
         self.image_path:str="cards/Instant/Ephemeral Response/image.jpg"
 
     @select_object("",1)
@@ -35,7 +36,7 @@ class Ephemeral_Response(Instant_Undo):
         if card.player!=opponent or card.type=="Land":
             return
         total_mana=sum(opponent.mana.values())
-        if total_mana<2:
+        if total_mana<self.effect_params["mana_threshold"]:
             await self.undo_stack(player, opponent)
-            await self.Scry(player,opponent,1)
+            await self.Scry(player,opponent,self.effect_params["scry_count"])
 

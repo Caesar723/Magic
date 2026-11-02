@@ -14,6 +14,7 @@ class Mystic_Tidecaller(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=127
 
@@ -37,7 +38,7 @@ class Mystic_Tidecaller(Creature):
     async def when_enter_battlefield(self,player:"Player",opponent:"Player",selected_object:tuple['Card']=()):
         if selected_object:
             selected_object[0].player.remove_card(selected_object[0],"battlefield")
-            new_card=type(selected_object[0])(selected_object[0].player)
+            new_card=selected_object[0].copy_for_player(selected_object[0].player)
             selected_object[0].player.append_card(new_card,"hand")
             
 

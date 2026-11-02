@@ -15,6 +15,7 @@ class Vengeful_Retribution(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"sacrifice_count":2}
 
         self.fixed_id:int=78
 
@@ -26,7 +27,7 @@ class Vengeful_Retribution(Instant):
         self.color:str="black"
         self.type_card:str="Instant"
         self.rarity:str="Mythic Rare"
-        self.content:str="Opponent sacrifices two random creatures. If a creature was sacrificed this way, Vengeful Retribution deals damage to random target equal to the total power of the sacrificed creatures."
+        self.content:str="Opponent sacrifices {sacrifice_count_word} random creatures. If a creature was sacrificed this way, Vengeful Retribution deals damage to random target equal to the total power of the sacrificed creatures."
         self.image_path:str="cards/Instant/Vengeful Retribution/image.jpg"
 
 
@@ -34,10 +35,10 @@ class Vengeful_Retribution(Instant):
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         if opponent.battlefield:
             creatures_opponent=list(opponent.battlefield)
-            if len(opponent.battlefield)>=2:
-                creatures=random.sample(creatures_opponent,2)
+            if len(opponent.battlefield)>=self.effect_params["sacrifice_count"]:
+                creatures=random.sample(creatures_opponent,self.effect_params["sacrifice_count"])
             else:
-                creatures=creatures_opponent[0:1]
+                creatures=creatures_opponent[:self.effect_params["sacrifice_count"]]
 
             total_power=sum(creature.state[0] for creature in creatures)
             for creature in creatures:

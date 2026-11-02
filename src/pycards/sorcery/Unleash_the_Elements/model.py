@@ -14,6 +14,7 @@ class Unleash_the_Elements(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":3}
 
         self.fixed_id:int=239
 
@@ -25,7 +26,7 @@ class Unleash_the_Elements(Sorcery):
         self.color:str="green"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Unleash the Elements deals 3 damage to each creature. If a creature dealt damage this way would die this turn, exile it instead."
+        self.content:str="Unleash the Elements deals {damage} damage to each creature. If a creature dealt damage this way would die this turn, exile it instead."
         self.image_path:str="cards/sorcery/Unleash the Elements/image.jpg"
 
 
@@ -33,10 +34,10 @@ class Unleash_the_Elements(Sorcery):
     @select_object("",1)
     async def card_ability(self,player:Player,opponent:Player,selected_object:tuple[Card]):
         for creature_self in player.battlefield:
-            await self.attact_to_object(creature_self,3,"rgba(0,255,0,1)","Cure")
+            await self.attact_to_object(creature_self,self.effect_params["damage"],"rgba(0,255,0,1)","Cure")
             if await creature_self.check_dead():
                 await self.exile_object(creature_self,"rgba(0,255,0,1)","Missile_Hit")
         for creature_oppo in opponent.battlefield:
-            await self.attact_to_object(creature_oppo,3,"rgba(0,255,0,1)","Cure")
+            await self.attact_to_object(creature_oppo,self.effect_params["damage"],"rgba(0,255,0,1)","Cure")
             if await creature_oppo.check_dead():
                 await self.exile_object(creature_oppo,"rgba(0,255,0,1)","Missile_Hit")

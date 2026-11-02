@@ -17,6 +17,7 @@ class Cataclysmic_Inferno(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"token_power":1,"token_toughness":1,"tokens_per_destroyed":1}
 
         self.fixed_id:int=189
 
@@ -28,7 +29,7 @@ class Cataclysmic_Inferno(Sorcery):
         self.color:str="red"
         self.type_card:str="Sorcery"
         self.rarity:str="Mythic Rare"
-        self.content:str="Cataclysmic Inferno deals X damage to each creature your opponents control, where X is the number of Mountains you control. Then, for each creature destroyed this way, create a 1/1 red Elemental creature token with haste."
+        self.content:str="Cataclysmic Inferno deals X damage to each creature your opponents control, where X is the number of Mountains you control. Then, for each creature destroyed this way, create {tokens_per_destroyed_article} {token_power}/{token_toughness} red Elemental creature token{tokens_per_destroyed_plural} with haste."
         self.image_path:str="cards/sorcery/Cataclysmic Inferno/image.jpg"
 
     @select_object("",1)
@@ -42,8 +43,9 @@ class Cataclysmic_Inferno(Sorcery):
             await self.attact_to_object(card,power,random.choice(colors),"High_Missile")
             if await card.check_dead():
                 token_counter+=1
-        for i in range(token_counter):
-            player.append_card(Elemental_Creature_Cataclysmic_Inferno(player),'battlefield')
+        for i in range(token_counter*self.effect_params["tokens_per_destroyed"]):
+            token=self.create_token(Elemental_Creature_Cataclysmic_Inferno,player)
+            player.append_card(token,'battlefield')
 
 
         for card in opponent.battlefield:
@@ -54,6 +56,7 @@ class Elemental_Creature_Cataclysmic_Inferno(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Elemental Creature"
         self.live:int=1

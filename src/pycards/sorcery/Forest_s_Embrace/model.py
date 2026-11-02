@@ -20,6 +20,7 @@ class Forest_s_Embrace(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"land_count":3}
 
         self.fixed_id:int=212
 
@@ -31,14 +32,14 @@ class Forest_s_Embrace(Sorcery):
         self.color:str="green"
         self.type_card:str="Sorcery"
         self.rarity:str="Mythic Rare"
-        self.content:str="Search your library for up to three land cards, put them onto the battlefield tapped, then shuffle your library."
+        self.content:str="Search your library for up to {land_count_word} land cards, put them onto the battlefield tapped, then shuffle your library."
         self.image_path:str="cards/sorcery/Forest's Embrace/image.jpg"
 
 
     @select_object("",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
 
-        for i in range(3):
+        for i in range(self.effect_params["land_count"]):
             lands=player.get_cards_by_pos_type("library",(Forest,Plains,Swamp,Mountain,Island))
             if lands:
                 random_land=random.choice(lands)

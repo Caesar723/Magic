@@ -14,6 +14,7 @@ class Resurgence(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"mana_threshold":3}
 
         self.fixed_id:int=58
 
@@ -25,7 +26,7 @@ class Resurgence(Instant):
         self.color:str="gold"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Creatures you control gain double strike and lifelink until end of turn. Return random creature card with converted mana cost 3 or less from your graveyard to the battlefield."
+        self.content:str="Creatures you control gain double strike and lifelink until end of turn. Return random creature card with converted mana cost {mana_threshold} or less from your graveyard to the battlefield."
         self.image_path:str="cards/Instant/Resurgence/image.jpg"
 
     @select_object("",1)
@@ -44,14 +45,14 @@ class Resurgence(Instant):
         
         creatures = player.get_cards_by_pos_type("graveyard", (Creature,))
         if creatures:
-            candidate_creatures = [c for c in creatures if c.cost["colorless"]<=3]
+            candidate_creatures = [c for c in creatures if c.cost["colorless"]<=self.effect_params["mana_threshold"]]
             if not candidate_creatures:
                 return
             
             creature = random.choice(candidate_creatures)
             player.remove_card(creature,"graveyard")
             player.remove_card(creature, "graveyard")
-            player.append_card(type(creature)(player), "battlefield")
+            player.append_card(creature.copy_for_player(player), "battlefield")
 
 
 

@@ -20,6 +20,7 @@ class Natural_Harmony(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"heal":2}
 
         self.name:str="Natural Harmony"
 
@@ -29,7 +30,7 @@ class Natural_Harmony(Sorcery):
         self.color:str="green"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Search your library for a basic land card and put it onto the battlefield tapped, then shuffle your library. You gain 2 life."
+        self.content:str="Search your library for a basic land card and put it onto the battlefield tapped, then shuffle your library. You gain {heal} life."
         self.image_path:str="cards/sorcery/Natural Harmony/image.jpg"
 
     @select_object("",1)
@@ -40,5 +41,5 @@ class Natural_Harmony(Sorcery):
             player.remove_card(card,"library")
             player.append_card(card,"land_area")
             card.tap()
-        await self.cure_to_object(player, 2, "rgba(0,255,0,1)", "Cure")
+        await self.cure_to_object(player, self.effect_params["heal"], "rgba(0,255,0,1)", "Cure")
 

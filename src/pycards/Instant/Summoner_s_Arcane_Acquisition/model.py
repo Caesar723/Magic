@@ -14,6 +14,7 @@ class Summoner_s_Arcane_Acquisition(Instant_Undo):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"token_count":1}
 
         self.fixed_id:int=65
 
@@ -25,7 +26,7 @@ class Summoner_s_Arcane_Acquisition(Instant_Undo):
         self.color:str="green"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Counter target spell. If the spell is countered this way, create an Elemental creature token with power and toughness equal to that spell's mana cost."
+        self.content:str="Counter target spell. If the spell is countered this way, create {token_count_article_an} Elemental creature token{token_count_plural} with power and toughness equal to that spell's mana cost."
         self.image_path:str="cards/Instant/Summoner's Arcane Acquisition/image.jpg"
 
     @select_object("",1)
@@ -37,6 +38,7 @@ class Summoner_s_Arcane_Acquisition(Instant_Undo):
         class Summoner_s_Arcane_Acquisition_Token(Creature):
             def __init__(self,player) -> None:
                 super().__init__(player)
+                self.effect_params:dict={}
 
                 self.name:str="Elemental Token"
                 self.live:int=cost
@@ -53,6 +55,7 @@ class Summoner_s_Arcane_Acquisition(Instant_Undo):
                 self.content:str=""
                 self.image_path:str="cards/Instant/Summoner's Arcane Acquisition/image.jpg"
 
-        card=Summoner_s_Arcane_Acquisition_Token(player)
-        player.append_card(card,"battlefield")
+        for _ in range(self.effect_params["token_count"]):
+            card=Summoner_s_Arcane_Acquisition_Token(player)
+            player.append_card(card,"battlefield")
     

@@ -14,6 +14,7 @@ class Nyxborn_Serpent(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Nyxborn Serpent"
         self.live:int=4

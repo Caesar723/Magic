@@ -16,6 +16,7 @@ class Celestial_Haven(Land):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"mana_amount":1,"life_cost":3}
 
         self.fixed_id:int=166
 
@@ -27,18 +28,18 @@ class Celestial_Haven(Land):
         self.color:str="gold"
         self.type_card:str="Land"
         self.rarity:str="Rare"
-        self.content:str="Celestial Haven enters the battlefield untapped and adds one white mana to your mana pool. Additionally, you may pay 3 life and tap Celestial Haven to prevent all combat damage that would be dealt this turn."
+        self.content:str="Celestial Haven enters the battlefield untapped and adds {mana_amount_word} white mana to your mana pool. Additionally, you may pay {life_cost} life and tap Celestial Haven to prevent all combat damage that would be dealt this turn."
         self.image_path:str="cards/land/Celestial Haven/image.jpg"
 
         self.flag_dict["prevent_combat_damage"]=False
 
     def generate_mana(self) -> dict:
-        return {"W":1}
+        return {"W":self.effect_params["mana_amount"]}
 
     @select_object("",1)
     async def when_enter_landarea(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
         self.tap()
-        player.mana["W"]+=1
+        player.mana["W"]+=self.effect_params["mana_amount"]
         player.action_store.add_action(actions.Change_Mana(self, player, player.get_manas()))
 
 
@@ -46,7 +47,7 @@ class Celestial_Haven(Land):
         if self not in player.land_area:
             return False
         if not self.get_flag("tap"):
-            if not manual or self.player.life<=3:
+            if not manual or self.player.life<=self.effect_params["life_cost"]:
                 self.player.add_counter_dict("spend_land_count",1)
                 mana=self.generate_mana()
                 for key in mana:
@@ -54,7 +55,7 @@ class Celestial_Haven(Land):
                 self.tap()
                 return True
             else:
-                await self.attact_to_object(player,3,"rgba(240, 248, 255, 0.85)","Missile_Hit")
+                await self.attact_to_object(player,self.effect_params["life_cost"],"rgba(240, 248, 255, 0.85)","Missile_Hit")
                 player.add_counter_dict("spend_land_count", 1)
                 self.tap()
                 self.flag_dict["prevent_combat_damage"]=True

@@ -14,6 +14,7 @@ class Arcane_Sanctuary(Land):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1,"scry_count":2,"mana_amount":1,"activation_cost":2}
 
         self.fixed_id:int=165
 
@@ -25,16 +26,16 @@ class Arcane_Sanctuary(Land):
         self.color:str="black"
         self.type_card:str="Land"
         self.rarity:str="Rare"
-        self.content:str="Arcane Sanctuary enters the battlefield tapped and adds one colorless mana to your mana pool. You may also tap Arcane Sanctuary and pay 2 mana to scry 2 and draw a card."
+        self.content:str="Arcane Sanctuary enters the battlefield tapped and adds {mana_amount_word} colorless mana to your mana pool. You may also tap Arcane Sanctuary and pay {activation_cost} mana to scry {scry_count} and draw {draw_count_article} card{draw_count_plural}."
         self.image_path:str="cards/land/Arcane Sanctuary/image.jpg"
 
     def generate_mana(self) -> dict:
-        return {"colorless":1}
+        return {"colorless":self.effect_params["mana_amount"]}
 
     @select_object("",1)
     async def when_enter_landarea(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
         self.tap()
-        player.mana["colorless"]+=1
+        player.mana["colorless"]+=self.effect_params["mana_amount"]
         player.action_store.add_action(actions.Change_Mana(self, player, player.get_manas()))
 
 
@@ -45,16 +46,16 @@ class Arcane_Sanctuary(Land):
             return False
         if not self.get_flag("tap"):
             self.player.add_counter_dict("spend_land_count",1)
-            check_result=self.player.check_can_use({"colorless":2,"U":0,"W":0,"B":0,"R":0,"G":0},except_land=[self])
+            check_result=self.player.check_can_use({"colorless":self.effect_params["activation_cost"],"U":0,"W":0,"B":0,"R":0,"G":0},except_land=[self])
             if not manual or not check_result[0]:
                 mana=self.generate_mana()
                 for key in mana:
                     player.mana[key]+=mana[key]
                 self.tap()
             else:
-                await self.player.generate_and_consume_mana(check_result[1],{"colorless":2,"U":0,"W":0,"B":0,"R":0,"G":0},self)
-                await self.Scry(player, opponent, 2)
-                player.draw_card(1)
+                await self.player.generate_and_consume_mana(check_result[1],{"colorless":self.effect_params["activation_cost"],"U":0,"W":0,"B":0,"R":0,"G":0},self)
+                await self.Scry(player, opponent, self.effect_params["scry_count"])
+                player.draw_card(self.effect_params["draw_count"])
                 self.tap()
                 
                 

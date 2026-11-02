@@ -14,6 +14,7 @@ class Ephemeral_Bolt(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1,"damage":1}
 
         self.fixed_id:int=19
 
@@ -25,14 +26,14 @@ class Ephemeral_Bolt(Instant):
         self.color:str="red"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
-        self.content:str="Ephemeral Bolt deals 1 damage to target creature or player. If a creature dealt damage this way dies this turn, you may draw a card."
+        self.content:str="Ephemeral Bolt deals {damage} damage to target creature or player. If a creature dealt damage this way dies this turn, you may draw {draw_count_article} card{draw_count_plural}."
         self.image_path:str="cards/Instant/Ephemeral Bolt/image.jpg"
 
     @select_object("all_roles",1)
     async def card_ability(self,player:'Player'=None,opponent:'Player'=None,selected_object:list['Card']=()):
         if selected_object:
-            await self.attact_to_object(selected_object[0],1,"rgba(255,0,0,0.9)","Missile_Hit")
-            player.draw_card(1)
+            await self.attact_to_object(selected_object[0],self.effect_params["damage"],"rgba(255,0,0,0.9)","Missile_Hit")
+            player.draw_card(self.effect_params["draw_count"])
 
    
 

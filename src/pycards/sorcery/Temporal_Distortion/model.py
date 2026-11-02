@@ -14,6 +14,7 @@ class Temporal_Distortion(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"extra_turns":1}
 
         self.name:str="Temporal Distortion"
 
@@ -23,11 +24,11 @@ class Temporal_Distortion(Sorcery):
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Temporal Distortion allows you to take an extra turn after this one. Exile Temporal Distortion."
+        self.content:str="Temporal Distortion allows you to take {extra_turns_article_an} extra turn{extra_turns_plural} after this one. Exile Temporal Distortion."
         self.image_path:str="cards/sorcery/Temporal Distortion/image.jpg"
 
     @select_object("",1)
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
-        player.add_counter_dict("extra_turn",1)
+        player.add_counter_dict("extra_turn",self.effect_params["extra_turns"])
         self.flag_dict["exile"]=True
 

@@ -15,6 +15,7 @@ class Righteous_Conviction(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":2,"toughness_bonus":2}
 
         self.fixed_id:int=227
 
@@ -26,14 +27,14 @@ class Righteous_Conviction(Sorcery):
         self.color:str="gold"
         self.type_card:str="Sorcery"
         self.rarity:str="Uncommon"
-        self.content:str="Choose a creature you control. Until end of turn, that creature gets +2/+2 and gains lifelink."
+        self.content:str="Choose a creature you control. Until end of turn, that creature gets +{power_bonus}/+{toughness_bonus} and gains lifelink."
         self.image_path:str="cards/sorcery/Righteous Conviction/image.jpg"
 
 
     @select_object("your_creatures",1)
     async def card_ability(self,player:Player,opponent:Player,selected_object:tuple[Card]):
         if selected_object:
-            buff=StateBuff(self,selected_object[0],2,2)
+            buff=StateBuff(self,selected_object[0],self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
             buff.set_end_of_turn()
             selected_object[0].gain_buff(buff,self)
             buff=KeyBuff(self,selected_object[0],"lifelink")

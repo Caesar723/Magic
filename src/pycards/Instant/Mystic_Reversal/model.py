@@ -15,6 +15,7 @@ class Mystic_Reversal(Instant_Undo):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Mystic Reversal"
 
@@ -31,7 +32,7 @@ class Mystic_Reversal(Instant_Undo):
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         func, card = await self.undo_stack(player, opponent)
 
-        new_card=type(card)(card.player)
+        new_card=card.copy_for_player(card.player)
         new_card.mana_cost=""
 
         card.player.append_card(new_card,"hand")

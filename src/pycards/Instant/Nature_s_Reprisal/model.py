@@ -14,6 +14,7 @@ class Nature_s_Reprisal(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"heal":2}
 
         self.name:str="Nature's Reprisal"
 
@@ -23,7 +24,7 @@ class Nature_s_Reprisal(Instant):
         self.color:str="green"
         self.type_card:str="Instant"
         self.rarity:str="Common"
-        self.content:str="Destroy target creature with flying. You gain 2 life."
+        self.content:str="Destroy target creature with flying. You gain {heal} life."
         self.image_path:str="cards/Instant/Nature's Reprisal/image.jpg"
 
     @select_object("opponent_creatures",1)
@@ -32,7 +33,7 @@ class Nature_s_Reprisal(Instant):
             target = selected_object[0]
             if getattr(target, "type", "") == "Creature" and target.get_flag("flying"):
                 await self.destroy_object(target, "rgba(255,0,0,0.5)", "Missile_Hit")
-            await self.cure_to_object(player, 2, "rgba(0,255,0,0.5)", "Missile_Hit")
+            await self.cure_to_object(player, self.effect_params["heal"], "rgba(0,255,0,0.5)", "Missile_Hit")
 
 
 

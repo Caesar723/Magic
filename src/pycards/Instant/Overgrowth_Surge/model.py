@@ -15,6 +15,7 @@ class Overgrowth_Surge(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":3,"toughness_bonus":3}
 
         self.fixed_id:int=50
 
@@ -26,7 +27,7 @@ class Overgrowth_Surge(Instant):
         self.color:str="green"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
-        self.content:str="Target creature gets +3/+3 until end of turn. If that creature is a Treefolk, it also gains trample until end of turn."
+        self.content:str="Target creature gets +{power_bonus}/+{toughness_bonus} until end of turn. If that creature is a Treefolk, it also gains trample until end of turn."
         self.image_path:str="cards/Instant/Overgrowth Surge/image.jpg"
 
     @select_object("your_creatures",1)
@@ -34,7 +35,7 @@ class Overgrowth_Surge(Instant):
         if not selected_object:
             return
         target=selected_object[0]
-        state_buff=StateBuff(self,target,3,3)
+        state_buff=StateBuff(self,target,self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
         state_buff.set_end_of_turn()
         target.gain_buff(state_buff,self)
         if "Treefolk" in getattr(target,"type_card","") or "Treefolk" in getattr(target,"type_creature",""):

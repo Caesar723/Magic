@@ -13,6 +13,7 @@ class Plains(Land):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"mana_amount":1}
 
         self.fixed_id:int=174
 
@@ -29,5 +30,5 @@ class Plains(Land):
 
 
     def generate_mana(self) -> dict:
-        return {"W":1}
+        return {"W":self.effect_params["mana_amount"]}
         

@@ -16,6 +16,7 @@ class Ironclad_Crusader(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Ironclad Crusader"
         self.live:int=2

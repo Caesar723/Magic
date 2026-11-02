@@ -15,6 +15,7 @@ class Verdant_Genesis(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":1,"toughness_bonus":1,"land_count":2}
 
         self.name:str="Verdant Genesis"
 
@@ -24,7 +25,7 @@ class Verdant_Genesis(Sorcery):
         self.color:str="green"
         self.type_card:str="Sorcery"
         self.rarity:str="Mythic Rare"
-        self.content:str="Search your library for up to two land cards, put them onto the battlefield tapped, then shuffle your library. You may put a +1/+1 counter on each creature you control."
+        self.content:str="Search your library for up to {land_count_word} land cards, put them onto the battlefield tapped, then shuffle your library. You may put a +{power_bonus}/+{toughness_bonus} counter on each creature you control."
         self.image_path:str="cards/sorcery/Verdant Genesis/image.jpg"
 
     @select_object("",1)
@@ -36,8 +37,8 @@ class Verdant_Genesis(Sorcery):
                 player.append_card(card,"land_area")
                 card.tap()
                 count+=1
-                if count>=2:
+                if count>=self.effect_params["land_count"]:
                     break
         for creature in list(player.battlefield):
-            creature.gain_buff(StateBuff(self,creature,1,1),self)
+            creature.gain_buff(StateBuff(self,creature,self.effect_params["power_bonus"],self.effect_params["toughness_bonus"]),self)
 

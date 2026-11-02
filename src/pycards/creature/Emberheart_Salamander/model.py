@@ -14,6 +14,7 @@ class Emberheart_Salamander(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":2}
 
         self.fixed_id:int=108
 
@@ -30,7 +31,7 @@ class Emberheart_Salamander(Creature):
         self.color:str="red"
         self.type_card:str="Salamander Creature - Salamander"
         self.rarity:str="Uncommon"
-        self.content:str="Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.), When Emberheart Salamander enters the battlefield, it deals 2 damage to any target."
+        self.content:str="Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.), When Emberheart Salamander enters the battlefield, it deals {damage} damage to any target."
         self.image_path:str="cards/creature/Emberheart Salamander/image.jpg"
 
         self.flag_dict["Trample"]=True
@@ -40,6 +41,6 @@ class Emberheart_Salamander(Creature):
         
         if selected_object:
 
-            await self.attact_to_object(selected_object[0],2,"rgba(243, 0, 0, 0.9)","Missile_Hit")
+            await self.attact_to_object(selected_object[0],self.effect_params["damage"],"rgba(243, 0, 0, 0.9)","Missile_Hit")
     
         

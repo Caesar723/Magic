@@ -15,6 +15,7 @@ class Arcane_Insight(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":2}
 
         self.name:str="Arcane Insight"
 
@@ -24,12 +25,12 @@ class Arcane_Insight(Instant):
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
-        self.content:str="Draw two cards, then randomly discard a card unless you discard an instant or sorcery card."
+        self.content:str="Draw {draw_count_word} card{draw_count_plural}, then randomly discard a card unless you discard an instant or sorcery card."
         self.image_path:str="cards/Instant/Arcane Insight/image.jpg"
 
     @select_object("",1)
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
-        player.draw_card(2)
+        player.draw_card(self.effect_params["draw_count"])
         if not player.hand:
             return
         card=random.choice(player.hand)

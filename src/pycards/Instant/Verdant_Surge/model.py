@@ -15,6 +15,7 @@ class Verdant_Surge(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":2,"toughness_bonus":4}
 
         self.fixed_id:int=82
 
@@ -26,7 +27,7 @@ class Verdant_Surge(Instant):
         self.color:str="green"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
-        self.content:str="Target creature you control gets +2/+4 until end of turn. If that creature is a Druid, it also gains reach until end of turn."
+        self.content:str="Target creature you control gets +{power_bonus}/+{toughness_bonus} until end of turn. If that creature is a Druid, it also gains reach until end of turn."
         self.image_path:str="cards/Instant/Verdant Surge/image.jpg"
 
 
@@ -35,7 +36,7 @@ class Verdant_Surge(Instant):
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         if selected_object:
             creature=selected_object[0]
-            buff=StateBuff(self,creature,2,4)
+            buff=StateBuff(self,creature,self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
             buff.set_end_of_turn()
             creature.gain_buff(buff,self)
             if creature.type_creature=="Druid":

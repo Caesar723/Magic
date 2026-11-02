@@ -13,6 +13,7 @@ class Frontier_Reinforcements(Sorcery):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"token_power":1,"token_toughness":2,"token_count_empty":2,"token_count":1}
 
         self.fixed_id:int=247
 
@@ -22,16 +23,17 @@ class Frontier_Reinforcements(Sorcery):
         self.color:str="green"
         self.type_card:str="Sorcery"
         self.rarity:str="Uncommon"
-        self.content:str="If you control no creatures, create two 1/2 green Scout creature tokens. Otherwise, create one 1/2 green Scout creature token."
+        self.content:str="If you control no creatures, create {token_count_empty_word} {token_power}/{token_toughness} green Scout creature token{token_count_empty_plural}. Otherwise, create {token_count_word} {token_power}/{token_toughness} green Scout creature token{token_count_plural}."
         self.image_path:str="cards/sorcery/Frontier Reinforcements/image.jpg"
 
     @select_object("",1)
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"]=()):
         player.action_store.start_record()
         try:
-            count=2 if not player.battlefield else 1
+            count=self.effect_params["token_count_empty"] if not player.battlefield else self.effect_params["token_count"]
             for _ in range(count):
-                player.append_card(Frontier_Reinforcements_Scout(player),"battlefield")
+                token=self.create_token(Frontier_Reinforcements_Scout,player)
+                player.append_card(token,"battlefield")
         finally:
             player.action_store.end_record()
 
@@ -40,6 +42,7 @@ class Frontier_Reinforcements_Scout(Creature):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Scout"
         self.live:int=2

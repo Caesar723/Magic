@@ -14,6 +14,7 @@ class Mystic_Rupture(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=42
 
@@ -36,7 +37,7 @@ class Mystic_Rupture(Instant):
                 owner = perm.player
                 if perm in owner.battlefield:
                     owner.remove_card(perm, "battlefield")
-                    owner.append_card(type(perm)(owner), "hand")
+                    owner.append_card(perm.copy_for_player(owner), "hand")
 
 
 

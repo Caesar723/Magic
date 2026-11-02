@@ -12,6 +12,7 @@ class Dawnwell_Acolyte(Creature):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"heal":1}
 
         self.fixed_id:int=242
 
@@ -26,13 +27,13 @@ class Dawnwell_Acolyte(Creature):
         self.color:str="gold"
         self.type_card:str="Creature - Human Cleric"
         self.rarity:str="Common"
-        self.content:str="When Dawnwell Acolyte enters the battlefield, you gain 1 life."
+        self.content:str="When Dawnwell Acolyte enters the battlefield, you gain {heal} life."
         self.image_path:str="cards/creature/Dawnwell Acolyte/image.jpg"
 
     @select_object("",1)
     async def when_enter_battlefield(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"]=()):
         player.action_store.start_record()
         try:
-            await self.cure_to_object(player,1,"rgba(245, 238, 145, 0.8)","Cure")
+            await self.cure_to_object(player,self.effect_params["heal"],"rgba(245, 238, 145, 0.8)","Cure")
         finally:
             player.action_store.end_record()

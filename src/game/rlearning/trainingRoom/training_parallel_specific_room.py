@@ -271,7 +271,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
                 keyword=random.choice([key for key in CARD_AUGMENTATION_KEYWORDS if not card.get_flag(key)])
                 card.flag_dict[keyword]=True
                 if random.random()<0.5:
-                    card.content=f"{card.content.rstrip('.')} {keyword}."
+                    card.extra_content.append(f"{keyword}.")
 
 
     def env_initinal_library(self,player,parameters:dict={}):

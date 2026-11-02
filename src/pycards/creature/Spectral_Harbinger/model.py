@@ -15,6 +15,7 @@ class Spectral_Harbinger(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"heal":2}
 
         self.fixed_id:int=143
 
@@ -31,7 +32,7 @@ class Spectral_Harbinger(Creature):
         self.color:str="gold"
         self.type_card:str="Spirit Creature - Spirit"
         self.rarity:str="Rare"
-        self.content:str="Flying, Lifelink (Damage dealt by this creature also causes you to gain that much life), When Spectral Harbinger enters the battlefield, you may exile random creature card from a graveyard. If you do, you gain 2 life."
+        self.content:str="Flying, Lifelink (Damage dealt by this creature also causes you to gain that much life), When Spectral Harbinger enters the battlefield, you may exile random creature card from a graveyard. If you do, you gain {heal} life."
         self.image_path:str="cards/creature/Spectral Harbinger/image.jpg"
 
         self.flag_dict['lifelink']=True
@@ -43,7 +44,7 @@ class Spectral_Harbinger(Creature):
         if graveyard_creatures:
             random_creature=random.choice(graveyard_creatures)
             player.remove_card(random_creature,"graveyard")
-            await self.cure_to_object(player,2,"rgba(255, 215, 0, 0.9)",'Missile_Hit')
+            await self.cure_to_object(player,self.effect_params["heal"],"rgba(255, 215, 0, 0.9)",'Missile_Hit')
             
 
 

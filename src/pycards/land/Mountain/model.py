@@ -13,6 +13,7 @@ class Mountain(Land):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"mana_amount":1}
 
         self.fixed_id:int=171
 
@@ -28,6 +29,6 @@ class Mountain(Land):
         self.image_path:str="cards/land/Mountain/image.jpg"
 
     def generate_mana(self) -> dict:
-        return {"R":1}
+        return {"R":self.effect_params["mana_amount"]}
 
         

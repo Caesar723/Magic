@@ -13,6 +13,7 @@ class Nightfall_Harvest(Sorcery):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"life_loss":3}
 
         self.fixed_id:int=263
 
@@ -22,7 +23,7 @@ class Nightfall_Harvest(Sorcery):
         self.color:str="black"
         self.type_card:str="Sorcery"
         self.rarity:str="Mythic Rare"
-        self.content:str="Destroy all creatures your opponent controls. You lose 3 life."
+        self.content:str="Destroy all creatures your opponent controls. You lose {life_loss} life."
         self.image_path:str="cards/sorcery/Nightfall Harvest/image.jpg"
 
     @select_object("",1)
@@ -31,7 +32,7 @@ class Nightfall_Harvest(Sorcery):
         try:
             for creature in list(opponent.battlefield):
                 await self.destroy_object(creature,"rgba(80, 0, 120, 0.9)","Missile_Hit")
-            player.life-=3
+            player.life-=self.effect_params["life_loss"]
             player.action_store.add_action(actions.Attack_To_Object(player,player,player,"rgba(80, 0, 120, 0.9)","Missile_Hit",[player.life]))
             await player.check_dead()
         finally:

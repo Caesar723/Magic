@@ -14,6 +14,7 @@ class Temporal_Reversal(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"untap_count":2}
 
         self.name:str="Temporal Reversal"
 
@@ -23,7 +24,7 @@ class Temporal_Reversal(Instant):
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Mythic Rare"
-        self.content:str="Return target nonland permanent to its owner's hand. You may untap up to two lands."
+        self.content:str="Return target nonland permanent to its owner's hand. You may untap up to {untap_count_word} lands."
         self.image_path:str="cards/Instant/Temporal Reversal/image.jpg"
 
     @select_object("all_roles",1)
@@ -34,12 +35,12 @@ class Temporal_Reversal(Instant):
                 owner=target.player
                 if target in owner.battlefield:
                     owner.remove_card(target,"battlefield")
-                    owner.append_card(type(target)(owner),"hand")
+                    owner.append_card(target.copy_for_player(owner),"hand")
         untapped=0
         for land in player.land_area:
             if land.get_flag("tap"):
                 land.untap()
                 untapped+=1
-                if untapped>=2:
+                if untapped>=self.effect_params["untap_count"]:
                     break
 

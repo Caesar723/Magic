@@ -17,6 +17,7 @@ class Temporal_Traveler(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Temporal Traveler"
         self.live:int=4

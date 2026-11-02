@@ -16,6 +16,7 @@ class Vorinclex__Apex_of_Mutation(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"proliferate_count":3,"life_cost":2}
 
         self.name:str="Vorinclex, Apex of Mutation"
         self.live:int=6
@@ -30,7 +31,7 @@ class Vorinclex__Apex_of_Mutation(Creature):
         self.color:str="green"
         self.type_card:str="Legendary Creature - Phyrexian Mutant"
         self.rarity:str="Mythic Rare"
-        self.content:str="Trample, Infect, and whenever you cast a spell, proliferate for three random permanent. Whenever an opponent proliferates, they must pay 2 life for each permanent ."
+        self.content:str="Trample, Infect, and whenever you cast a spell, proliferate for {proliferate_count_word} random permanent. Whenever an opponent proliferates, they must pay {life_cost} life for each permanent ."
         self.image_path:str="cards/creature/Vorinclex, Apex of Mutation/image.jpg"
 
         self.flag_dict['Trample']=True
@@ -40,15 +41,15 @@ class Vorinclex__Apex_of_Mutation(Creature):
     async def when_play_a_card(self,card:'Card',player:'Player'=None,opponent:'Player'=None):
         if self in player.battlefield and not isinstance(card,Land) :
             all_creature=list(opponent.battlefield+player.battlefield)
-            for i in range(3):
+            for i in range(self.effect_params["proliferate_count"]):
                 player.action_store.start_record()
                 if all_creature:
                     random_card=random.choice(all_creature)
                     self.proliferate(random_card)
                     all_creature.remove(random_card)
                     if random_card.player==opponent and random_card.buffs:
-                        await self.attact_to_object(opponent,2,"rgba(0,100,0,0.5)","Missile_Hit")
-            for i in range(3):
+                        await self.attact_to_object(opponent,self.effect_params["life_cost"],"rgba(0,100,0,0.5)","Missile_Hit")
+            for i in range(self.effect_params["proliferate_count"]):
                 player.action_store.end_record()
         
     def proliferate(self,card:Card):

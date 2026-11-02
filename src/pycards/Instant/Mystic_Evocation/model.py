@@ -14,6 +14,7 @@ class Mystic_Evocation(Instant_Undo):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"scry_count":2}
 
         self.fixed_id:int=38
 
@@ -25,7 +26,7 @@ class Mystic_Evocation(Instant_Undo):
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
-        self.content:str="Counter target noncreature spell. If that spell is countered this way, scry 2."
+        self.content:str="Counter target noncreature spell. If that spell is countered this way, scry {scry_count}."
         self.image_path:str="cards/Instant/Mystic Evocation/image.jpg"
 
         self.undo_range="Sorcery|Instant|Land"
@@ -35,4 +36,4 @@ class Mystic_Evocation(Instant_Undo):
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         func,card = await self.undo_stack(player,opponent)
         
-        await self.Scry(player,opponent,2)
+        await self.Scry(player,opponent,self.effect_params["scry_count"])

@@ -15,6 +15,7 @@ class Thornwood_Ranger(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":1,"toughness_bonus":0}
 
         self.fixed_id:int=152
 
@@ -31,7 +32,7 @@ class Thornwood_Ranger(Creature):
         self.color:str="green"
         self.type_card:str="Human Warrior"
         self.rarity:str="Common"
-        self.content:str="Reach. When Thornwood Ranger enters the battlefield, another target creature you control gets +1/+0 until end of turn."
+        self.content:str="Reach. When Thornwood Ranger enters the battlefield, another target creature you control gets +{power_bonus}/+{toughness_bonus} until end of turn."
         self.image_path:str="cards/creature/Thornwood Ranger/image.jpg"
 
         self.flag_dict["reach"]=True
@@ -43,7 +44,7 @@ class Thornwood_Ranger(Creature):
         target=selected_object[0]
         if target is self:
             return
-        buff=StateBuff(self,target,1,0)
+        buff=StateBuff(self,target,self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
         buff.set_end_of_turn()
         target.gain_buff(buff,self)
 

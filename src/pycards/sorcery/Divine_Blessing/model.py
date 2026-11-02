@@ -15,6 +15,7 @@ class Divine_Blessing(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":2,"toughness_bonus":2}
 
         self.name:str="Divine Blessing"
 
@@ -24,7 +25,7 @@ class Divine_Blessing(Sorcery):
         self.color:str="gold"
         self.type_card:str="Sorcery"
         self.rarity:str="Common"
-        self.content:str="Target creature gets +2/+2 and lifelink until end of turn."
+        self.content:str="Target creature gets +{power_bonus}/+{toughness_bonus} and lifelink until end of turn."
         self.image_path:str="cards/sorcery/Divine Blessing/image.jpg"
 
     @select_object("all_creatures",1)
@@ -32,7 +33,7 @@ class Divine_Blessing(Sorcery):
         if not selected_object:
             return
         target=selected_object[0]
-        state=StateBuff(self,target,2,2)
+        state=StateBuff(self,target,self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
         state.set_end_of_turn()
         target.gain_buff(state,self)
         lifelink=KeyBuff(self,target,"lifelink")

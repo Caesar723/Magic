@@ -14,6 +14,7 @@ class Luminous_Guardian(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_threshold":3}
 
         self.fixed_id:int=121
 
@@ -30,7 +31,7 @@ class Luminous_Guardian(Creature):
         self.color:str="gold"
         self.type_card:str="Angel Creature - Angel"
         self.rarity:str="Rare"
-        self.content:str="Flying, Lifelink (Damage dealt by this creature also causes you to gain that much life), When Luminous Guardian enters the battlefield, you may exile target creature with power 3 or greater an opponent controls until Luminous Guardian leaves the battlefield."
+        self.content:str="Flying, Lifelink (Damage dealt by this creature also causes you to gain that much life), When Luminous Guardian enters the battlefield, you may exile target creature with power {power_threshold} or greater an opponent controls until Luminous Guardian leaves the battlefield."
         self.image_path:str="cards/creature/Luminous Guardian/image.jpg"
 
 
@@ -41,7 +42,7 @@ class Luminous_Guardian(Creature):
         
     @select_object("all_creatures",1)
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
-        if selected_object and selected_object[0].state[0]>=3:
+        if selected_object and selected_object[0].state[0]>=self.effect_params["power_threshold"]:
             await self.exile_object(selected_object[0],"rgba(255,215,0,0.5)","Missile_Hit")
             self.card_store=selected_object[0]
 
@@ -49,6 +50,6 @@ class Luminous_Guardian(Creature):
         await super().when_leave_battlefield(player,opponent,name)
         if self.card_store:
             self.card_store.player.remove_card(self.card_store,"exile_area")
-            new_card=type(self.card_store)(self.card_store.player)
+            new_card=self.card_store.copy_for_player(self.card_store.player)
             self.card_store.player.append_card(new_card,"battlefield")
             self.card_store=False

@@ -16,6 +16,7 @@ class Titan_s_Strength(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":4,"toughness_bonus":4}
 
         self.fixed_id:int=75
 
@@ -27,13 +28,13 @@ class Titan_s_Strength(Instant):
         self.color:str="green"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Until end of turn, your creatures get +4/+4 and Trample."
+        self.content:str="Until end of turn, your creatures get +{power_bonus}/+{toughness_bonus} and Trample."
         self.image_path:str="cards/Instant/Titan's Strength/image.jpg"
 
     @select_object("",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         for creature in player.battlefield:
-            buff_state=StateBuff(self,creature,4,4)
+            buff_state=StateBuff(self,creature,self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
             buff_state.set_end_of_turn()
             creature.gain_buff(buff_state,self)
 

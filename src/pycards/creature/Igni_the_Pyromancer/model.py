@@ -16,6 +16,7 @@ class Igni_the_Pyromancer(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Igni the Pyromancer"
         self.live:int=2

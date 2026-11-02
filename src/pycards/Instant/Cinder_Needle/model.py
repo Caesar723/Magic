@@ -12,6 +12,7 @@ class Cinder_Needle(Instant):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":2}
 
         self.fixed_id:int=244
 
@@ -21,7 +22,7 @@ class Cinder_Needle(Instant):
         self.color:str="red"
         self.type_card:str="Instant"
         self.rarity:str="Common"
-        self.content:str="Cinder Needle deals 2 damage to target creature an opponent controls."
+        self.content:str="Cinder Needle deals {damage} damage to target creature an opponent controls."
         self.image_path:str="cards/Instant/Cinder Needle/image.jpg"
 
     @select_object("opponent_creatures",1)
@@ -33,6 +34,6 @@ class Cinder_Needle(Instant):
             return
         player.action_store.start_record()
         try:
-            await self.attact_to_object(target,2,"rgba(243, 0, 0, 0.9)","Missile_Hit")
+            await self.attact_to_object(target,self.effect_params["damage"],"rgba(243, 0, 0, 0.9)","Missile_Hit")
         finally:
             player.action_store.end_record()

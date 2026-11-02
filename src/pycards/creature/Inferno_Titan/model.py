@@ -15,6 +15,7 @@ class Inferno_Titan(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":4}
 
         self.fixed_id:int=117
 
@@ -31,7 +32,7 @@ class Inferno_Titan(Creature):
         self.color:str="red"
         self.type_card:str="Elemental Creature"
         self.rarity:str="Mythic Rare"
-        self.content:str="When Inferno Titan enters the battlefield, it deals 4 damage divided as three target creatures and/or players."
+        self.content:str="When Inferno Titan enters the battlefield, it deals {damage} damage divided as three target creatures and/or players."
         self.image_path:str="cards/creature/Inferno Titan/image.jpg"
 
 
@@ -39,11 +40,11 @@ class Inferno_Titan(Creature):
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
         objects=[opponent]+opponent.battlefield
         
-        for i in range(4):
+        for i in range(self.effect_params["damage"]):
             player.action_store.start_record()
             obj=random.choice(objects)
             await self.attact_to_object(obj,1,"rgba(243, 0, 0, 0.9)","Missile_Hit")
-        for i in range(4):
+        for i in range(self.effect_params["damage"]):
             player.action_store.end_record()
 
         

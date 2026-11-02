@@ -15,6 +15,7 @@ class Celestial_Seraph(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=98
 
@@ -50,6 +51,6 @@ class Celestial_Seraph(Creature):
     async def when_leave_battlefield(self, player: "Player" = None, opponent: "Player" = None, name: str = 'battlefield'):
         result= await super().when_leave_battlefield(player, opponent, name)
         for creature in self.creature_store:
-            new_creature=type(creature)(opponent)
+            new_creature=creature.copy_for_player(opponent)
             opponent.append_card(new_creature,"battlefield")
         return result

@@ -15,6 +15,7 @@ class Wizard_s_Time_Warp(Instant_Undo):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"discard_count":1}
 
         self.fixed_id:int=88
 
@@ -26,15 +27,16 @@ class Wizard_s_Time_Warp(Instant_Undo):
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Mythic Rare"
-        self.content:str="Counter target spell. Its controller discards a card."
+        self.content:str="Counter target spell. Its controller discards {discard_count_article} card{discard_count_plural}."
         self.image_path:str="cards/Instant/Wizard's Time Warp/image.jpg"
 
     @select_object("",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         func,card=await self.undo_stack(player,opponent)
-        if opponent.hand:
-            card=random.choice(opponent.hand)
-            opponent.discard(card)
+        for _ in range(self.effect_params["discard_count"]):
+            if opponent.hand:
+                card=random.choice(opponent.hand)
+                opponent.discard(card)
        
 
 

@@ -14,6 +14,7 @@ class Shadowform_Surge(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_reduction":3,"toughness_reduction":3}
 
         self.fixed_id:int=63
 
@@ -25,7 +26,7 @@ class Shadowform_Surge(Instant):
         self.color:str="black"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Target creature gets -3/-3 until end of turn. If that creature dies this turn, create a 2/2 black Shade creature token with lifelink."
+        self.content:str="Target creature gets -{power_reduction}/-{toughness_reduction} until end of turn. If that creature dies this turn, create a 2/2 black Shade creature token with lifelink."
         self.image_path:str="cards/Instant/Shadowform Surge/image.jpg"
 
     @select_object("opponent_creatures",1)
@@ -34,7 +35,7 @@ class Shadowform_Surge(Instant):
         
         if selected_object:
             target = selected_object[0]
-            buff = StateBuff(self, target, -3, -3)
+            buff = StateBuff(self, target, -self.effect_params["power_reduction"], -self.effect_params["toughness_reduction"])
             buff.set_end_of_turn()
             target.gain_buff(buff, self)
 

@@ -15,6 +15,7 @@ class Call_to_Unity(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"token_power":1,"token_toughness":1,"token_count":2}
 
         self.fixed_id:int=188
 
@@ -26,19 +27,20 @@ class Call_to_Unity(Sorcery):
         self.color:str="gold"
         self.type_card:str="Sorcery"
         self.rarity:str="Common"
-        self.content:str="Create two 1/1 white Human creature tokens."
+        self.content:str="Create {token_count_word} {token_power}/{token_toughness} white Human creature token{token_count_plural}."
         self.image_path:str="cards/sorcery/Call to Unity/image.jpg"
 
 
     @select_object("",1)
     async def card_ability(self,player:Player,opponent:Player,selected_object:tuple[Card]):
-        for i in range(2):
-            creature_tree=Call_to_Unity_Human(self.player)
+        for i in range(self.effect_params["token_count"]):
+            creature_tree=self.create_token(Call_to_Unity_Human,self.player)
             player.append_card(creature_tree,"battlefield")
 
 class Call_to_Unity_Human(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Human"
         self.live:int=1

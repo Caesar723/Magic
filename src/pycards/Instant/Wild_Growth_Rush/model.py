@@ -20,6 +20,7 @@ class Wild_Growth_Rush(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":2,"toughness_bonus":2}
 
         self.fixed_id:int=86
 
@@ -31,14 +32,14 @@ class Wild_Growth_Rush(Instant):
         self.color:str="green"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Target creature gains +2/+2 and trample until end of turn. Then, if you control a Forest, you may search your library for a basic land card and put it onto the battlefield tapped."
+        self.content:str="Target creature gains +{power_bonus}/+{toughness_bonus} and trample until end of turn. Then, if you control a Forest, you may search your library for a basic land card and put it onto the battlefield tapped."
         self.image_path:str="cards/Instant/Wild Growth Rush/image.jpg"
 
 
     @select_object("all_creatures",1)
     async def card_ability(self,player:Player,opponent:Player,selected_object:tuple[Card]):
         if selected_object:
-            buff=StateBuff(self,selected_object[0],2,2)
+            buff=StateBuff(self,selected_object[0],self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
             buff.set_end_of_turn()
             selected_object[0].gain_buff(buff,self)
             buff=KeyBuff(self,selected_object[0],"Trample")

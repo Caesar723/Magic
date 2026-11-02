@@ -15,6 +15,7 @@ class Mechanist_s_Disruption_Device(Instant_Undo):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1}
 
         self.fixed_id:int=31
 
@@ -26,13 +27,13 @@ class Mechanist_s_Disruption_Device(Instant_Undo):
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
-        self.content:str="Counter target spell. Then draw a card and you may put a land card from your hand onto the battlefield."
+        self.content:str="Counter target spell. Then draw {draw_count_article} card{draw_count_plural} and you may put a land card from your hand onto the battlefield."
         self.image_path:str="cards/Instant/Mechanist's Disruption Device/image.jpg"
 
     @select_object("",1)
     async def card_ability(self,player:Player,opponent:Player, selected_object: tuple["Card"] = ...):
         func,card=await self.undo_stack(player,opponent)
-        player.draw_card(1)
+        player.draw_card(self.effect_params["draw_count"])
 
         lands=[]
        

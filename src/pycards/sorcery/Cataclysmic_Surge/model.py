@@ -14,6 +14,7 @@ class Cataclysmic_Surge(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":5}
 
         self.name:str="Cataclysmic Surge"
 
@@ -23,17 +24,17 @@ class Cataclysmic_Surge(Sorcery):
         self.color:str="red"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Cataclysmic Surge deals 5 damage to each creature and each player."
+        self.content:str="Cataclysmic Surge deals {damage} damage to each creature and each player."
         self.image_path:str="cards/sorcery/Cataclysmic Surge/image.jpg"
 
     @select_object("",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         all_creatures = list(player.battlefield) + list(opponent.battlefield)
         for creature in all_creatures:
-            await self.attact_to_object(creature, 5, "rgba(255,0,0,1)", "Missile_Hit")
+            await self.attact_to_object(creature, self.effect_params["damage"], "rgba(255,0,0,1)", "Missile_Hit")
         
-        await self.attact_to_object(player, 5, "rgba(255,0,0,1)", "Missile_Hit")
-        await self.attact_to_object(opponent, 5, "rgba(255,0,0,1)", "Missile_Hit")
+        await self.attact_to_object(player, self.effect_params["damage"], "rgba(255,0,0,1)", "Missile_Hit")
+        await self.attact_to_object(opponent, self.effect_params["damage"], "rgba(255,0,0,1)", "Missile_Hit")
 
 
 

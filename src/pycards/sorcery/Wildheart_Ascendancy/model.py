@@ -13,6 +13,7 @@ class Wildheart_Ascendancy(Sorcery):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":3,"toughness_bonus":3}
 
         self.fixed_id:int=254
 
@@ -22,7 +23,7 @@ class Wildheart_Ascendancy(Sorcery):
         self.color:str="green"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Creatures you control get +3/+3 and gain trample until end of turn."
+        self.content:str="Creatures you control get +{power_bonus}/+{toughness_bonus} and gain trample until end of turn."
         self.image_path:str="cards/sorcery/Wildheart Ascendancy/image.jpg"
 
     @select_object("",1)
@@ -30,7 +31,7 @@ class Wildheart_Ascendancy(Sorcery):
         player.action_store.start_record()
         try:
             for creature in list(player.battlefield):
-                state=StateBuff(self,creature,3,3)
+                state=StateBuff(self,creature,self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
                 state.set_end_of_turn()
                 creature.gain_buff(state,self)
                 trample=KeyBuff(self,creature,"Trample")

@@ -21,6 +21,7 @@ class Sylvan_Warden(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":1,"toughness_bonus":1}
 
         self.name:str="Sylvan Warden"
         self.live:int=4
@@ -35,7 +36,7 @@ class Sylvan_Warden(Creature):
         self.color:str="green"
         self.type_card:str="Elf Shaman"
         self.rarity:str="Rare"
-        self.content:str="When Sylvan Warden enters the battlefield, you may search your library for a basic land card and put it onto the battlefield tapped. If you do, shuffle your library.Whenever Sylvan Warden attacks, you may put a +1/+1 counter on target creature you control."
+        self.content:str="When Sylvan Warden enters the battlefield, you may search your library for a basic land card and put it onto the battlefield tapped. If you do, shuffle your library.Whenever Sylvan Warden attacks, you may put a +{power_bonus}/+{toughness_bonus} counter on target creature you control."
         self.image_path:str="cards/creature/Sylvan Warden/image.jpg"
 
 
@@ -51,7 +52,7 @@ class Sylvan_Warden(Creature):
     async def when_start_attcak(self,defender:Creature,player:Player,opponent:Player):
         if player.battlefield:
             creature=random.choice(player.battlefield)
-            buff=StateBuff(self,creature,1,1)
+            buff=StateBuff(self,creature,self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
             creature.gain_buff(buff,self)
         
             

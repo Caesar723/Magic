@@ -14,6 +14,7 @@ class Eternal_Phoenix(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=110
 
@@ -51,7 +52,7 @@ class Eternal_Phoenix(Creature):
 
     async def when_die(self,player: "Player" = None, opponent: "Player" = None):#OK
         if not self.get_flag("feather_Eternal_Phoenix"):
-            new_creature=type(self)(player)
+            new_creature=self.copy_for_player(player)
             player.append_card(new_creature,"battlefield")
             new_creature.flag_dict["feather_Eternal_Phoenix"]=True
 

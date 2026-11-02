@@ -14,6 +14,7 @@ class Celestial_Guardian(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"heal":2}
 
         self.name:str="Celestial Guardian"
         self.live:int=3
@@ -28,7 +29,7 @@ class Celestial_Guardian(Creature):
         self.color:str="gold"
         self.type_card:str="Angel Creature"
         self.rarity:str="Rare"
-        self.content:str="Flying, Vigilance. When Celestial Guardian enters the battlefield, you gain 2 life."
+        self.content:str="Flying, Vigilance. When Celestial Guardian enters the battlefield, you gain {heal} life."
         self.image_path:str="cards/creature/Celestial Guardian/image.jpg"
 
         self.flag_dict["flying"]=True
@@ -36,4 +37,4 @@ class Celestial_Guardian(Creature):
 
     @select_object("",1)
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ()):
-        await self.cure_to_object(player,2,"rgba(255,255,0,0.7)","Missile_Hit")
+        await self.cure_to_object(player,self.effect_params["heal"],"rgba(255,255,0,0.7)","Missile_Hit")

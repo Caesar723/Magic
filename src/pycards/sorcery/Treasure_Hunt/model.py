@@ -15,6 +15,7 @@ class Treasure_Hunt(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=237
 
@@ -35,7 +36,7 @@ class Treasure_Hunt(Sorcery):
         if cards:
             card=cards[0]
             player.remove_card(card,"graveyard")
-            player.append_card(type(card)(player),"hand")
+            player.append_card(card.copy_for_player(player),"hand")
 
 
 

@@ -13,6 +13,7 @@ class Swamp(Land):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"mana_amount":1}
 
         self.fixed_id:int=177
 
@@ -28,6 +29,6 @@ class Swamp(Land):
         self.image_path:str="cards/land/Swamp/image.jpg"
 
     def generate_mana(self) -> dict:
-        return {"B":1}
+        return {"B":self.effect_params["mana_amount"]}
 
         

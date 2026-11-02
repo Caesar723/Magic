@@ -15,6 +15,7 @@ class Flames_of_Fury(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":3}
 
         self.fixed_id:int=27
 
@@ -26,7 +27,7 @@ class Flames_of_Fury(Instant):
         self.color:str="red"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Flames of Fury deals 3 damage to any target. If a creature dealt damage this way would die this turn, exile it instead."
+        self.content:str="Flames of Fury deals {damage} damage to any target. If a creature dealt damage this way would die this turn, exile it instead."
         self.image_path:str="cards/Instant/Flames of Fury/image.jpg"
 
 
@@ -35,7 +36,7 @@ class Flames_of_Fury(Instant):
         if selected_object:
 
             player.action_store.start_record()
-            await self.attact_to_object(selected_object[0],3,"rgba(243, 0, 0, 0.9)","Missile_Hit")
+            await self.attact_to_object(selected_object[0],self.effect_params["damage"],"rgba(243, 0, 0, 0.9)","Missile_Hit")
             player.action_store.end_record()
 
             if isinstance(selected_object[0],Creature) and await selected_object[0].check_dead():

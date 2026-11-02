@@ -14,6 +14,7 @@ class Verdant_Growth(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":4,"toughness_bonus":4}
 
         self.fixed_id:int=81
 
@@ -25,12 +26,12 @@ class Verdant_Growth(Instant):
         self.color:str="green"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Target creature gets +4/+4 until end of turn. If it's a Treefolk creature, it gains trample until end of turn."
+        self.content:str="Target creature gets +{power_bonus}/+{toughness_bonus} until end of turn. If it's a Treefolk creature, it gains trample until end of turn."
         self.image_path:str="cards/Instant/Verdant Growth/image.jpg"
     @select_object("all_creatures",1)
     async def card_ability(self, player: 'Player' = None, opponent: 'Player' = None, selected_object: tuple['Card'] = ...):
         if selected_object:
-            buff_state=StateBuff(self,selected_object[0],4,4)
+            buff_state=StateBuff(self,selected_object[0],self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
             buff_state.set_end_of_turn()
             selected_object[0].gain_buff(buff_state,self)
             

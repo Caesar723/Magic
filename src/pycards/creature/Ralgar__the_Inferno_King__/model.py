@@ -16,6 +16,7 @@ class Ralgar__the_Inferno_King__(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":3,"power_bonus":1,"toughness_bonus":0}
 
         self.name:str="Ralgar, the Inferno King"
         self.live:int=4
@@ -30,17 +31,17 @@ class Ralgar__the_Inferno_King__(Creature):
         self.color:str="red"
         self.type_card:str="Elemental Creature"
         self.rarity:str="Mythic Rare"
-        self.content:str="When Ralgar enters the battlefield, it deals 3 damage to any target. Whenever you cast an instant or sorcery spell, Ralgar gets +1/+0 until end of turn."
+        self.content:str="When Ralgar enters the battlefield, it deals {damage} damage to any target. Whenever you cast an instant or sorcery spell, Ralgar gets +{power_bonus}/+{toughness_bonus} until end of turn."
         self.image_path:str="cards/creature/Ralgar, the Inferno King/image.jpg"
 
     @select_object("all_roles",1)
     async def when_enter_battlefield(self,player:'Player',opponent:'Player',selected_object:tuple['Card']=()):
         if selected_object:
-            await self.attact_to_object(selected_object[0],3,"rgba(255,0,0,1)","Missile_Hit")
+            await self.attact_to_object(selected_object[0],self.effect_params["damage"],"rgba(255,0,0,1)","Missile_Hit")
 
     async def when_play_a_card(self,card:'Card',player:'Player',opponent:'Player'):
         if (isinstance(card,Instant) or isinstance(card,Sorcery)) and self in player.battlefield:
-            buff=StateBuff(self,self,1,0)
+            buff=StateBuff(self,self,self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
             self.gain_buff(buff,self)
 
 

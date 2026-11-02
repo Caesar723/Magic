@@ -14,6 +14,7 @@ class Mage_s_Veto(Instant_Undo):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"mana_threshold":3}
 
         self.fixed_id:int=30
 
@@ -25,14 +26,14 @@ class Mage_s_Veto(Instant_Undo):
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Counter target spell. If that spell's mana cost is less than 3, search your library for a Sorcery card and put it into your hand."
+        self.content:str="Counter target spell. If that spell's mana cost is less than {mana_threshold}, search your library for a Sorcery card and put it into your hand."
         self.image_path:str="cards/Instant/Mage's Veto/image.jpg"
     
 
     @select_object("",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         func,card=await self.undo_stack(player,opponent)
-        if sum(card.cost.values())<3:
+        if sum(card.cost.values())<self.effect_params["mana_threshold"]:
             for card in player.library:
                 if card.type=="Sorcery":
                     player.append_card(card,"hand")

@@ -15,6 +15,7 @@ class Harvest_Blessing(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":1,"toughness_bonus":1}
 
         self.name:str="Harvest Blessing"
 
@@ -24,7 +25,7 @@ class Harvest_Blessing(Sorcery):
         self.color:str="green"
         self.type_card:str="Sorcery"
         self.rarity:str="Uncommon"
-        self.content:str="Search your library for a basic land card, put it onto the battlefield tapped, then shuffle your library. Target creature you control gets +1/+1 until end of turn."
+        self.content:str="Search your library for a basic land card, put it onto the battlefield tapped, then shuffle your library. Target creature you control gets +{power_bonus}/+{toughness_bonus} until end of turn."
         self.image_path:str="cards/sorcery/Harvest Blessing/image.jpg"
 
     @select_object("all_creatures",1)
@@ -36,7 +37,7 @@ class Harvest_Blessing(Sorcery):
                 card.tap()
                 break
         if selected_object:
-            buff=StateBuff(self,selected_object[0],1,1)
+            buff=StateBuff(self,selected_object[0],self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
             buff.set_end_of_turn()
             selected_object[0].gain_buff(buff,self)
 

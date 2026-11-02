@@ -16,6 +16,7 @@ class Angelic_Blessing(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":3,"toughness_bonus":3}
 
         self.fixed_id:int=181
 
@@ -27,7 +28,7 @@ class Angelic_Blessing(Sorcery):
         self.color:str="gold"
         self.type_card:str="Sorcery"
         self.rarity:str="Uncommon"
-        self.content:str="Target creature gets +3/+3 and gains vigilance until end of turn."
+        self.content:str="Target creature gets +{power_bonus}/+{toughness_bonus} and gains vigilance until end of turn."
         self.image_path:str="cards/sorcery/Angelic Blessing/image.jpg"
 
     
@@ -35,7 +36,7 @@ class Angelic_Blessing(Sorcery):
     async def card_ability(self,player:Player,opponent:Player,selected_object:tuple[Card]):
         if selected_object:
             target_card=selected_object[0]
-            buff=StateBuff(self,selected_object[0],3,3)
+            buff=StateBuff(self,selected_object[0],self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
             buff.set_end_of_turn()
             target_card.gain_buff(buff,self)
             buff=KeyBuff(self,target_card,"Vigilance")

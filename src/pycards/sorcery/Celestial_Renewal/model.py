@@ -16,6 +16,7 @@ class Celestial_Renewal(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"creature_power":1,"creature_toughness":1}
 
         self.fixed_id:int=193
 
@@ -27,7 +28,7 @@ class Celestial_Renewal(Sorcery):
         self.color:str="gold"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Celestial Renewal allows you to return 3 random creatures cards from your graveyard to the battlefield. Those creatures' stats become 1/1."
+        self.content:str="Celestial Renewal allows you to return 3 random creatures cards from your graveyard to the battlefield. Those creatures' stats become {creature_power}/{creature_toughness}."
         self.image_path:str="cards/sorcery/Celestial Renewal/image.jpg"
 
     @select_object("",1)
@@ -39,9 +40,9 @@ class Celestial_Renewal(Sorcery):
             return
         for creature in random.sample(creatures,2):
             player.remove_card(creature, "graveyard")
-            new_creature=type(creature)(player)
+            new_creature=creature.copy_for_player(player)
             org_state=new_creature.state
-            buff=StateBuff(self,new_creature,1-org_state[0],1-org_state[1])
+            buff=StateBuff(self,new_creature,self.effect_params["creature_power"]-org_state[0],self.effect_params["creature_toughness"]-org_state[1])
             new_creature.gain_buff(buff,self)
             player.append_card(new_creature, "battlefield")
 

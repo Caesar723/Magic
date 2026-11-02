@@ -14,6 +14,7 @@ class Flame_Tinkerer(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":1}
 
         self.fixed_id:int=111
 
@@ -30,7 +31,7 @@ class Flame_Tinkerer(Creature):
         self.color:str="red"
         self.type_card:str="Goblin Creature"
         self.rarity:str="Common"
-        self.content:str="When Flame Tinkerer enters the battlefield, you may pay R. If you do, it deals 1 damage to target creature."
+        self.content:str="When Flame Tinkerer enters the battlefield, you may pay R. If you do, it deals {damage} damage to target creature."
         self.image_path:str="cards/creature/Flame Tinkerer/image.jpg"
         self.select_range:str="all_creatures"
 
@@ -45,7 +46,7 @@ class Flame_Tinkerer(Creature):
                 await player.generate_and_consume_mana(result[1],cost,self)
                 #player.action_store.add_action(actions.Change_Mana(self,player,player.get_manas()))
                 player.action_store.start_record()
-                await self.attact_to_object(selected_object[0],1,"rgba(243, 0, 0, 0.9)","Missile_Hit")
+                await self.attact_to_object(selected_object[0],self.effect_params["damage"],"rgba(243, 0, 0, 0.9)","Missile_Hit")
                 player.action_store.end_record()
             
 

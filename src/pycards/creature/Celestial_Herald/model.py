@@ -15,6 +15,7 @@ class Celestial_Herald(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Celestial Herald"
         self.live:int=3
@@ -46,7 +47,7 @@ class Celestial_Herald(Creature):
                 current_creature=creature
             if self.creature_store:
                 opponent.remove_card(self.creature_store,"exile_area")
-                opponent.append_card(type(self.creature_store)(opponent),"battlefield")
+                opponent.append_card(self.creature_store.copy_for_player(opponent),"battlefield")
             self.creature_store=current_creature
             
 

@@ -14,6 +14,7 @@ class Luminous_Angel(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":1,"toughness_bonus":1,"life_threshold":20}
 
         self.fixed_id:int=120
 
@@ -30,15 +31,15 @@ class Luminous_Angel(Creature):
         self.color:str="gold"
         self.type_card:str="Angel Creature - Angel"
         self.rarity:str="Rare"
-        self.content:str="Flying, Lifelink (Damage dealt by this creature also causes you to gain that much life.), At the beginning of your upkeep, if you have at least 20 or more life, gain +1/+1"
+        self.content:str="Flying, Lifelink (Damage dealt by this creature also causes you to gain that much life.), At the beginning of your upkeep, if you have at least {life_threshold} or more life, gain +{power_bonus}/+{toughness_bonus}"
         self.image_path:str="cards/creature/Luminous Angel/image.jpg"
         self.flag_dict["lifelink"]=True
         self.flag_dict["flying"]=True
 
 
     async def when_start_turn(self,player: "Player" = None, opponent: "Player" = None):
-        if player.life>=20 and self in player.battlefield:
-            buff=StateBuff(self,self,1,1)
+        if player.life>=self.effect_params["life_threshold"] and self in player.battlefield:
+            buff=StateBuff(self,self,self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
             self.gain_buff(buff,self)
 
 

@@ -14,6 +14,7 @@ class Fiery_Blast(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":2}
 
         self.fixed_id:int=26
 
@@ -25,7 +26,7 @@ class Fiery_Blast(Instant):
         self.color:str="red"
         self.type_card:str="Instant"
         self.rarity:str="Common"
-        self.content:str="Fiery Blast deals 2 damage to any target."
+        self.content:str="Fiery Blast deals {damage} damage to any target."
         self.image_path:str="cards/Instant/Fiery Blast/image.jpg"
 
     @select_object("all_roles",1)
@@ -33,7 +34,7 @@ class Fiery_Blast(Instant):
         if selected_object:
 
             player.action_store.start_record()
-            await self.attact_to_object(selected_object[0],2,"rgba(243, 0, 0, 0.9)","Missile_Hit")
+            await self.attact_to_object(selected_object[0],self.effect_params["damage"],"rgba(243, 0, 0, 0.9)","Missile_Hit")
             player.action_store.end_record()
 
 

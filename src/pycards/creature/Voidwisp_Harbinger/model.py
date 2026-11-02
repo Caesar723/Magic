@@ -14,6 +14,7 @@ class Voidwisp_Harbinger(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"scry_count":2}
 
         self.fixed_id:int=161
 
@@ -30,7 +31,7 @@ class Voidwisp_Harbinger(Creature):
         self.color:str="blue"
         self.type_card:str="Spirit Creature - Spirit"
         self.rarity:str="Rare"
-        self.content:str="Flash, Flying, When Voidwisp Harbinger enters the battlefield, you may scry 2. (To scry 2, look at the top two cards of your library, then put any number of them on the bottom of your library and the rest on top in any order.)"
+        self.content:str="Flash, Flying, When Voidwisp Harbinger enters the battlefield, you may scry {scry_count}. (To scry {scry_count}, look at the top two cards of your library, then put any number of them on the bottom of your library and the rest on top in any order.)"
         self.image_path:str="cards/creature/Voidwisp Harbinger/image.jpg"
 
         self.flag_dict["flying"]=True
@@ -38,6 +39,6 @@ class Voidwisp_Harbinger(Creature):
 
     @select_object("",1)
     async def when_enter_battlefield(self,player:'Player',opponent:'Player',selected_object:tuple['Card']=()):
-        await self.Scry(player,opponent,2)
+        await self.Scry(player,opponent,self.effect_params["scry_count"])
 
         

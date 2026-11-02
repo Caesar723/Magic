@@ -36,6 +36,9 @@ class Card:
         self.buffs:list[Buff]=[]
         #counter dict like number of turns, number of cards used
         self.counter_dict:dict={}
+        self.effect_params:dict={}
+        self._content_template:str=""
+        self.extra_content:list[str]=[]
         
         #self.keyword_list:list=[]
         self.type:str
@@ -52,6 +55,42 @@ class Card:
         self.selection_index:int
 
         self.select_range:str=''
+
+
+    @property
+    def content(self)->str:
+        text=self._content_template
+        if self.effect_params:
+            params=self.effect_params.copy()
+            words=("zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen","twenty")
+            for key,value in self.effect_params.items():
+                if type(value) is int:
+                    word=words[value] if 0<=value<len(words) else str(value)
+                    params[key+"_word"]=word
+                    params[key+"_article"]="a" if value==1 else word
+                    params[key+"_article_an"]="an" if value==1 else word
+                    params[key+"_plural"]="" if value==1 else "s"
+            text=text.format(**params)
+        return " ".join([text]+self.extra_content) if self.extra_content else text
+
+    @content.setter
+    def content(self,text:str):
+        self._content_template=text
+
+    def create_token(self,token_class,player):
+        token=token_class(player)
+        token.power=token.actual_power=self.effect_params["token_power"]
+        token.live=token.actual_live=self.effect_params["token_toughness"]
+        return token
+
+    def copy_for_player(self,player:"Player"):
+        values=getattr(self,"_effect_params_before_clone",self.effect_params)
+        new_card=type(self)(player)
+        new_card.effect_params=values.copy()
+        if self.type=="Creature":
+            new_card.power=new_card.actual_power=self.power
+            new_card.live=new_card.actual_live=self.live
+        return new_card
 
     @property
     def cost(self)->dict[int]:# colorless,red, green, blue,black,white
@@ -264,8 +303,7 @@ class Card:
         pass
 
     def create_selection(self,content:str,index:int):#生成一个selection，图片和名字是一样的，但是type_card和content是选项内容
-        _class=type(self)
-        new_selection=_class(self.player)
+        new_selection=self.copy_for_player(self.player)
         new_selection.content=content
         new_selection.type_card=f"Selection {index}"
         new_selection.selection_index=index
@@ -350,6 +388,10 @@ class Card:
         self.when_gain_buff(self.player,self.player.opponent,buff,card)
 
     def update_buff(self):
+        if hasattr(self,"_effect_params_before_clone"):
+            self.effect_params=self._effect_params_before_clone.copy()
+            if not any(buff.card_type=="Clone" for buff in self.buffs):
+                del self._effect_params_before_clone
         reset_instance_methods(self)
         self.change_function_by_buff()
         

@@ -15,6 +15,7 @@ class Shadow_Stalker(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"discard_count":1}
 
         self.name:str="Shadow Stalker"
         self.live:int=3
@@ -29,15 +30,16 @@ class Shadow_Stalker(Creature):
         self.color:str="black"
         self.type_card:str="Creature - Assassin"
         self.rarity:str="Rare"
-        self.content:str="Cannot be targeted by spells or abilities. Whenever Shadow Stalker attacks, the opponent discards a card."
+        self.content:str="Cannot be targeted by spells or abilities. Whenever Shadow Stalker attacks, the opponent discards {discard_count_article} card{discard_count_plural}."
         self.image_path:str="cards/creature/Shadow Stalker/image.jpg"
 
         self.flag_dict["Hexproof"]=True
 
     async def when_start_attcak(self, card: "Creature | Player", player: "Player" = None, opponent: "Player" = None):
-        if opponent.hand:
-            card_hand=random.choice(opponent.hand)
-            opponent.discard(card_hand)
+        for _ in range(self.effect_params["discard_count"]):
+            if opponent.hand:
+                card_hand=random.choice(opponent.hand)
+                opponent.discard(card_hand)
                 
 
 

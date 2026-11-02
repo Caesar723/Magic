@@ -16,6 +16,7 @@ class Mystic_Tides(Instant_Undo):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"mana_threshold":2}
 
         self.name:str="Mystic Tides"
 
@@ -25,7 +26,7 @@ class Mystic_Tides(Instant_Undo):
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Common"
-        self.content:str="Counter target spell unless its controller's mana pool is less than 2. If it is countered this way, tap random opponent's creature."
+        self.content:str="Counter target spell unless its controller's mana pool is less than {mana_threshold}. If it is countered this way, tap random opponent's creature."
         self.image_path:str="cards/Instant/Mystic Tides/image.jpg"
 
     @select_object("",1)
@@ -40,7 +41,7 @@ class Mystic_Tides(Instant_Undo):
         result,reason=super().check_can_use(player)
         if not result:
             return (result,reason)
-        if sum(self.player.room.get_cost_total(player).values())<2:
+        if sum(self.player.room.get_cost_total(player).values())<self.effect_params["mana_threshold"]:
             return (False,"not enough mana")
         else:
             return (True,"")

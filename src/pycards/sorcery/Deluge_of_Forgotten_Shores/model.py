@@ -12,6 +12,7 @@ class Deluge_of_Forgotten_Shores(Sorcery):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":3}
 
         self.fixed_id:int=268
 
@@ -21,7 +22,7 @@ class Deluge_of_Forgotten_Shores(Sorcery):
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Mythic Rare"
-        self.content:str="Return all creatures your opponent controls to their owners' hands. Draw three cards."
+        self.content:str="Return all creatures your opponent controls to their owners' hands. Draw {draw_count_word} card{draw_count_plural}."
         self.image_path:str="cards/sorcery/Deluge of Forgotten Shores/image.jpg"
 
     @select_object("",1)
@@ -31,7 +32,7 @@ class Deluge_of_Forgotten_Shores(Sorcery):
             for creature in list(opponent.battlefield):
                 owner=creature.player
                 owner.remove_card(creature,"battlefield")
-                owner.append_card(type(creature)(owner),"hand")
-            player.draw_card(3)
+                owner.append_card(creature.copy_for_player(owner),"hand")
+            player.draw_card(self.effect_params["draw_count"])
         finally:
             player.action_store.end_record()

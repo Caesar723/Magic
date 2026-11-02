@@ -13,6 +13,7 @@ class Verdant_Stampede(Sorcery):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"token_power":4,"token_toughness":4,"token_count":3}
 
         self.fixed_id:int=267
 
@@ -22,15 +23,16 @@ class Verdant_Stampede(Sorcery):
         self.color:str="green"
         self.type_card:str="Sorcery"
         self.rarity:str="Mythic Rare"
-        self.content:str="Create three 4/4 green Beast creature tokens with trample."
+        self.content:str="Create {token_count_word} {token_power}/{token_toughness} green Beast creature token{token_count_plural} with trample."
         self.image_path:str="cards/sorcery/Verdant Stampede/image.jpg"
 
     @select_object("",1)
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"]=()):
         player.action_store.start_record()
         try:
-            for _ in range(3):
-                player.append_card(Verdant_Stampede_Beast(player),"battlefield")
+            for _ in range(self.effect_params["token_count"]):
+                token=self.create_token(Verdant_Stampede_Beast,player)
+                player.append_card(token,"battlefield")
         finally:
             player.action_store.end_record()
 
@@ -39,6 +41,7 @@ class Verdant_Stampede_Beast(Creature):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Beast"
         self.live:int=4

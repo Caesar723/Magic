@@ -14,6 +14,7 @@ class Mystic_Confluence(Instant_Undo):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1}
 
         self.name:str="Mystic Confluence"
 
@@ -23,7 +24,7 @@ class Mystic_Confluence(Instant_Undo):
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
-        self.content:str="Counter target spell. Return target creature to its owner's hand. Draw a card."
+        self.content:str="Counter target spell. Return target creature to its owner's hand. Draw {draw_count_article} card{draw_count_plural}."
         self.image_path:str="cards/Instant/Mystic Confluence/image.jpg"
 
     @select_object("all_creatures",1)
@@ -33,8 +34,8 @@ class Mystic_Confluence(Instant_Undo):
             target=selected_object[0]
             if isinstance(target,Creature):
                 target.player.remove_card(target,"battlefield")
-                target.player.append_card(type(target)(target.player),"hand")
-        player.draw_card(1)
+                target.player.append_card(target.copy_for_player(target.player),"hand")
+        player.draw_card(self.effect_params["draw_count"])
 
 
 

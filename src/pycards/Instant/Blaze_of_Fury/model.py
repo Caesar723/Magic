@@ -15,6 +15,7 @@ class Blaze_of_Fury(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":3}
 
         self.fixed_id:int=9
 
@@ -26,14 +27,14 @@ class Blaze_of_Fury(Instant):
         self.color:str="red"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Blaze of Fury deals 3 damage to any target. If a creature is dealt damage this way, tap it."
+        self.content:str="Blaze of Fury deals {damage} damage to any target. If a creature is dealt damage this way, tap it."
         self.image_path:str="cards/Instant/Blaze of Fury/image.jpg"
 
     @select_object("all_roles",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         if selected_object:
             target = selected_object[0]
-            await self.attact_to_object(target, 3, "rgba(255,0,0,0.9)", "Missile_Hit")
+            await self.attact_to_object(target, self.effect_params["damage"], "rgba(255,0,0,0.9)", "Missile_Hit")
             if isinstance(target,Creature):
                 target.tap()
 

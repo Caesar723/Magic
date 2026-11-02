@@ -15,6 +15,7 @@ class Ancient_Stonewood(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Ancient Stonewood"
         self.live:int=7

@@ -14,6 +14,7 @@ class Mindshaper_Sphinx(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1,"scry_count":3}
 
         self.fixed_id:int=123
 
@@ -30,7 +31,7 @@ class Mindshaper_Sphinx(Creature):
         self.color:str="blue"
         self.type_card:str="Sphinx Creature - Sphinx"
         self.rarity:str="Rare"
-        self.content:str="Flying, When Mindshaper Sphinx enters the battlefield, scry 3, then draw a card. (To scry 3, look at the top three cards of your library, then put any number of them on the bottom of your library and the rest on top in any order.)"
+        self.content:str="Flying, When Mindshaper Sphinx enters the battlefield, scry {scry_count}, then draw {draw_count_article} card{draw_count_plural}. (To scry {scry_count}, look at the top three cards of your library, then put any number of them on the bottom of your library and the rest on top in any order.)"
         self.image_path:str="cards/creature/Mindshaper Sphinx/image.jpg"
 
 
@@ -39,5 +40,5 @@ class Mindshaper_Sphinx(Creature):
 
     @select_object("",1)
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
-        await self.Scry(player,opponent,3)
-        player.draw_card(1)
+        await self.Scry(player,opponent,self.effect_params["scry_count"])
+        player.draw_card(self.effect_params["draw_count"])

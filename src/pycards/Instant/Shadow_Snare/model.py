@@ -15,6 +15,7 @@ class Shadow_Snare(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_reduction":3,"toughness_reduction":3}
 
         self.fixed_id:int=62
 
@@ -26,14 +27,14 @@ class Shadow_Snare(Instant):
         self.color:str="black"
         self.type_card:str="Instant"
         self.rarity:str="Common"
-        self.content:str="Target creature gets -3/-3 until end of turn."
+        self.content:str="Target creature gets -{power_reduction}/-{toughness_reduction} until end of turn."
         self.image_path:str="cards/Instant/Shadow Snare/image.jpg"
 
     @select_object("all_creatures",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         if selected_object:
             target = selected_object[0]
-            debuff = StateBuff(self, target, -3, -3)
+            debuff = StateBuff(self, target, -self.effect_params["power_reduction"], -self.effect_params["toughness_reduction"])
             debuff.set_end_of_turn()
             target.gain_buff(debuff, self)
 

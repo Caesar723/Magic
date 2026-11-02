@@ -15,6 +15,7 @@ class Judgment_Day(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=215
 
@@ -41,4 +42,4 @@ class Judgment_Day(Sorcery):
             choose_list=player_curr.get_cards_by_pos_type("graveyard",Creature)
             if choose_list:
                 creature=random.choice(choose_list)
-                player_curr.append_card(type(creature)(player_curr),"battlefield")
+                player_curr.append_card(creature.copy_for_player(player_curr),"battlefield")

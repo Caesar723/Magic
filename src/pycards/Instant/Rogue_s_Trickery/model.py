@@ -14,6 +14,7 @@ class Rogue_s_Trickery(Instant_Undo):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=60
 
@@ -31,7 +32,7 @@ class Rogue_s_Trickery(Instant_Undo):
     @select_object("",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         func,card = await self.undo_stack(player,opponent)
-        player.append_card(type(card)(player),"hand")
+        player.append_card(card.copy_for_player(player),"hand")
 
 
 

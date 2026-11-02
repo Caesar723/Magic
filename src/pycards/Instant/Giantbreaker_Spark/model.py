@@ -12,6 +12,7 @@ class Giantbreaker_Spark(Instant):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_threshold":4,"damage_high":6,"damage_low":3}
 
         self.fixed_id:int=249
 
@@ -21,7 +22,7 @@ class Giantbreaker_Spark(Instant):
         self.color:str="red"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
-        self.content:str="Giantbreaker Spark deals 6 damage to target creature an opponent controls if its power is 4 or greater. Otherwise, it deals 3 damage to that creature."
+        self.content:str="Giantbreaker Spark deals {damage_high} damage to target creature an opponent controls if its power is {power_threshold} or greater. Otherwise, it deals {damage_low} damage to that creature."
         self.image_path:str="cards/Instant/Giantbreaker Spark/image.jpg"
 
     @select_object("opponent_creatures",1)
@@ -33,7 +34,7 @@ class Giantbreaker_Spark(Instant):
             return
         player.action_store.start_record()
         try:
-            damage=6 if target.state[0]>=4 else 3
+            damage=self.effect_params["damage_high"] if target.state[0]>=self.effect_params["power_threshold"] else self.effect_params["damage_low"]
             await self.attact_to_object(target,damage,"rgba(243, 0, 0, 0.9)","Missile_Hit")
         finally:
             player.action_store.end_record()

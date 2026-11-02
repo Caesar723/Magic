@@ -14,6 +14,7 @@ class Flameblade_Pyromancer(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":2}
 
         self.fixed_id:int=112
 
@@ -30,7 +31,7 @@ class Flameblade_Pyromancer(Creature):
         self.color:str="red"
         self.type_card:str="Human Shaman"
         self.rarity:str="Uncommon"
-        self.content:str="When Flameblade Pyromancer enters the battlefield, you may discard a card. If you do, it deals 2 damage to target creature or player."
+        self.content:str="When Flameblade Pyromancer enters the battlefield, you may discard a card. If you do, it deals {damage} damage to target creature or player."
         self.image_path:str="cards/creature/Flameblade Pyromancer/image.jpg"
 
     @select_object("",1)
@@ -40,7 +41,7 @@ class Flameblade_Pyromancer(Creature):
         if selected_object and (isinstance(selected_object[0],type(player)) or selected_object[0].content!="Do nothing"):
             #player.action_store.add_action(actions.Change_Mana(self,player,player.get_manas()))
             player.action_store.start_record()
-            await self.attact_to_object(selected_object[0],2,"rgba(243, 0, 0, 0.9)","Missile_Hit")
+            await self.attact_to_object(selected_object[0],self.effect_params["damage"],"rgba(243, 0, 0, 0.9)","Missile_Hit")
             player.action_store.end_record()
             
 

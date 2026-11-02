@@ -15,6 +15,7 @@ class Nexus_of_the_Eternal_Seas(Land):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"mana_amount":1}
 
         self.fixed_id:int=173
 
@@ -26,16 +27,16 @@ class Nexus_of_the_Eternal_Seas(Land):
         self.color:str="blue"
         self.type_card:str="Land"
         self.rarity:str="Rare"
-        self.content:str="Nexus of the Eternal Seas enters the battlefield tapped and adds one blue mana to your mana pool. You may tap Nexus of the Eternal Seas to return random opponent's creature to its owner's hand."
+        self.content:str="Nexus of the Eternal Seas enters the battlefield tapped and adds {mana_amount_word} blue mana to your mana pool. You may tap Nexus of the Eternal Seas to return random opponent's creature to its owner's hand."
         self.image_path:str="cards/land/Nexus of the Eternal Seas/image.jpg"
 
     def generate_mana(self) -> dict:
-        return {"U":1}
+        return {"U":self.effect_params["mana_amount"]}
 
     @select_object("",1)
     async def when_enter_landarea(self,player:'Player'=None,opponent:'Player'=None,selected_object:tuple['Card']=()):
         self.tap()
-        player.mana["U"]+=1
+        player.mana["U"]+=self.effect_params["mana_amount"]
         player.action_store.add_action(actions.Change_Mana(self, player, player.get_manas()))
 
     
@@ -55,5 +56,5 @@ class Nexus_of_the_Eternal_Seas(Land):
         else:
             target = random.choice(opponent.battlefield)
             target.player.remove_card(target, "battlefield")
-            target.player.append_card(type(target)(target.player), "hand")
+            target.player.append_card(target.copy_for_player(target.player), "hand")
             return True

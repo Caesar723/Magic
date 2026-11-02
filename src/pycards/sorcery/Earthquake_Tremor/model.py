@@ -17,6 +17,7 @@ class Earthquake_Tremor(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"token_power":3,"token_toughness":3,"destroy_count":3}
 
         self.fixed_id:int=203
 
@@ -28,20 +29,20 @@ class Earthquake_Tremor(Sorcery):
         self.color:str="red"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Destroy three creature permanents randomly. For each permanent destroyed this way, create a 3/3 Elemental creature token."
+        self.content:str="Destroy {destroy_count_word} creature permanents randomly. For each permanent destroyed this way, create a {token_power}/{token_toughness} Elemental creature token."
         self.image_path:str="cards/sorcery/Earthquake Tremor/image.jpg"
 
     @select_object("",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ()):
         battlefield_opponent=list(opponent.battlefield)
-        for i in range(3):
+        for i in range(self.effect_params["destroy_count"]):
             if battlefield_opponent:
                 card_to_destroy=random.choice(battlefield_opponent)
                 player.action_store.start_record()
                 await self.destroy_object(card_to_destroy,"rgba(255,0,0,1)",'High_Missile')
                 battlefield_opponent.remove(card_to_destroy)
                 
-                element=Earthquake_Tremor_Elemental(player)
+                element=self.create_token(Earthquake_Tremor_Elemental,player)
                 player.append_card(element,"battlefield")
                 player.action_store.end_record()
             
@@ -51,6 +52,7 @@ class Earthquake_Tremor(Sorcery):
 class Earthquake_Tremor_Elemental(Creature):
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Elemental"
         

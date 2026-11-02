@@ -12,6 +12,7 @@ class Thorncrown_Ancient(Creature):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"token_power":1,"token_toughness":1,"token_count":2}
 
         self.fixed_id:int=262
 
@@ -26,7 +27,7 @@ class Thorncrown_Ancient(Creature):
         self.color:str="green"
         self.type_card:str="Creature - Treefolk"
         self.rarity:str="Rare"
-        self.content:str="Trample. When Thorncrown Ancient enters the battlefield, create two 1/1 green Scout creature tokens."
+        self.content:str="Trample. When Thorncrown Ancient enters the battlefield, create {token_count_word} {token_power}/{token_toughness} green Scout creature token{token_count_plural}."
         self.image_path:str="cards/creature/Thorncrown Ancient/image.jpg"
         self.flag_dict["Trample"]=True
 
@@ -34,8 +35,9 @@ class Thorncrown_Ancient(Creature):
     async def when_enter_battlefield(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"]=()):
         player.action_store.start_record()
         try:
-            for _ in range(2):
-                player.append_card(Thorncrown_Ancient_Scout(player),"battlefield")
+            for _ in range(self.effect_params["token_count"]):
+                token=self.create_token(Thorncrown_Ancient_Scout,player)
+                player.append_card(token,"battlefield")
         finally:
             player.action_store.end_record()
 
@@ -44,6 +46,7 @@ class Thorncrown_Ancient_Scout(Creature):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Scout"
         self.live:int=1

@@ -14,6 +14,7 @@ class Sunlit_Priestess(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"heal":3}
 
         self.fixed_id:int=145
 
@@ -30,11 +31,11 @@ class Sunlit_Priestess(Creature):
         self.color:str="gold"
         self.type_card:str="Human Cleric"
         self.rarity:str="Common"
-        self.content:str="When Sunlit Priestess enters the battlefield, you gain 3 life."
+        self.content:str="When Sunlit Priestess enters the battlefield, you gain {heal} life."
         self.image_path:str="cards/creature/Sunlit Priestess/image.jpg"
 
     
     @select_object("",1)
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
-        await self.cure_to_object(player,3,"rgba(245, 238, 145, 0.8)","Missile_Hit")
+        await self.cure_to_object(player,self.effect_params["heal"],"rgba(245, 238, 145, 0.8)","Missile_Hit")
         

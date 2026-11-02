@@ -17,6 +17,7 @@ class Torrential_Manipulation(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=236
 
@@ -37,7 +38,7 @@ class Torrential_Manipulation(Sorcery):
             target = selected_object[0]
             if target in opponent.battlefield:
                 opponent.remove_card(target, "battlefield")
-                opponent.append_card(type(target)(opponent), "hand")
+                opponent.append_card(target.copy_for_player(opponent), "hand")
         sorceries = opponent.get_cards_by_pos_type("hand", (Sorcery,Instant),except_type=(Instant_Undo,))
         if sorceries:
             sorcery = random.choice(sorceries)

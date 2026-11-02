@@ -14,6 +14,7 @@ class Celestial_Convergence(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"mana_threshold":3}
 
         self.fixed_id:int=12
 
@@ -25,7 +26,7 @@ class Celestial_Convergence(Instant):
         self.color:str="gold"
         self.type_card:str="Instant"
         self.rarity:str="Mythic Rare"
-        self.content:str="Exile target permanent. If that permanent's mana value is 3 or less, its controller gains life equal to its mana value."
+        self.content:str="Exile target permanent. If that permanent's mana value is {mana_threshold} or less, its controller gains life equal to its mana value."
         self.image_path:str="cards/Instant/Celestial Convergence/image.jpg"
 
 
@@ -34,6 +35,6 @@ class Celestial_Convergence(Instant):
         if selected_object:
             await self.exile_object(selected_object[0],"rgba(255,255,0,0.7)","Missile_Hit")
             mana=sum(selected_object[0].cost.values())
-            if mana<=3:
+            if mana<=self.effect_params["mana_threshold"]:
                 await self.cure_to_object(player,mana,"rgba(89,154,85,0.6)","Missile_Hit")
         

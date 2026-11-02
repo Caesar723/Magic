@@ -14,6 +14,7 @@ class Shadowstrike(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1}
 
         self.fixed_id:int=64
 
@@ -25,7 +26,7 @@ class Shadowstrike(Instant):
         self.color:str="black"
         self.type_card:str="Instant"
         self.rarity:str="Uncommon"
-        self.content:str="Destroy target tapped creature. If a creature was destroyed this way, you may draw a card."
+        self.content:str="Destroy target tapped creature. If a creature was destroyed this way, you may draw {draw_count_article} card{draw_count_plural}."
         self.image_path:str="cards/Instant/Shadowstrike/image.jpg"
 
 
@@ -34,5 +35,5 @@ class Shadowstrike(Instant):
         if selected_object:
             if selected_object[0].get_flag("tap"):
                 await self.destroy_object(selected_object[0],"rgba(0,0,0,0.5)","Missile_Hit")
-            player.draw_card(1)
+            player.draw_card(self.effect_params["draw_count"])
         

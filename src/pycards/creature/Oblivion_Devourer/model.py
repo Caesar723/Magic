@@ -15,6 +15,7 @@ class Oblivion_Devourer(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"discard_count":2}
 
         self.fixed_id:int=131
 
@@ -31,7 +32,7 @@ class Oblivion_Devourer(Creature):
         self.color:str="black"
         self.type_card:str="Eldrazi Creature - Eldrazi"
         self.rarity:str="Rare"
-        self.content:str="Menace (This creature can't be blocked except by two or more creatures), When Oblivion Devourer attacks, you may sacrifice another minimum state creature. If you do, target player discards two cards."
+        self.content:str="Menace (This creature can't be blocked except by two or more creatures), When Oblivion Devourer attacks, you may sacrifice another minimum state creature. If you do, target player discards {discard_count_word} cards."
         self.image_path:str="cards/creature/Oblivion Devourer/image.jpg"
 
         self.flag_dict["Menace"]=True
@@ -49,7 +50,7 @@ class Oblivion_Devourer(Creature):
         if min_state_creature:
             await self.destroy_object(min_state_creature,"rgba(0,0,0,0.8)","Cure")
             
-            for i in range(2):
+            for i in range(self.effect_params["discard_count"]):
                 if opponent.hand:
                     card_hand=random.choice(opponent.hand)
                     opponent.discard(card_hand)

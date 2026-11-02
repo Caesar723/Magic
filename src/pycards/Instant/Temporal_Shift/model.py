@@ -16,6 +16,7 @@ class Temporal_Shift(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"freeze_count":2}
 
         self.name:str="Temporal Shift"
 
@@ -25,17 +26,17 @@ class Temporal_Shift(Instant):
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Randomly freeze up to two enemy creatures and halve their health.Add a time counter. When it reaches 10, take an extra turn."
+        self.content:str="Randomly freeze up to {freeze_count_word} enemy creatures and halve their health.Add a time counter. When it reaches 10, take an extra turn."
         self.image_path:str="cards/Instant/Temporal Shift/image.jpg"
 
 
     @select_object("",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         if opponent.battlefield:
-            if len(opponent.battlefield)>=2:
-                creatures=random.sample(opponent.battlefield,2)
+            if len(opponent.battlefield)>=self.effect_params["freeze_count"]:
+                creatures=random.sample(opponent.battlefield,self.effect_params["freeze_count"])
             else:
-                creatures=opponent.battlefield[0:1]
+                creatures=opponent.battlefield[:self.effect_params["freeze_count"]]
         
             for creature in creatures:
                 buff=StateBuff(self,creature,0,-creature.state[1]//2)

@@ -242,6 +242,9 @@ class Clone(Buff):
         self.state_card=selected_card.state
     def change_function(self,card:"Creature"):
 
+        if not hasattr(card,"_effect_params_before_clone"):
+            card._effect_params_before_clone=card.effect_params.copy()
+        card.effect_params=card.effect_params|self.reference_card.effect_params
         previews_func_key=card.get_flag
         previews_func_state=card.calculate_state
 

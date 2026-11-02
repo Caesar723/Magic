@@ -15,6 +15,7 @@ class Aquatic_Evasion(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1}
 
         self.name:str="Aquatic Evasion"
 
@@ -24,12 +25,12 @@ class Aquatic_Evasion(Instant):
         self.color:str="blue"
         self.type_card:str="Instant"
         self.rarity:str="Common"
-        self.content:str="Target creature you control gains hexproof until end of turn. Draw a card."
+        self.content:str="Target creature you control gains hexproof until end of turn. Draw {draw_count_article} card{draw_count_plural}."
         self.image_path:str="cards/Instant/Aquatic Evasion/image.jpg"
 
     @select_object("your_creatures",1)
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
-        player.draw_card(1)
+        player.draw_card(self.effect_params["draw_count"])
         if not selected_object:
             return
         target=selected_object[0]

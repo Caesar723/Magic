@@ -15,6 +15,7 @@ class Luminous_Glade(Land):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"mana_amount":1,"prevent_damage":1}
 
         self.fixed_id:int=170
 
@@ -26,17 +27,17 @@ class Luminous_Glade(Land):
         self.color:str="gold"
         self.type_card:str="Land"
         self.rarity:str="Rare"
-        self.content:str="Luminous Glade enters the battlefield tapped and adds one white mana to your mana pool. You may tap Luminous Glade to prevent the next 1 damage that would be dealt to target creature or player this turn."
+        self.content:str="Luminous Glade enters the battlefield tapped and adds {mana_amount_word} white mana to your mana pool. You may tap Luminous Glade to prevent the next {prevent_damage} damage that would be dealt to target creature or player this turn."
         self.image_path:str="cards/land/Luminous Glade/image.jpg"
         self.flag_dict["prevent_next_damage"]=False
 
     def generate_mana(self) -> dict:
-        return {"W":1}
+        return {"W":self.effect_params["mana_amount"]}
 
     @select_object("", 1)
     async def when_enter_landarea(self,player: "Player" = None,opponent: "Player" = None,selected_object: tuple = (),**kwargs):
         self.tap()
-        player.mana["W"] += 1
+        player.mana["W"]+=self.effect_params["mana_amount"]
         player.action_store.add_action(actions.Change_Mana(self, player, player.get_manas()))
 
     
@@ -72,7 +73,7 @@ class Luminous_Glade(Land):
     ):
         if value <= 0 or not self.get_flag("prevent_next_damage"):
             return await super().when_an_object_hert(object, value, player, opponent)
-        prevent = min(1, value)
+        prevent = min(self.effect_params["prevent_damage"], value)
         await self.cure_to_object(
             object,
             prevent,

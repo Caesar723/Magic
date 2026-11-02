@@ -14,6 +14,7 @@ class Essence_Channeler(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"mana":"G"}
 
         self.fixed_id:int=109
 
@@ -30,12 +31,12 @@ class Essence_Channeler(Creature):
         self.color:str="green"
         self.type_card:str="Human Shaman"
         self.rarity:str="Rare"
-        self.content:str="Whenever you cast a creature spell, you may add G to your mana pool."
+        self.content:str="Whenever you cast a creature spell, you may add {mana} to your mana pool."
         self.image_path:str="cards/creature/Essence Channeler/image.jpg"
 
     async def when_play_a_card(self,card:'Card',player:'Player'=None,opponent:'Player'=None):
         if isinstance(card,Creature) and self in player.battlefield:
-            player.mana["G"]+=1
+            player.mana["G"]+=self.effect_params["mana"].count("G")
             player.action_store.add_action(Change_Mana(self,player,player.get_manas()))
             
 

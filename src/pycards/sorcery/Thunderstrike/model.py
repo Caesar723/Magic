@@ -14,6 +14,7 @@ class Thunderstrike(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":8}
 
         self.fixed_id:int=233
 
@@ -25,13 +26,13 @@ class Thunderstrike(Sorcery):
         self.color:str="red"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Choose one creature. Thunderstrike deals 8 damage to that creature. If that creature dies, Thunderstrike deals the same amount of damage to each opponent."
+        self.content:str="Choose one creature. Thunderstrike deals {damage} damage to that creature. If that creature dies, Thunderstrike deals the same amount of damage to each opponent."
         self.image_path:str="cards/sorcery/Thunderstrike/image.jpg"
 
     @select_object("all_creatures",1)
     async def card_ability(self, player: "Player", opponent: "Player", selected_object: tuple["Card"]):
         if selected_object:
-            damage=8
+            damage=self.effect_params["damage"]
             player.action_store.start_record()
             await self.attact_to_object(selected_object[0],damage,"rgba(255,0,0,1)","Missile_Hit")
             life=selected_object[0].state[1]

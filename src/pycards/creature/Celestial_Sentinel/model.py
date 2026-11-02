@@ -14,6 +14,7 @@ class Celestial_Sentinel(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Celestial Sentinel"
         self.live:int=3

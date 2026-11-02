@@ -12,6 +12,7 @@ class Heartwood_Worldtitan(Creature):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"token_power":3,"token_toughness":3,"token_count":2}
 
         self.fixed_id:int=269
 
@@ -26,7 +27,7 @@ class Heartwood_Worldtitan(Creature):
         self.color:str="green"
         self.type_card:str="Creature - Treefolk Giant"
         self.rarity:str="Mythic Rare"
-        self.content:str="Trample. When Heartwood Worldtitan enters the battlefield, create two 3/3 green Beast creature tokens."
+        self.content:str="Trample. When Heartwood Worldtitan enters the battlefield, create {token_count_word} {token_power}/{token_toughness} green Beast creature token{token_count_plural}."
         self.image_path:str="cards/creature/Heartwood Worldtitan/image.jpg"
         self.flag_dict["Trample"]=True
 
@@ -34,8 +35,9 @@ class Heartwood_Worldtitan(Creature):
     async def when_enter_battlefield(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"]=()):
         player.action_store.start_record()
         try:
-            for _ in range(2):
-                player.append_card(Heartwood_Worldtitan_Beast(player),"battlefield")
+            for _ in range(self.effect_params["token_count"]):
+                token=self.create_token(Heartwood_Worldtitan_Beast,player)
+                player.append_card(token,"battlefield")
         finally:
             player.action_store.end_record()
 
@@ -44,6 +46,7 @@ class Heartwood_Worldtitan_Beast(Creature):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.name:str="Beast"
         self.live:int=3

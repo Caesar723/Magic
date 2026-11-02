@@ -17,6 +17,7 @@ class Sanctum_of_Verdant_Growth(Land):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"mana_amount":1,"activation_cost":3}
 
         self.fixed_id:int=176
 
@@ -28,11 +29,11 @@ class Sanctum_of_Verdant_Growth(Land):
         self.color:str="green"
         self.type_card:str="Land"
         self.rarity:str="Rare"
-        self.content:str="Sanctum of Verdant Growth enters the battlefield tapped and adds one green mana to your mana pool. You may tap Sanctum of Verdant Growth and pay 3 mana to search your library for a basic Forest card and put it onto the battlefield tapped."
+        self.content:str="Sanctum of Verdant Growth enters the battlefield tapped and adds {mana_amount_word} green mana to your mana pool. You may tap Sanctum of Verdant Growth and pay {activation_cost} mana to search your library for a basic Forest card and put it onto the battlefield tapped."
         self.image_path:str="cards/land/Sanctum of Verdant Growth/image.jpg"
 
     def generate_mana(self) -> dict:
-        return {"G":1}
+        return {"G":self.effect_params["mana_amount"]}
 
     @select_object("", 1)
     async def when_enter_landarea(
@@ -43,7 +44,7 @@ class Sanctum_of_Verdant_Growth(Land):
         **kwargs,
     ):
         self.tap()
-        player.mana["G"] += 1
+        player.mana["G"]+=self.effect_params["mana_amount"]
         player.action_store.add_action(actions.Change_Mana(self, player, player.get_manas()))
 
 
@@ -57,7 +58,7 @@ class Sanctum_of_Verdant_Growth(Land):
         self.tap()
 
         forests = player.get_cards_by_pos_type("library",(Forest,))
-        check_result=self.player.check_can_use({"colorless":3,"U":0,"W":0,"B":0,"R":0,"G":0},except_land=[self])
+        check_result=self.player.check_can_use({"colorless":self.effect_params["activation_cost"],"U":0,"W":0,"B":0,"R":0,"G":0},except_land=[self])
         if not manual or not check_result[0] or not forests:
             
             mana=self.generate_mana()
@@ -65,7 +66,7 @@ class Sanctum_of_Verdant_Growth(Land):
                 player.mana[key]+=mana[key]
             return True
         else:
-            await self.player.generate_and_consume_mana(check_result[1],{"colorless":3,"U":0,"W":0,"B":0,"R":0,"G":0},self)
+            await self.player.generate_and_consume_mana(check_result[1],{"colorless":self.effect_params["activation_cost"],"U":0,"W":0,"B":0,"R":0,"G":0},self)
             
             picked = random.choice(forests)
             player.remove_card(picked, "library")

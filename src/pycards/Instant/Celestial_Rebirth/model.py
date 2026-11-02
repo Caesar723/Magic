@@ -15,6 +15,7 @@ class Celestial_Rebirth(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=14
 
@@ -38,7 +39,7 @@ class Celestial_Rebirth(Instant):
         if creatures:
             creature:Creature=random.choice(creatures)
             player.remove_card(creature, "graveyard")
-            player.append_card(type(creature)(player), "battlefield")
+            player.append_card(creature.copy_for_player(player), "battlefield")
             
             buff = Indestructible(self, creature)
             buff.set_end_of_turn()

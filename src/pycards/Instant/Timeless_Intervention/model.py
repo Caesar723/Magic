@@ -15,6 +15,7 @@ class Timeless_Intervention(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=74
 
@@ -41,12 +42,12 @@ class Timeless_Intervention(Instant):
         if self.get_flag("return_creature"):
             for creature_self in player.get_cards_by_pos_type("exile_area",Creature):
                 player.remove_card(creature_self,"exile_area")
-                new_creature_self=type(creature_self)(player)
+                new_creature_self=creature_self.copy_for_player(player)
                 player.append_card(new_creature_self,"battlefield")
                 
             for creature_oppo in opponent.get_cards_by_pos_type("exile_area",Creature): 
                 opponent.remove_card(creature_oppo,"exile_area")
-                new_creature_self=type(creature_oppo)(opponent)
+                new_creature_self=creature_oppo.copy_for_player(opponent)
                 opponent.append_card(new_creature_self,"battlefield")
                 
         self.flag_dict["return_creature"]=False

@@ -14,6 +14,7 @@ class Chaotic_Eruption(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"discard_count":1}
 
         self.fixed_id:int=195
 
@@ -25,7 +26,7 @@ class Chaotic_Eruption(Sorcery):
         self.color:str="red"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Destroy target land. For each land destroyed this way, its controller randomly discard a card."
+        self.content:str="Destroy target land. For each land destroyed this way, its controller randomly discard {discard_count_article} card{discard_count_plural}."
         self.image_path:str="cards/sorcery/Chaotic Eruption/image.jpg"
 
     @select_object("opponent_lands",1)
@@ -34,9 +35,10 @@ class Chaotic_Eruption(Sorcery):
             target = selected_object[0]
             if target in opponent.land_area:
                 await self.destroy_land(target, "rgba(255,0,0,1)", "Missile_Hit")
-                if opponent.hand:
-                    cards_to_discard=random.choice(opponent.hand)
-                    opponent.discard(cards_to_discard)
+                for _ in range(self.effect_params["discard_count"]):
+                    if opponent.hand:
+                        cards_to_discard=random.choice(opponent.hand)
+                        opponent.discard(cards_to_discard)
 
 
 

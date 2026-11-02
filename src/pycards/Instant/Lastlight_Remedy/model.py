@@ -12,6 +12,7 @@ class Lastlight_Remedy(Instant):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1,"life_threshold":8,"heal_low":8,"heal_normal":4}
 
         self.fixed_id:int=250
 
@@ -21,17 +22,17 @@ class Lastlight_Remedy(Instant):
         self.color:str="gold"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="If you have 8 or less life, you gain 8 life and draw a card. Otherwise, you gain 4 life."
+        self.content:str="If you have {life_threshold} or less life, you gain {heal_low} life and draw {draw_count_article} card{draw_count_plural}. Otherwise, you gain {heal_normal} life."
         self.image_path:str="cards/Instant/Lastlight Remedy/image.jpg"
 
     @select_object("",1)
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"]=()):
         player.action_store.start_record()
         try:
-            if player.life<=8:
-                await self.cure_to_object(player,8,"rgba(245, 238, 145, 0.8)","Cure")
-                player.draw_card(1)
+            if player.life<=self.effect_params["life_threshold"]:
+                await self.cure_to_object(player,self.effect_params["heal_low"],"rgba(245, 238, 145, 0.8)","Cure")
+                player.draw_card(self.effect_params["draw_count"])
             else:
-                await self.cure_to_object(player,4,"rgba(245, 238, 145, 0.8)","Cure")
+                await self.cure_to_object(player,self.effect_params["heal_normal"],"rgba(245, 238, 145, 0.8)","Cure")
         finally:
             player.action_store.end_record()

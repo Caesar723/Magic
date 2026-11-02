@@ -14,6 +14,7 @@ class Rift_in_Reality(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1}
 
         self.fixed_id:int=226
 
@@ -25,7 +26,7 @@ class Rift_in_Reality(Sorcery):
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Rare"
-        self.content:str="Rift in Reality allows you to exile target creature. Return it to the battlefield under its owner's control at the beginning of the next end step.When it returns, its owner draws a card."
+        self.content:str="Rift in Reality allows you to exile target creature. Return it to the battlefield under its owner's control at the beginning of the next end step.When it returns, its owner draws {draw_count_article} card{draw_count_plural}."
         self.image_path:str="cards/sorcery/Rift in Reality/image.jpg"
 
         self.exiled_creature=None
@@ -39,9 +40,9 @@ class Rift_in_Reality(Sorcery):
 
     async def when_start_turn(self, player: "Player" = None, opponent: "Player" = None):
         if self.exiled_creature is not None:
-            new_creature=type(self.exiled_creature)(self.exiled_creature.player)
+            new_creature=self.exiled_creature.copy_for_player(self.exiled_creature.player)
             self.exiled_creature.player.append_card(new_creature,"battlefield")
-            self.exiled_creature.player.draw_card(1)
+            self.exiled_creature.player.draw_card(self.effect_params["draw_count"])
             self.exiled_creature=None
             player.remove_card_from_dict("start_turn",self)
         return await super().when_start_turn(player, opponent)

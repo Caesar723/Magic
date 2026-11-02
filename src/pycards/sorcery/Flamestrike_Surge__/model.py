@@ -15,6 +15,7 @@ class Flamestrike_Surge__(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1,"damage":3,"discard_count":1}
 
         self.name:str="Flamestrike Surge"
 
@@ -24,18 +25,20 @@ class Flamestrike_Surge__(Sorcery):
         self.color:str="red"
         self.type_card:str="Sorcery"
         self.rarity:str="Uncommon"
-        self.content:str="Flamestrike Surge deals 3 damage to any target and randomly discard a card and draw a card."
+        self.content:str="Flamestrike Surge deals {damage} damage to any target and randomly discard {discard_count_article} card{discard_count_plural} and draw {draw_count_article} card{draw_count_plural}."
         self.image_path:str="cards/sorcery/Flamestrike Surge/image.jpg"
 
     @select_object("all_roles",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         if selected_object:
-            await self.attact_to_object(selected_object[0], 3, "rgba(255,0,0,1)", "Missile_Hit")
+            await self.attact_to_object(selected_object[0], self.effect_params["damage"], "rgba(255,0,0,1)", "Missile_Hit")
         
         if player.hand:
-            card = random.choice(player.hand)
-            player.discard(card)
-            player.draw_card(1)
+            for _ in range(self.effect_params["discard_count"]):
+                if player.hand:
+                    card = random.choice(player.hand)
+                    player.discard(card)
+            player.draw_card(self.effect_params["draw_count"])
 
 
 

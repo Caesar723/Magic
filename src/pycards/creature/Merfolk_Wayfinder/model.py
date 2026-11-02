@@ -14,6 +14,7 @@ class Merfolk_Wayfinder(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"scry_count":1}
 
         self.fixed_id:int=122
 
@@ -30,11 +31,11 @@ class Merfolk_Wayfinder(Creature):
         self.color:str="blue"
         self.type_card:str="Merfolk Creature"
         self.rarity:str="Common"
-        self.content:str="Whenever Merfolk Wayfinder enters the battlefield, you may scry 1. (Look at the top card of your library. You may put that card on the bottom of your library.)"
+        self.content:str="Whenever Merfolk Wayfinder enters the battlefield, you may scry {scry_count}. (Look at the top card of your library. You may put that card on the bottom of your library.)"
         self.image_path:str="cards/creature/Merfolk Wayfinder/image.jpg"
 
     @select_object("",1)
     async def when_enter_battlefield(self, player: "Player" = None, opponent: "Player" = None,selected_object:tuple['Card']=()):# when creature enter battlefield
-        await self.Scry(player,opponent,1)
+        await self.Scry(player,opponent,self.effect_params["scry_count"])
 
         

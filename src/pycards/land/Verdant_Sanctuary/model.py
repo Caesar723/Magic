@@ -17,6 +17,7 @@ class Verdant_Sanctuary(Land):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"damage":3,"mana_amount":1}
 
         self.fixed_id:int=178
 
@@ -28,11 +29,11 @@ class Verdant_Sanctuary(Land):
         self.color:str="green"
         self.type_card:str="Land"
         self.rarity:str="Rare"
-        self.content:str="Verdant Sanctuary enters the battlefield tapped and adds one green mana to your mana pool. You may also tap Verdant Sanctuary and deal 3 damage to yourself to search your library for a basic Forest card and put it onto the battlefield tapped."
+        self.content:str="Verdant Sanctuary enters the battlefield tapped and adds {mana_amount_word} green mana to your mana pool. You may also tap Verdant Sanctuary and deal {damage} damage to yourself to search your library for a basic Forest card and put it onto the battlefield tapped."
         self.image_path:str="cards/land/Verdant Sanctuary/image.jpg"
 
     def generate_mana(self) -> dict:
-        return {"G":1}
+        return {"G":self.effect_params["mana_amount"]}
 
     # tech_doc「Land-例子2」+ Creature.when_enter_battlefield：@select_object("",1) 包住函数体，
     # 打出地后堆叠结算时会执行函数体。文案中 “enters… and adds one green mana…” 的进场加费写在这里；
@@ -46,7 +47,7 @@ class Verdant_Sanctuary(Land):
         **kwargs,
     ):
         self.tap()
-        player.mana["G"] += 1
+        player.mana["G"]+=self.effect_params["mana_amount"]
         player.action_store.add_action(actions.Change_Mana(self, player, player.get_manas()))
 
     
@@ -62,14 +63,14 @@ class Verdant_Sanctuary(Land):
 
         forests = player.get_cards_by_pos_type("library",(Forest,))
         
-        if not manual or player.life<3 or not forests:
+        if not manual or player.life<self.effect_params["damage"] or not forests:
             
             mana=self.generate_mana()
             for key in mana:
                 player.mana[key]+=mana[key]
             return True
         else:
-            await self.attact_to_object(player, 3, "rgba(0, 255, 0, 0.9)", "Missile_Hit")
+            await self.attact_to_object(player, self.effect_params["damage"], "rgba(0, 255, 0, 0.9)", "Missile_Hit")
             
             picked = random.choice(forests)
             player.remove_card(picked, "library")

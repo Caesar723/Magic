@@ -14,6 +14,7 @@ class Divine_Offering(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"heal":3}
 
         self.fixed_id:int=200
 
@@ -25,7 +26,7 @@ class Divine_Offering(Sorcery):
         self.color:str="gold"
         self.type_card:str="Sorcery"
         self.rarity:str="Common"
-        self.content:str="Destroy target land. Its controller gains 3 life."
+        self.content:str="Destroy target land. Its controller gains {heal} life."
         self.image_path:str="cards/sorcery/Divine Offering/image.jpg"
 
     @select_object("opponent_lands",1)
@@ -34,7 +35,7 @@ class Divine_Offering(Sorcery):
             target=selected_object[0]
             if target in opponent.land_area:
                 await self.destroy_land(target, "rgba(255,0,0,0.5)", "Missile_Hit")
-            await self.cure_to_object(opponent, 3, "rgba(0,255,0,1)", "Cure")
+            await self.cure_to_object(opponent, self.effect_params["heal"], "rgba(0,255,0,1)", "Cure")
 
 
 

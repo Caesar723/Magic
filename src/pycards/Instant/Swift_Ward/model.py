@@ -15,6 +15,7 @@ class Swift_Ward(Instant):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"power_bonus":1,"toughness_bonus":1}
 
         self.fixed_id:int=68
 
@@ -26,7 +27,7 @@ class Swift_Ward(Instant):
         self.color:str="gold"
         self.type_card:str="Instant"
         self.rarity:str="Common"
-        self.content:str="Target creature gets +1/+1 until end of turn and gains hexproof until end of turn."
+        self.content:str="Target creature gets +{power_bonus}/+{toughness_bonus} until end of turn and gains hexproof until end of turn."
         self.image_path:str="cards/Instant/Swift Ward/image.jpg"
 
     @select_object("your_creatures",1)
@@ -34,7 +35,7 @@ class Swift_Ward(Instant):
         if not selected_object:
             return
         target=selected_object[0]
-        buff=StateBuff(self,target,1,1)
+        buff=StateBuff(self,target,self.effect_params["power_bonus"],self.effect_params["toughness_bonus"])
         buff.set_end_of_turn()
         target.gain_buff(buff,self)
         hexproof=KeyBuff(self,target,"Hexproof")

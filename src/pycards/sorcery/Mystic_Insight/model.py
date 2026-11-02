@@ -14,6 +14,7 @@ class Mystic_Insight(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1,"scry_count":2}
 
         self.name:str="Mystic Insight"
 
@@ -23,11 +24,11 @@ class Mystic_Insight(Sorcery):
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Common"
-        self.content:str="Scry 2, then draw a card."
+        self.content:str="Scry {scry_count}, then draw {draw_count_article} card{draw_count_plural}."
         self.image_path:str="cards/sorcery/Mystic Insight/image.jpg"
 
     @select_object("",1)
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
-        await self.Scry(player,opponent,2)
-        player.draw_card(1)
+        await self.Scry(player,opponent,self.effect_params["scry_count"])
+        player.draw_card(self.effect_params["draw_count"])
 

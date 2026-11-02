@@ -14,6 +14,7 @@ class Wild_Growth(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"scry_count":2}
 
         self.name:str="Wild Growth"
 
@@ -23,7 +24,7 @@ class Wild_Growth(Sorcery):
         self.color:str="green"
         self.type_card:str="Sorcery"
         self.rarity:str="Uncommon"
-        self.content:str="Search your library for a basic land card and put it onto the battlefield tapped. Then shuffle your library. Scry 2."
+        self.content:str="Search your library for a basic land card and put it onto the battlefield tapped. Then shuffle your library. Scry {scry_count}."
         self.image_path:str="cards/sorcery/Wild Growth/image.jpg"
 
     @select_object("",1)
@@ -34,5 +35,5 @@ class Wild_Growth(Sorcery):
                 player.append_card(card,"land_area")
                 card.tap()
                 break
-        await self.Scry(player,opponent,2)
+        await self.Scry(player,opponent,self.effect_params["scry_count"])
 

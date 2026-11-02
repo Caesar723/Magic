@@ -12,6 +12,7 @@ class Pocket_Discovery(Sorcery):
 
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":1}
 
         self.fixed_id:int=243
 
@@ -21,13 +22,13 @@ class Pocket_Discovery(Sorcery):
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Common"
-        self.content:str="Draw a card."
+        self.content:str="Draw {draw_count_article} card{draw_count_plural}."
         self.image_path:str="cards/sorcery/Pocket Discovery/image.jpg"
 
     @select_object("",1)
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"]=()):
         player.action_store.start_record()
         try:
-            player.draw_card(1)
+            player.draw_card(self.effect_params["draw_count"])
         finally:
             player.action_store.end_record()

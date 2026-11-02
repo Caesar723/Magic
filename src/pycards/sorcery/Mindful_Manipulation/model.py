@@ -15,6 +15,7 @@ class Mindful_Manipulation(Sorcery):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={"draw_count":2}
 
         self.name:str="Mindful Manipulation"
 
@@ -24,12 +25,12 @@ class Mindful_Manipulation(Sorcery):
         self.color:str="blue"
         self.type_card:str="Sorcery"
         self.rarity:str="Uncommon"
-        self.content:str="Draw two cards, then put one random card from your hand on top of your library."
+        self.content:str="Draw {draw_count_word} card{draw_count_plural}, then put one random card from your hand on top of your library."
         self.image_path:str="cards/sorcery/Mindful Manipulation/image.jpg"
 
     @select_object("",1)
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
-        player.draw_card(2)
+        player.draw_card(self.effect_params["draw_count"])
         if not player.hand:
             return
         card=random.choice(player.hand)

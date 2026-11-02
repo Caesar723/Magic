@@ -14,6 +14,7 @@ class Shifting_Tides_Elemental(Creature):
     
     def __init__(self,player) -> None:
         super().__init__(player)
+        self.effect_params:dict={}
 
         self.fixed_id:int=141
 
@@ -41,5 +42,5 @@ class Shifting_Tides_Elemental(Creature):
         owner=land.player
         if land in owner.land_area:
             owner.remove_card(land,"land_area")
-            owner.append_card(type(land)(owner),"hand")
+            owner.append_card(land.copy_for_player(owner),"hand")
 
