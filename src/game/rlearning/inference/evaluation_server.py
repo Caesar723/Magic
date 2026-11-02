@@ -6,6 +6,7 @@ from game.rlearning.inference.server import BatchedInferenceServer
 
 
 class EvaluationInferenceServer(BatchedInferenceServer):
+    deterministic_actions = True
     def __init__(self, communication, config, load_queue):
         super().__init__(communication, config)
         self.load_queue = load_queue

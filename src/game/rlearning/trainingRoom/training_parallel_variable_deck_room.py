@@ -79,6 +79,7 @@ class Multi_Agent_Parallel_Variable_Deck_Room(Multi_Agent_Parallel_Room):
                 self_dead = await agent.check_dead()
                 opponent_dead = await agent.opponent.check_dead()
                 task_reward = float(opponent_dead) - float(self_dead)
+                next_state["terminal_result"] = task_reward
 
             next_potential = 0.0 if done else current_reward
 

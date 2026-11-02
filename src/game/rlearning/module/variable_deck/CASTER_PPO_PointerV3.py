@@ -320,9 +320,23 @@ class CASTER_PPO_Pointer(BaseTrainer):
         dist=torch.distributions.Categorical(logits=logits)
         value=models["Critic"](critic_features)
 
-        training_action="action" in batch
-        candidate_slot=self._select_time(batch["action"],flat_time_mask).long() if training_action else dist.sample()
-        action_log_prob=dist.log_prob(candidate_slot)
+        training_action = "action" in batch
+
+        if training_action:
+            # when PPO is updating, calculate the probability of the action in the sampled record
+            candidate_slot = self._select_time(
+                batch["action"], flat_time_mask
+            ).long()
+
+        elif getattr(self, "deterministic_actions", False):
+            # official evaluation / player battle: select the action with the highest probability
+            candidate_slot = logits.argmax(dim=-1)
+
+        else:
+            # training rollout：still use the distribution to sample the action
+            candidate_slot = dist.sample()
+
+        action_log_prob = dist.log_prob(candidate_slot)
 
         batch.update(state_result)
         batch["temporal_feature_actor"]=actor_output

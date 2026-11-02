@@ -3,6 +3,7 @@ import torch
 
 from game.rlearning.utils.baseDataset import BaseDataset
 from game.rlearning.utils.data import batch_to_cuda
+import game.rlearning.utils.log as log
 
 ACTION_CARD_ZONES=("hand","library","graveyard","stack_cards")
 RL_CARD_ZONES=("hand","graveyard","stack_cards")
@@ -405,6 +406,47 @@ class PPOAgentDataset(BaseDataset):
         result["actor_state_in"]=collate_lstm_states([state["actor_state_in"] for state in states],self.actor_hidden_dim)
         result["critic_state_in"]=collate_lstm_states([state["critic_state_in"] for state in states],self.critic_hidden_dim)
         return result
+
+
+    def log_data(self, trainer, batch_extra):
+        results = [
+            float(item["next_state"]["terminal_result"])
+            for item in self.datas
+            if bool(scalar_value(item["done"]))
+        ]
+
+        if not results:
+            return
+
+        games = len(results)
+        wins = sum(result == 1.0 for result in results)
+        losses = sum(result == -1.0 for result in results)
+        draws = sum(result == 0.0 for result in results)
+
+        success_rate = wins / games
+        loss_rate = losses / games
+        draw_rate = draws / games
+
+
+        global_reward = sum(batch_extra["global_reward"])/ self.config["max_store"]
+        reward_train = batch_extra["reward"].sum().item()/ self.config["max_store"]
+
+        metrics = {
+            "global_reward": global_reward,
+            "reward_train": reward_train,
+            "success_rate": success_rate,
+
+        }
+
+        for name, value in metrics.items():
+            log.sw_scalar(name, value, trainer.step)
+
+        if success_rate > 0.8:
+            with open(f"{self.logdir}/great_model.txt","a",encoding="utf-8") as f:
+                f.write(f"{trainer.step}\n")
+        elif success_rate > 0.6:
+            with open(f"{self.logdir}/good_model.txt","a",encoding="utf-8") as f:
+                f.write(f"{trainer.step}\n")
 
     @torch.no_grad()
     def data_preprocess(self,trainer):

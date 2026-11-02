@@ -88,7 +88,11 @@ class Parallel_Env(BaseParallelEnv):
             raise ValueError("Evaluation tasks cannot be empty")
 
         identity = {
-            "evaluation": self.evaluation_config,
+            "evaluation": {
+                key: value
+                for key, value in self.evaluation_config.items()
+                if key != "output_dir"
+            },
             "opponent_configs": self.opponent_configs,
             "opponent_steps": self.opponent_steps,
             "cases": self.cases,

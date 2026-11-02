@@ -46,6 +46,8 @@ class Agent_Player(Player):
         room_server=getattr(room,"room_server",None)
         inference=getattr(room_server,"pve_inference",None)
         self.agent=PveAgent(self.config_path,self.config,inference) if inference is not None else get_model(self.config)
+        if inference is None:
+            self.agent.deterministic_actions = True
         self.select_content:str=f"{name}|cancel"
                 
     def choose_action(self,state,isTrain=False):

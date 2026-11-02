@@ -624,7 +624,10 @@ class BaseTrainer:
             actions=actions.masked_fill(~mask,0)
             batch["actions"]=actions
             dist=torch.distributions.Categorical(actions)
-            act=dist.sample()
+            if getattr(self, "deterministic_actions", False):
+                act = dist.probs.argmax(dim=-1)
+            else:
+                act = dist.sample()
             batch["action"]=act.item() if act.numel()==1 else act
 
         return batch

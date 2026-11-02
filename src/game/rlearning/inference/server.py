@@ -101,6 +101,7 @@ class BatchedInferenceServer:
     def _infer_group(self,requests):
         first=requests[0]
         trainer=self._load_policy(first.config_path,first.restore_step)
+        trainer.deterministic_actions = getattr(self, "deterministic_actions", False) or first.policy_id == "pve"
         states=[request.state for request in requests]
         results=trainer.inference(states,isTrain=False)
         return results,first.restore_step
