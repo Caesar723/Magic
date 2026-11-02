@@ -63,6 +63,9 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         config_path_list=[f"{ORGPATH}/{config_path}" for config_path in env_config["opponent_config"]]
         self.info_communication=info_communication
         self.worker_id=worker_id
+
+        self.test_mode=env_config.get("test_mode",False)
+        self.test_cards=set(env_config.get("test_cards",[]))
         
         self.config_path=config_path
         self.config_path_list=config_path_list
@@ -130,14 +133,18 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         card_simulation_cls=self.get_card_simulation()
         
         card_simulation:"Card_Simulation"=card_simulation_cls(self.player_1,self)
-        self.augment_card_attributes(card_simulation.card)
+        #self.augment_card_attributes(card_simulation.card)
         #print("simulate_card",card_simulation_cls.__name__)
+        if not self.test_mode:
+            self.augment_card_attributes(card_simulation.card)
         similar_description=card_simulation.get_similar_description()
         
         candidates=card_simulation.get_candidates_simulation()
 
-        simulate_info=random.choice(candidates)()
+        func=random.choice(candidates)
+        simulate_info=func()
         simulate_info["similar_description"]=similar_description
+        simulate_info["scenario"]=func.__name__
 
         for recorder_key in self.game_recorder:
             recorder=self.game_recorder[recorder_key]
@@ -219,11 +226,16 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         #     return self.CARDS_CACHE[name]
         # else:
         #     self.CARDS_CACHE[name]=result
+        result=[name for name in result if name not in self.test_cards]
         result=random.sample(result,number)
         return result
 
     def get_card_simulation(self):
-        return random.choice(list(CARD_SIMULATION_DICTION.values()))
+        cards=[
+            simulation for name,simulation in CARD_SIMULATION_DICTION.items()
+            if (name in self.test_cards)==self.test_mode
+        ]
+        return random.choice(cards)
 
     def augment_card_attributes(self,card:Card):
         """Randomly change one usable card attribute before scenario generation."""
@@ -488,6 +500,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
                 key
                 for key in CARD_DICTION
                 if key.rsplit("_", 1)[-1].lower() in normalized
+                and key not in self.test_cards
             ]
 
         def create_card(
@@ -873,6 +886,8 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             "defend":defend/max_state,
             "has_state":has_state,
             "card_type":card_type,
+            "card_key":f"{card.name}_{card.type}",
+            "scenario":simulate_info["scenario"],
         }
 
     def send_data_to_host(self,agent:Agent_Train):

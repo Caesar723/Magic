@@ -1,0 +1,11 @@
+{
+    "Name": "Ashwing Tyrant",
+    "Rarity": "Mythic Rare",
+    "Type": "Creature - Dragon",
+    "Power": 7,
+    "Toughness": 6,
+    "Cost": "5RRR",
+    "Story Background": "The fortress bells sounded once before their bronze began to melt.",
+    "Ability": "Flying. When Ashwing Tyrant enters the battlefield, it deals 3 damage to your opponent.",
+    "Appearance Description": "An immense ember-scaled red dragon descends over a volcanic fortress with ash-dark wings spread wide."
+}

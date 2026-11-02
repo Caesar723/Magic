@@ -7,10 +7,12 @@ if __name__=="__main__":
         sys.path.append(str(src_root))
     
 from typing import TYPE_CHECKING
+import torch
 
 
 from game.rlearning.inference.protocol import PolicyUpdate
-from initinal_file import ORGPATH
+from game.rlearning.utils.data import batch_to_cuda
+from initinal_file import ORGPATH,CARD_SIMULATION_DICTION
 from game.rlearning.utils.baseParallelEnv import BaseParallelEnv
 if TYPE_CHECKING:
     from game.rlearning.communicate.training_parallel_room import Info_Communication
@@ -21,6 +23,9 @@ class Parallel_Env(BaseParallelEnv):
 
     def run(self):
 
+        if self.env_config.get("test_mode",False):
+            self.collect_test_data()
+            return
 
         while True:
             
@@ -43,7 +48,42 @@ class Parallel_Env(BaseParallelEnv):
                 self.stop_inference_server()
                 return 
             
-            
+    def collect_test_data(self):
+        datas={}
+        number=self.env_config["test_samples_per_scene"]
+
+        for name in self.env_config["test_cards"]:
+            simulation=CARD_SIMULATION_DICTION[name]
+            for func in simulation.get_candidates_simulation(simulation):
+                datas[name,func.__name__]=[]
+
+        while any(len(items)<number for items in datas.values()):
+            batch=self.info_communication.get_game_data()
+            for data in batch:
+                card=data["state"]["card_used"]
+                key=(card["card_key"],card["scenario"])
+                if len(datas[key])<number:
+                    datas[key].append(data)
+
+        result={
+            "env_config":self.env_config,
+            "agent_config":self.config,
+            "datas":datas,
+        }
+        with open(self.env_config["test_output"],"xb") as file:
+            torch.save(result,file)
+                
 
 
+    def evaluate_test_batch(self,batch):
+        trainer=self.agent1
+        batch=batch_to_cuda(batch,trainer.rank)
 
+        for model in trainer.models.values():
+            model.eval()
+
+        with torch.no_grad():
+            batch=trainer.encode(batch,trainer.models,False,trainer.step,trainer.epoch)
+            selection=torch.arange(batch["mean_p"].shape[0],device=batch["mean_p"].device)
+            views=trainer._synthesis_decoder_predictions(trainer.models,batch,selection)
+            return views["prior"]["prediction"]

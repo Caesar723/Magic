@@ -1,0 +1,11 @@
+{
+    "Name": "Dawnforged Sovereign",
+    "Rarity": "Mythic Rare",
+    "Type": "Creature - Angel Noble",
+    "Power": 7,
+    "Toughness": 7,
+    "Cost": "6WWWW",
+    "Story Background": "With the sovereign's return, the city remembered how to hope.",
+    "Ability": "Flying, vigilance. When Dawnforged Sovereign enters the battlefield, you gain 8 life and create two 2/2 white Knight creature tokens.",
+    "Appearance Description": "An ivory-and-gold winged sovereign descends over a holy city's stairs, with exactly two silver-armored knights below."
+}

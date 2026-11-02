@@ -1,0 +1,11 @@
+{
+    "Name": "Rootwatch Guardian",
+    "Rarity": "Uncommon",
+    "Type": "Creature - Treefolk",
+    "Power": 4,
+    "Toughness": 4,
+    "Cost": "2GG",
+    "Story Background": "No raider, on foot or wing, passes unnoticed beneath its branches.",
+    "Ability": "Reach. When Rootwatch Guardian enters the battlefield, you gain 2 life.",
+    "Appearance Description": "A moss-covered living tree guardian reaches through a golden forest canopy to intercept a diving winged creature."
+}

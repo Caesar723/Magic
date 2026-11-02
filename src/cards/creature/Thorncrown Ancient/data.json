@@ -1,0 +1,11 @@
+{
+    "Name": "Thorncrown Ancient",
+    "Rarity": "Rare",
+    "Type": "Creature - Treefolk",
+    "Power": 7,
+    "Toughness": 7,
+    "Cost": "4GGG",
+    "Story Background": "The scouts did not guide the ancient; they merely kept pace.",
+    "Ability": "Trample. When Thorncrown Ancient enters the battlefield, create two 1/1 green Scout creature tokens.",
+    "Appearance Description": "An immense walking tree crowned in thorns strides through a forest accompanied by exactly two elven scouts."
+}

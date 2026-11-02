@@ -8,3 +8,21 @@ room: "game.rlearning.trainingRoom.training_parallel_specific_orgpos_room.Multi_
 
 evaluation_config: game/rlearning/config/evaluation/standard_v1.yaml
 evaluation_interval: 2000
+
+
+test_mode: false
+test_samples_per_scene: 100
+test_output: /mnt/data/trainData/stage1_test_v1.pt
+
+test_cards: [
+  "Dawnwell Acolyte_Creature", "Pocket Discovery_Sorcery", "Cinder Needle_Instant",
+  "Tideglass Recoil_Instant", "Ashen Bargain_Sorcery", "Frontier Reinforcements_Sorcery",
+  "Hollowfang Stalker_Creature", "Giantbreaker Spark_Instant", "Lastlight Remedy_Instant",
+  "Emberforge Raider_Creature", "Rootwatch Guardian_Creature", "Mistbound Archivist_Creature",
+  "Wildheart Ascendancy_Sorcery", "Sunward Captain_Creature", "Gravebound Reckoning_Sorcery",
+  "Radiant Procession_Sorcery", "Twin Current Recall_Sorcery", "Furnace Sweep_Sorcery",
+  "Skytide Leviathan_Creature", "Cryptwake Colossus_Creature", "Thorncrown Ancient_Creature",
+  "Nightfall Harvest_Sorcery", "Ashwing Tyrant_Creature", "Sanctuary Judgment_Sorcery",
+  "Worldpyre Cataclysm_Sorcery", "Verdant Stampede_Sorcery", "Deluge of Forgotten Shores_Sorcery",
+  "Heartwood Worldtitan_Creature", "Dawnforged Sovereign_Creature", "Lord of the Second Grave_Creature"
+]

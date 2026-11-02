@@ -1,0 +1,11 @@
+{
+    "Name": "Cryptwake Colossus",
+    "Rarity": "Rare",
+    "Type": "Creature - Giant Construct",
+    "Power": 6,
+    "Toughness": 6,
+    "Cost": "4BBB",
+    "Story Background": "A thousand quiet graves became one terrible footstep.",
+    "Ability": "Lifelink. When Cryptwake Colossus enters the battlefield, your opponent loses 3 life and you gain 3 life.",
+    "Appearance Description": "A towering colossus of tombstones and ancient armor absorbs violet soul-light in a moonlit cemetery."
+}

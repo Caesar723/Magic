@@ -1,0 +1,11 @@
+{
+    "Name": "Mistbound Archivist",
+    "Rarity": "Rare",
+    "Type": "Creature - Human Wizard",
+    "Power": 2,
+    "Toughness": 4,
+    "Cost": "2UU",
+    "Story Background": "The mist preserves every book except the one you are certain you remember.",
+    "Ability": "When Mistbound Archivist enters the battlefield, draw two cards, then discard a card at random.",
+    "Appearance Description": "A blue-gray-robed archivist studies two floating folios while a discarded page drifts through a ruined misty library."
+}

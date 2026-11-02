@@ -1,0 +1,11 @@
+{
+    "Name": "Heartwood Worldtitan",
+    "Rarity": "Mythic Rare",
+    "Type": "Creature - Treefolk Giant",
+    "Power": 10,
+    "Toughness": 10,
+    "Cost": "6GGGG",
+    "Story Background": "Entire forests shift when the worldtitan answers its oldest vow.",
+    "Ability": "Trample. When Heartwood Worldtitan enters the battlefield, create two 3/3 green Beast creature tokens.",
+    "Appearance Description": "A mountain-sized living forest titan strides above a river and ruined bridge, guarded by exactly two horned beasts."
+}

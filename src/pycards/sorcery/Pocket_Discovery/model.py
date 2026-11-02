@@ -1,0 +1,33 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game.player import Player
+    from game.card import Card
+
+from game.type_cards.sorcery import Sorcery
+from game.game_function_tool import select_object
+
+
+class Pocket_Discovery(Sorcery):
+
+    def __init__(self,player) -> None:
+        super().__init__(player)
+
+        self.fixed_id:int=243
+
+        self.name:str="Pocket Discovery"
+        self.type:str="Sorcery"
+        self.mana_cost:str="U"
+        self.color:str="blue"
+        self.type_card:str="Sorcery"
+        self.rarity:str="Common"
+        self.content:str="Draw a card."
+        self.image_path:str="cards/sorcery/Pocket Discovery/image.jpg"
+
+    @select_object("",1)
+    async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"]=()):
+        player.action_store.start_record()
+        try:
+            player.draw_card(1)
+        finally:
+            player.action_store.end_record()

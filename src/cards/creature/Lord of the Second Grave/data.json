@@ -1,0 +1,11 @@
+{
+    "Name": "Lord of the Second Grave",
+    "Rarity": "Mythic Rare",
+    "Type": "Creature - Vampire Noble",
+    "Power": 7,
+    "Toughness": 7,
+    "Cost": "6BBBB",
+    "Story Background": "He promised his followers that their first defeat would never be their last.",
+    "Ability": "Lifelink. When Lord of the Second Grave enters the battlefield, return all creature cards with mana value 3 or less from your graveyard to the battlefield.",
+    "Appearance Description": "A pale black-armored necromantic lord raises a staff as spectral warriors rise throughout a ruined cemetery."
+}

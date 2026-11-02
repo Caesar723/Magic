@@ -1,0 +1,11 @@
+{
+    "Name": "Dawnwell Acolyte",
+    "Rarity": "Common",
+    "Type": "Creature - Human Cleric",
+    "Power": 1,
+    "Toughness": 2,
+    "Cost": "W",
+    "Story Background": "The village spring never runs dry while its youngest keeper maintains the dawn vigil.",
+    "Ability": "When Dawnwell Acolyte enters the battlefield, you gain 1 life.",
+    "Appearance Description": "An ivory-robed novice tends a stone spring in a medieval village at dawn; warm golden light rises from the water."
+}

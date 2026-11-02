@@ -1,0 +1,11 @@
+{
+    "Name": "Hollowfang Stalker",
+    "Rarity": "Uncommon",
+    "Type": "Creature - Vampire Rogue",
+    "Power": 3,
+    "Toughness": 2,
+    "Cost": "1BB",
+    "Story Background": "Each stolen heartbeat makes the hunt a little longer.",
+    "Ability": "Lifelink.",
+    "Appearance Description": "A pale silver-haired vampire crouches among misty graves, drawing a thin thread of red-violet vitality."
+}

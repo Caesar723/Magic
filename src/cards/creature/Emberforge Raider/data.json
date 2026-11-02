@@ -1,0 +1,11 @@
+{
+    "Name": "Emberforge Raider",
+    "Rarity": "Uncommon",
+    "Type": "Creature - Human Warrior",
+    "Power": 4,
+    "Toughness": 3,
+    "Cost": "2RR",
+    "Story Background": "She left the forge before her axe had time to cool.",
+    "Ability": "Haste. When Emberforge Raider enters the battlefield, it deals 1 damage to your opponent.",
+    "Appearance Description": "A bronze-armored warrior bursts from a medieval forge with a glowing axe, red cloak and streaming sparks."
+}

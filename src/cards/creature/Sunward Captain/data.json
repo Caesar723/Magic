@@ -1,0 +1,11 @@
+{
+    "Name": "Sunward Captain",
+    "Rarity": "Rare",
+    "Type": "Creature - Human Soldier",
+    "Power": 3,
+    "Toughness": 4,
+    "Cost": "3WW",
+    "Story Background": "Her watch begins where the city's walls end.",
+    "Ability": "Vigilance. When Sunward Captain enters the battlefield, create two 1/1 white Soldier creature tokens.",
+    "Appearance Description": "A silver-and-ivory armored captain exits a sunlit city gate flanked by exactly two white-cloaked soldiers."
+}

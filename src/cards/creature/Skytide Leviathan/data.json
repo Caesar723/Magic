@@ -1,0 +1,11 @@
+{
+    "Name": "Skytide Leviathan",
+    "Rarity": "Rare",
+    "Type": "Creature - Leviathan",
+    "Power": 5,
+    "Toughness": 6,
+    "Cost": "4UUU",
+    "Story Background": "It follows currents that no ship has ever sailed.",
+    "Ability": "Flying. When Skytide Leviathan enters the battlefield, draw two cards.",
+    "Appearance Description": "An enormous luminous blue leviathan swims through cloud banks above ancient island ruins."
+}
