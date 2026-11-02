@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+import random
 if TYPE_CHECKING:
     from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
     from game.player import Player
@@ -29,6 +30,10 @@ class Celestial_Convergence_Simulation(Card_Simulation):
         self.random_life()(self.player)
         self.room.env_creature(self.player.opponent)
         self.random_life()(self.player.opponent)
+
+        threshold=self.card.effect_params["mana_threshold"]
+        for creature in self.player.opponent.battlefield:
+            creature.mana_cost=str(max(0,threshold+random.choice((-1,0,1))))
 
         self.room.env_mana(
             self.player,

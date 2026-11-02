@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+import random
 if TYPE_CHECKING:
     from game.player import Player
 
@@ -29,5 +30,9 @@ class Gravebound_Reckoning_Simulation(Card_Simulation):
         from game.testing_room import Testing_Spawn_Creature
         self.player.opponent.battlefield=[]
         self.stage_card(Testing_Spawn_Creature(self.player.opponent,3,5),self.player.opponent)
+        heal=self.card.effect_params["heal"]
+        missing=random.choice((0,1,heal,heal+1,self.player.ini_life-1))
+        self.player.life=max(1,self.player.ini_life-missing)
+
         self.room.env_mana(self.player,{"B":(2,5)},least_mana={"colorless":3,"B":2})
         return self.room.simulate_play(self.card,preferred_subactions=(1,))

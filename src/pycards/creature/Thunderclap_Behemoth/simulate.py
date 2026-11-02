@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+import random
 if TYPE_CHECKING:
     from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
     from game.player import Player
@@ -50,14 +51,13 @@ class Thunderclap_Behemoth_Simulation(Card_Simulation):
     def simulate_when_attack_opponent(self):
         self.basic_initinal()
         self.room.env_creature(self.player)
+        threshold=self.card.effect_params["power_threshold"]
+        power=max(0,threshold+random.choice((-1,0,1)))
         for creature in self.player.battlefield:
-            creature.power=max(creature.power,4)
-            creature.actual_power=max(creature.actual_power,4)
-        # simulate_creature_attack replaces one battlefield slot with this
-        # card; keeping at least two slots guarantees another 4-power body.
+            creature.power=creature.actual_power=power
+        # Keep a supporting creature when simulate_creature_attack replaces a slot.
         supporting_creature=type(self.card)(self.player)
-        supporting_creature.power=max(supporting_creature.power,4)
-        supporting_creature.actual_power=max(supporting_creature.actual_power,4)
+        supporting_creature.power=supporting_creature.actual_power=power
         self.player.battlefield.append(supporting_creature)
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)

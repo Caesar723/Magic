@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+import random
 if TYPE_CHECKING:
     from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
     from game.player import Player
@@ -35,8 +36,8 @@ class Arcane_Haven_Simulation(Card_Simulation):
     def simulate_above_ten_life(self):
         self.basic_initinal()
         self.random_env_creature()(self.player)
-        # Keep the life-gated mana mode enabled (15-20 life).
-        self.room.env_life_high(self.player)
+        threshold=self.card.effect_params["life_threshold"]
+        self.player.life=max(1,min(self.player.ini_life,threshold+random.choice((-1,0,1))))
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
 
@@ -51,8 +52,8 @@ class Arcane_Haven_Simulation(Card_Simulation):
     def simulate_activate_ability(self):
         self.basic_initinal()
         self.random_env_creature()(self.player)
-        # generate_mana returns mana only above ten life.
-        self.room.env_life_high(self.player)
+        threshold=self.card.effect_params["life_threshold"]
+        self.player.life=min(self.player.ini_life,threshold+1)
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
 

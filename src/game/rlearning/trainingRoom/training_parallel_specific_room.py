@@ -133,12 +133,12 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         card_simulation_cls=self.get_card_simulation()
         
         card_simulation:"Card_Simulation"=card_simulation_cls(self.player_1,self)
-        #self.augment_card_attributes(card_simulation.card)
-        #print("simulate_card",card_simulation_cls.__name__)
+        card=card_simulation.card
+        before=card.effect_params.copy()
         if not self.test_mode:
-            self.augment_card_attributes(card_simulation.card)
-        similar_description=card_simulation.get_similar_description()
-        
+            self.augment_card_attributes(card)
+        similar_description=card.content if card.effect_params!=before else card_simulation.get_similar_description()
+
         candidates=card_simulation.get_candidates_simulation()
 
         func=random.choice(candidates)
@@ -239,6 +239,12 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
     def augment_card_attributes(self,card:Card):
         """Randomly change one usable card attribute before scenario generation."""
+
+        augmentation=self.env_config.get("effect_augmentation",{})
+        if random.random()<augmentation.get("probability",0):
+            for key,values in augmentation.get("values",{}).items():
+                if key in card.effect_params:
+                    card.effect_params[key]=random.choice(values)
         probability=self.config.get("card_attribute_augmentation_probability",0.0)
         if probability<=0.0 or random.random()>=probability:
             return

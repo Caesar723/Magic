@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+import random
 if TYPE_CHECKING:
     from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
     from game.player import Player
@@ -37,5 +38,9 @@ class Mindweave_Simulation(Card_Simulation):
         )
 
         self.room.env_stack_cards(self.player,self.card)
+        threshold=self.card.effect_params["mana_threshold"]
+        self.player.opponent.land_area=[]
+        self.player.opponent.mana={key:0 for key in self.player.opponent.mana}
+        self.player.opponent.mana["colorless"]=max(0,threshold+random.choice((-1,0,1)))
         simulate_info=self.room.simulate_play_in_stack(self.card)
         return simulate_info

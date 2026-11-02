@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+import random
 if TYPE_CHECKING:
     from game.player import Player
 
@@ -26,6 +27,11 @@ class Ashwing_Tyrant_Simulation(Card_Simulation):
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
+        damage=self.card.effect_params["damage"]
+        for creature in self.player.opponent.battlefield:
+            life=max(1,damage+random.choice((-1,0,1)))
+            creature.live=creature.actual_live=life
+
         self.room.env_mana(self.player,{"R":(3,6)},least_mana={"colorless":5,"R":3})
         return self.room.simulate_play(self.card,preferred_subactions=(0,))
 

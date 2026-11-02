@@ -27,7 +27,9 @@ class Resurgence_Simulation(Card_Simulation):
         self.basic_initinal()
         self.room.env_initinal_graveyard(self.player,{"creature_number":(1,10)})
         grave_creatures=[card for card in self.player.graveyard if card.type=="Creature"]
-        grave_creatures[0].mana_cost="1"
+        threshold=self.card.effect_params["mana_threshold"]
+        for index,creature in enumerate(grave_creatures):
+            creature.mana_cost=str(max(0,threshold+index%3-1))
         self.room.env_creature(self.player)
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)

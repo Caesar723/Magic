@@ -42,6 +42,11 @@ class Abyssal_Echoes_Simulation(Card_Simulation):
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
 
+        threshold=self.card.effect_params["mana_threshold"]
+        creatures=[card for card in self.player.library if card.type=="Creature"]
+        for index,creature in enumerate(creatures):
+            creature.mana_cost=str(max(0,threshold+index%3-1))
+
         self.room.env_mana(
             self.player,
             {"B": (2, 7)},

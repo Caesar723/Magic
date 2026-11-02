@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+import random
 if TYPE_CHECKING:
     from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
     from game.player import Player
@@ -35,9 +36,10 @@ class Luminous_Guardian_Simulation(Card_Simulation):
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
         self.room.env_creature(self.player.opponent)
+        threshold=self.card.effect_params["power_threshold"]
         for creature in self.player.opponent.battlefield:
-            creature.power=max(creature.power,3)
-            creature.actual_power=max(creature.actual_power,3)
+            power=max(0,threshold+random.choice((-1,0,1)))
+            creature.power=creature.actual_power=power
         self.random_life()(self.player.opponent)
 
         self.room.env_mana(

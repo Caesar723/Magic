@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+import random
 if TYPE_CHECKING:
     from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
     from game.player import Player
@@ -34,7 +35,8 @@ class Luminous_Angel_Simulation(Card_Simulation):
         self.basic_initinal()
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
-        self.player.life=20
+        threshold=self.card.effect_params["life_threshold"]
+        self.player.life=max(1,min(self.player.ini_life,threshold+random.choice((-1,0,1))))
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
 
@@ -52,7 +54,8 @@ class Luminous_Angel_Simulation(Card_Simulation):
         self.basic_initinal()
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
-        self.player.life=20
+        threshold=self.card.effect_params["life_threshold"]
+        self.player.life=max(1,min(self.player.ini_life,threshold+random.choice((-1,0,1))))
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
 
@@ -69,7 +72,8 @@ class Luminous_Angel_Simulation(Card_Simulation):
         self.basic_initinal()
         self.random_env_creature()(self.player)
         self.random_life()(self.player)
-        self.player.life=20
+        threshold=self.card.effect_params["life_threshold"]
+        self.player.life=max(1,min(self.player.ini_life,threshold+random.choice((-1,0,1))))
         self.room.env_creature(self.player.opponent)
         self.random_life()(self.player.opponent)
 

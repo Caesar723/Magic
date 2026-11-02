@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+import random
 if TYPE_CHECKING:
     from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
     from game.player import Player
@@ -39,6 +40,10 @@ class Spectral_Harbinger_Simulation(Card_Simulation):
 
         self.room.env_initinal_graveyard(self.player,{})
         self.player.graveyard.append(type(self.card)(self.player))
+
+        heal=self.card.effect_params["heal"]
+        missing=random.choice((0,1,heal,heal+1,self.player.ini_life-1))
+        self.player.life=max(1,self.player.ini_life-missing)
 
         self.room.env_mana(
             self.player,

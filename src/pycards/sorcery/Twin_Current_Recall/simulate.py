@@ -27,9 +27,10 @@ class Twin_Current_Recall_Simulation(Card_Simulation):
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
         from game.testing_room import Testing_Spawn_Creature
+        threshold=self.card.effect_params["power_threshold"]
         self.player.opponent.battlefield=[]
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,2,5),self.player.opponent)
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,3,5),self.player.opponent)
+        self.stage_card(Testing_Spawn_Creature(self.player.opponent,max(0,threshold-1),5),self.player.opponent)
+        self.stage_card(Testing_Spawn_Creature(self.player.opponent,threshold,5),self.player.opponent)
         self.room.env_mana(self.player,{"U":(3,6)},least_mana={"colorless":3,"U":3})
         return self.room.simulate_play(self.card,preferred_subactions=(0,))
 
@@ -45,9 +46,10 @@ class Twin_Current_Recall_Simulation(Card_Simulation):
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
         from game.testing_room import Testing_Spawn_Creature
+        threshold=self.card.effect_params["power_threshold"]
         self.player.opponent.battlefield=[]
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,4,5),self.player.opponent)
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,6,5),self.player.opponent)
+        self.stage_card(Testing_Spawn_Creature(self.player.opponent,threshold+1,5),self.player.opponent)
+        self.stage_card(Testing_Spawn_Creature(self.player.opponent,threshold+3,5),self.player.opponent)
         self.room.env_mana(self.player,{"U":(3,6)},least_mana={"colorless":3,"U":3})
         return self.room.simulate_play(self.card,preferred_subactions=(0,))
 
@@ -63,8 +65,9 @@ class Twin_Current_Recall_Simulation(Card_Simulation):
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
         from game.testing_room import Testing_Spawn_Creature
+        threshold=self.card.effect_params["power_threshold"]
         self.player.opponent.battlefield=[]
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,3,5),self.player.opponent)
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,4,5),self.player.opponent)
+        self.stage_card(Testing_Spawn_Creature(self.player.opponent,threshold,5),self.player.opponent)
+        self.stage_card(Testing_Spawn_Creature(self.player.opponent,threshold+1,5),self.player.opponent)
         self.room.env_mana(self.player,{"U":(3,6)},least_mana={"colorless":3,"U":3})
         return self.room.simulate_play(self.card,preferred_subactions=(0,))

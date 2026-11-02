@@ -44,7 +44,7 @@ class Sanctum_of_Verdant_Growth_Simulation(Card_Simulation):
         self.room.env_mana(
             self.player,
             {"U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
-            least_mana={"colorless": 3},
+            least_mana={"colorless": self.card.effect_params["activation_cost"]},
         )
 
         return self.room.simulate_play(self.card)
@@ -60,7 +60,7 @@ class Sanctum_of_Verdant_Growth_Simulation(Card_Simulation):
 
         self.room.env_mana(
             self.player,
-            {"colorless": (3, 3), "U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
+            {"colorless": (self.card.effect_params["activation_cost"], self.card.effect_params["activation_cost"]), "U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
         )
 
         return self.room.simulate_activate_ability(self.card)

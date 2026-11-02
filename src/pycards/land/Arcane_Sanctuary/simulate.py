@@ -45,11 +45,11 @@ class Arcane_Sanctuary_Simulation(Card_Simulation):
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
 
-        # Leave at least two mana sources besides this land for its activated ability.
+        # Provide the current activation cost besides this land.
         self.room.env_mana(
             self.player,
             {"U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
-            least_mana={"colorless": 2},
+            least_mana={"colorless": self.card.effect_params["activation_cost"]},
         )
 
         return self.room.simulate_play(self.card)
@@ -68,10 +68,10 @@ class Arcane_Sanctuary_Simulation(Card_Simulation):
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
 
-        # Keep the two-mana manual branch payable after the land is staged for activation.
+        # Keep the current manual activation cost payable.
         self.room.env_mana(
             self.player,
-            {"colorless": (2, 2), "U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
+            {"colorless": (self.card.effect_params["activation_cost"], self.card.effect_params["activation_cost"]), "U": (0, 3), "B": (0, 3), "G": (0, 3), "R": (0, 3), "W": (0, 3)},
         )
 
         return self.room.simulate_activate_ability(self.card)

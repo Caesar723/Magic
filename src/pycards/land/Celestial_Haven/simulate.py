@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+import random
 if TYPE_CHECKING:
     from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
     from game.player import Player
@@ -35,7 +36,8 @@ class Celestial_Haven_Simulation(Card_Simulation):
     def simulate_with_combat_and_life_to_pay(self):
         self.basic_initinal()
         self.room.env_creature(self.player)
-        self.room.env_life_high(self.player)
+        cost=self.card.effect_params["life_cost"]
+        self.player.life=max(1,min(self.player.ini_life,cost+random.choice((-1,0,1))))
         # Combat must be plausible so the prevention mode has a meaningful payoff.
         self.room.env_creature(self.player.opponent)
         self.random_life()(self.player.opponent)
@@ -51,8 +53,8 @@ class Celestial_Haven_Simulation(Card_Simulation):
     def simulate_activate_ability(self):
         self.basic_initinal()
         self.room.env_creature(self.player)
-        # More than three life forces the manual prevention branch.
-        self.room.env_life_high(self.player)
+        cost=self.card.effect_params["life_cost"]
+        self.player.life=max(1,min(self.player.ini_life,cost+random.choice((-1,0,1))))
         self.room.env_creature(self.player.opponent)
         self.room.attacker=self.player.opponent.battlefield[0]
         self.room.flag_dict["attacker_defenders"]=True

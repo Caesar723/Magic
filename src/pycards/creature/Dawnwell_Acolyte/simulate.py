@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+import random
 if TYPE_CHECKING:
     from game.player import Player
 
@@ -26,6 +27,10 @@ class Dawnwell_Acolyte_Simulation(Card_Simulation):
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
+        heal=self.card.effect_params["heal"]
+        missing=random.choice((0,1,heal,heal+1,self.player.ini_life-1))
+        self.player.life=max(1,self.player.ini_life-missing)
+
         self.room.env_mana(self.player,{"W":(1,4)},least_mana={"colorless":0,"W":1})
         return self.room.simulate_play(self.card,preferred_subactions=(0,))
 

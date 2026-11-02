@@ -33,11 +33,10 @@ class Verdant_Sanctuary_Simulation(Card_Simulation):
 
     @simulate
     def simulate_with_forest_and_life_to_pay(self):
-        # The seeded basic lands provide a Forest, while high life makes the
-        # self-damage mode usable without immediately putting the player at risk.
+        # Keep the self-damage mode survivable at the current damage amount.
         self.basic_initinal()
         self.random_env_creature()(self.player)
-        self.room.env_life_high(self.player)
+        self.player.life=min(self.player.ini_life,self.card.effect_params["damage"]+1)
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
 
@@ -50,10 +49,10 @@ class Verdant_Sanctuary_Simulation(Card_Simulation):
 
     @simulate
     def simulate_activate_ability(self):
-        # The library contains a basic Forest, and high life enables self-damage safely.
+        # Keep enough life to survive the current self-damage amount.
         self.basic_initinal()
         self.random_env_creature()(self.player)
-        self.room.env_life_high(self.player)
+        self.player.life=min(self.player.ini_life,self.card.effect_params["damage"]+1)
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
 

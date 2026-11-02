@@ -28,7 +28,8 @@ class Cinder_Needle_Simulation(Card_Simulation):
         self.random_life()(self.player.opponent)
         from game.testing_room import Testing_Spawn_Creature
         self.player.opponent.battlefield=[]
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,2,1),self.player.opponent)
+        damage=self.card.effect_params["damage"]
+        self.stage_card(Testing_Spawn_Creature(self.player.opponent,2,damage),self.player.opponent)
         self.room.env_mana(self.player,{"R":(1,4)},least_mana={"colorless":0,"R":1})
         return self.room.simulate_play(self.card,preferred_subactions=(1,))
 
@@ -45,6 +46,7 @@ class Cinder_Needle_Simulation(Card_Simulation):
         self.random_life()(self.player.opponent)
         from game.testing_room import Testing_Spawn_Creature
         self.player.opponent.battlefield=[]
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,2,3),self.player.opponent)
+        damage=self.card.effect_params["damage"]
+        self.stage_card(Testing_Spawn_Creature(self.player.opponent,2,damage+1),self.player.opponent)
         self.room.env_mana(self.player,{"R":(1,4)},least_mana={"colorless":0,"R":1})
         return self.room.simulate_play(self.card,preferred_subactions=(1,))

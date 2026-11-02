@@ -44,8 +44,14 @@ class Lord_of_the_Second_Grave_Simulation(Card_Simulation):
         from pycards.creature.Elite_Squire.model import Elite_Squire
         from pycards.creature.Storm_Bringer.model import Storm_Bringer
         self.room.env_no_creature(self.player)
-        self.stage_card(Elite_Squire(self.player),zone="graveyard")
-        self.stage_card(Storm_Bringer(self.player),zone="graveyard")
+        threshold=self.card.effect_params["mana_threshold"]
+        for mana in (max(0,threshold-1),threshold):
+            creature=Elite_Squire(self.player)
+            creature.mana_cost=str(mana)
+            self.stage_card(creature,zone="graveyard")
+        creature=Storm_Bringer(self.player)
+        creature.mana_cost=str(threshold+1)
+        self.stage_card(creature,zone="graveyard")
         self.room.env_mana(self.player,{"B":(4,7)},least_mana={"colorless":6,"B":4})
         return self.room.simulate_play(self.card,preferred_subactions=(0,))
 
@@ -62,7 +68,9 @@ class Lord_of_the_Second_Grave_Simulation(Card_Simulation):
         self.random_life()(self.player.opponent)
         from pycards.creature.Storm_Bringer.model import Storm_Bringer
         self.room.env_no_creature(self.player)
-        self.stage_card(Storm_Bringer(self.player),zone="graveyard")
+        creature=Storm_Bringer(self.player)
+        creature.mana_cost=str(self.card.effect_params["mana_threshold"]+1)
+        self.stage_card(creature,zone="graveyard")
         self.room.env_mana(self.player,{"B":(4,7)},least_mana={"colorless":6,"B":4})
         return self.room.simulate_play(self.card,preferred_subactions=(0,))
 

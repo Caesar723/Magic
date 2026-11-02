@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+import random
 if TYPE_CHECKING:
     from game.player import Player
 
@@ -27,6 +28,10 @@ class Dawnforged_Sovereign_Simulation(Card_Simulation):
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
         self.room.env_no_creature(self.player)
+        heal=self.card.effect_params["heal"]
+        missing=random.choice((0,1,heal,heal+1,self.player.ini_life-1))
+        self.player.life=max(1,self.player.ini_life-missing)
+
         self.room.env_mana(self.player,{"W":(4,7)},least_mana={"colorless":6,"W":4})
         return self.room.simulate_play(self.card,preferred_subactions=(0,))
 
@@ -42,6 +47,10 @@ class Dawnforged_Sovereign_Simulation(Card_Simulation):
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
         self.room.env_one_creature(self.player)
+        heal=self.card.effect_params["heal"]
+        missing=random.choice((0,1,heal,heal+1,self.player.ini_life-1))
+        self.player.life=max(1,self.player.ini_life-missing)
+
         self.room.env_mana(self.player,{"W":(4,7)},least_mana={"colorless":6,"W":4})
         return self.room.simulate_play(self.card,preferred_subactions=(0,))
 

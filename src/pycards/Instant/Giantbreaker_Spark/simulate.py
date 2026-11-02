@@ -28,7 +28,9 @@ class Giantbreaker_Spark_Simulation(Card_Simulation):
         self.random_life()(self.player.opponent)
         from game.testing_room import Testing_Spawn_Creature
         self.player.opponent.battlefield=[]
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,3,8),self.player.opponent)
+        threshold=self.card.effect_params["power_threshold"]
+        life=max(self.card.effect_params["damage_low"],self.card.effect_params["damage_high"])+1
+        self.stage_card(Testing_Spawn_Creature(self.player.opponent,max(0,threshold-1),life),self.player.opponent)
         self.room.env_mana(self.player,{"R":(2,5)},least_mana={"colorless":1,"R":2})
         return self.room.simulate_play(self.card,preferred_subactions=(1,))
 
@@ -45,7 +47,9 @@ class Giantbreaker_Spark_Simulation(Card_Simulation):
         self.random_life()(self.player.opponent)
         from game.testing_room import Testing_Spawn_Creature
         self.player.opponent.battlefield=[]
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,4,8),self.player.opponent)
+        threshold=self.card.effect_params["power_threshold"]
+        life=max(self.card.effect_params["damage_low"],self.card.effect_params["damage_high"])+1
+        self.stage_card(Testing_Spawn_Creature(self.player.opponent,threshold,life),self.player.opponent)
         self.room.env_mana(self.player,{"R":(2,5)},least_mana={"colorless":1,"R":2})
         return self.room.simulate_play(self.card,preferred_subactions=(1,))
 
@@ -62,7 +66,9 @@ class Giantbreaker_Spark_Simulation(Card_Simulation):
         self.random_life()(self.player.opponent)
         from game.testing_room import Testing_Spawn_Creature
         self.player.opponent.battlefield=[]
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,5,8),self.player.opponent)
+        threshold=self.card.effect_params["power_threshold"]
+        life=max(self.card.effect_params["damage_low"],self.card.effect_params["damage_high"])+1
+        self.stage_card(Testing_Spawn_Creature(self.player.opponent,max(0,threshold+1),life),self.player.opponent)
         self.room.env_mana(self.player,{"R":(2,5)},least_mana={"colorless":1,"R":2})
         return self.room.simulate_play(self.card,preferred_subactions=(1,))
 
@@ -79,6 +85,8 @@ class Giantbreaker_Spark_Simulation(Card_Simulation):
         self.random_life()(self.player.opponent)
         from game.testing_room import Testing_Spawn_Creature
         self.player.opponent.battlefield=[]
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,4,4),self.player.opponent)
+        threshold=self.card.effect_params["power_threshold"]
+        life=self.card.effect_params["damage_high"]
+        self.stage_card(Testing_Spawn_Creature(self.player.opponent,threshold,life),self.player.opponent)
         self.room.env_mana(self.player,{"R":(2,5)},least_mana={"colorless":1,"R":2})
         return self.room.simulate_play(self.card,preferred_subactions=(1,))

@@ -26,7 +26,8 @@ class Lastlight_Remedy_Simulation(Card_Simulation):
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
-        self.player.life=7
+        threshold=self.card.effect_params["life_threshold"]
+        self.player.life=max(1,min(self.player.ini_life,threshold-1))
         self.room.env_mana(self.player,{"W":(2,5)},least_mana={"colorless":1,"W":2})
         return self.room.simulate_play(self.card,preferred_subactions=(0,))
 
@@ -41,7 +42,8 @@ class Lastlight_Remedy_Simulation(Card_Simulation):
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
-        self.player.life=8
+        threshold=self.card.effect_params["life_threshold"]
+        self.player.life=max(1,min(self.player.ini_life,threshold))
         self.room.env_mana(self.player,{"W":(2,5)},least_mana={"colorless":1,"W":2})
         return self.room.simulate_play(self.card,preferred_subactions=(0,))
 
@@ -56,6 +58,7 @@ class Lastlight_Remedy_Simulation(Card_Simulation):
         self.random_life()(self.player)
         self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
-        self.player.life=9
+        threshold=self.card.effect_params["life_threshold"]
+        self.player.life=max(1,min(self.player.ini_life,threshold+1))
         self.room.env_mana(self.player,{"W":(2,5)},least_mana={"colorless":1,"W":2})
         return self.room.simulate_play(self.card,preferred_subactions=(0,))

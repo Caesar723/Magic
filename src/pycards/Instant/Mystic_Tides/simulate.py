@@ -33,7 +33,7 @@ class Mystic_Tides_Simulation(Card_Simulation):
         self.room.env_mana(
             self.player,
             {"U":(1,7)},
-            least_mana={"colorless":1,"U":1}
+            least_mana={"colorless":max(1,self.card.effect_params["mana_threshold"]-1),"U":1}
         )
 
         self.room.env_stack_cards(self.player,self.card)
