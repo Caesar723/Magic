@@ -1,0 +1,40 @@
+agent_config: game/rlearning/config/agents/general_agent/caster_ppo_pointer_v07-2.yaml
+opponent_config:
+  - game/rlearning/config/agents/general_agent/caster_ppo_pointer_v07.yaml
+
+
+
+env: "game.rlearning.parallel_env.training_parallel_env.Parallel_Env"
+info_communication: "game.rlearning.communicate.training_parallel_room.Info_Communication"
+room: "game.rlearning.trainingRoom.training_parallel_variable_deck_room.Multi_Agent_Parallel_Variable_Deck_Room"
+
+inference:
+  max_batch_size: 32
+  max_wait_ms: 5
+
+  opponent_registration:
+    games_per_checkpoint: 10
+    per_config: {}
+
+    scheduler:
+      class_name: game.rlearning.utils.agentSchedule.BenchmarkGaussianSchedule
+      candidate_list: great_model.txt
+      benchmark_id: f68789ad00d055cc
+      score_min: 46.0
+      score_max: 93.66
+      strength_offset: 0.0
+      sigma: 5.0
+      bin_width: 2.0
+      seed: 1234
+
+    strength:
+      initial: 0.3
+      update_from_evaluation: true
+      smoothing_alpha: 0.2
+
+rollout_torch_threads: 1
+
+num_worker: 25
+
+evaluation_config: game/rlearning/config/evaluation/standard_v2.yaml
+evaluation_interval: 2000

@@ -1,0 +1,34 @@
+env: game.rlearning.parallel_env.evaluation_parallel_env.Parallel_Env
+
+info_communication: game.rlearning.communicate.evaluation_parallel_room.Info_Communication
+
+room: game.rlearning.trainingRoom.evaluation_parallel_variable_deck_room.Multi_Agent_Parallel_Evaluation_Room
+
+evaluation_function: game.rlearning.evaluations.win_rate.get_score
+
+opponent_config:
+  - game/rlearning/config/agents/general_agent/caster_ppo_pointer_v07.yaml
+inference:
+  max_batch_size: 1000
+  max_wait_ms: 5
+
+num_worker: 50
+rollout_torch_threads: 1
+
+evaluation:
+  benchmark_version: magic_eval_v1
+  seed: 1234
+
+  pairs_per_matchup: 10
+  max_actions: 2000
+
+  load_timeout: 300
+  evaluation_timeout: 3600
+
+  opponent_steps:
+    game/rlearning/config/agents/general_agent/caster_ppo_pointer_v07.yaml:
+      - 755633
+      - 770693
+      - 759943
+      - 552733
+      - 565233

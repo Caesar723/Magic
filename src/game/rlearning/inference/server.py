@@ -5,11 +5,12 @@ import traceback
 from copy import deepcopy
 import torch
 import random
+import math
 
 from initinal_file import ORGPATH
 from game.rlearning.utils.common import CHECKPOINT_ROOT_PATH
 from game.rlearning.utils.agentSchedule import AgentSchedule
-from game.rlearning.inference.protocol import InferenceResponse, PolicyUpdate
+from game.rlearning.inference.protocol import InferenceResponse, PolicyUpdate, OpponentStrengthUpdate
 from game.rlearning.utils.file import read_yaml
 from game.rlearning.utils.model import get_class_by_name
 
@@ -172,6 +173,18 @@ class TrainingInferenceServer(BatchedInferenceServer):
         settings = config["opponent_registration"]
         limits = settings.get("per_config", {})
 
+        self.schedule_config = settings.get("scheduler", {
+            "class_name": "game.rlearning.utils.agentSchedule.AgentSchedule"
+        })
+        scheduler_class = get_class_by_name(self.schedule_config["class_name"])
+        self.opponent_scheduler = scheduler_class(self.schedule_config)
+
+        self.current_strength = float(settings.get("strength", {}).get("initial", 0.5))
+        self.last_strength_step = -1
+
+        if not math.isfinite(self.current_strength) or not 0 <= self.current_strength <= 1:
+            raise ValueError("初始 current_strength 必须位于 [0, 1]")
+
         self.pool = {
             f"{ORGPATH}/{path}": {
                 "step": None,
@@ -191,13 +204,12 @@ class TrainingInferenceServer(BatchedInferenceServer):
         self.waiting = {}
     def change_checkpoint(self, path):
         item = self.pool[path]
-
         if item["active"]:
             raise RuntimeError("Opponent still has active games")
 
         config = read_yaml(path)
         logdir = f"{CHECKPOINT_ROOT_PATH}/{config['log_dir']}"
-        step = int(AgentSchedule.get_restore_step(logdir))
+        step = self.opponent_scheduler.get_restore_step(logdir, self.current_strength)
 
         if step < 0:
             raise ValueError("Opponent needs a fixed checkpoint number")
@@ -256,11 +268,26 @@ class TrainingInferenceServer(BatchedInferenceServer):
             if isinstance(command, PolicyUpdate):
                 self._load_policy(command.config_path, command.restore_step)
 
+            elif isinstance(command, OpponentStrengthUpdate):
+                expected_benchmark = self.schedule_config.get("benchmark_id")
+                if expected_benchmark is not None and command.benchmark_id != expected_benchmark:
+                    continue
+                if command.evaluated_step <= self.last_strength_step:
+                    continue
+
+                strength = float(command.strength)
+                if not math.isfinite(strength) or not 0 <= strength <= 1:
+                    raise ValueError("收到的 current_strength 必须位于 [0, 1]")
+
+                self.current_strength = strength
+                self.last_strength_step = command.evaluated_step
+
             elif isinstance(command, tuple) and command[0] in ("opponent", "release"):
                 action, worker_id = command
                 self.release_room(worker_id)
                 if action == "opponent":
                     self.waiting[worker_id] = None
+
             else:
                 raise TypeError(f"Unknown control command: {command}")
 

@@ -9,7 +9,7 @@ if __name__=="__main__":
 from typing import TYPE_CHECKING
 import random
 from queue import Empty
-
+import math
 from initinal_file import ORGPATH
 import game.rlearning.utils.log as log
 from game.rlearning.utils.common import CHECKPOINT_ROOT_PATH
@@ -17,7 +17,7 @@ from game.rlearning.utils.model import get_class_by_name
 from game.rlearning.utils.file import read_yaml
 from game.rlearning.utils.baseParallelEnv import BaseParallelEnv
 from game.rlearning.utils.agentSchedule import AgentSchedule
-from game.rlearning.inference.protocol import PolicyUpdate
+from game.rlearning.inference.protocol import PolicyUpdate, OpponentStrengthUpdate
 if TYPE_CHECKING:
     from game.rlearning.communicate.training_parallel_room import Info_Communication
 
@@ -25,14 +25,25 @@ if TYPE_CHECKING:
 class Parallel_Env(BaseParallelEnv):
     
 
-    def initinal_config(self,config:dict):
+    def initinal_config(self, config):
         super().initinal_config(config)
 
-        
-        config_path_list=[f"{ORGPATH}/{config_path}" for config_path in config["opponent_config"]]
-        self.config_list={
-            config_path:read_yaml(config_path) for config_path in config_path_list}
-        
+        config_path_list = [f"{ORGPATH}/{path}" for path in config["opponent_config"]]
+        self.config_list = {path: read_yaml(path) for path in config_path_list}
+
+        settings = config.get("inference", {}).get("opponent_registration") or {}
+        self.schedule_config = settings.get("scheduler", {
+            "class_name": "game.rlearning.utils.agentSchedule.AgentSchedule"
+        })
+        scheduler_class = get_class_by_name(self.schedule_config["class_name"])
+        self.opponent_scheduler = scheduler_class(self.schedule_config)
+
+        self.strength_config = settings.get("strength", {})
+        self.current_strength = float(self.strength_config.get("initial", 0.5))
+        self.strength_alpha = float(self.strength_config.get("smoothing_alpha", 0.2))
+        self.last_strength_step = -1
+
+
     def run(self):
 
 
@@ -57,6 +68,7 @@ class Parallel_Env(BaseParallelEnv):
 
                 if report is not None:
                     self.log_evaluation(report)
+                    self.update_opponent_strength(report)
 
                 interval = int(self.env_config.get("evaluation_interval", 10000))
 
@@ -78,7 +90,7 @@ class Parallel_Env(BaseParallelEnv):
 
                         logdir = f"{CHECKPOINT_ROOT_PATH}/{config['log_dir']}"
 
-                        restore_step = AgentSchedule.get_restore_step(logdir)
+                        restore_step = self.opponent_scheduler.get_restore_step(logdir, self.current_strength)
 
                         self.info_communication.update_model_opponent(worker_id, agent_path, restore_step)
 
@@ -122,3 +134,39 @@ class Parallel_Env(BaseParallelEnv):
                 evaluator.shutdown()
         finally:
             super().shutdown()
+
+
+    def update_opponent_strength(self, report):
+        if not self.strength_config.get("update_from_evaluation", False):
+            return
+        if report.get("valid") is not True or report.get("score") is None:
+            return
+        if report.get("benchmark_id") != self.schedule_config["benchmark_id"]:
+            return
+
+        evaluated_step = int(report["step"])
+        if evaluated_step <= self.last_strength_step:
+            return
+
+        score = float(report["score"])
+        if not math.isfinite(score) or not 0 <= score <= 100:
+            return
+
+        score_min = float(self.schedule_config["score_min"])
+        score_max = float(self.schedule_config["score_max"])
+        measured_strength = (score - score_min) / (score_max - score_min)
+        measured_strength = max(0.0, min(1.0, measured_strength))
+
+        alpha = self.strength_alpha
+        self.current_strength = (1.0 - alpha) * self.current_strength + alpha * measured_strength
+        self.last_strength_step = evaluated_step
+
+        registration = self.env_config.get("inference", {}).get("opponent_registration")
+        if registration is not None and self.inference_communication is not None:
+            self.inference_communication.control_queue.put(OpponentStrengthUpdate(
+                strength=self.current_strength,
+                evaluated_step=evaluated_step,
+                benchmark_id=report["benchmark_id"],
+            ))
+
+        log.sw_scalar("opponent/current_strength", self.current_strength, evaluated_step)

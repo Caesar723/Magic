@@ -63,7 +63,10 @@ class Multi_Agent_Room(Base_Agent_Room):
         #     "/Users/xuanpeichen/Desktop/code/python/openai/model_complete_val.pth"
         # )
 
-        
+        restore_step = self.opponent_scheduler.get_restore_step(
+            self.player_2.agent.logdir, self.current_strength
+        )
+        self.player_2.agent.restore_checkpoint(restore_step)
 
         super().__init__(None,None)
 

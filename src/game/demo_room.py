@@ -54,7 +54,7 @@ class PVE_Demo_Room(Base_Agent_Room):
             f"{ORGPATH}/game/rlearning/weights/white2/ppo_lstm3.yaml",
             # f"{ORGPATH}/game/rlearning/weights/test/test.yaml",
         ]
-        return "/mnt/data/trainData/checkpoints/logs/general_agent/caster_ppo_pointer_v06/ckpt/config_212370.yaml"
+        return "/mnt/data/trainData/checkpoints/logs/general_agent/caster_ppo_pointer_v07/ckpt/config_775433.yaml"
 
     def initinal_player(self,players:list[tuple]):
         #agents_deck="Eternal Phoenix+Creature+4|Raging Firekin+Creature+4|Emberheart Salamander+Creature+4|Arcane Inferno+Instant+4|Pyroblast Surge+Instant+4|Fiery Blast+Instant+4|Inferno Titan+Creature+4|Flame Tinkerer+Creature+4|Mountain+Land+24"

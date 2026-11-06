@@ -76,11 +76,16 @@ class Parallel_Env(BaseParallelEnv):
             path = self.source_path(relative_path)
             opponent = read_yaml(path)
 
-            self.opponent_configs[path] = opponent
+            
 
             requested = overrides.get(relative_path, opponent["restore_step"])
+            requested = requested if isinstance(requested, list) else [requested]
 
-            self.opponent_steps[path] = self.checkpoint_step(path, requested)
+            steps = [self.checkpoint_step(path, step) for step in requested]
+
+            self.opponent_configs[path] = opponent
+
+            self.opponent_steps[path] = steps
 
         self.cases = self.build_cases()
 
@@ -151,63 +156,31 @@ class Parallel_Env(BaseParallelEnv):
         return step
 
     def build_cases(self):
-        rng = random.Random(
-            self.evaluation_config["seed"]
-        )
-
+        rng = random.Random(self.evaluation_config["seed"])
         agent_decks = self.decks(self.config)
-
-        indices = self.evaluation_config.get(
-            "agent_deck_indices",
-            list(range(len(agent_decks))),
-        )
-
-        pairs = int(
-            self.evaluation_config["pairs_per_matchup"]
-        )
-
-        if pairs <= 0 or len(set(indices)) != len(indices):
-            raise ValueError("pairs_per_matchup must be a positive number, and the deck indices cannot be repeated")
-
+        indices = self.evaluation_config.get("agent_deck_indices", list(range(len(agent_decks))))
+        pairs = int(self.evaluation_config["pairs_per_matchup"])
         cases = []
 
         for opponent_path, config in self.opponent_configs.items():
-            agent_index = rng.choice(indices)
-            if not 0 <= agent_index < len(agent_decks):
-                raise ValueError(f"Invalid agent deck index: {agent_index}")
+            opponent_decks = self.decks(config)
+            for opening in range(pairs):
+                agent_index = rng.choice(indices)
+                opponent_index = rng.randrange(len(opponent_decks))
+                seeds = [rng.randrange(2**32) for _ in range(3)]
 
-            for opponent_index, opponent_deck in enumerate(
-                self.decks(config)
-            ):
-                matchup = (
-                    f"{opponent_path}"
-                    f"|{agent_index}"
-                    f"|{opponent_index}"
-                )
-
-                for opening in range(pairs):
-                    seeds = [
-                        rng.randrange(2**32)
-                        for _ in range(3)
-                    ]
-
-                    # The same sequence, swap the first and second player.
+                for opponent_step in self.opponent_steps[opponent_path]:
+                    matchup = f"{opponent_path}|{opponent_step}"
                     for first_player in ("Agent1", "Agent2"):
                         cases.append({
                             "match_id": len(cases),
                             "matchup": matchup,
                             "opening": opening,
-
                             "opponent_config": opponent_path,
-                            "opponent_step": (
-                                self.opponent_steps[opponent_path]
-                            ),
-
+                            "opponent_step": opponent_step,
                             "agent_deck": agent_decks[agent_index],
-                            "opponent_deck": opponent_deck,
-
+                            "opponent_deck": opponent_decks[opponent_index],
                             "first_player": first_player,
-
                             "agent_shuffle_seed": seeds[0],
                             "opponent_shuffle_seed": seeds[1],
                             "game_seed": seeds[2],
@@ -275,11 +248,11 @@ class Parallel_Env(BaseParallelEnv):
             super().start_worker()
 
 
-            self.load_policies([
-                (self.config_path, 0), # The model to be evaluated is created first.
-                *self.opponent_steps.items(), # The opponents are loaded with fixed checkpoints.
-            ])
+            policies = [("main", self.config_path, 0)]
+            for path, steps in self.opponent_steps.items():
+                policies.extend(("opponent", path, step) for step in steps)
 
+            self.load_policies(policies)
             workers = set()
 
             deadline = time.monotonic()+self.evaluation_config.get("load_timeout", 300)
@@ -314,7 +287,7 @@ class Parallel_Env(BaseParallelEnv):
         step = self.checkpoint_step(self.config_path, restore_step)
 
         try:
-            self.load_policies([(self.config_path, step)])
+            self.load_policies([("main", self.config_path, step)])
 
         except Exception:
             self.shutdown()

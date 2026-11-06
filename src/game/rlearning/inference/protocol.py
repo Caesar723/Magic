@@ -29,3 +29,8 @@ class PolicyUpdate:
     config_path: str
     restore_step: RestoreStep
 
+@dataclass
+class OpponentStrengthUpdate:
+    strength: float
+    evaluated_step: int
+    benchmark_id: str
