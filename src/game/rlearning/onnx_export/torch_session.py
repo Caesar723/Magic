@@ -1,5 +1,6 @@
 from pathlib import Path
-
+import os
+import threading
 import numpy as np
 import onnxruntime as ort
 import torch
@@ -13,6 +14,24 @@ class TorchONNXSession:
         torch.int64:np.int64,
         torch.bool:np.bool_
     }
+    _sessions={}
+    _session_lock=threading.Lock()
+
+    @classmethod
+    def get(cls,path,device,providers):
+        path=str(Path(path).resolve())
+        device=torch.device(device)
+        stream=None
+        if device.type=="cuda":
+            if device.index is None:
+                device=torch.device("cuda",torch.cuda.current_device())
+            stream=torch.cuda.current_stream(device).cuda_stream
+
+        key=(os.getpid(),path,device,tuple(providers),stream)
+        with cls._session_lock:
+            if key not in cls._sessions:
+                cls._sessions[key]=cls(path,device,providers)
+            return cls._sessions[key]
 
     def __init__(self,path,device,providers):
         self.path=str(Path(path).resolve())

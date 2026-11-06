@@ -102,43 +102,38 @@ class PriorActionEmbedderWrapper(ONNXExportWrapper):
         h_state,state_tokens,state_padding_mask,_=self.models["StateTransformerEncoder"](state)
 
         num_states,num_candidates=candidate_actions.shape
-        flat_count=num_states*num_candidates
-        safe_actions=candidate_actions.clamp(min=0)
+        encoded_mask=candidate_mask.bool() & candidate_has_card.bool() & (candidate_actions>=0)
+        state_ids,candidate_ids=encoded_mask.nonzero(as_tuple=True)
 
-        h_action=self.models["ActionEncoder"](safe_actions.reshape(flat_count))
+        h_action=self.models["ActionEncoder"](candidate_actions[state_ids,candidate_ids])
         h_card_attr=self.models["CardStateEncoder"](
-            candidate_card_types.reshape(flat_count),
-            candidate_special_types.reshape(flat_count,candidate_special_types.shape[-1]),
-            candidate_mana_costs.reshape(flat_count,candidate_mana_costs.shape[-1]),
-            candidate_attacks.reshape(flat_count),
-            candidate_defends.reshape(flat_count),
-            candidate_has_state.reshape(flat_count),
-            candidate_color_identity.reshape(flat_count,candidate_color_identity.shape[-1])
+            candidate_card_types[state_ids,candidate_ids],
+            candidate_special_types[state_ids,candidate_ids],
+            candidate_mana_costs[state_ids,candidate_ids],
+            candidate_attacks[state_ids,candidate_ids],
+            candidate_defends[state_ids,candidate_ids],
+            candidate_has_state[state_ids,candidate_ids],
+            candidate_color_identity[state_ids,candidate_ids]
         )
-        h_text=candidate_text_embeddings.reshape(flat_count,candidate_text_embeddings.shape[-1])
+        h_text=candidate_text_embeddings[state_ids,candidate_ids]
         h_card=self.models["CardFusion"](h_text,h_card_attr)
+        selected_state=h_state[state_ids]
 
-        hidden_dim=h_state.shape[-1]
-        token_count=state_tokens.shape[1]
-        h_state=h_state.unsqueeze(1).expand(-1,num_candidates,-1).reshape(flat_count,hidden_dim)
-        state_tokens=state_tokens.unsqueeze(1).expand(-1,num_candidates,-1,-1)
-        state_tokens=state_tokens.reshape(flat_count,token_count,hidden_dim)
-        state_padding_mask=state_padding_mask.unsqueeze(1).expand(-1,num_candidates,-1)
-        state_padding_mask=state_padding_mask.reshape(flat_count,token_count)
-
-        planner=self.models["TransitionPlanner"](
-            h_card,h_action,h_state,state_tokens,state_padding_mask
+        planner_values=self.models["TransitionPlanner"](
+            h_card,h_action,selected_state,
+            state_tokens[state_ids],state_padding_mask[state_ids]
         )
-        mean_p,std_p=self.models["PriorEncoder"](h_card,h_action,h_state)
+        mean_values,std_values=self.models["PriorEncoder"](h_card,h_action,selected_state)
 
-        planner=planner.reshape(num_states,num_candidates,planner.shape[-2],planner.shape[-1])
-        mean_p=mean_p.reshape(num_states,num_candidates,mean_p.shape[-1])
-        std_p=std_p.reshape(num_states,num_candidates,std_p.shape[-1])
+        planner=planner_values.new_zeros(
+            (num_states,num_candidates,planner_values.shape[-2],planner_values.shape[-1])
+        )
+        mean_p=mean_values.new_zeros((num_states,num_candidates,mean_values.shape[-1]))
+        std_p=std_values.new_zeros((num_states,num_candidates,std_values.shape[-1]))
 
-        encoded_mask=(candidate_mask.bool()&candidate_has_card.bool()&(candidate_actions>=0))
-        planner=planner.masked_fill(~encoded_mask.unsqueeze(-1).unsqueeze(-1),0.0)
-        mean_p=mean_p.masked_fill(~encoded_mask.unsqueeze(-1),0.0)
-        std_p=std_p.masked_fill(~encoded_mask.unsqueeze(-1),0.0)
+        planner[state_ids,candidate_ids]=planner_values
+        mean_p[state_ids,candidate_ids]=mean_values
+        std_p[state_ids,candidate_ids]=std_values
         return planner,mean_p,std_p
 
     def build_example_inputs(self):

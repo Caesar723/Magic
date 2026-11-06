@@ -34,7 +34,7 @@ class Pyroblast_Surge(Instant):
         if selected_object:
             power=self.effect_params["damage"]
             for land in player.land_area:
-                if not land.get_flag("tap"):
+                if not land.get_flag("tap") and land.name=="Mountain":
                     power=self.effect_params["damage"]+self.effect_params["damage_bonus"]
             player.action_store.start_record()
             await self.attact_to_object(selected_object[0],power,"rgba(243, 0, 0, 0.9)","Missile_Hit")

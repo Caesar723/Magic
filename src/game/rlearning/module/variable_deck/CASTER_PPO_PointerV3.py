@@ -45,15 +45,15 @@ class CASTER_PPO_Pointer(BaseTrainer):
 
         self.extra={
             "device":device,
-            "action_embedding":TorchONNXSession(
+            "action_embedding":TorchONNXSession.get(
                 root/config["action_embedding"]["path"],
                 device,
-                config["providers"]
+                config["providers"],
             ),
-            "card_embedding":TorchONNXSession(
+            "card_embedding":TorchONNXSession.get(
                 root/config["card_embedding"]["path"],
                 device,
-                config["providers"]
+                config["providers"],
             )
         }
     def _forward(self,batch,models,isTrain,step,epoch):
@@ -144,47 +144,44 @@ class CASTER_PPO_Pointer(BaseTrainer):
     def _build_entity_features(self,batch,models,flat_time_mask,valid_indices,batch_size,time_steps):
         state=batch["rl_state"]
         device=self.extra["device"]
-
         card_mask=self._select_zone_field(state,self.rl_zone_paths,"card_mask",flat_time_mask).bool()
         num_states,num_entities=card_mask.shape
+        flat_mask=card_mask.reshape(-1)
+        slots=flat_mask.nonzero(as_tuple=False).squeeze(-1)
+        card_embeddings=torch.zeros((num_states*num_entities,self.embed_dim),dtype=torch.float32,device=device)
 
-        descriptions=self._flatten_zone_descriptions(state,self.rl_zone_paths,valid_indices,time_steps)
-        text_embeddings=models["TextEncoder"](descriptions,device=device)
+        if slots.numel()>0:
+            descriptions=self._flatten_zone_descriptions(state,self.rl_zone_paths,valid_indices,time_steps)
+            descriptions=[descriptions[index] for index in slots.detach().cpu().tolist()]
+            onnx_inputs={
+                "text_embeddings":models["TextEncoder"](descriptions,device=device),
+                "card_mask":flat_mask.index_select(0,slots)
+            }
+            fields={
+                "card_types":("card_types",torch.long),
+                "card_special_types":("card_special_types",torch.float32),
+                "card_mana_costs":("card_costs",torch.float32),
+                "card_color_identity":("card_color_identity",torch.float32),
+                "card_attacks":("card_atks",torch.float32),
+                "card_defends":("card_hps",torch.float32),
+                "card_has_state":("card_has_state",torch.float32)
+            }
+            for name,(field,dtype) in fields.items():
+                value=self._select_zone_field(state,self.rl_zone_paths,field,flat_time_mask)
+                onnx_inputs[name]=value.flatten(0,1).index_select(0,slots).to(dtype=dtype)
 
-        card_types=self._select_zone_field(state,self.rl_zone_paths,"card_types",flat_time_mask)
-        card_special_types=self._select_zone_field(state,self.rl_zone_paths,"card_special_types",flat_time_mask)
-        card_mana_costs=self._select_zone_field(state,self.rl_zone_paths,"card_costs",flat_time_mask)
-        card_color_identity=self._select_zone_field(state,self.rl_zone_paths,"card_color_identity",flat_time_mask)
-        card_attacks=self._select_zone_field(state,self.rl_zone_paths,"card_atks",flat_time_mask)
-        card_defends=self._select_zone_field(state,self.rl_zone_paths,"card_hps",flat_time_mask)
-        card_has_state=self._select_zone_field(state,self.rl_zone_paths,"card_has_state",flat_time_mask)
+            output_specs={"card_embeddings":((slots.numel(),self.embed_dim),torch.float32)}
+            encoded=self.extra["card_embedding"].run(onnx_inputs,output_specs)["card_embeddings"]
+            card_embeddings.index_copy_(0,slots,encoded)
 
-        num_cards=num_states*num_entities
-        onnx_inputs={
-            "text_embeddings":text_embeddings.reshape(num_cards,-1),
-            "card_types":card_types.reshape(num_cards).long(),
-            "card_special_types":card_special_types.reshape(num_cards,card_special_types.shape[-1]),
-            "card_mana_costs":card_mana_costs.reshape(num_cards,card_mana_costs.shape[-1]),
-            "card_color_identity":card_color_identity.reshape(num_cards,card_color_identity.shape[-1]),
-            "card_attacks":card_attacks.reshape(num_cards).float(),
-            "card_defends":card_defends.reshape(num_cards).float(),
-            "card_has_state":card_has_state.reshape(num_cards).float(),
-            "card_mask":card_mask.reshape(num_cards)
-        }
-        output_specs={"card_embeddings":((num_cards,self.embed_dim),torch.float32)}
-        card_embeddings=self.extra["card_embedding"].run(onnx_inputs,output_specs)["card_embeddings"]
         card_embeddings=card_embeddings.view(num_states,num_entities,self.embed_dim)
-
-        card_base_atks=self._select_zone_field(state,self.rl_zone_paths,"card_base_atks",flat_time_mask)
-        card_base_hps=self._select_zone_field(state,self.rl_zone_paths,"card_base_hps",flat_time_mask)
-        card_tapped=self._select_zone_field(state,self.rl_zone_paths,"card_tapped",flat_time_mask)
-        card_tapped_valid=self._select_zone_field(state,self.rl_zone_paths,"card_tapped_valid",flat_time_mask)
-        card_is_attacker=self._select_zone_field(state,self.rl_zone_paths,"card_is_attacker",flat_time_mask)
-
-        dynamic_features=torch.stack([card_base_atks,card_base_hps,card_tapped,card_tapped_valid,card_is_attacker],dim=-1).float()
+        dynamic_fields=("card_base_atks","card_base_hps","card_tapped","card_tapped_valid","card_is_attacker")
+        dynamic_features=torch.stack([
+            self._select_zone_field(state,self.rl_zone_paths,field,flat_time_mask)
+            for field in dynamic_fields
+        ],dim=-1).float()
         entity_features=torch.cat([card_embeddings,dynamic_features],dim=-1)
         entity_features=entity_features.masked_fill(~card_mask.unsqueeze(-1),0.0)
-
         entity_features=self._restore_time(entity_features,valid_indices,batch_size,time_steps)
         entity_mask=self._restore_time(card_mask,valid_indices,batch_size,time_steps)
         return entity_features,entity_mask
@@ -252,7 +249,14 @@ class CASTER_PPO_Pointer(BaseTrainer):
             "mean_p":((num_states,num_candidates,self.q_dim),torch.float32),
             "std_p":((num_states,num_candidates,self.q_dim),torch.float32)
         }
-        onnx_outputs=self.extra["action_embedding"].run(onnx_inputs,output_specs)
+        encode_mask=candidate_mask & candidate_has_card & (candidate_actions>=0)
+        if encode_mask.any().item():
+            onnx_outputs=self.extra["action_embedding"].run(onnx_inputs,output_specs)
+        else:
+            onnx_outputs={
+                name:torch.zeros(shape,dtype=dtype,device=device)
+                for name,(shape,dtype) in output_specs.items()
+            }
 
         planner=onnx_outputs["planner"]
         mean_p=onnx_outputs["mean_p"]
