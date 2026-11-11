@@ -160,13 +160,6 @@ model:
     input_dim: 1024
     d_model: 128
 
-  ConditionStateTextFusion:
-    class_name: "game.rlearning.net.state_space.condition_state_fusion.ConditionStateTextFusion"
-    d_model: 128
-    nhead: 4
-    num_layers: 2
-    dropout: 0.1
-
   ConditionEvidenceReader:
     class_name: "game.rlearning.net.state_space.condition_evidence.ConditionEvidenceReader"
     d_model: 128
@@ -206,6 +199,4 @@ w_birth_count_loss: 1.0
 selection_positive_weight: 1.0
 
 w_effect_loss: 0.1
-w_intermediate_effect_loss: 0.05
-w_text_attention: 0.05
-w_field_attention: 0.05
+w_evidence_attention: 0.05

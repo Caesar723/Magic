@@ -5,10 +5,21 @@ from game.rlearning.module.state_space.EntityTransitionSupportPlanBirth import e
 from game.rlearning.net.state_space.EntityTransition import squeeze_entity_time_dim
 from game.rlearning.net.state_space.LatentEntitySelector import build_existing_change_targets,strict_topk_mask
 from game.rlearning.datasets.state_space.condition_evidence_dataset import ConditionEvidenceDataset
+from game.rlearning.net.state_space.condition_evidence import ConditionCardFieldEncoder
+from game.rlearning.synthesis.artifacts import write_card_fusion_space_artifact
 from game.rlearning.synthesis.entity_transition import align_entity_transitions
 
 
 class ConditionEvidenceStage1Trainer(ConditionStage1Trainer):
+    def restore_checkpoint(self,restore_step):
+        if restore_step!=0:
+            suffix="last" if restore_step==-1 else str(restore_step)
+            checkpoint=f"{self.logdir}/ckpt/g_{suffix}"
+            state=torch.load(checkpoint,map_location="cpu",weights_only=True)
+            if "reader.query.weight" not in state.get("ConditionEvidenceReader",{}):
+                raise ValueError("This checkpoint predates the unified Evidence Reader. Start this architecture with -r 0.")
+        return super().restore_checkpoint(restore_step)
+
     @staticmethod
     def token_indices(batch,spans,prefix):
         zones=batch[prefix+"_zone"]
@@ -28,9 +39,8 @@ class ConditionEvidenceStage1Trainer(ConditionStage1Trainer):
 
         primary=getattr(self,"models",models)
         encoder=primary.get("ConditionJinaTokenEncoder",models["ConditionJinaTokenEncoder"])
-        pooled,raw_tokens,text_padding,offsets=encoder(card["description"],device=h_s.device)
+        _,raw_tokens,text_padding,offsets=encoder(card["description"],device=h_s.device)
 
-        h_text=models["ConditionTextProjection"](pooled)
         text_tokens=models["ConditionTextProjection"](raw_tokens)
         h_attr,field_tokens,field_padding=models["CardStateEncoder"](
             card["card_type"].long(),
@@ -41,25 +51,16 @@ class ConditionEvidenceStage1Trainer(ConditionStage1Trainer):
             card["has_state"].long(),
             card["color_identity"],
         )
-        h_card=models["CardFusion"](h_text,h_attr)
-
-        scanned,hidden=models["ConditionStateTextFusion"](
-            state_tokens=tokens_s,
-            text_tokens=text_tokens,
-            state_padding=pad_s,
-            text_padding=text_padding,
-            return_hidden=True,
-        )
-
         reader_padding=text_padding|~(offsets[...,1]>offsets[...,0]).to(h_s.device)
         source_index=self.token_indices(batch,spans_s,"source")
         target_index=self.token_indices(batch,spans_s,"target")
 
-        fused,h_action,field_attention,text_attention=models["ConditionEvidenceReader"](
-            scanned,h_action,field_tokens,text_tokens,
+        fused,h_action,evidence,attention=models["ConditionEvidenceReader"](
+            tokens_s,h_action,field_tokens,text_tokens,
             pad_s,field_padding,reader_padding,source_index,target_index,
         )
 
+        h_card=models["CardFusion"](evidence[:,0],h_attr)
         h_s=fused[:,0]
         plan=models["TransitionPlanner"](h_card,h_action,h_s,fused,pad_s)
         entity_tokens,entity_padding=extract_entity_tokens(fused,pad_s,spans_s)
@@ -91,13 +92,14 @@ class ConditionEvidenceStage1Trainer(ConditionStage1Trainer):
             "h_action":h_action,
             "h_card":h_card,
             "transition_plan":plan,
-            "fusion_hidden":hidden,
+            "fusion_hidden":[],
             "text_tokens":text_tokens,
             "text_padding":text_padding,
             "text_offsets":offsets,
             "field_padding":field_padding,
-            "field_attention":field_attention,
-            "text_attention":text_attention,
+            "evidence_attention":attention,
+            "field_attention":attention[:,:field_tokens.shape[1]],
+            "text_attention":attention[:,field_tokens.shape[1]:],
             "entity_tokens":entity_tokens,
             "entity_padding_mask":entity_padding,
             "entity_alignment":alignment,
@@ -118,103 +120,89 @@ class ConditionEvidenceStage1Trainer(ConditionStage1Trainer):
         return batch
 
     def evidence_loss(self,batch):
-        field_names=("card_type","mana_cost","attack","defend","color_identity","special_type","has_state")
+        field_names=ConditionCardFieldEncoder.field_names
+        attention=batch["evidence_attention"]
         field=batch["field_attention"]
         text=batch["text_attention"]
+        target=torch.zeros_like(attention)
         field_target=torch.zeros_like(field)
-        masks,rows=[],[]
+        text_losses=[]
+        text_rows=[]
 
         for row,label in enumerate(batch["supervision"]):
-            indices=[
-                field_names.index(name)
-                for name in label.get("fields",[])
-                if name in field_names
-            ]
-            field_target[row,indices]=1.0
+            groups=[]
+            for name in dict.fromkeys(label.get("fields",[])):
+                if name not in field_names:
+                    continue
+                index=field_names.index(name)
+                if batch["field_padding"][row,index]:
+                    continue
+                group=torch.zeros_like(attention[row])
+                group[index]=1.0
+                groups.append(group)
+                field_target[row,index]=1.0
 
-            offsets=batch["text_offsets"][row]
-            valid=offsets[:,1]>offsets[:,0]
-            limit=int(offsets[:,1].max())
+            offsets=batch["text_offsets"][row].to(text.device)
+            valid=(offsets[:,1]>offsets[:,0])&~batch["text_padding"][row]
+            limit=int(offsets[:,1].max()) if offsets.numel() else 0
             spans=label.get("spans",{})
-
             for part in dict.fromkeys(label.get("text_parts",[])):
                 ranges=spans.get(part,[])
-                if not ranges or any(
-                    start<0 or end<=start or end>limit
-                    for start,end in ranges
-                ):
+                if not ranges or any(start<0 or end<=start or end>limit for start,end in ranges):
                     continue
-
                 mask=torch.zeros_like(valid)
                 for start,end in ranges:
                     mask|=valid&(offsets[:,0]<end)&(offsets[:,1]>start)
+                if not mask.any():
+                    continue
+                group=torch.zeros_like(attention[row])
+                group[field.shape[1]:]=mask.to(group.dtype)/mask.sum()
+                groups.append(group)
+                conditional=text[row]/text[row].sum().clamp_min(1e-8)
+                text_losses.append(-(conditional*mask).sum().clamp_min(1e-8).log())
+                text_rows.append(row)
 
-                if mask.any():
-                    masks.append(mask)
-                    rows.append(row)
+            if groups:
+                target[row]=torch.stack(groups).mean(dim=0)
 
-        field_target=field_target.masked_fill(batch["field_padding"],0.0)
+        supervised=target.sum(dim=-1)>0
+        # KL removes the target entropy, including the different number/length of spans.
+        values=(target*(target.clamp_min(1e-8).log()-attention.clamp_min(1e-8).log())).sum(dim=-1)
+        evidence_loss=(values*supervised).sum()/supervised.sum().clamp_min(1)
         counts=field_target.sum(dim=-1)
         valid_fields=counts>0
-        field_target=field_target/counts.unsqueeze(-1).clamp_min(1.0)
-
-        values=-(field_target*field.clamp_min(1e-8).log()).sum(dim=-1)
+        field_target=field_target/counts.unsqueeze(-1).clamp_min(1)
+        conditional=field/field.sum(dim=-1,keepdim=True).clamp_min(1e-8)
+        values=-(field_target*conditional.clamp_min(1e-8).log()).sum(dim=-1)
         field_loss=(values*valid_fields).sum()/valid_fields.sum().clamp_min(1)
-
-        text_loss=text.sum()*0.0
-        text_samples=text.new_zeros(())
-
-        if masks:
-            indices=torch.tensor(rows,dtype=torch.long,device=text.device)
-            selected=torch.stack(masks).to(device=text.device,dtype=text.dtype)
-            mass=(text.index_select(0,indices)*selected).sum(dim=-1)
-            losses=-mass.clamp_min(1e-8).log()
-
-            totals=text.new_zeros(text.shape[0]).index_add(0,indices,losses)
-            counts=text.new_zeros(text.shape[0]).index_add(
-                0,indices,torch.ones_like(losses)
-            )
+        text_loss=attention.sum()*0.0
+        text_samples=attention.new_zeros(())
+        if text_losses:
+            rows=torch.tensor(text_rows,dtype=torch.long,device=attention.device)
+            totals=attention.new_zeros(attention.shape[0]).index_add(0,rows,torch.stack(text_losses))
+            counts=attention.new_zeros(attention.shape[0]).index_add(0,rows,torch.ones_like(rows,dtype=attention.dtype))
             text_samples=(counts>0).sum()
             text_loss=(totals/counts.clamp_min(1)).sum()/text_samples.clamp_min(1)
-
         return {
+            "evidence_attention_loss":evidence_loss,
+            "evidence_supervised_samples":supervised.sum(),
             "text_attention_loss":text_loss,
             "field_attention_loss":field_loss,
             "text_supervised_samples":text_samples,
             "field_supervised_samples":valid_fields.sum(),
+            "field_attention_mass":field.sum(dim=-1).mean(),
+            "text_attention_mass":text.sum(dim=-1).mean(),
         }
 
     def _forward(self,batch,models,isTrain,step,epoch):
         loss=super()._forward(batch,models,isTrain,step,epoch)
         evidence=self.evidence_loss(batch)
         loss.update(evidence)
-
-        loss["total_loss"]=(
-            loss["total_loss"]
-            + self.config.get("w_text_attention",0.05)*evidence["text_attention_loss"]
-            + self.config.get("w_field_attention",0.05)*evidence["field_attention_loss"]
-        )
+        loss["total_loss"]+=self.config.get("w_evidence_attention",0.05)*evidence["evidence_attention_loss"]
         return loss
 
     def _write_card_fusion_space_artifact(self,step_dir,models,*,fallback_vectors,transition_records):
-        primary=getattr(self,"models",models)
-        encoder=primary.get("ConditionJinaTokenEncoder",models["ConditionJinaTokenEncoder"])
-
-        def encode_text(texts,device=None):
-            pooled,_,_,_=encoder(texts,device=device)
-            return models["ConditionTextProjection"](pooled)
-
-        def encode_fields(*args):
-            pooled,_,_=models["CardStateEncoder"](*args)
-            return pooled
-
-        encode_text._load_encoder=encoder._load_encoder
-        catalog_models=models.copy()
-        catalog_models["TextEncoder"]=encode_text
-        catalog_models["CardStateEncoder"]=encode_fields
-
-        return super()._write_card_fusion_space_artifact(
-            step_dir,catalog_models,
-            fallback_vectors=fallback_vectors,
-            transition_records=transition_records,
+        # h_card now depends on scene/action-selected evidence, so use actual replay encodings.
+        return write_card_fusion_space_artifact(
+            step_dir,step=self.step,fused_vectors=fallback_vectors,records=transition_records
         )

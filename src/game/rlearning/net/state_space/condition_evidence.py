@@ -82,7 +82,6 @@ class ConditionEvidenceAttention(nn.Module):
         self.nhead=nhead
         self.head_dim=d_model//nhead
         self.supervised_head=supervised_head
-
         self.query=nn.Linear(d_model,d_model,bias=False)
         self.key=nn.Linear(d_model,d_model,bias=False)
         self.value=nn.Linear(d_model,d_model,bias=False)
@@ -90,29 +89,22 @@ class ConditionEvidenceAttention(nn.Module):
 
     def forward(self,queries,memory,padding):
         batch,length,dim=queries.shape
-
         empty=padding.all(dim=1)
         memory=memory.masked_fill(empty[:,None,None],0.0)
         padding=padding.clone()
         padding[empty,0]=False
-
         q=self.query(queries).view(batch,length,self.nhead,self.head_dim).transpose(1,2)
         k=self.key(memory).view(batch,-1,self.nhead,self.head_dim).transpose(1,2)
         v=self.value(memory).view(batch,-1,self.nhead,self.head_dim).transpose(1,2)
-
         context=F.scaled_dot_product_attention(
-            q,k,v,
-            attn_mask=(~padding)[:,None,None,:],
-            dropout_p=0.0,
+            q,k,v,attn_mask=(~padding)[:,None,None,:],dropout_p=0.0
         )
         context=context.transpose(1,2).reshape(batch,length,dim)
         context=self.output(context).masked_fill(empty[:,None,None],0.0)
-
         logits=q[:,self.supervised_head,:1]@k[:,self.supervised_head].transpose(-2,-1)
         logits=logits*self.head_dim**-0.5
         attention=logits.masked_fill(padding[:,None,:],float("-inf"))
         attention=attention.softmax(dim=-1,dtype=torch.float32).squeeze(1)
-
         return context,attention.masked_fill(empty[:,None],0.0)
 
 
@@ -125,49 +117,30 @@ class ConditionEvidenceReader(nn.Module):
         self.state_projection=nn.Linear(d_model,d_model)
         self.role_embedding=nn.Embedding(4,d_model)
         self.query_norm=nn.LayerNorm(d_model)
-
-        self.field_reader=ConditionEvidenceAttention(d_model,nhead,supervised_head)
-        self.text_reader=ConditionEvidenceAttention(d_model,nhead,supervised_head)
-        self.gate=nn.Linear(d_model*3,d_model*2)
-        self.output=nn.Linear(d_model,d_model)
+        self.memory_type=nn.Embedding(2,d_model)
+        self.reader=ConditionEvidenceAttention(d_model,nhead,supervised_head)
         self.output_norm=nn.LayerNorm(d_model)
 
     def forward(self,state_tokens,h_action,field_tokens,text_tokens,state_padding,field_padding,text_padding,source_index,target_index):
         batch,length,_=state_tokens.shape
         rows=torch.arange(batch,device=state_tokens.device)
-
         source=state_tokens[rows,source_index.clamp_min(0)]
         target=state_tokens[rows,target_index.clamp_min(0)]
         source=source*(source_index>=0).unsqueeze(-1)
         target=target*(target_index>=0).unsqueeze(-1)
-
-        h_action=self.action_norm(
-            h_action+self.action_context(torch.cat([source,target],dim=-1))
-        )
-
+        h_action=self.action_norm(h_action+self.action_context(torch.cat([source,target],dim=-1)))
         roles=torch.zeros(batch,length,dtype=torch.long,device=state_tokens.device)
-        roles.scatter_add_(
-            1,source_index.clamp_min(0).unsqueeze(-1),
-            (source_index>=0).long().unsqueeze(-1),
-        )
-        roles.scatter_add_(
-            1,target_index.clamp_min(0).unsqueeze(-1),
-            2*(target_index>=0).long().unsqueeze(-1),
-        )
-
+        roles.scatter_add_(1,source_index.clamp_min(0).unsqueeze(-1),(source_index>=0).long().unsqueeze(-1))
+        roles.scatter_add_(1,target_index.clamp_min(0).unsqueeze(-1),2*(target_index>=0).long().unsqueeze(-1))
         context=self.action_projection(h_action)+self.state_projection(state_tokens[:,0])
-        queries=self.query_norm(
-            state_tokens+context.unsqueeze(1)+self.role_embedding(roles)
-        )
-
-        fields,field_attention=self.field_reader(queries,field_tokens,field_padding)
-        text,text_attention=self.text_reader(queries,text_tokens,text_padding)
-
-        gf,gt=torch.sigmoid(
-            self.gate(torch.cat([queries,fields,text],dim=-1))
-        ).chunk(2,dim=-1)
-
-        result=self.output_norm(state_tokens+self.output(gf*fields+gt*text))
+        queries=self.query_norm(state_tokens+context.unsqueeze(1)+self.role_embedding(roles))
+        memory=torch.cat([
+            field_tokens+self.memory_type.weight[0],
+            text_tokens+self.memory_type.weight[1],
+        ],dim=1)
+        padding=torch.cat([field_padding,text_padding],dim=1)
+        evidence,attention=self.reader(queries,memory,padding)
+        evidence=evidence.masked_fill(state_padding.unsqueeze(-1),0.0)
+        result=self.output_norm(state_tokens+evidence)
         result=result.masked_fill(state_padding.unsqueeze(-1),0.0)
-
-        return result,h_action,field_attention,text_attention
+        return result,h_action,evidence,attention
