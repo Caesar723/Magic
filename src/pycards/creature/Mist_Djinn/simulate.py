@@ -4,6 +4,9 @@ from pycards.creature.Mist_Djinn.model import Mist_Djinn
 
 @bind_card(Mist_Djinn)
 class Mist_Djinn_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "block.effect": [
             "This creature does not tap after finishing a block.",

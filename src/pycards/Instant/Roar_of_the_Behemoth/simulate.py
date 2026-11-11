@@ -4,6 +4,10 @@ from pycards.Instant.Roar_of_the_Behemoth.model import Roar_of_the_Behemoth
 
 @bind_card(Roar_of_the_Behemoth)
 class Roar_of_the_Behemoth_Simulation(Card_Simulation):
+    scenario_locks={
+        '_protection_scene':('opponent.battlefield', 'self.battlefield', 'self.library'),
+    }
+
     text_parts = {
         "target.scope": [
             "Apply this to all creatures your opponent controls.",
@@ -36,7 +40,8 @@ class Roar_of_the_Behemoth_Simulation(Card_Simulation):
         self.scenario_prepare()
         return self.scenario_cast(provide_mana=False)
 
-    def _protection_scene(self, own_count, enemy_count, role="self", selected_index=0, health=3, tapped=False, knight=False, creature_knight=False, library_count=None, time_count=0, stack_type="instant", own_stack=False):
+    def _protection_scene(self,own_count,enemy_count,health=3,tapped=False,knight=False,creature_knight=False,library_count=None):
+        library_count=self.scenario_count("library",library_count)
         self.scenario_prepare()
         for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
             for index in range(count):
@@ -46,35 +51,35 @@ class Roar_of_the_Behemoth_Simulation(Card_Simulation):
                 if creature_knight:
                     creature.type_creature = "Knight"
         if library_count is not None:
-            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            self.scenario_replace_cards(self.player,"library",instant=(library_count, library_count))
             self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
         return self.scenario_cast()
 
     @simulate(evidence={'text': ('target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_0_health_3(self):
-        return self._protection_scene(0, 0, health=3)
+        return self._protection_scene(0,0,health=3)
 
     @simulate(evidence={'text': ('target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_1_enemy_0_health_3(self):
-        return self._protection_scene(1, 0, health=3)
+        return self._protection_scene(1,0,health=3)
 
     @simulate(evidence={'text': ('target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_1_health_3(self):
-        return self._protection_scene(0, 1, health=3)
+        return self._protection_scene(0,1,health=3)
 
     @simulate(evidence={'text': ('target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_1_enemy_1_health_3(self):
-        return self._protection_scene(1, 1, health=3)
+        return self._protection_scene(1,1,health=3)
 
     @simulate(evidence={'text': ('target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_3_enemy_3_health_3(self):
-        return self._protection_scene(3, 3, health=3)
+        return self._protection_scene(3,3,health=3)
 
     @simulate(evidence={'text': ('target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_5_health_3(self):
-        return self._protection_scene(0, 5, health=3)
+        return self._protection_scene(0,5,health=3)
 
     @simulate(evidence={'text': ('target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_already_tapped(self):
-        return self._protection_scene(3, 3, tapped=True)
+        return self._protection_scene(3,3,tapped=True)
 

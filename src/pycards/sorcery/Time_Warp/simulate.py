@@ -4,6 +4,10 @@ from pycards.sorcery.Time_Warp.model import Time_Warp
 
 @bind_card(Time_Warp)
 class Time_Warp_Simulation(Card_Simulation):
+    scenario_locks={
+        '_recursion_scene':('opponent.graveyard', 'opponent.hand', 'self.graveyard', 'self.hand', 'self.library'),
+    }
+
     text_parts = {
         "draw.effect": [
             "Draw {draw_count} card{draw_count_plural}.",
@@ -48,7 +52,9 @@ class Time_Warp_Simulation(Card_Simulation):
         self.scenario_prepare()
         return self.scenario_cast(provide_mana=False)
 
-    def _recursion_scene(self, own_count, enemy_count=0, other_count=0, offset=0, colored=False, library_count=None, hand_count=0):
+    def _recursion_scene(self, own_count, enemy_count=0, other_count=0, offset=0, colored=False, library_count=None, hand_count=None):
+        library_count=self.scenario_count("library",library_count)
+        hand_count=self.scenario_count("hand",hand_count)
         self.scenario_prepare()
         self.player.graveyard.clear()
         self.player.opponent.graveyard.clear()
@@ -58,17 +64,13 @@ class Time_Warp_Simulation(Card_Simulation):
             for index in range(count):
                 threshold = self.card.effect_params.get("mana_threshold", 2)
                 cost = "W" * (threshold + offset + index + 1) if colored else str(max(0, threshold + offset + index))
-                creature = self.scenario_creature(owner, power=index + 2, health=index + 3, flags={})
+                creature = self.scenario_creature(owner, power=index + 2, health=index + 3, flags={}, zone="graveyard")
                 creature.mana_cost = cost
-                owner.remove_card(creature, "battlefield")
-                owner.append_card(creature, "graveyard")
-        for _ in range(other_count):
-            self.player.append_card(self.card.copy_for_player(self.player), "graveyard")
+        self.scenario_cards(self.player,zone="graveyard",instant=other_count,safe=True)
         if library_count is not None:
-            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            self.scenario_replace_cards(self.player,"library",instant=(library_count, library_count))
             self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
-        for _ in range(hand_count):
-            self.player.append_card(self.card.copy_for_player(self.player), "hand")
+        self.scenario_random_cards(self.player,"hand",hand_count)
         return self.scenario_cast()
 
     @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})

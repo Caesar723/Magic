@@ -96,6 +96,45 @@ class Testing_Spawn_Creature(Creature):
             if val:
                 self.flag_dict[key] = True
 
+    def copy_for_player(self,player):
+        """Preserve configured attributes and restore the base combat state."""
+        from copy import deepcopy
+        from game.card import Card
+        from game.buffs import Buff
+
+        new_card=type(self)(player)
+        card_id=new_card.card_id
+        memo={id(self):new_card,id(self.player):self.player,id(player):player}
+        seen=set()
+
+        def remember(value):
+            if id(value) in seen:
+                return
+            seen.add(id(value))
+            if isinstance(value,Card):
+                memo.setdefault(id(value),value)
+            elif isinstance(value,(dict,Buff)):
+                values=value.values() if isinstance(value,dict) else vars(value).values()
+                for item in values:
+                    remember(item)
+            elif isinstance(value,(list,tuple,set)):
+                for item in value:
+                    remember(item)
+
+        remember(self.__dict__)
+        new_card.__dict__=deepcopy(self.__dict__,memo)
+        new_card.player=player
+        new_card.card_id=card_id
+        new_card.actual_power=new_card.power
+        new_card.actual_live=new_card.live
+        new_card.update_buff()
+
+        expiring=self.player.get_cards_from_dict("end_step_buff")
+        for original,copied in zip(self.buffs,new_card.buffs):
+            if original in expiring:
+                copied.set_end_of_turn()
+        return new_card
+
 class Testing_Room(Studio_Room):
     """
     Studio-style PVE room with extra websocket actions for manual scenario setup.

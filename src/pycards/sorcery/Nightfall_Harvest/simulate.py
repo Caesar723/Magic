@@ -6,6 +6,10 @@ from pycards.sorcery.Nightfall_Harvest.model import Nightfall_Harvest
 
 @bind_card(Nightfall_Harvest)
 class Nightfall_Harvest_Simulation(Card_Simulation):
+    scenario_locks={
+        '_board_scene':('opponent.battlefield', 'opponent.land_area', 'self.battlefield', 'self.land_area', 'self.library'),
+    }
+
     text_parts = {
         "destroy.effect": [
             "Destroy all opposing creatures.",
@@ -38,7 +42,8 @@ class Nightfall_Harvest_Simulation(Card_Simulation):
         self.scenario_prepare()
         return self.scenario_cast(provide_mana=False)
 
-    def _board_scene(self, own_count, enemy_count, offset=0, protected=False, library_count=None, life=None, old_exile=False):
+    def _board_scene(self,own_count,enemy_count,protected=False,library_count=None,life=None):
+        library_count=self.scenario_count("library",library_count)
         self.scenario_prepare()
         if life is not None:
             if not 1 <= life <= self.player.ini_life:
@@ -48,57 +53,57 @@ class Nightfall_Harvest_Simulation(Card_Simulation):
             for index in range(count):
                 creature = self.scenario_creature(owner, power=2 + index, health=3 + index, flags={"Hexproof": index % 2 == 0, "tap": index % 2 == 1})
                 if protected:
-                    creature.gain_buff(Indestructible(self.card, creature), self.card)
+                    self.scenario_buff(creature, Indestructible(self.card, creature))
             land = Plains(owner)
-            land.tap()
+            self.scenario_tapped(land)
             self.stage_card(land, owner, zone="land_area")
         if library_count is not None:
-            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "creature_number": (0, 0), "sorcery_number": (0, 0), "land_number": (0, 0)})
+            self.scenario_replace_cards(self.player,"library",instant=(library_count, library_count))
             self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
         self.player.mana.update(self.card.calculate_cost())
         return self.scenario_cast(provide_mana=False)
 
     @simulate(evidence={'text': ('destroy.effect', 'life.loss'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_0_normal(self):
-        return self._board_scene(0, 0, offset=0)
+        return self._board_scene(0,0)
 
     @simulate(evidence={'text': ('destroy.effect', 'life.loss'), 'fields': ('mana_cost',)})
     def simulate_self_1_enemy_0_normal(self):
-        return self._board_scene(1, 0, offset=0)
+        return self._board_scene(1,0)
 
     @simulate(evidence={'text': ('destroy.effect', 'life.loss'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_1_normal(self):
-        return self._board_scene(0, 1, offset=0)
+        return self._board_scene(0,1)
 
     @simulate(evidence={'text': ('destroy.effect', 'life.loss'), 'fields': ('mana_cost',)})
     def simulate_self_1_enemy_1_normal(self):
-        return self._board_scene(1, 1, offset=0)
+        return self._board_scene(1,1)
 
     @simulate(evidence={'text': ('destroy.effect', 'life.loss'), 'fields': ('mana_cost',)})
     def simulate_self_3_enemy_3_normal(self):
-        return self._board_scene(3, 3, offset=0)
+        return self._board_scene(3,3)
 
     @simulate(evidence={'text': ('destroy.effect', 'life.loss'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_5_normal(self):
-        return self._board_scene(0, 5, offset=0)
+        return self._board_scene(0,5)
 
     @simulate(evidence={'text': ('destroy.effect', 'life.loss'), 'fields': ('mana_cost',)})
     def simulate_self_5_enemy_0_normal(self):
-        return self._board_scene(5, 0, offset=0)
+        return self._board_scene(5,0)
 
     @simulate(evidence={'text': ('destroy.effect', 'life.loss'), 'fields': ('mana_cost',)})
     def simulate_protected_battlefields(self):
-        return self._board_scene(3, 3, protected=True)
+        return self._board_scene(3,3,protected=True)
 
     @simulate(evidence={'text': ('destroy.effect', 'life.loss'), 'fields': ('mana_cost',)})
     def simulate_life_lethal_over(self):
-        return self._board_scene(1, 2, life=self.card.effect_params["life_loss"] + -1)
+        return self._board_scene(1,2,life=self.card.effect_params["life_loss"] + -1)
 
     @simulate(evidence={'text': ('destroy.effect', 'life.loss'), 'fields': ('mana_cost',)})
     def simulate_life_lethal_equal(self):
-        return self._board_scene(1, 2, life=self.card.effect_params["life_loss"] + 0)
+        return self._board_scene(1,2,life=self.card.effect_params["life_loss"] + 0)
 
     @simulate(evidence={'text': ('destroy.effect', 'life.loss'), 'fields': ('mana_cost',)})
     def simulate_life_survives(self):
-        return self._board_scene(1, 2, life=self.card.effect_params["life_loss"] + 1)
+        return self._board_scene(1,2,life=self.card.effect_params["life_loss"] + 1)
 

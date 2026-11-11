@@ -4,6 +4,10 @@ from pycards.creature.Ironclad_Crusader.model import Ironclad_Crusader
 
 @bind_card(Ironclad_Crusader)
 class Ironclad_Crusader_Simulation(Card_Simulation):
+    scenario_locks={
+        '_enter_target':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "enter.trigger": [
             "When {card_name} enters the battlefield,",

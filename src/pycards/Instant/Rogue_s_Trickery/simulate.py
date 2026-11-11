@@ -4,6 +4,12 @@ from pycards.Instant.Rogue_s_Trickery.model import Rogue_s_Trickery
 
 @bind_card(Rogue_s_Trickery)
 class Rogue_s_Trickery_Simulation(Card_Simulation):
+    scenario_locks={
+        '_counter_scene':(),
+        'simulate_land_on_stack':('opponent.land_area',),
+        'simulate_blocking_creature':('self.battlefield',),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the nonland spell on top of the stack.",

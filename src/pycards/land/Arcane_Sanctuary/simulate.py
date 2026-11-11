@@ -4,6 +4,11 @@ from pycards.land.Arcane_Sanctuary.model import Arcane_Sanctuary
 
 @bind_card(Arcane_Sanctuary)
 class Arcane_Sanctuary_Simulation(Card_Simulation):
+    scenario_locks={
+        'simulate_enter_land_limit':('self.hand',),
+        '_scry_scene':('self.land_area', 'self.library'),
+    }
+
     text_parts = {
         "enter.tap": [
             "When {card_name} enters the battlefield, it becomes tapped.",

@@ -4,6 +4,10 @@ from pycards.creature.Mistbound_Archivist.model import Mistbound_Archivist
 
 @bind_card(Mistbound_Archivist)
 class Mistbound_Archivist_Simulation(Card_Simulation):
+    scenario_locks={
+        '_library_scene':('self.hand', 'self.library'),
+    }
+
     text_parts = {
         "enter.trigger": [
             "When {card_name} enters the battlefield,",

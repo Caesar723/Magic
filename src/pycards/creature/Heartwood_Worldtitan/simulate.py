@@ -4,6 +4,10 @@ from pycards.creature.Heartwood_Worldtitan.model import Heartwood_Worldtitan
 
 @bind_card(Heartwood_Worldtitan)
 class Heartwood_Worldtitan_Simulation(Card_Simulation):
+    scenario_locks={
+        '_token_scene':('self.battlefield',),
+    }
+
     text_parts = {
         "keyword.trample": [
             "Trample.",

@@ -4,6 +4,11 @@ from pycards.land.Mystic_Reflection_Pool.model import Mystic_Reflection_Pool
 
 @bind_card(Mystic_Reflection_Pool)
 class Mystic_Reflection_Pool_Simulation(Card_Simulation):
+    scenario_locks={
+        'simulate_enter_land_limit':('self.hand',),
+        '_scry_scene':('self.land_area', 'self.library'),
+    }
+
     text_parts = {
         "enter.tap": [
             "When {card_name} enters the battlefield, it becomes tapped.",

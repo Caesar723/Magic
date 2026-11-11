@@ -4,6 +4,11 @@ from pycards.creature.Dreamweaver_Archivist.model import Dreamweaver_Archivist
 
 @bind_card(Dreamweaver_Archivist)
 class Dreamweaver_Archivist_Simulation(Card_Simulation):
+    scenario_locks={
+        '_library_scene':('self.hand', 'self.library'),
+        '_optional_scene':(),
+    }
+
     text_parts = {
         "enter.trigger": [
             "When {card_name} enters the battlefield,",

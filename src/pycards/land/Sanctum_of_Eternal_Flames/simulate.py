@@ -4,6 +4,11 @@ from pycards.land.Sanctum_of_Eternal_Flames.model import Sanctum_of_Eternal_Flam
 
 @bind_card(Sanctum_of_Eternal_Flames)
 class Sanctum_of_Eternal_Flames_Simulation(Card_Simulation):
+    scenario_locks={
+        'simulate_enter_land_limit':('self.hand',),
+        '_damage_scene':('self.land_area',),
+    }
+
     text_parts = {
         "enter.tap": [
             "When {card_name} enters the battlefield, it becomes tapped.",

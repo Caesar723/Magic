@@ -4,6 +4,10 @@ from pycards.creature.Dawnwell_Acolyte.model import Dawnwell_Acolyte
 
 @bind_card(Dawnwell_Acolyte)
 class Dawnwell_Acolyte_Simulation(Card_Simulation):
+    scenario_locks={
+        '_simulate_heal':(),
+    }
+
     text_parts = {
         "enter.trigger": [
             "When {card_name} enters the battlefield,",

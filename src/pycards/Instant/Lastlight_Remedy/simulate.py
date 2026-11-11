@@ -6,6 +6,10 @@ from pycards.Instant.Lastlight_Remedy.model import Lastlight_Remedy
 
 @bind_card(Lastlight_Remedy)
 class Lastlight_Remedy_Simulation(Card_Simulation):
+    scenario_locks={
+        '_simulate_life':('self.hand', 'self.land_area', 'self.library'),
+    }
+
     text_parts = {
         "low.condition": [
             "If you have {life_threshold} or less life,",
@@ -70,6 +74,7 @@ class Lastlight_Remedy_Simulation(Card_Simulation):
     }
 
     def _simulate_life(self, life, library_count=None, empty_hand=False, low_branch=None):
+        library_count=self.scenario_count("library",library_count)
         params = self.card.effect_params
         self.text_parts = dict(type(self).text_parts)
         if params["draw_count"] == 1:
@@ -83,7 +88,7 @@ class Lastlight_Remedy_Simulation(Card_Simulation):
             return {"card": self.card, "type": 0, "action": None}
 
         library_count = params["draw_count"] + 2 if library_count is None else library_count
-        self.basic_initinal({
+        self.scenario_prepare({
             "graveyard": {"creature_number": (0, 0), "instant_number": (0, 0), "sorcery_number": (0, 0), "land_number": (0, 0)},
             "hand": {"creature_number": (0, 1), "instant_number": (0, 1), "sorcery_number": (0, 1), "land_number": (0, 1)},
             "library": {"creature_number": (0, 0), "instant_number": (0, 0), "sorcery_number": (0, 0), "land_number": (library_count, library_count)},
@@ -92,8 +97,6 @@ class Lastlight_Remedy_Simulation(Card_Simulation):
         if empty_hand:
             self.player.hand = []
 
-        self.random_env_creature()(self.player)
-        self.random_env_creature()(self.player.opponent)
         self.random_life()(self.player.opponent)
         self.player.life = life
         self.room.env_mana(

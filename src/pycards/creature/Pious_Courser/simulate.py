@@ -4,6 +4,10 @@ from pycards.creature.Pious_Courser.model import Pious_Courser
 
 @bind_card(Pious_Courser)
 class Pious_Courser_Simulation(Card_Simulation):
+    scenario_locks={
+        '_simulate_heal':(),
+    }
+
     text_parts = {
         "enter.trigger": [
             "When {card_name} enters the battlefield,",

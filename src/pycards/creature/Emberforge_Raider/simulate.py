@@ -4,6 +4,11 @@ from pycards.creature.Emberforge_Raider.model import Emberforge_Raider
 
 @bind_card(Emberforge_Raider)
 class Emberforge_Raider_Simulation(Card_Simulation):
+    scenario_locks={
+        '_simulate_damage':(),
+        'simulate_haste_first_turn_attack':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "keyword.haste": [
             "Haste.",
@@ -144,7 +149,7 @@ class Emberforge_Raider_Simulation(Card_Simulation):
     def simulate_haste_first_turn_attack(self):
         self.scenario_prepare()
         self.stage_card(self.card)
-        self.card.when_go_to_battlefield(self.player, self.player.opponent)
+        self.scenario_fresh_creature(self.card)
         self.room.active_player = self.player
         self.room.non_active_player = self.player.opponent
         self.room.flag_dict["attacker_defenders"] = False

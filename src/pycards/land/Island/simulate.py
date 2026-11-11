@@ -4,6 +4,10 @@ from pycards.land.Island.model import Island
 
 @bind_card(Island)
 class Island_Simulation(Card_Simulation):
+    scenario_locks={
+        'simulate_enter_land_limit':('self.hand',),
+    }
+
     text_parts = {
         "mana.effect": [
             "Tap this land to add {mana_amount} blue mana.",

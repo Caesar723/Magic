@@ -4,6 +4,10 @@ from pycards.sorcery.Verdant_Stampede.model import Verdant_Stampede
 
 @bind_card(Verdant_Stampede)
 class Verdant_Stampede_Simulation(Card_Simulation):
+    scenario_locks={
+        '_token_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "token.effect": [
             "create {token_count} {token_power}/{token_toughness} green Beast creature token{token_count_plural}.",

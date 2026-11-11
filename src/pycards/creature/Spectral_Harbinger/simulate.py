@@ -4,6 +4,10 @@ from pycards.creature.Spectral_Harbinger.model import Spectral_Harbinger
 
 @bind_card(Spectral_Harbinger)
 class Spectral_Harbinger_Simulation(Card_Simulation):
+    scenario_locks={
+        '_enter_group':('opponent.graveyard', 'self.graveyard'),
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",
@@ -142,11 +146,9 @@ class Spectral_Harbinger_Simulation(Card_Simulation):
         self.player.graveyard.clear()
         for index in range(count):
             owner = self.player
-            creature = self.scenario_creature(owner, power=index + 1, health=max(1, self.card.effect_params.get("damage", 2) + offset + index), flags={"Hexproof": True})
+            creature = self.scenario_creature(owner, power=index + 1, health=max(1, self.card.effect_params.get("damage", 2) + offset + index), flags={"Hexproof": True}, zone="graveyard")
             cost = self.card.effect_params.get("mana_threshold", 2) + offset + index
             creature.mana_cost = "W" * max(0, cost) if colored else str(max(0, cost))
-            owner.remove_card(creature, "battlefield")
-            owner.append_card(creature, "graveyard")
         return self.scenario_cast()
 
     @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})

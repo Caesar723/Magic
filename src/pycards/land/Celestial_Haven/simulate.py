@@ -4,6 +4,10 @@ from pycards.land.Celestial_Haven.model import Celestial_Haven
 
 @bind_card(Celestial_Haven)
 class Celestial_Haven_Simulation(Card_Simulation):
+    scenario_locks={
+        'simulate_enter_land_limit':('self.hand',),
+    }
+
     text_parts = {
         "enter.tap": [
             "When {card_name} enters the battlefield, it becomes tapped.",

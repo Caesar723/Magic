@@ -4,6 +4,12 @@ from pycards.Instant.Druid_s_Natural_Fury.model import Druid_s_Natural_Fury
 
 @bind_card(Druid_s_Natural_Fury)
 class Druid_s_Natural_Fury_Simulation(Card_Simulation):
+    scenario_locks={
+        '_counter_scene':(),
+        'simulate_land_on_stack':('opponent.land_area',),
+        'simulate_blocking_creature':('self.battlefield',),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the nonland spell on top of the stack.",

@@ -4,6 +4,13 @@ from pycards.Instant.Mystic_Reflection.model import Mystic_Reflection
 
 @bind_card(Mystic_Reflection)
 class Mystic_Reflection_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield'),
+        'simulate_without_mana':('self.battlefield',),
+        'simulate_no_creatures':('opponent.battlefield', 'self.battlefield'),
+        'simulate_wounded_largest':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts={
         "clone.effect": [
             "Target creature becomes a copy of a creature on either battlefield with the greatest combined current power and toughness until the end of its controller's turn. If tied, choose one at random.",

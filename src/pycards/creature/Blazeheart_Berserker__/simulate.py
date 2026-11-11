@@ -5,6 +5,10 @@ from pycards.creature.Blazeheart_Berserker__.model import Blazeheart_Berserker__
 
 @bind_card(Blazeheart_Berserker__)
 class Blazeheart_Berserker___Simulation(Card_Simulation):
+    scenario_locks={
+        '_mountain_combat':('opponent.battlefield', 'opponent.land_area', 'self.battlefield', 'self.land_area'),
+    }
+
     text_parts = {
         "combat.trigger": [
             "Whenever this creature attacks,",
@@ -118,7 +122,7 @@ class Blazeheart_Berserker___Simulation(Card_Simulation):
         self.scenario_prepare()
         for _ in range(count):
             land = Mountain(self.player)
-            land.tap()
+            self.scenario_tapped(land)
             self.stage_card(land, zone="land_area")
         factor = count if not defending else 0
         power = self.card.state[0] + factor * self.card.effect_params["power_bonus"]

@@ -4,6 +4,10 @@ from pycards.sorcery.Frontier_Reinforcements.model import Frontier_Reinforcement
 
 @bind_card(Frontier_Reinforcements)
 class Frontier_Reinforcements_Simulation(Card_Simulation):
+    scenario_locks={
+        '_token_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "empty.condition": [
             "If you control no creatures,",

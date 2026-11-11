@@ -4,6 +4,10 @@ from pycards.creature.Ravaging_Ghoul.model import Ravaging_Ghoul
 
 @bind_card(Ravaging_Ghoul)
 class Ravaging_Ghoul_Simulation(Card_Simulation):
+    scenario_locks={
+        '_damage_scene':(),
+    }
+
     text_parts = {
         "enter.trigger": [
             "When {card_name} enters the battlefield,",

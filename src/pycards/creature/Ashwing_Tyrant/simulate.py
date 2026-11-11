@@ -4,6 +4,10 @@ from pycards.creature.Ashwing_Tyrant.model import Ashwing_Tyrant
 
 @bind_card(Ashwing_Tyrant)
 class Ashwing_Tyrant_Simulation(Card_Simulation):
+    scenario_locks={
+        '_simulate_damage':(),
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",

@@ -36,7 +36,8 @@ class Vorinclex__Apex_of_Mutation(Creature):
 
         self.flag_dict['Trample']=True
         buff=Infect(self,self)
-        self.gain_buff(buff,self)
+        self.buffs.append(buff)
+        self.update_buff()
 
     async def when_play_a_card(self,card:'Card',player:'Player'=None,opponent:'Player'=None):
         if self in player.battlefield and not isinstance(card,Land) :

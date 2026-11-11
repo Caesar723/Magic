@@ -4,6 +4,13 @@ from pycards.land.Nexus_of_the_Eternal_Seas.model import Nexus_of_the_Eternal_Se
 
 @bind_card(Nexus_of_the_Eternal_Seas)
 class Nexus_of_the_Eternal_Seas_Simulation(Card_Simulation):
+    scenario_locks={
+        'simulate_enter_land_limit':('self.hand',),
+        'simulate_activate_0_targets':('opponent.battlefield',),
+        'simulate_activate_1_targets':('opponent.battlefield',),
+        'simulate_activate_3_targets':('opponent.battlefield',),
+    }
+
     text_parts = {
         "enter.tap": [
             "When {card_name} enters the battlefield, it becomes tapped.",

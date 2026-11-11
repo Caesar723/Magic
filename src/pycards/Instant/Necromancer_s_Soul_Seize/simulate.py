@@ -4,6 +4,10 @@ from pycards.Instant.Necromancer_s_Soul_Seize.model import Necromancer_s_Soul_Se
 
 @bind_card(Necromancer_s_Soul_Seize)
 class Necromancer_s_Soul_Seize_Simulation(Card_Simulation):
+    scenario_locks={
+        '_grave_scene':('self.graveyard', 'self.library'),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the creature spell on top of the stack.",

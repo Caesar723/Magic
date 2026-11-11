@@ -5,6 +5,10 @@ from pycards.land.Island.model import Island
 
 @bind_card(Mystic_Tide)
 class Mystic_Tide_Simulation(Card_Simulation):
+    scenario_locks={
+        '_bounce_scene':('opponent.battlefield', 'opponent.land_area', 'self.land_area'),
+    }
+
     text_parts = {
         "counter.condition": [
             "If your opponent cannot pay {mana_threshold} generic mana from their available sources and the top spell belongs to your opponent,",

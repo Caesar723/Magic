@@ -4,6 +4,11 @@ from pycards.Instant.Verdant_Growth.model import Verdant_Growth
 
 @bind_card(Verdant_Growth)
 class Verdant_Growth_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield'),
+        'simulate_no_creatures':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "Choose a target creature.",

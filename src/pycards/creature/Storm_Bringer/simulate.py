@@ -4,6 +4,10 @@ from pycards.creature.Storm_Bringer.model import Storm_Bringer
 
 @bind_card(Storm_Bringer)
 class Storm_Bringer_Simulation(Card_Simulation):
+    scenario_locks={
+        '_sweep_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",

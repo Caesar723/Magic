@@ -4,6 +4,11 @@ from pycards.Instant.Cinder_Needle.model import Cinder_Needle
 
 @bind_card(Cinder_Needle)
 class Cinder_Needle_Simulation(Card_Simulation):
+    scenario_locks={
+        '_damage_scene':('self.land_area',),
+        'simulate_no_opponent_creatures':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "damage.base": [
             "{card_name} deals {damage} damage to a target opposing creature.",
@@ -24,7 +29,7 @@ class Cinder_Needle_Simulation(Card_Simulation):
         self.scenario_prepare()
         return self.scenario_cast(provide_mana=False)
 
-    def _damage_scene(self, target_role, life_offset, branch=None, target_flags=None):
+    def _damage_scene(self,target_role,life_offset,target_flags=None):
         self.scenario_prepare()
         params = self.card.effect_params
         damage = params.get("damage", params.get("damage_low", 0))
@@ -47,19 +52,19 @@ class Cinder_Needle_Simulation(Card_Simulation):
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_enemy_creature_normal_below_lethal(self):
-        return self._damage_scene('enemy_creature', -1, branch=None)
+        return self._damage_scene('enemy_creature',-1)
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_enemy_creature_normal_equal_lethal(self):
-        return self._damage_scene('enemy_creature', 0, branch=None)
+        return self._damage_scene('enemy_creature',0)
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_enemy_creature_normal_above_lethal(self):
-        return self._damage_scene('enemy_creature', 1, branch=None)
+        return self._damage_scene('enemy_creature',1)
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_hexproof_target(self):
-        return self._damage_scene("enemy_creature", 1, branch=None, target_flags={"Hexproof": True})
+        return self._damage_scene("enemy_creature",1,target_flags={"Hexproof": True})
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_no_opponent_creatures(self):

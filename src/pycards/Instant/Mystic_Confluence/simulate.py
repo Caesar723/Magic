@@ -4,6 +4,10 @@ from pycards.Instant.Mystic_Confluence.model import Mystic_Confluence
 
 @bind_card(Mystic_Confluence)
 class Mystic_Confluence_Simulation(Card_Simulation):
+    scenario_locks={
+        '_stack_scene':('opponent.battlefield', 'self.battlefield', 'self.library'),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the top spell.",
@@ -49,6 +53,7 @@ class Mystic_Confluence_Simulation(Card_Simulation):
         return self.scenario_cast(provide_mana=False)
 
     def _stack_scene(self, kind="instant", own_stack=False, lower_count=0, role="enemy", target_top=False, library_count=None):
+        library_count=self.scenario_count("library",library_count)
         self.scenario_prepare()
         target = self.scenario_stack(kind, own_target=own_stack, lower_count=lower_count)
         for index, item in enumerate(self.room.stack[:-1]):
@@ -56,9 +61,9 @@ class Mystic_Confluence_Simulation(Card_Simulation):
                 old = item["card"]
                 owner = old.player.opponent
                 zone = "battlefield" if old.type == "Creature" else "graveyard"
-                old.player.remove_card(old, zone)
+                self.unstage_card(old, old.player)
                 new = old.copy_for_player(owner)
-                owner.append_card(new, zone)
+                self.stage_card(new, owner, zone=zone)
                 item["card"] = new
         if target_top and kind == "creature":
             owner = target.player
@@ -67,7 +72,7 @@ class Mystic_Confluence_Simulation(Card_Simulation):
             target = self.scenario_creature(owner, power=2, health=4, flags={})
         subaction = (11 if owner is self.player else 1) + owner.battlefield.index(target)
         if library_count is not None:
-            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            self.scenario_replace_cards(self.player,"library",instant=(library_count, library_count))
             self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
         return self.scenario_cast((subaction,), in_stack=True)
 

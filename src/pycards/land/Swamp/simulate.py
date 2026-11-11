@@ -4,6 +4,10 @@ from pycards.land.Swamp.model import Swamp
 
 @bind_card(Swamp)
 class Swamp_Simulation(Card_Simulation):
+    scenario_locks={
+        'simulate_enter_land_limit':('self.hand',),
+    }
+
     text_parts = {
         "mana.effect": [
             "Tap this land to add {mana_amount} black mana.",

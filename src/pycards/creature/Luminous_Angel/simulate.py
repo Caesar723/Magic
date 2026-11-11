@@ -4,6 +4,9 @@ from pycards.creature.Luminous_Angel.model import Luminous_Angel
 
 @bind_card(Luminous_Angel)
 class Luminous_Angel_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",

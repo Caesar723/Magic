@@ -4,6 +4,9 @@ from pycards.creature.Tidal_Sprite.model import Tidal_Sprite
 
 @bind_card(Tidal_Sprite)
 class Tidal_Sprite_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",

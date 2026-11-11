@@ -4,6 +4,12 @@ from pycards.Instant.Paladin_s_Judging_Light.model import Paladin_s_Judging_Ligh
 
 @bind_card(Paladin_s_Judging_Light)
 class Paladin_s_Judging_Light_Simulation(Card_Simulation):
+    scenario_locks={
+        '_counter_scene':(),
+        'simulate_land_on_stack':('opponent.land_area',),
+        'simulate_blocking_creature':('self.battlefield',),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the nonland spell on top of the stack.",

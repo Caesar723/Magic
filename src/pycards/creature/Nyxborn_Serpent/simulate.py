@@ -4,6 +4,10 @@ from pycards.creature.Nyxborn_Serpent.model import Nyxborn_Serpent
 
 @bind_card(Nyxborn_Serpent)
 class Nyxborn_Serpent_Simulation(Card_Simulation):
+    scenario_locks={
+        '_enter_target':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "enter.trigger": [
             "When {card_name} enters the battlefield,",

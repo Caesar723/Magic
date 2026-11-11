@@ -4,6 +4,9 @@ from pycards.creature.Celestial_Herald.model import Celestial_Herald
 
 @bind_card(Celestial_Herald)
 class Celestial_Herald_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",

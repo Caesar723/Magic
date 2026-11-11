@@ -4,6 +4,10 @@ from pycards.Instant.Blazeburst.model import Blazeburst
 
 @bind_card(Blazeburst)
 class Blazeburst_Simulation(Card_Simulation):
+    scenario_locks={
+        '_damage_scene':('self.land_area',),
+    }
+
     text_parts = {
         "damage.base": [
             "{card_name} deals {damage} damage to a target creature or player.",
@@ -24,7 +28,7 @@ class Blazeburst_Simulation(Card_Simulation):
         self.scenario_prepare()
         return self.scenario_cast(provide_mana=False)
 
-    def _damage_scene(self, target_role, life_offset, branch=None, target_flags=None):
+    def _damage_scene(self,target_role,life_offset,target_flags=None):
         self.scenario_prepare()
         params = self.card.effect_params
         damage = params.get("damage", params.get("damage_low", 0))
@@ -47,53 +51,53 @@ class Blazeburst_Simulation(Card_Simulation):
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_enemy_creature_normal_below_lethal(self):
-        return self._damage_scene('enemy_creature', -1, branch=None)
+        return self._damage_scene('enemy_creature',-1)
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_enemy_creature_normal_equal_lethal(self):
-        return self._damage_scene('enemy_creature', 0, branch=None)
+        return self._damage_scene('enemy_creature',0)
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_enemy_creature_normal_above_lethal(self):
-        return self._damage_scene('enemy_creature', 1, branch=None)
+        return self._damage_scene('enemy_creature',1)
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_self_creature_normal_below_lethal(self):
-        return self._damage_scene('self_creature', -1, branch=None)
+        return self._damage_scene('self_creature',-1)
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_self_creature_normal_equal_lethal(self):
-        return self._damage_scene('self_creature', 0, branch=None)
+        return self._damage_scene('self_creature',0)
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_self_creature_normal_above_lethal(self):
-        return self._damage_scene('self_creature', 1, branch=None)
+        return self._damage_scene('self_creature',1)
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_enemy_player_normal_below_lethal(self):
-        return self._damage_scene('enemy_player', -1, branch=None)
+        return self._damage_scene('enemy_player',-1)
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_enemy_player_normal_equal_lethal(self):
-        return self._damage_scene('enemy_player', 0, branch=None)
+        return self._damage_scene('enemy_player',0)
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_enemy_player_normal_above_lethal(self):
-        return self._damage_scene('enemy_player', 1, branch=None)
+        return self._damage_scene('enemy_player',1)
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_self_player_normal_below_lethal(self):
-        return self._damage_scene('self_player', -1, branch=None)
+        return self._damage_scene('self_player',-1)
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_self_player_normal_equal_lethal(self):
-        return self._damage_scene('self_player', 0, branch=None)
+        return self._damage_scene('self_player',0)
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_self_player_normal_above_lethal(self):
-        return self._damage_scene('self_player', 1, branch=None)
+        return self._damage_scene('self_player',1)
 
     @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
     def simulate_hexproof_target(self):
-        return self._damage_scene("enemy_creature", 1, branch=None, target_flags={"Hexproof": True})
+        return self._damage_scene("enemy_creature",1,target_flags={"Hexproof": True})
 

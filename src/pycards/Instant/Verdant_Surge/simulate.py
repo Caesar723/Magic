@@ -4,6 +4,11 @@ from pycards.Instant.Verdant_Surge.model import Verdant_Surge
 
 @bind_card(Verdant_Surge)
 class Verdant_Surge_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield'),
+        'simulate_no_creatures':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "Choose a target creature.",

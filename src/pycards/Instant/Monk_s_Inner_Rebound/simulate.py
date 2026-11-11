@@ -4,6 +4,10 @@ from pycards.Instant.Monk_s_Inner_Rebound.model import Monk_s_Inner_Rebound
 
 @bind_card(Monk_s_Inner_Rebound)
 class Monk_s_Inner_Rebound_Simulation(Card_Simulation):
+    scenario_locks={
+        '_repeat_scene':('opponent.battlefield', 'opponent.land_area', 'self.battlefield'),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the nonland spell on top of the stack.",

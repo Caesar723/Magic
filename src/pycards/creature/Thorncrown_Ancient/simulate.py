@@ -4,6 +4,10 @@ from pycards.creature.Thorncrown_Ancient.model import Thorncrown_Ancient
 
 @bind_card(Thorncrown_Ancient)
 class Thorncrown_Ancient_Simulation(Card_Simulation):
+    scenario_locks={
+        '_token_scene':('self.battlefield',),
+    }
+
     text_parts = {
         "keyword.trample": [
             "Trample.",

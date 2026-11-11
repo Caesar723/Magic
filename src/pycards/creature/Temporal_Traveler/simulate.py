@@ -7,6 +7,13 @@ from pycards.creature.Temporal_Traveler.model import Temporal_Traveler
 
 @bind_card(Temporal_Traveler)
 class Temporal_Traveler_Simulation(Card_Simulation):
+    scenario_locks={
+        '_set_grave':('self.graveyard', 'self.library'),
+        '_spell_combat':(),
+        '_spell_unblocked':(),
+        '_grave_attack':(),
+    }
+
     text_parts = {
         "attack.trigger": [
             "Whenever this creature attacks,",
@@ -117,16 +124,15 @@ class Temporal_Traveler_Simulation(Card_Simulation):
         return self._spell_unblocked(True)
 
     def _set_grave(self, kind, library_count=None):
+        library_count=self.scenario_count("library",library_count)
         self.player.graveyard.clear()
         if kind == "creature":
-            card = self.scenario_creature(self.player, power=1, health=2, flags={})
-            self.player.remove_card(card, "battlefield")
-            self.player.append_card(card, "graveyard")
+            card = self.scenario_creature(self.player, power=1, health=2, flags={}, zone="graveyard")
         elif kind != "none":
             cls = Pocket_Discovery if kind == "sorcery" else Arcane_Reflection if kind == "instant" else Time_Reversal
-            self.player.append_card(cls(self.player), "graveyard")
+            self.stage_card(cls(self.player), self.player, zone="graveyard")
         if library_count is not None:
-            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            self.scenario_replace_cards(self.player,"library",instant=(library_count, library_count))
             self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
 
     def _spell_combat(self, defending, enemy_dies, self_dies, margin=0):
@@ -139,7 +145,8 @@ class Temporal_Traveler_Simulation(Card_Simulation):
         self._set_grave("none")
         return record
 
-    def _grave_attack(self, kind, blocked=False, library_count=5):
+    def _grave_attack(self, kind, blocked=False, library_count=None):
+        library_count=self.scenario_count("library",library_count)
         record = self.scenario_combat(False, False, False) if blocked else self.scenario_unblocked()
         self._set_grave(kind, library_count)
         return record

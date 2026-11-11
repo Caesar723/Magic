@@ -4,6 +4,10 @@ from pycards.Instant.Mystic_Convergence.model import Mystic_Convergence
 
 @bind_card(Mystic_Convergence)
 class Mystic_Convergence_Simulation(Card_Simulation):
+    scenario_locks={
+        '_combat_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "combat.effect": [
             "Until your next upkeep, whenever anything is damaged while combat is active, heal that object for the damage amount.",

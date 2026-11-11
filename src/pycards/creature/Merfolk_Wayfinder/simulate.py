@@ -4,6 +4,10 @@ from pycards.creature.Merfolk_Wayfinder.model import Merfolk_Wayfinder
 
 @bind_card(Merfolk_Wayfinder)
 class Merfolk_Wayfinder_Simulation(Card_Simulation):
+    scenario_locks={
+        '_library_scene':('self.hand', 'self.library'),
+    }
+
     text_parts = {
         "enter.trigger": [
             "When {card_name} enters the battlefield,",

@@ -4,6 +4,9 @@ from pycards.creature.Grove_Guardian.model import Grove_Guardian
 
 @bind_card(Grove_Guardian)
 class Grove_Guardian_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "keyword.reach": [
             "Reach.",

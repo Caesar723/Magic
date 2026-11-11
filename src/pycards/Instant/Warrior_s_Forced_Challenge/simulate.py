@@ -4,6 +4,10 @@ from pycards.Instant.Warrior_s_Forced_Challenge.model import Warrior_s_Forced_Ch
 
 @bind_card(Warrior_s_Forced_Challenge)
 class Warrior_s_Forced_Challenge_Simulation(Card_Simulation):
+    scenario_locks={
+        '_fight_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the creature spell on top of the stack.",

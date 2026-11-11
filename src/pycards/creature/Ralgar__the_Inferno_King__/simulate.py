@@ -4,6 +4,10 @@ from pycards.creature.Ralgar__the_Inferno_King__.model import Ralgar__the_Infern
 
 @bind_card(Ralgar__the_Inferno_King__)
 class Ralgar__the_Inferno_King___Simulation(Card_Simulation):
+    scenario_locks={
+        '_enter_scene':('opponent.battlefield', 'self.battlefield', 'self.hand', 'self.land_area'),
+    }
+
     text_parts = {
         "enter.trigger": [
             "When {card_name} enters the battlefield,",
@@ -132,11 +136,11 @@ class Ralgar__the_Inferno_King___Simulation(Card_Simulation):
     def simulate_attack_opponent_passes(self):
         return self.scenario_unblocked(True)
 
-    def _enter_scene(self, role, offset=1, extra_red=1, option=1, hand_count=1, hexproof=False, power_offset=0, in_stack=False):
+    def _enter_scene(self,role,offset=1,hand_count=None,hexproof=False,power_offset=0,in_stack=False):
+        hand_count=self.scenario_count("hand",hand_count,minimum=1)
         self.scenario_prepare()
         self.player.hand.clear()
-        for _ in range(hand_count):
-            self.player.append_card(self.card.copy_for_player(self.player), "hand")
+        self.scenario_random_cards(self.player,"hand",hand_count)
         subaction = 0
         if role in ("self_creature", "enemy_creature"):
             owner = self.player if role == "self_creature" else self.player.opponent
@@ -158,61 +162,61 @@ class Ralgar__the_Inferno_King___Simulation(Card_Simulation):
 
     @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
     def simulate_enter_self_creature_overkill(self):
-        return self._enter_scene('self_creature', offset=-1)
+        return self._enter_scene('self_creature',offset=-1)
 
     @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
     def simulate_enter_self_creature_equal(self):
-        return self._enter_scene('self_creature', offset=0)
+        return self._enter_scene('self_creature',offset=0)
 
     @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
     def simulate_enter_self_creature_survives(self):
-        return self._enter_scene('self_creature', offset=1)
+        return self._enter_scene('self_creature',offset=1)
 
     @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
     def simulate_enter_enemy_creature_overkill(self):
-        return self._enter_scene('enemy_creature', offset=-1)
+        return self._enter_scene('enemy_creature',offset=-1)
 
     @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
     def simulate_enter_enemy_creature_equal(self):
-        return self._enter_scene('enemy_creature', offset=0)
+        return self._enter_scene('enemy_creature',offset=0)
 
     @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
     def simulate_enter_enemy_creature_survives(self):
-        return self._enter_scene('enemy_creature', offset=1)
+        return self._enter_scene('enemy_creature',offset=1)
 
     @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
     def simulate_enter_self_player_overkill(self):
-        return self._enter_scene('self_player', offset=-1)
+        return self._enter_scene('self_player',offset=-1)
 
     @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
     def simulate_enter_self_player_equal(self):
-        return self._enter_scene('self_player', offset=0)
+        return self._enter_scene('self_player',offset=0)
 
     @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
     def simulate_enter_self_player_survives(self):
-        return self._enter_scene('self_player', offset=1)
+        return self._enter_scene('self_player',offset=1)
 
     @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
     def simulate_enter_enemy_player_overkill(self):
-        return self._enter_scene('enemy_player', offset=-1)
+        return self._enter_scene('enemy_player',offset=-1)
 
     @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
     def simulate_enter_enemy_player_equal(self):
-        return self._enter_scene('enemy_player', offset=0)
+        return self._enter_scene('enemy_player',offset=0)
 
     @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
     def simulate_enter_enemy_player_survives(self):
-        return self._enter_scene('enemy_player', offset=1)
+        return self._enter_scene('enemy_player',offset=1)
 
     @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
     def simulate_enter_none_normal(self):
-        return self._enter_scene('none', offset=1)
+        return self._enter_scene('none',offset=1)
 
     @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
     def simulate_enter_self_creature_hexproof(self):
-        return self._enter_scene('self_creature', hexproof=True)
+        return self._enter_scene('self_creature',hexproof=True)
 
     @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
     def simulate_enter_enemy_creature_hexproof(self):
-        return self._enter_scene('enemy_creature', hexproof=True)
+        return self._enter_scene('enemy_creature',hexproof=True)
 

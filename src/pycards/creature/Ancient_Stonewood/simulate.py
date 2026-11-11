@@ -4,6 +4,11 @@ from pycards.creature.Ancient_Stonewood.model import Ancient_Stonewood
 
 @bind_card(Ancient_Stonewood)
 class Ancient_Stonewood_Simulation(Card_Simulation):
+    scenario_locks={
+        '_reflect_combat':('opponent.battlefield', 'self.battlefield'),
+        '_reflect_group':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "keyword.indestructible": [
             "Indestructible. Lethal damage is reduced to leave this creature at one health, and destruction attempts are ignored.",
@@ -55,35 +60,35 @@ class Ancient_Stonewood_Simulation(Card_Simulation):
 
     @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect')})
     def simulate_attack_opponent_dies_self_survives(self):
-        return self._reflect_combat(False, True, False, margin=0)
+        return self._reflect_combat(False,True,margin=0)
 
     @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect')})
     def simulate_attack_opponent_dies_self_survives_beyond_boundary(self):
-        return self._reflect_combat(False, True, False, margin=1)
+        return self._reflect_combat(False,True,margin=1)
 
     @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect')})
     def simulate_attack_both_survive(self):
-        return self._reflect_combat(False, False, False, margin=0)
+        return self._reflect_combat(False,False,margin=0)
 
     @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect')})
     def simulate_attack_both_survive_beyond_boundary(self):
-        return self._reflect_combat(False, False, False, margin=1)
+        return self._reflect_combat(False,False,margin=1)
 
     @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect')})
     def simulate_defend_opponent_dies_self_survives(self):
-        return self._reflect_combat(True, True, False, margin=0)
+        return self._reflect_combat(True,True,margin=0)
 
     @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect')})
     def simulate_defend_opponent_dies_self_survives_beyond_boundary(self):
-        return self._reflect_combat(True, True, False, margin=1)
+        return self._reflect_combat(True,True,margin=1)
 
     @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect')})
     def simulate_defend_both_survive(self):
-        return self._reflect_combat(True, False, False, margin=0)
+        return self._reflect_combat(True,False,margin=0)
 
     @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect')})
     def simulate_defend_both_survive_beyond_boundary(self):
-        return self._reflect_combat(True, False, False, margin=1)
+        return self._reflect_combat(True,False,margin=1)
 
     @simulate(evidence={'fields': ('attack', 'special_type')})
     def simulate_attack_empty_board(self):
@@ -93,7 +98,7 @@ class Ancient_Stonewood_Simulation(Card_Simulation):
     def simulate_attack_opponent_passes(self):
         return self.scenario_unblocked(True)
 
-    def _reflect_combat(self, defending, enemy_dies, self_dies=False, margin=0):
+    def _reflect_combat(self,defending,enemy_dies,margin=0):
         self.scenario_prepare()
         power, health = self.card.state
         if health <= 0:

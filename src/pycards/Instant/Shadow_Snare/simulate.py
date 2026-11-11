@@ -4,6 +4,11 @@ from pycards.Instant.Shadow_Snare.model import Shadow_Snare
 
 @bind_card(Shadow_Snare)
 class Shadow_Snare_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield'),
+        'simulate_no_creatures':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "Choose a target creature.",

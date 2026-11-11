@@ -6,6 +6,10 @@ from pycards.Instant.Mystic_Evasion.model import Mystic_Evasion
 
 @bind_card(Mystic_Evasion)
 class Mystic_Evasion_Simulation(Card_Simulation):
+    scenario_locks={
+        '_return_scene':('opponent.battlefield', 'opponent.land_area', 'self.battlefield', 'self.land_area', 'self.library'),
+    }
+
     text_parts = {
         "return.effect": [
             "Return the current attacker to its owner's hand if it is still on a battlefield.",
@@ -39,14 +43,15 @@ class Mystic_Evasion_Simulation(Card_Simulation):
         return self.scenario_cast(provide_mana=False)
 
     def _return_scene(self, role, tapped=0, library_count=None, flags=None):
+        library_count=self.scenario_count("library",library_count)
         self.scenario_prepare()
         for index in range(tapped + 1):
             land = Plains(self.player)
             if index < tapped:
-                land.tap()
+                self.scenario_tapped(land)
             self.stage_card(land, zone="land_area")
         if library_count is not None:
-            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "creature_number": (0, 0), "sorcery_number": (0, 0), "land_number": (0, 0)})
+            self.scenario_replace_cards(self.player,"library",instant=(library_count, library_count))
             self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
         subaction = 0
         if role in ("self", "enemy"):

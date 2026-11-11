@@ -4,6 +4,9 @@ from pycards.creature.Night_Stalker__.model import Night_Stalker__
 
 @bind_card(Night_Stalker__)
 class Night_Stalker___Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "keyword.menace": [
             "Menace.",

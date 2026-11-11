@@ -4,6 +4,10 @@ from pycards.sorcery.Wildheart_Ascendancy.model import Wildheart_Ascendancy
 
 @bind_card(Wildheart_Ascendancy)
 class Wildheart_Ascendancy_Simulation(Card_Simulation):
+    scenario_locks={
+        '_group_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "This affects all creatures you control.",

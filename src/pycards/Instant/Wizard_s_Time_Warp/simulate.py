@@ -4,6 +4,12 @@ from pycards.Instant.Wizard_s_Time_Warp.model import Wizard_s_Time_Warp
 
 @bind_card(Wizard_s_Time_Warp)
 class Wizard_s_Time_Warp_Simulation(Card_Simulation):
+    scenario_locks={
+        '_counter_scene':('opponent.hand',),
+        'simulate_land_on_stack':('opponent.land_area',),
+        'simulate_blocking_creature':('self.battlefield',),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the nonland spell on top of the stack.",
@@ -31,10 +37,12 @@ class Wizard_s_Time_Warp_Simulation(Card_Simulation):
         ],
     }
 
-    def _counter_scene(self, target_type="instant", own_target=False, cost=3, lower_count=0, hand_count=3):
+    def _counter_scene(self, target_type="instant", own_target=False, cost=3, lower_count=0, hand_count=None):
+        hand_count=self.scenario_count("hand",hand_count)
         self.scenario_prepare()
         self.scenario_stack(target_type, own_target, cost, lower_count=lower_count)
-        self.room.env_initinal_hand(self.player.opponent, {"instant_number": (hand_count, hand_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+        self.scenario_clear(self.player.opponent,"hand")
+        self.scenario_random_cards(self.player.opponent,"hand",hand_count)
         return self.scenario_cast(in_stack=True)
 
     @simulate(evidence={'text': ('counter.effect', 'remove.effect'), 'fields': ('mana_cost',)})

@@ -5,6 +5,10 @@ from pycards.creature.Emberheart_Berserker__.model import Emberheart_Berserker__
 
 @bind_card(Emberheart_Berserker__)
 class Emberheart_Berserker___Simulation(Card_Simulation):
+    scenario_locks={
+        '_mountain_combat':('opponent.battlefield', 'opponent.land_area', 'self.battlefield', 'self.land_area'),
+    }
+
     text_parts = {
         "combat.trigger": [
             "Whenever this creature blocks,",
@@ -118,7 +122,7 @@ class Emberheart_Berserker___Simulation(Card_Simulation):
         self.scenario_prepare()
         for _ in range(count):
             land = Mountain(self.player)
-            land.tap()
+            self.scenario_tapped(land)
             self.stage_card(land, zone="land_area")
         factor = count if defending else 0
         power = self.card.state[0] + factor * self.card.effect_params["power_bonus"]

@@ -4,6 +4,10 @@ from pycards.creature.Avacyn__Guardian_of_Hope.model import Avacyn__Guardian_of_
 
 @bind_card(Avacyn__Guardian_of_Hope)
 class Avacyn__Guardian_of_Hope_Simulation(Card_Simulation):
+    scenario_locks={
+        '_enter_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",

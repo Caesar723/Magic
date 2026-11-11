@@ -39,3 +39,27 @@ effect_augmentation:
     token_count_empty: [1, 2, 3, 4]
     token_power: [1, 2, 3, 4, 5, 6]
     token_toughness: [1, 2, 3, 4, 5, 6]
+
+scenario_generation:
+  levels:
+    sparse:
+      weight: 0.3
+      hand: [0, 2]
+      library: [0, 10]
+      graveyard: [0, 6]
+      battlefield: [0, 2]
+      land_area: [0, 3]
+    normal:
+      weight: 0.5
+      hand: [3, 5]
+      library: [11, 25]
+      graveyard: [7, 15]
+      battlefield: [3, 5]
+      land_area: [4, 8]
+    dense:
+      weight: 0.2
+      hand: [6, 9]
+      library: [26, 40]
+      graveyard: [16, 30]
+      battlefield: [6, 9]
+      land_area: [9, 15]

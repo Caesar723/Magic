@@ -4,6 +4,11 @@ from pycards.sorcery.Angelic_Blessing.model import Angelic_Blessing
 
 @bind_card(Angelic_Blessing)
 class Angelic_Blessing_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield'),
+        'simulate_no_creatures':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "Choose a target creature.",

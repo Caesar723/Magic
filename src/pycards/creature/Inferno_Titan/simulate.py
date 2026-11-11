@@ -4,6 +4,10 @@ from pycards.creature.Inferno_Titan.model import Inferno_Titan
 
 @bind_card(Inferno_Titan)
 class Inferno_Titan_Simulation(Card_Simulation):
+    scenario_locks={
+        '_enter_group':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "enter.trigger": [
             "When {card_name} enters the battlefield,",

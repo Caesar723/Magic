@@ -4,6 +4,10 @@ from pycards.creature.Celestial_Guardian.model import Celestial_Guardian
 
 @bind_card(Celestial_Guardian)
 class Celestial_Guardian_Simulation(Card_Simulation):
+    scenario_locks={
+        '_simulate_heal':(),
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",

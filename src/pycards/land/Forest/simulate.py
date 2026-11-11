@@ -4,6 +4,10 @@ from pycards.land.Forest.model import Forest
 
 @bind_card(Forest)
 class Forest_Simulation(Card_Simulation):
+    scenario_locks={
+        'simulate_enter_land_limit':('self.hand',),
+    }
+
     text_parts = {
         "mana.effect": [
             "Tap this land to add {mana_amount} green mana.",

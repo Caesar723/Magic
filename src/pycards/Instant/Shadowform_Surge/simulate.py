@@ -4,6 +4,11 @@ from pycards.Instant.Shadowform_Surge.model import Shadowform_Surge
 
 @bind_card(Shadowform_Surge)
 class Shadowform_Surge_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield'),
+        'simulate_no_creatures':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "Choose a target creature your opponent controls.",

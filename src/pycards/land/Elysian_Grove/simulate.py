@@ -4,6 +4,14 @@ from pycards.land.Elysian_Grove.model import Elysian_Grove
 
 @bind_card(Elysian_Grove)
 class Elysian_Grove_Simulation(Card_Simulation):
+    scenario_locks={
+        'simulate_enter_land_limit':('self.hand',),
+        'simulate_activate_0_targets':('opponent.land_area',),
+        'simulate_activate_1_targets':('opponent.land_area',),
+        'simulate_activate_3_targets':('opponent.land_area',),
+        'simulate_activate_already_tapped_target':('opponent.land_area',),
+    }
+
     text_parts = {
         "enter.tap": [
             "When {card_name} enters the battlefield, it becomes tapped.",
@@ -110,6 +118,6 @@ class Elysian_Grove_Simulation(Card_Simulation):
     def simulate_activate_already_tapped_target(self):
         self.scenario_prepare()
         self.room.env_mana(self.player.opponent, {"G": (1, 1)})
-        self.player.opponent.land_area[0].tap()
+        self.scenario_tapped(self.player.opponent.land_area[0])
         return self.room.simulate_activate_ability(self.card)
 

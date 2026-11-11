@@ -4,6 +4,10 @@ from pycards.Instant.Blazing_Reversal.model import Blazing_Reversal
 
 @bind_card(Blazing_Reversal)
 class Blazing_Reversal_Simulation(Card_Simulation):
+    scenario_locks={
+        '_draw_scene':('self.library',),
+    }
+
     text_parts = {
         "draw.effect": [
             "Draw 1 card.",

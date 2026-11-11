@@ -5,6 +5,10 @@ from pycards.sorcery.Divine_Offering.model import Divine_Offering
 
 @bind_card(Divine_Offering)
 class Divine_Offering_Simulation(Card_Simulation):
+    scenario_locks={
+        '_land_scene':('opponent.hand', 'opponent.land_area'),
+    }
+
     text_parts = {
         "target.scope": [
             "Choose a target opposing land.",
@@ -49,11 +53,13 @@ class Divine_Offering_Simulation(Card_Simulation):
         self.scenario_prepare()
         return self.scenario_cast(provide_mana=False)
 
-    def _land_scene(self, count, missing=1, hand_count=3):
+    def _land_scene(self, count, missing=1, hand_count=None):
+        hand_count=self.scenario_count("hand",hand_count)
         self.scenario_prepare()
         self.room.env_mana(self.player.opponent, {"W": (count, count)})
         self.player.opponent.life = max(1, self.player.opponent.ini_life - missing)
-        self.room.env_initinal_hand(self.player.opponent, {"instant_number": (hand_count, hand_count), "creature_number": (0, 0), "sorcery_number": (0, 0), "land_number": (0, 0)})
+        self.scenario_clear(self.player.opponent,"hand")
+        self.scenario_random_cards(self.player.opponent,"hand",hand_count)
         return self.scenario_cast((1,))
 
     @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})

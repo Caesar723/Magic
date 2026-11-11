@@ -4,6 +4,12 @@ from pycards.Instant.Ranger_s_Sniping_Shot.model import Ranger_s_Sniping_Shot
 
 @bind_card(Ranger_s_Sniping_Shot)
 class Ranger_s_Sniping_Shot_Simulation(Card_Simulation):
+    scenario_locks={
+        '_counter_scene':(),
+        'simulate_land_on_stack':('opponent.land_area',),
+        'simulate_blocking_creature':('self.battlefield',),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the nonland spell on top of the stack.",

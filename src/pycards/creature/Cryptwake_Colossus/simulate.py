@@ -4,6 +4,10 @@ from pycards.creature.Cryptwake_Colossus.model import Cryptwake_Colossus
 
 @bind_card(Cryptwake_Colossus)
 class Cryptwake_Colossus_Simulation(Card_Simulation):
+    scenario_locks={
+        '_simulate_drain':(),
+    }
+
     text_parts = {
         "keyword.lifelink": [
             "Lifelink.",

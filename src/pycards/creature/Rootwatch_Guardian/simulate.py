@@ -4,6 +4,10 @@ from pycards.creature.Rootwatch_Guardian.model import Rootwatch_Guardian
 
 @bind_card(Rootwatch_Guardian)
 class Rootwatch_Guardian_Simulation(Card_Simulation):
+    scenario_locks={
+        '_simulate_heal':(),
+    }
+
     text_parts = {
         "keyword.reach": [
             "Reach.",

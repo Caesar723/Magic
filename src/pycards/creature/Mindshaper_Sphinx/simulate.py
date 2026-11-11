@@ -4,6 +4,10 @@ from pycards.creature.Mindshaper_Sphinx.model import Mindshaper_Sphinx
 
 @bind_card(Mindshaper_Sphinx)
 class Mindshaper_Sphinx_Simulation(Card_Simulation):
+    scenario_locks={
+        '_library_scene':('self.hand', 'self.library'),
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",

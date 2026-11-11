@@ -5,6 +5,10 @@ from pycards.sorcery.Fleeting_Insight.model import Fleeting_Insight
 
 @bind_card(Fleeting_Insight)
 class Fleeting_Insight_Simulation(Card_Simulation):
+    scenario_locks={
+        '_draw_scene':('opponent.hand', 'opponent.library', 'self.hand', 'self.library'),
+    }
+
     text_parts = {
         "draw.effect": [
             "Draw {draw_count} card{draw_count_plural}.",
@@ -32,16 +36,19 @@ class Fleeting_Insight_Simulation(Card_Simulation):
         ],
     }
 
-    def _draw_scene(self, count, hand_count, card_kind="Instant", used=False):
-        size = count + hand_count + 1
-        self.scenario_prepare({"library": {"instant_number": (size, size), "sorcery_number": (size, size), "creature_number": (size, size), "land_number": (0, 0)}})
-        pool = [card for card in self.player.library if card.type == card_kind]
-        if card_kind == "Island":
-            pool = [Island(self.player) for _ in range(size)]
-        self.player.library = pool[:count]
-        self.player.hand = pool[count:count + hand_count + 1] if hand_count else []
+    def _draw_scene(self,count,hand_count,card_kind="Instant",used=False):
+        self.scenario_prepare()
+        size=count+hand_count
+        if card_kind=="Island":
+            pool=[Island(self.player) for _ in range(size)]
+        else:
+            pool=self.scenario_cards(self.player,**{card_kind.lower():size})
+        for card in pool[:count]:
+            self.stage_card(card,zone="library")
+        for card in pool[count:]:
+            self.stage_card(card,zone="hand")
         if used:
-            self.card.flag_dict["been used"] = True
+            self.card.flag_dict["been used"]=True
         return self.scenario_cast()
 
     @simulate(evidence={'fields': ('mana_cost',)})

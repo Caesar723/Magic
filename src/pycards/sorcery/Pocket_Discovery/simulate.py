@@ -4,6 +4,10 @@ from pycards.sorcery.Pocket_Discovery.model import Pocket_Discovery
 
 @bind_card(Pocket_Discovery)
 class Pocket_Discovery_Simulation(Card_Simulation):
+    scenario_locks={
+        '_draw_scene':('self.library',),
+    }
+
     text_parts = {
         "draw.effect": [
             "Draw {draw_count} card{draw_count_plural}.",

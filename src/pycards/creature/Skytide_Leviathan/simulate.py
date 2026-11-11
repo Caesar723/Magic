@@ -4,6 +4,10 @@ from pycards.creature.Skytide_Leviathan.model import Skytide_Leviathan
 
 @bind_card(Skytide_Leviathan)
 class Skytide_Leviathan_Simulation(Card_Simulation):
+    scenario_locks={
+        '_library_scene':('self.hand', 'self.library'),
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",

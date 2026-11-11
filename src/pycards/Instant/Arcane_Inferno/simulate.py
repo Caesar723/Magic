@@ -4,6 +4,10 @@ from pycards.Instant.Arcane_Inferno.model import Arcane_Inferno
 
 @bind_card(Arcane_Inferno)
 class Arcane_Inferno_Simulation(Card_Simulation):
+    scenario_locks={
+        '_damage_scene':('opponent.battlefield', 'self.battlefield', 'self.land_area'),
+    }
+
     text_parts = {
         "damage.base": [
             "{card_name} deals {damage} damage to a target creature or player.",

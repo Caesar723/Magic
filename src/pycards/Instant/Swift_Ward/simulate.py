@@ -4,6 +4,11 @@ from pycards.Instant.Swift_Ward.model import Swift_Ward
 
 @bind_card(Swift_Ward)
 class Swift_Ward_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield'),
+        'simulate_no_creatures':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "Choose a target creature you control.",

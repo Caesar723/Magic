@@ -5,6 +5,10 @@ from pycards.sorcery.Soul_Transfer.model import Soul_Transfer
 
 @bind_card(Soul_Transfer)
 class Soul_Transfer_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield', 'self.graveyard'),
+    }
+
     text_parts = {
         "death.effect": [
             "Give a target creature the death methods of creature cards currently in your graveyard, in addition to its existing death method.",
@@ -36,7 +40,7 @@ class Soul_Transfer_Simulation(Card_Simulation):
                 creature.name = target.name
         self.player.graveyard.clear()
         for _ in range(donors):
-            self.player.append_card(Eternal_Phoenix(self.player), "graveyard")
+            self.stage_card(Eternal_Phoenix(self.player), self.player, zone="graveyard")
         subaction = 11 if own_target else 1
         return self.scenario_cast((subaction,))
 

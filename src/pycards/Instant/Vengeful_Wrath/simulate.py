@@ -5,6 +5,11 @@ from pycards.Instant.Vengeful_Wrath.model import Vengeful_Wrath
 
 @bind_card(Vengeful_Wrath)
 class Vengeful_Wrath_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield'),
+        'simulate_no_creatures':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "Choose a target creature.",
@@ -68,7 +73,7 @@ class Vengeful_Wrath_Simulation(Card_Simulation):
         if current_power is not None:
             target.actual_power = current_power
         if protected:
-            target.gain_buff(Indestructible(self.card, target), self.card)
+            self.scenario_buff(target, Indestructible(self.card, target))
         self.player.life = max(1, self.player.ini_life - missing)
         for index in range(enemy_count):
             self.scenario_creature(self.player.opponent, power=1, health=max(1, power + index - 1), flags={})

@@ -4,6 +4,9 @@ from pycards.creature.Soul_Devourer.model import Soul_Devourer
 
 @bind_card(Soul_Devourer)
 class Soul_Devourer_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "death.trigger": [
             "Whenever another creature dies while this creature is on your battlefield,",

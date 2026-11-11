@@ -6,6 +6,10 @@ from pycards.sorcery.Temporal_Distortion.model import Temporal_Distortion
 
 @bind_card(Temporal_Distortion)
 class Temporal_Distortion_Simulation(Card_Simulation):
+    scenario_locks={
+        '_turn_scene':('opponent.land_area', 'self.land_area'),
+    }
+
     text_parts = {
         "turn.effect": [
             "Take {extra_turns} extra turn{extra_turns_plural} after this turn.",
@@ -43,7 +47,7 @@ class Temporal_Distortion_Simulation(Card_Simulation):
         self.player.counter_dict["extra_turn"] = queued
         for _ in range(lands):
             land = Plains(self.player)
-            land.tap()
+            self.scenario_tapped(land)
             self.stage_card(land, zone="land_area")
         self.player.mana.update(self.card.calculate_cost())
         return self.scenario_cast(provide_mana=False)

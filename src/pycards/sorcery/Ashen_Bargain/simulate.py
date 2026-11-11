@@ -4,6 +4,10 @@ from pycards.sorcery.Ashen_Bargain.model import Ashen_Bargain
 
 @bind_card(Ashen_Bargain)
 class Ashen_Bargain_Simulation(Card_Simulation):
+    scenario_locks={
+        '_draw_scene':('self.library',),
+    }
+
     text_parts = {
         "draw.effect": [
             "Draw {draw_count} card{draw_count_plural}.",

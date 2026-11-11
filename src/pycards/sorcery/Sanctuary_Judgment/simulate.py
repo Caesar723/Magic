@@ -4,6 +4,10 @@ from pycards.sorcery.Sanctuary_Judgment.model import Sanctuary_Judgment
 
 @bind_card(Sanctuary_Judgment)
 class Sanctuary_Judgment_Simulation(Card_Simulation):
+    scenario_locks={
+        '_token_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "clear.effect": [
             "Destroy all creatures.",

@@ -4,6 +4,10 @@ from pycards.creature.Blightsteel_Colossus.model import Blightsteel_Colossus
 
 @bind_card(Blightsteel_Colossus)
 class Blightsteel_Colossus_Simulation(Card_Simulation):
+    scenario_locks={
+        '_infect_combat':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "keyword.trample": [
             "Trample.",

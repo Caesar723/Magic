@@ -4,6 +4,10 @@ from pycards.sorcery.Torrential_Manipulation.model import Torrential_Manipulatio
 
 @bind_card(Torrential_Manipulation)
 class Torrential_Manipulation_Simulation(Card_Simulation):
+    scenario_locks={
+        '_resource_scene':('opponent.battlefield', 'opponent.hand', 'opponent.library', 'self.battlefield', 'self.hand', 'self.library'),
+    }
+
     text_parts = {
         "return.effect": [
             "Return the selected creature to its owner's hand. Choose only an opposing creature.",
@@ -36,15 +40,18 @@ class Torrential_Manipulation_Simulation(Card_Simulation):
         self.scenario_prepare()
         return self.scenario_cast(provide_mana=False)
 
-    def _resource_scene(self, count, offset=0, role="enemy", library_count=3, hand_count=2, colored=False):
+    def _resource_scene(self,count,offset=0,role='enemy',library_count=None,hand_count=None):
+        library_count=self.scenario_count("library",library_count)
+        hand_count=self.scenario_count("hand",hand_count)
         self.scenario_prepare()
         self.player.hand.clear()
         self.player.opponent.hand.clear()
         self.player.library.clear()
         for owner in (self.player, self.player.opponent):
-            self.room.env_initinal_library(owner, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            self.scenario_replace_cards(owner,"library",instant=(library_count, library_count))
             owner.library = [card for card in owner.library if card.type == "Instant"][:library_count]
-        self.room.env_initinal_hand(self.player.opponent, {"instant_number": (hand_count, hand_count), "sorcery_number": (hand_count, hand_count), "creature_number": (0, 0), "land_number": (0, 0)})
+        self.scenario_clear(self.player.opponent,"hand")
+        self.scenario_random_cards(self.player.opponent,"hand",hand_count)
         subaction = 0
         if count:
             owner = self.player if role == "self" else self.player.opponent
@@ -57,49 +64,49 @@ class Torrential_Manipulation_Simulation(Card_Simulation):
 
     @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
     def simulate_count_0_below(self):
-        return self._resource_scene(0, offset=-1)
+        return self._resource_scene(0,offset=-1)
 
     @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
     def simulate_count_0_equal(self):
-        return self._resource_scene(0, offset=0)
+        return self._resource_scene(0,offset=0)
 
     @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
     def simulate_count_0_above(self):
-        return self._resource_scene(0, offset=1)
+        return self._resource_scene(0,offset=1)
 
     @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
     def simulate_count_1_below(self):
-        return self._resource_scene(1, offset=-1)
+        return self._resource_scene(1,offset=-1)
 
     @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
     def simulate_count_1_equal(self):
-        return self._resource_scene(1, offset=0)
+        return self._resource_scene(1,offset=0)
 
     @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
     def simulate_count_1_above(self):
-        return self._resource_scene(1, offset=1)
+        return self._resource_scene(1,offset=1)
 
     @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
     def simulate_count_3_below(self):
-        return self._resource_scene(3, offset=-1)
+        return self._resource_scene(3,offset=-1)
 
     @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
     def simulate_count_3_equal(self):
-        return self._resource_scene(3, offset=0)
+        return self._resource_scene(3,offset=0)
 
     @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
     def simulate_count_3_above(self):
-        return self._resource_scene(3, offset=1)
+        return self._resource_scene(3,offset=1)
 
     @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
     def simulate_self_target(self):
-        return self._resource_scene(1, role="self")
+        return self._resource_scene(1,role="self")
 
     @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
     def simulate_no_followup_spell(self):
-        return self._resource_scene(1, hand_count=0)
+        return self._resource_scene(1,hand_count=0)
 
     @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
     def simulate_zero_cost_target(self):
-        return self._resource_scene(1, offset=-2)
+        return self._resource_scene(1,offset=-2)
 

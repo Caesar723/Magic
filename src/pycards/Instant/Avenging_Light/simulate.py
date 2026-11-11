@@ -5,6 +5,11 @@ from pycards.Instant.Avenging_Light.model import Avenging_Light
 
 @bind_card(Avenging_Light)
 class Avenging_Light_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield'),
+        'simulate_no_creatures':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "Choose a target creature.",
@@ -56,7 +61,7 @@ class Avenging_Light_Simulation(Card_Simulation):
         if current_power is not None:
             target.actual_power = current_power
         if protected:
-            target.gain_buff(Indestructible(self.card, target), self.card)
+            self.scenario_buff(target, Indestructible(self.card, target))
         self.player.life = max(1, self.player.ini_life - missing)
         subaction = 1 if opponent else 11
         return self.scenario_cast((subaction,))

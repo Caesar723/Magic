@@ -4,6 +4,12 @@ from pycards.Instant.Priest_s_Divine_Binding.model import Priest_s_Divine_Bindin
 
 @bind_card(Priest_s_Divine_Binding)
 class Priest_s_Divine_Binding_Simulation(Card_Simulation):
+    scenario_locks={
+        '_counter_scene':(),
+        'simulate_land_on_stack':('opponent.land_area',),
+        'simulate_blocking_creature':('self.battlefield',),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the creature spell on top of the stack.",

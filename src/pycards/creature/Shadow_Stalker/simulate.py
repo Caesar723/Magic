@@ -4,6 +4,10 @@ from pycards.creature.Shadow_Stalker.model import Shadow_Stalker
 
 @bind_card(Shadow_Stalker)
 class Shadow_Stalker_Simulation(Card_Simulation):
+    scenario_locks={
+        '_hand_attack':('opponent.hand',),
+    }
+
     text_parts = {
         "keyword.hexproof": [
             "Hexproof.",
@@ -127,7 +131,7 @@ class Shadow_Stalker_Simulation(Card_Simulation):
 
     def _hand_attack(self, count):
         record = self.scenario_unblocked()
-        self.room.env_initinal_hand(self.player.opponent, {"instant_number": (count, count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+        self.scenario_replace_cards(self.player.opponent,"hand",instant=(count, count))
         self.player.opponent.hand = [card for card in self.player.opponent.hand if card.type == "Instant"][:count]
         return record
 

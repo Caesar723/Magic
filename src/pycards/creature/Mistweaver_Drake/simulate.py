@@ -4,6 +4,9 @@ from pycards.creature.Mistweaver_Drake.model import Mistweaver_Drake
 
 @bind_card(Mistweaver_Drake)
 class Mistweaver_Drake_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "keyword.flash": [
             "Flash.",

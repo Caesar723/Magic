@@ -4,6 +4,10 @@ from pycards.creature.Titan_Giant.model import Titan_Giant
 
 @bind_card(Titan_Giant)
 class Titan_Giant_Simulation(Card_Simulation):
+    scenario_locks={
+        '_enter_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "enter.trigger": [
             "When {card_name} enters the battlefield,",

@@ -4,6 +4,10 @@ from pycards.land.Arcane_Haven.model import Arcane_Haven
 
 @bind_card(Arcane_Haven)
 class Arcane_Haven_Simulation(Card_Simulation):
+    scenario_locks={
+        'simulate_enter_land_limit':('self.hand',),
+    }
+
     text_parts = {
         "enter.tap": [
             "When {card_name} enters the battlefield, it becomes tapped.",

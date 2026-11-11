@@ -4,6 +4,10 @@ from pycards.creature.Thornwood_Ranger.model import Thornwood_Ranger
 
 @bind_card(Thornwood_Ranger)
 class Thornwood_Ranger_Simulation(Card_Simulation):
+    scenario_locks={
+        '_enter_target':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "keyword.reach": [
             "Reach.",

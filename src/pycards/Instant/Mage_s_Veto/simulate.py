@@ -4,6 +4,12 @@ from pycards.Instant.Mage_s_Veto.model import Mage_s_Veto
 
 @bind_card(Mage_s_Veto)
 class Mage_s_Veto_Simulation(Card_Simulation):
+    scenario_locks={
+        '_counter_scene':('self.library',),
+        'simulate_land_on_stack':('opponent.land_area',),
+        'simulate_blocking_creature':('self.battlefield',),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the nonland spell on top of the stack.",
@@ -43,10 +49,12 @@ class Mage_s_Veto_Simulation(Card_Simulation):
         ],
     }
 
-    def _counter_scene(self, target_type="instant", own_target=False, cost=3, lower_count=0, library_count=5):
+    def _counter_scene(self, target_type="instant", own_target=False, cost=3, lower_count=0, library_count=None):
+        library_count=self.scenario_count("library",library_count)
         self.scenario_prepare()
         self.scenario_stack(target_type, own_target, cost, lower_count=lower_count)
-        self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "sorcery_number": (library_count, library_count), "creature_number": (0, 0), "land_number": (0, 0)})
+        self.scenario_clear(self.player,"library")
+        self.scenario_random_cards(self.player,"library",library_count)
         self.player.library = [card for card in self.player.library if card.type == 'Sorcery'][:library_count]
         return self.scenario_cast(in_stack=True)
 

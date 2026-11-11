@@ -4,6 +4,10 @@ from pycards.creature.Sunward_Captain.model import Sunward_Captain
 
 @bind_card(Sunward_Captain)
 class Sunward_Captain_Simulation(Card_Simulation):
+    scenario_locks={
+        '_token_scene':('self.battlefield',),
+    }
+
     text_parts = {
         "keyword.vigilance": [
             "Vigilance.",

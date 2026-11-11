@@ -4,6 +4,10 @@ from pycards.land.Luminous_Glade.model import Luminous_Glade
 
 @bind_card(Luminous_Glade)
 class Luminous_Glade_Simulation(Card_Simulation):
+    scenario_locks={
+        'simulate_enter_land_limit':('self.hand',),
+    }
+
     text_parts = {
         "enter.tap": [
             "When {card_name} enters the battlefield, it becomes tapped.",

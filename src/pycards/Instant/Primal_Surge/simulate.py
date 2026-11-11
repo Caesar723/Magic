@@ -4,6 +4,10 @@ from pycards.Instant.Primal_Surge.model import Primal_Surge
 
 @bind_card(Primal_Surge)
 class Primal_Surge_Simulation(Card_Simulation):
+    scenario_locks={
+        '_resource_scene':('self.hand', 'self.library'),
+    }
+
     text_parts = {
         "hand.effect": [
             "For each card currently in your hand, move that card to the bottom of your library and immediately draw one card.",
@@ -36,63 +40,51 @@ class Primal_Surge_Simulation(Card_Simulation):
         self.scenario_prepare()
         return self.scenario_cast(provide_mana=False)
 
-    def _resource_scene(self, count, offset=0, role="enemy", library_count=3, hand_count=2, colored=False):
+    def _resource_scene(self,library_count=None,hand_count=None):
         self.scenario_prepare()
-        self.player.hand.clear()
-        self.player.opponent.hand.clear()
-        self.player.library.clear()
-        for owner in (self.player, self.player.opponent):
-            self.room.env_initinal_library(owner, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
-            owner.library = [card for card in owner.library if card.type == "Instant"][:library_count]
-        self.room.env_initinal_hand(self.player, {"instant_number": (hand_count, hand_count), "sorcery_number": (hand_count, hand_count), "creature_number": (0, 0), "land_number": (0, 0)})
-        subaction = 0
+        self.scenario_random_cards(self.player,"library",library_count)
+        self.scenario_random_cards(self.player,"hand",hand_count)
         return self.scenario_cast()
 
     @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
-    def simulate_count_0_normal(self):
-        return self._resource_scene(0, offset=0)
+    def simulate_random_resources(self):
+        return self._resource_scene()
 
-    @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
-    def simulate_count_1_normal(self):
-        return self._resource_scene(1, offset=0)
 
-    @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
-    def simulate_count_3_normal(self):
-        return self._resource_scene(3, offset=0)
 
     @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
     def simulate_library_0_hand_0(self):
-        return self._resource_scene(0, library_count=0, hand_count=0)
+        return self._resource_scene(library_count=0,hand_count=0)
 
     @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
     def simulate_library_0_hand_1(self):
-        return self._resource_scene(0, library_count=0, hand_count=1)
+        return self._resource_scene(library_count=0,hand_count=1)
 
     @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
     def simulate_library_0_hand_3(self):
-        return self._resource_scene(0, library_count=0, hand_count=3)
+        return self._resource_scene(library_count=0,hand_count=3)
 
     @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
     def simulate_library_1_hand_0(self):
-        return self._resource_scene(0, library_count=1, hand_count=0)
+        return self._resource_scene(library_count=1,hand_count=0)
 
     @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
     def simulate_library_1_hand_1(self):
-        return self._resource_scene(0, library_count=1, hand_count=1)
+        return self._resource_scene(library_count=1,hand_count=1)
 
     @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
     def simulate_library_1_hand_3(self):
-        return self._resource_scene(0, library_count=1, hand_count=3)
+        return self._resource_scene(library_count=1,hand_count=3)
 
     @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
     def simulate_library_3_hand_0(self):
-        return self._resource_scene(0, library_count=3, hand_count=0)
+        return self._resource_scene(library_count=3,hand_count=0)
 
     @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
     def simulate_library_3_hand_1(self):
-        return self._resource_scene(0, library_count=3, hand_count=1)
+        return self._resource_scene(library_count=3,hand_count=1)
 
     @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
     def simulate_library_3_hand_3(self):
-        return self._resource_scene(0, library_count=3, hand_count=3)
+        return self._resource_scene(library_count=3,hand_count=3)
 

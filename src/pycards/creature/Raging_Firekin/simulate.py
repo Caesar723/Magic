@@ -4,6 +4,9 @@ from pycards.creature.Raging_Firekin.model import Raging_Firekin
 
 @bind_card(Raging_Firekin)
 class Raging_Firekin_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "keyword.trample": [
             "Trample.",

@@ -7,6 +7,10 @@ from pycards.creature.Elvish_Trailblazer.model import Elvish_Trailblazer
 
 @bind_card(Elvish_Trailblazer)
 class Elvish_Trailblazer_Simulation(Card_Simulation):
+    scenario_locks={
+        '_enter_library':('self.land_area', 'self.library'),
+    }
+
     text_parts = {
         "keyword.reach": [
             "Reach.",
@@ -138,8 +142,7 @@ class Elvish_Trailblazer_Simulation(Card_Simulation):
         for _ in range(forests):
             self.player.library.append(Forest(self.player))
         if nonbasic:
-            land = Land(self.player)
-            land.name, land.type = "Review nonbasic land", "Land"
+            land = self.scenario_cards(self.player,land=1,basic=False)[0]
             self.player.library.insert(0, land)
         self.player.mana.update(self.card.calculate_cost())
         return self.scenario_cast(provide_mana=False)

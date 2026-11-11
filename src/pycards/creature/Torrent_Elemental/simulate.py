@@ -4,6 +4,9 @@ from pycards.creature.Torrent_Elemental.model import Torrent_Elemental
 
 @bind_card(Torrent_Elemental)
 class Torrent_Elemental_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "keyword.flash": [
             "Flash.",

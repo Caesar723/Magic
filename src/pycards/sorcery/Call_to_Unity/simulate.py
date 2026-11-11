@@ -4,6 +4,10 @@ from pycards.sorcery.Call_to_Unity.model import Call_to_Unity
 
 @bind_card(Call_to_Unity)
 class Call_to_Unity_Simulation(Card_Simulation):
+    scenario_locks={
+        '_token_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "token.effect": [
             "create {token_count} {token_power}/{token_toughness} white Human creature token{token_count_plural}.",

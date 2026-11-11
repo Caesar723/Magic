@@ -5,6 +5,10 @@ from pycards.land.Mountain.model import Mountain
 
 @bind_card(Pyroblast_Surge)
 class Pyroblast_Surge_Simulation(Card_Simulation):
+    scenario_locks={
+        '_damage_scene':('opponent.land_area', 'self.land_area'),
+    }
+
     text_parts = {
         "damage.base": [
             "{card_name} deals {damage} damage to a target creature or player.",

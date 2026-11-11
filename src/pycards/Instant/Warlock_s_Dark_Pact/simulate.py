@@ -4,6 +4,12 @@ from pycards.Instant.Warlock_s_Dark_Pact.model import Warlock_s_Dark_Pact
 
 @bind_card(Warlock_s_Dark_Pact)
 class Warlock_s_Dark_Pact_Simulation(Card_Simulation):
+    scenario_locks={
+        '_counter_scene':(),
+        'simulate_land_on_stack':('opponent.land_area',),
+        'simulate_blocking_creature':('self.battlefield',),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the nonland spell on top of the stack.",

@@ -5,6 +5,12 @@ from pycards.land.Forest.model import Forest
 
 @bind_card(Verdant_Sanctuary)
 class Verdant_Sanctuary_Simulation(Card_Simulation):
+    scenario_locks={
+        'simulate_enter_land_limit':('self.hand',),
+        '_forest_scene':('self.library',),
+        'simulate_activate_empty_library':('self.library',),
+    }
+
     text_parts = {
         "enter.tap": [
             "When {card_name} enters the battlefield, it becomes tapped.",

@@ -4,6 +4,11 @@ from pycards.Instant.Mystic_Tides.model import Mystic_Tides
 
 @bind_card(Mystic_Tides)
 class Mystic_Tides_Simulation(Card_Simulation):
+    scenario_locks={
+        '_tap_scene':('opponent.battlefield',),
+        'simulate_below_own_mana_threshold':('opponent.battlefield',),
+    }
+
     text_parts = {
         "cast.condition": [
             "You can cast this only with at least {mana_threshold} available mana, in addition to being able to pay its normal cost.",

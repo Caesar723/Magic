@@ -4,6 +4,9 @@ from pycards.creature.Celestial_Skyweaver.model import Celestial_Skyweaver
 
 @bind_card(Celestial_Skyweaver)
 class Celestial_Skyweaver_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",

@@ -4,6 +4,10 @@ from pycards.creature.Voidwisp_Harbinger.model import Voidwisp_Harbinger
 
 @bind_card(Voidwisp_Harbinger)
 class Voidwisp_Harbinger_Simulation(Card_Simulation):
+    scenario_locks={
+        '_library_scene':('self.hand', 'self.library'),
+    }
+
     text_parts = {
         "keyword.flash": [
             "Flash.",

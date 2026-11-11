@@ -4,6 +4,9 @@ from pycards.creature.Thornwood_Guardian.model import Thornwood_Guardian
 
 @bind_card(Thornwood_Guardian)
 class Thornwood_Guardian_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "keyword.reach": [
             "Reach.",

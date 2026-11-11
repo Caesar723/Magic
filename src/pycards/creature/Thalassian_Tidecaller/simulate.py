@@ -4,6 +4,9 @@ from pycards.creature.Thalassian_Tidecaller.model import Thalassian_Tidecaller
 
 @bind_card(Thalassian_Tidecaller)
 class Thalassian_Tidecaller_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "cast.trigger": [
             "Whenever you cast a blue card while this creature is on your battlefield,",

@@ -4,6 +4,13 @@ from pycards.land.Aetheric_Nexus.model import Aetheric_Nexus
 
 @bind_card(Aetheric_Nexus)
 class Aetheric_Nexus_Simulation(Card_Simulation):
+    scenario_locks={
+        'simulate_enter_land_limit':('self.hand',),
+        'simulate_activate_0_creatures':('self.battlefield',),
+        'simulate_activate_1_creatures':('self.battlefield',),
+        'simulate_activate_3_creatures':('self.battlefield',),
+    }
+
     text_parts = {
         "enter.tap": [
             "When {card_name} enters the battlefield, it becomes tapped.",

@@ -4,6 +4,12 @@ from pycards.Instant.Mindweave.model import Mindweave
 
 @bind_card(Mindweave)
 class Mindweave_Simulation(Card_Simulation):
+    scenario_locks={
+        '_counter_scene':('opponent.land_area', 'self.library'),
+        'simulate_land_on_stack':('opponent.land_area',),
+        'simulate_blocking_creature':('self.battlefield',),
+    }
+
     text_parts = {
         "counter.condition": [
             "If your opponent cannot pay {mana_threshold} generic mana from their available sources,",
@@ -43,10 +49,12 @@ class Mindweave_Simulation(Card_Simulation):
         ],
     }
 
-    def _counter_scene(self, target_type="instant", own_target=False, cost=3, lower_count=0, library_count=5, mana_offset=-1, extra_lands=0):
+    def _counter_scene(self, target_type="instant", own_target=False, cost=3, lower_count=0, library_count=None, mana_offset=-1, extra_lands=0):
+        library_count=self.scenario_count("library",library_count)
         self.scenario_prepare()
         self.scenario_stack(target_type, own_target, cost, lower_count=lower_count)
-        self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "sorcery_number": (library_count, library_count), "creature_number": (0, 0), "land_number": (0, 0)})
+        self.scenario_clear(self.player,"library")
+        self.scenario_random_cards(self.player,"library",library_count)
         self.player.library = [card for card in self.player.library if card.type == 'Instant'][:library_count]
         self.player.opponent.mana["colorless"] = max(0, self.card.effect_params["mana_threshold"] + mana_offset)
         if extra_lands:

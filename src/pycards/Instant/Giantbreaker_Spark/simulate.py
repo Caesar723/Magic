@@ -4,6 +4,11 @@ from pycards.Instant.Giantbreaker_Spark.model import Giantbreaker_Spark
 
 @bind_card(Giantbreaker_Spark)
 class Giantbreaker_Spark_Simulation(Card_Simulation):
+    scenario_locks={
+        '_damage_scene':('self.land_area',),
+        'simulate_no_opponent_creatures':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "damage.target": [
             "Choose a target creature your opponent controls.",

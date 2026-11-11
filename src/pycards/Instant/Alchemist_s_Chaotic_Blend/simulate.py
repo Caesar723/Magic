@@ -4,6 +4,11 @@ from pycards.Instant.Alchemist_s_Chaotic_Blend.model import Alchemist_s_Chaotic_
 
 @bind_card(Alchemist_s_Chaotic_Blend)
 class Alchemist_s_Chaotic_Blend_Simulation(Card_Simulation):
+    scenario_locks={
+        '_library_spell_scene':('opponent.battlefield', 'opponent.land_area', 'self.battlefield', 'self.library'),
+        'simulate_without_creature_targets':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the nonland spell on top of the stack.",

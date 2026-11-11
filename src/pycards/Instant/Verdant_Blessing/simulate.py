@@ -7,6 +7,10 @@ from pycards.Instant.Verdant_Blessing.model import Verdant_Blessing
 
 @bind_card(Verdant_Blessing)
 class Verdant_Blessing_Simulation(Card_Simulation):
+    scenario_locks={
+        '_resource_scene':('opponent.land_area', 'self.graveyard', 'self.land_area', 'self.library'),
+    }
+
     text_parts = {
         "land.effect": [
             "Put a random basic land from your library onto your battlefield tapped, if one is available.",
@@ -27,21 +31,20 @@ class Verdant_Blessing_Simulation(Card_Simulation):
         self.scenario_prepare()
         return self.scenario_cast(provide_mana=False)
 
-    def _resource_scene(self, basics, other_cards=3, nonbasic=False, role="none", forest=False, tapped=0, missing=1, grave_count=0):
+    def _resource_scene(self,basics,other_cards=3,nonbasic=False,tapped=0,missing=1):
         self.scenario_prepare()
         self.player.life = max(1, self.player.ini_life - missing)
         self.player.graveyard.clear()
-        self.room.env_initinal_library(self.player, {"instant_number": (other_cards, other_cards), "creature_number": (0, 0), "sorcery_number": (0, 0), "land_number": (0, 0)})
+        self.scenario_replace_cards(self.player,"library",instant=(other_cards, other_cards))
         self.player.library = [card for card in self.player.library if card.type == "Instant"][:other_cards]
         for _ in range(basics):
             self.player.library.append(Plains(self.player))
         if nonbasic:
-            land = Land(self.player)
-            land.name, land.type = "Review nonbasic land", "Land"
+            land = self.scenario_cards(self.player,land=1,basic=False)[0]
             self.player.library.insert(0, land)
         for index in range(tapped):
             land = Plains(self.player)
-            land.tap()
+            self.scenario_tapped(land)
             self.stage_card(land, zone="land_area")
         self.player.mana.update(self.card.calculate_cost())
         return self.scenario_cast(provide_mana=False)
@@ -60,13 +63,13 @@ class Verdant_Blessing_Simulation(Card_Simulation):
 
     @simulate(evidence={'text': ('land.effect',), 'fields': ('mana_cost',)})
     def simulate_nonbasic_first(self):
-        return self._resource_scene(2, nonbasic=True)
+        return self._resource_scene(2,nonbasic=True)
 
     @simulate(evidence={'text': ('land.effect',), 'fields': ('mana_cost',)})
     def simulate_empty_library(self):
-        return self._resource_scene(0, other_cards=0)
+        return self._resource_scene(0,other_cards=0)
 
     @simulate(evidence={'text': ('land.effect',), 'fields': ('mana_cost',)})
     def simulate_only_basic_library(self):
-        return self._resource_scene(1, other_cards=0)
+        return self._resource_scene(1,other_cards=0)
 

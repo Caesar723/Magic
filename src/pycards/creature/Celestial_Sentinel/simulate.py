@@ -4,6 +4,9 @@ from pycards.creature.Celestial_Sentinel.model import Celestial_Sentinel
 
 @bind_card(Celestial_Sentinel)
 class Celestial_Sentinel_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",

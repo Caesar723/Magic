@@ -4,6 +4,10 @@ from pycards.Instant.Witch_s_Curse_Counter.model import Witch_s_Curse_Counter
 
 @bind_card(Witch_s_Curse_Counter)
 class Witch_s_Curse_Counter_Simulation(Card_Simulation):
+    scenario_locks={
+        '_protection_scene':('opponent.battlefield', 'self.battlefield', 'self.library'),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the top spell.",
@@ -48,7 +52,8 @@ class Witch_s_Curse_Counter_Simulation(Card_Simulation):
         self.scenario_prepare()
         return self.scenario_cast(provide_mana=False)
 
-    def _protection_scene(self, own_count, enemy_count, role="self", selected_index=0, health=3, tapped=False, knight=False, creature_knight=False, library_count=None, time_count=0, stack_type="instant", own_stack=False):
+    def _protection_scene(self,own_count,enemy_count,health=3,tapped=False,knight=False,creature_knight=False,library_count=None,stack_type='instant',own_stack=False):
+        library_count=self.scenario_count("library",library_count)
         self.scenario_prepare()
         for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
             for index in range(count):
@@ -58,132 +63,132 @@ class Witch_s_Curse_Counter_Simulation(Card_Simulation):
                 if creature_knight:
                     creature.type_creature = "Knight"
         if library_count is not None:
-            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            self.scenario_replace_cards(self.player,"library",instant=(library_count, library_count))
             self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
         self.scenario_stack(stack_type, own_target=own_stack)
         return self.scenario_cast(in_stack=True)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_0_health_1(self):
-        return self._protection_scene(0, 0, health=1)
+        return self._protection_scene(0,0,health=1)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_0_health_2(self):
-        return self._protection_scene(0, 0, health=2)
+        return self._protection_scene(0,0,health=2)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_0_health_3(self):
-        return self._protection_scene(0, 0, health=3)
+        return self._protection_scene(0,0,health=3)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_0_health_5(self):
-        return self._protection_scene(0, 0, health=5)
+        return self._protection_scene(0,0,health=5)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_1_enemy_0_health_1(self):
-        return self._protection_scene(1, 0, health=1)
+        return self._protection_scene(1,0,health=1)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_1_enemy_0_health_2(self):
-        return self._protection_scene(1, 0, health=2)
+        return self._protection_scene(1,0,health=2)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_1_enemy_0_health_3(self):
-        return self._protection_scene(1, 0, health=3)
+        return self._protection_scene(1,0,health=3)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_1_enemy_0_health_5(self):
-        return self._protection_scene(1, 0, health=5)
+        return self._protection_scene(1,0,health=5)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_1_health_1(self):
-        return self._protection_scene(0, 1, health=1)
+        return self._protection_scene(0,1,health=1)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_1_health_2(self):
-        return self._protection_scene(0, 1, health=2)
+        return self._protection_scene(0,1,health=2)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_1_health_3(self):
-        return self._protection_scene(0, 1, health=3)
+        return self._protection_scene(0,1,health=3)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_1_health_5(self):
-        return self._protection_scene(0, 1, health=5)
+        return self._protection_scene(0,1,health=5)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_1_enemy_1_health_1(self):
-        return self._protection_scene(1, 1, health=1)
+        return self._protection_scene(1,1,health=1)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_1_enemy_1_health_2(self):
-        return self._protection_scene(1, 1, health=2)
+        return self._protection_scene(1,1,health=2)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_1_enemy_1_health_3(self):
-        return self._protection_scene(1, 1, health=3)
+        return self._protection_scene(1,1,health=3)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_1_enemy_1_health_5(self):
-        return self._protection_scene(1, 1, health=5)
+        return self._protection_scene(1,1,health=5)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_3_enemy_3_health_1(self):
-        return self._protection_scene(3, 3, health=1)
+        return self._protection_scene(3,3,health=1)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_3_enemy_3_health_2(self):
-        return self._protection_scene(3, 3, health=2)
+        return self._protection_scene(3,3,health=2)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_3_enemy_3_health_3(self):
-        return self._protection_scene(3, 3, health=3)
+        return self._protection_scene(3,3,health=3)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_3_enemy_3_health_5(self):
-        return self._protection_scene(3, 3, health=5)
+        return self._protection_scene(3,3,health=5)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_5_health_1(self):
-        return self._protection_scene(0, 5, health=1)
+        return self._protection_scene(0,5,health=1)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_5_health_2(self):
-        return self._protection_scene(0, 5, health=2)
+        return self._protection_scene(0,5,health=2)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_5_health_3(self):
-        return self._protection_scene(0, 5, health=3)
+        return self._protection_scene(0,5,health=3)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_self_0_enemy_5_health_5(self):
-        return self._protection_scene(0, 5, health=5)
+        return self._protection_scene(0,5,health=5)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_already_tapped(self):
-        return self._protection_scene(3, 3, tapped=True)
+        return self._protection_scene(3,3,tapped=True)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_stack_instant_own_False(self):
-        return self._protection_scene(2, 3, stack_type='instant', own_stack=False)
+        return self._protection_scene(2,3,stack_type='instant',own_stack=False)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_stack_instant_own_True(self):
-        return self._protection_scene(2, 3, stack_type='instant', own_stack=True)
+        return self._protection_scene(2,3,stack_type='instant',own_stack=True)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_stack_sorcery_own_False(self):
-        return self._protection_scene(2, 3, stack_type='sorcery', own_stack=False)
+        return self._protection_scene(2,3,stack_type='sorcery',own_stack=False)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_stack_sorcery_own_True(self):
-        return self._protection_scene(2, 3, stack_type='sorcery', own_stack=True)
+        return self._protection_scene(2,3,stack_type='sorcery',own_stack=True)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_stack_creature_own_False(self):
-        return self._protection_scene(2, 3, stack_type='creature', own_stack=False)
+        return self._protection_scene(2,3,stack_type='creature',own_stack=False)
 
     @simulate(evidence={'text': ('counter.effect', 'target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
     def simulate_stack_creature_own_True(self):
-        return self._protection_scene(2, 3, stack_type='creature', own_stack=True)
+        return self._protection_scene(2,3,stack_type='creature',own_stack=True)
 

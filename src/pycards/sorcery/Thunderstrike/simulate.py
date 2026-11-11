@@ -4,6 +4,10 @@ from pycards.sorcery.Thunderstrike.model import Thunderstrike
 
 @bind_card(Thunderstrike)
 class Thunderstrike_Simulation(Card_Simulation):
+    scenario_locks={
+        '_damage_scene':('opponent.battlefield', 'self.battlefield', 'self.land_area'),
+    }
+
     text_parts = {
         "target.scope": [
             "Choose a target creature.",
@@ -60,7 +64,7 @@ class Thunderstrike_Simulation(Card_Simulation):
         self.scenario_prepare()
         return self.scenario_cast(provide_mana=False)
 
-    def _damage_scene(self, target_role, life_offset, branch=None, target_flags=None, enemy_count=0):
+    def _damage_scene(self,target_role,life_offset,target_flags=None,enemy_count=0):
         self.scenario_prepare()
         params = self.card.effect_params
         damage = params.get("damage", params.get("damage_low", 0))
@@ -85,133 +89,133 @@ class Thunderstrike_Simulation(Card_Simulation):
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_enemy_creature_normal_below_lethal(self):
-        return self._damage_scene('enemy_creature', -1, branch=None)
+        return self._damage_scene('enemy_creature',-1)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_enemy_creature_normal_equal_lethal(self):
-        return self._damage_scene('enemy_creature', 0, branch=None)
+        return self._damage_scene('enemy_creature',0)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_enemy_creature_normal_above_lethal(self):
-        return self._damage_scene('enemy_creature', 1, branch=None)
+        return self._damage_scene('enemy_creature',1)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_self_creature_normal_below_lethal(self):
-        return self._damage_scene('self_creature', -1, branch=None)
+        return self._damage_scene('self_creature',-1)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_self_creature_normal_equal_lethal(self):
-        return self._damage_scene('self_creature', 0, branch=None)
+        return self._damage_scene('self_creature',0)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_self_creature_normal_above_lethal(self):
-        return self._damage_scene('self_creature', 1, branch=None)
+        return self._damage_scene('self_creature',1)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_enemy_player_normal_below_lethal(self):
-        return self._damage_scene('enemy_player', -1, branch=None)
+        return self._damage_scene('enemy_player',-1)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_enemy_player_normal_equal_lethal(self):
-        return self._damage_scene('enemy_player', 0, branch=None)
+        return self._damage_scene('enemy_player',0)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_enemy_player_normal_above_lethal(self):
-        return self._damage_scene('enemy_player', 1, branch=None)
+        return self._damage_scene('enemy_player',1)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_self_player_normal_below_lethal(self):
-        return self._damage_scene('self_player', -1, branch=None)
+        return self._damage_scene('self_player',-1)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_self_player_normal_equal_lethal(self):
-        return self._damage_scene('self_player', 0, branch=None)
+        return self._damage_scene('self_player',0)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_self_player_normal_above_lethal(self):
-        return self._damage_scene('self_player', 1, branch=None)
+        return self._damage_scene('self_player',1)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_hexproof_target(self):
-        return self._damage_scene("enemy_creature", 1, branch=None, target_flags={"Hexproof": True})
+        return self._damage_scene("enemy_creature",1,target_flags={"Hexproof": True})
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_self_creature_0_overkill(self):
-        return self._damage_scene('self_creature', -1, enemy_count=0)
+        return self._damage_scene('self_creature',-1,enemy_count=0)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_self_creature_0_exact(self):
-        return self._damage_scene('self_creature', 0, enemy_count=0)
+        return self._damage_scene('self_creature',0,enemy_count=0)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_self_creature_0_survives(self):
-        return self._damage_scene('self_creature', 1, enemy_count=0)
+        return self._damage_scene('self_creature',1,enemy_count=0)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_self_creature_1_overkill(self):
-        return self._damage_scene('self_creature', -1, enemy_count=1)
+        return self._damage_scene('self_creature',-1,enemy_count=1)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_self_creature_1_exact(self):
-        return self._damage_scene('self_creature', 0, enemy_count=1)
+        return self._damage_scene('self_creature',0,enemy_count=1)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_self_creature_1_survives(self):
-        return self._damage_scene('self_creature', 1, enemy_count=1)
+        return self._damage_scene('self_creature',1,enemy_count=1)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_self_creature_3_overkill(self):
-        return self._damage_scene('self_creature', -1, enemy_count=3)
+        return self._damage_scene('self_creature',-1,enemy_count=3)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_self_creature_3_exact(self):
-        return self._damage_scene('self_creature', 0, enemy_count=3)
+        return self._damage_scene('self_creature',0,enemy_count=3)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_self_creature_3_survives(self):
-        return self._damage_scene('self_creature', 1, enemy_count=3)
+        return self._damage_scene('self_creature',1,enemy_count=3)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_low_remaining_health_self_creature(self):
-        return self._damage_scene('self_creature', 1 - self.card.effect_params["damage"], enemy_count=3)
+        return self._damage_scene('self_creature',1 - self.card.effect_params["damage"],enemy_count=3)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_enemy_creature_0_overkill(self):
-        return self._damage_scene('enemy_creature', -1, enemy_count=0)
+        return self._damage_scene('enemy_creature',-1,enemy_count=0)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_enemy_creature_0_exact(self):
-        return self._damage_scene('enemy_creature', 0, enemy_count=0)
+        return self._damage_scene('enemy_creature',0,enemy_count=0)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_enemy_creature_0_survives(self):
-        return self._damage_scene('enemy_creature', 1, enemy_count=0)
+        return self._damage_scene('enemy_creature',1,enemy_count=0)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_enemy_creature_1_overkill(self):
-        return self._damage_scene('enemy_creature', -1, enemy_count=1)
+        return self._damage_scene('enemy_creature',-1,enemy_count=1)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_enemy_creature_1_exact(self):
-        return self._damage_scene('enemy_creature', 0, enemy_count=1)
+        return self._damage_scene('enemy_creature',0,enemy_count=1)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_enemy_creature_1_survives(self):
-        return self._damage_scene('enemy_creature', 1, enemy_count=1)
+        return self._damage_scene('enemy_creature',1,enemy_count=1)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_enemy_creature_3_overkill(self):
-        return self._damage_scene('enemy_creature', -1, enemy_count=3)
+        return self._damage_scene('enemy_creature',-1,enemy_count=3)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_enemy_creature_3_exact(self):
-        return self._damage_scene('enemy_creature', 0, enemy_count=3)
+        return self._damage_scene('enemy_creature',0,enemy_count=3)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_splash_enemy_creature_3_survives(self):
-        return self._damage_scene('enemy_creature', 1, enemy_count=3)
+        return self._damage_scene('enemy_creature',1,enemy_count=3)
 
     @simulate(evidence={'text': ('target.scope', 'damage.effect', 'splash.condition', 'splash.effect'), 'fields': ('mana_cost',)})
     def simulate_low_remaining_health_enemy_creature(self):
-        return self._damage_scene('enemy_creature', 1 - self.card.effect_params["damage"], enemy_count=3)
+        return self._damage_scene('enemy_creature',1 - self.card.effect_params["damage"],enemy_count=3)
 

@@ -4,6 +4,10 @@ from pycards.sorcery.Dark_Offering.model import Dark_Offering
 
 @bind_card(Dark_Offering)
 class Dark_Offering_Simulation(Card_Simulation):
+    scenario_locks={
+        '_drain_scene':(),
+    }
+
     text_parts = {
         "damage.effect": [
             "{card_name} deals {life_loss} damage to your opponent.",

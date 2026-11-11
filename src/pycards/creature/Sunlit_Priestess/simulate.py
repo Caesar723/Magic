@@ -4,6 +4,10 @@ from pycards.creature.Sunlit_Priestess.model import Sunlit_Priestess
 
 @bind_card(Sunlit_Priestess)
 class Sunlit_Priestess_Simulation(Card_Simulation):
+    scenario_locks={
+        '_simulate_heal':(),
+    }
+
     text_parts = {
         "enter.trigger": [
             "When {card_name} enters the battlefield,",

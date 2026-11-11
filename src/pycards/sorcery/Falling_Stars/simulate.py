@@ -4,6 +4,10 @@ from pycards.sorcery.Falling_Stars.model import Falling_Stars
 
 @bind_card(Falling_Stars)
 class Falling_Stars_Simulation(Card_Simulation):
+    scenario_locks={
+        '_token_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "damage.effect": [
             "{card_name} deals {damage} damage to every creature.",

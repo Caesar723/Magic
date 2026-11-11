@@ -4,6 +4,9 @@ from pycards.creature.Elite_Squire.model import Elite_Squire
 
 @bind_card(Elite_Squire)
 class Elite_Squire_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "keyword.vigilance": [
             "Vigilance.",

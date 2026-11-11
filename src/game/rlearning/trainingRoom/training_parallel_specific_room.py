@@ -27,6 +27,7 @@ from game.base_agent_room import Base_Agent_Room
 from game.rlearning.utils.model import get_class_by_name
 from initinal_file import CARD_DICTION,CARD_SIMULATION_DICTION
 from game.card import Card
+from game.rlearning.utils.simulation_scenarios import ScenarioTools
 from game.rlearning.utils.file import read_yaml
 from game.type_cards.creature import Creature
 from game.type_cards.instant import Instant
@@ -391,29 +392,21 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
 
     
-    def env_one_creature(self,player:"Player"):
-        weight=random.random()
-        creature_sample=self.get_creature_sample(weight)
-        creature=Testing_Spawn_Creature(
-            player,creature_sample["power"],creature_sample["toughness"],
-            creature_sample["flag_keywords"],current_toughness=creature_sample["current_toughness"],
+    def create_scenario_creature(self,player):
+        """Create an initial creature without placing it in a zone."""
+        sample=self.get_creature_sample(random.random())
+        return Testing_Spawn_Creature(
+            player,sample["power"],sample["toughness"],sample["flag_keywords"],
+            current_toughness=sample["current_toughness"],
         )
-        player.battlefield=[creature]
+
+    def env_one_creature(self,player:"Player"):
+        player.battlefield=[self.create_scenario_creature(player)]
 
     def env_no_creature(self,player):
         player.battlefield=[]
     def env_creature(self,player:"Player"):
-        num=random.randint(1,6)
-        creatures=[]
-        for i in range(num):
-            weight=random.random()
-            creature_sample=self.get_creature_sample(weight)
-            creature=Testing_Spawn_Creature(
-                player,creature_sample["power"],creature_sample["toughness"],
-                creature_sample["flag_keywords"],current_toughness=creature_sample["current_toughness"],
-            )
-            creatures.append(creature)
-        player.battlefield=creatures
+        player.battlefield=[self.create_scenario_creature(player) for _ in range(random.randint(1,6))]
 
 
 
@@ -526,14 +519,14 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
                 f"max_mana_value={mana_value_limit}"
             )
 
+        setup=ScenarioTools()
+
         def stage_stack_card(card: Card):
-            owner = card.player
-            if isinstance(card, Creature):
-                owner.battlefield.append(card)
-            elif isinstance(card, Land):
-                owner.land_area.append(card)
-            else:
-                owner.graveyard.append(card)
+            owner=card.player
+            zone="battlefield" if isinstance(card,Creature) else "land_area" if isinstance(card,Land) else "graveyard"
+            setup.stage_card(card,owner,zone=zone)
+            if isinstance(card,Creature):
+                setup.scenario_fresh_creature(card)
 
             self.stack.append({
                 "card": card,
@@ -609,15 +602,23 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
         
     
+    def _place_scenario_card(self,card,zone):
+        cards=getattr(self.player_1,zone)
+        if card in cards:
+            return cards.index(card)
+        limit=10 if zone in ("hand","battlefield") else 20
+        if len(cards)>=limit:
+            return None
+        index=0 if zone=="land_area" else random.randint(0,min(len(cards),9))
+        ScenarioTools().stage_card(card,self.player_1,zone=zone,index=index)
+        return index
+
     def simulate_play(self,card:Card,preferred_subactions=None,populate_targets=True):
         
         card.flag_dict["tap"]=False
-        if self.player_1.hand and len(self.player_1.hand)!=1:
-            card_index=min(9,random.randint(0,len(self.player_1.hand)-1))
-            self.player_1.hand[card_index]=card
-        else:
-            self.player_1.hand.append(card)
-            card_index=len(self.player_1.hand)-1
+        card_index=self._place_scenario_card(card,"hand")
+        if card_index is None:
+            return {"card":card,"type":0,"action":None}
         self.active_player=self.player_1
         self.non_active_player=self.player_2
 
@@ -670,12 +671,9 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         self.flag_dict["bullet_time"]=True
 
         card.flag_dict["tap"]=False
-        if self.player_1.hand and len(self.player_1.hand)!=1:
-            card_index=min(9,random.randint(0,len(self.player_1.hand)-1))
-            self.player_1.hand[card_index]=card
-        else:
-            self.player_1.hand.append(card)
-            card_index=len(self.player_1.hand)-1
+        card_index=self._place_scenario_card(card,"hand")
+        if card_index is None:
+            return {"card":card,"type":0,"action":None}
         self.active_player=self.player_1
         self.non_active_player=self.player_2
 
@@ -725,19 +723,9 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
     def simulate_activate_ability(self,card:Card):
         card.flag_dict["tap"]=False
 
-        # ``specific.get_state`` currently exposes aggregate mana but not the
-        # ordered land zone.  Keep the supervised activation label stable at
-        # slot zero instead of assigning an unobservable random land index.
-        card_index=0
-        if self.player_1.land_area:
-            old_card=self.player_1.land_area[card_index]
-            for key in old_card.check_overwritten():
-                self.player_1.remove_card_from_dict(key,old_card)
-            self.player_1.land_area[card_index]=card
-        else:
-            self.player_1.land_area.append(card)
-        for key in card.check_overwritten():
-            self.player_1.put_card_to_dict(key,card)
+        card_index=self._place_scenario_card(card,"land_area")
+        if card_index is None:
+            return {"card":card,"type":0,"action":None}
         self.active_player=self.player_1
         self.non_active_player=self.player_2
 
@@ -753,12 +741,9 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         return simulate_info
 
     def simulate_creature_attack(self,card:Card):
-        if self.player_1.battlefield and len(self.player_1.battlefield)!=1:
-            card_index=min(9,random.randint(0,len(self.player_1.battlefield)-1))
-            self.player_1.battlefield[card_index]=card
-        else:
-            self.player_1.battlefield.append(card)
-            card_index=len(self.player_1.battlefield)-1
+        card_index=self._place_scenario_card(card,"battlefield")
+        if card_index is None:
+            return {"card":card,"type":1,"action":None}
         if card.get_flag("Double strike"):
             card.set_counter_dict("attack_counter",2)
         else:
@@ -785,12 +770,9 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         self._elapsed_time=time.perf_counter()
         
         card.flag_dict["tap"]=False
-        if self.player_1.battlefield and len(self.player_1.battlefield)!=1:
-            card_index=min(9,random.randint(0,len(self.player_1.battlefield)-1))
-            self.player_1.battlefield[card_index]=card
-        else:
-            self.player_1.battlefield.append(card)
-            card_index=len(self.player_1.battlefield)-1
+        card_index=self._place_scenario_card(card,"battlefield")
+        if card_index is None:
+            return {"card":card,"type":2,"action":None}
         card.flag_dict["summoning_sickness"]=False
         self.flag_dict["attacker_defenders"]=True
         opponent_card=random.choice(self.player_2.battlefield)
@@ -911,6 +893,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             "card_key":f"{card.name}_{card.type}",
             "select_range":select_range,
             "scenario":simulate_info["scenario"],
+            "generation":simulate_info.get("generation",{}),
             "supervision":{
                 "source_id":int(card.card_id),
                 "text_parts":text_parts,

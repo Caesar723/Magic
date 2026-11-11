@@ -4,6 +4,11 @@ from pycards.sorcery.Righteous_Conviction.model import Righteous_Conviction
 
 @bind_card(Righteous_Conviction)
 class Righteous_Conviction_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield'),
+        'simulate_no_creatures':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "Choose a target creature you control.",

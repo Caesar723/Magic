@@ -4,6 +4,10 @@ from pycards.creature.Seraph_of_the_Eternal_Flame.model import Seraph_of_the_Ete
 
 @bind_card(Seraph_of_the_Eternal_Flame)
 class Seraph_of_the_Eternal_Flame_Simulation(Card_Simulation):
+    scenario_locks={
+        '_protected_attack':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "attack.trigger": [
             "Whenever this creature attacks,",

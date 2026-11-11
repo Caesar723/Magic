@@ -4,6 +4,10 @@ from pycards.sorcery.Worldpyre_Cataclysm.model import Worldpyre_Cataclysm
 
 @bind_card(Worldpyre_Cataclysm)
 class Worldpyre_Cataclysm_Simulation(Card_Simulation):
+    scenario_locks={
+        '_sweep_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "damage.creatures": [
             "{card_name} deals {damage} damage to every opposing creature.",

@@ -17,13 +17,21 @@ def simulate(func=None, *, evidence=None):
     def decorate(method):
         @wraps(method)
         def wrapper(self, *args, **kwargs):
-            result = method(self, *args, **kwargs)
-            result["description_info"] = self.build_description()
-            result["supervision"] = {
-                "text_parts": list(text_parts),
-                "fields": list(field_names),
-            }
-            return result
+            outer=not getattr(self,"_scenario_running",False)
+            if outer:
+                self.room.clear_environmrnt()
+                self.scenario_begin(method)
+                self._scenario_running=True
+            try:
+                result=method(self,*args,**kwargs)
+                if outer:
+                    result=self.scenario_finish(result)
+                result["description_info"]=self.build_description()
+                result["supervision"]={"text_parts":list(text_parts),"fields":list(field_names)}
+                return result
+            finally:
+                if outer:
+                    self._scenario_running=False
 
         wrapper._is_simulate = True
         return wrapper
@@ -136,15 +144,6 @@ class Card_Simulation(ScenarioTools):
     def get_card(self):
         return self.card
 
-    def stage_card(self,card:"Card",player:"Player"=None,zone:str="battlefield"):
-        """Place a setup card in a zone without emitting gameplay actions."""
-        owner=player or card.player
-        cards=getattr(owner,zone)
-        if card not in cards:
-            cards.append(card)
-        for key in card.check_overwritten():
-            owner.put_card_to_dict(key,card)
-        return card
 
     def get_candidates_simulation(self):
         methods = []

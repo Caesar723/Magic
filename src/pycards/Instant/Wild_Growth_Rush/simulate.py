@@ -7,6 +7,10 @@ from pycards.Instant.Wild_Growth_Rush.model import Wild_Growth_Rush
 
 @bind_card(Wild_Growth_Rush)
 class Wild_Growth_Rush_Simulation(Card_Simulation):
+    scenario_locks={
+        '_resource_scene':('opponent.battlefield', 'opponent.land_area', 'self.battlefield', 'self.graveyard', 'self.land_area', 'self.library'),
+    }
+
     text_parts = {
         "buff.stats": [
             "It gets +{power_bonus}/+{toughness_bonus} until that creature's controller's turn ends.",
@@ -75,21 +79,20 @@ class Wild_Growth_Rush_Simulation(Card_Simulation):
         self.scenario_prepare()
         return self.scenario_cast(provide_mana=False)
 
-    def _resource_scene(self, basics, other_cards=3, nonbasic=False, role="none", forest=False, tapped=0, missing=1, grave_count=0):
+    def _resource_scene(self,basics,other_cards=3,nonbasic=False,role='none',forest=False,tapped=0,missing=1):
         self.scenario_prepare()
         self.player.life = max(1, self.player.ini_life - missing)
         self.player.graveyard.clear()
-        self.room.env_initinal_library(self.player, {"instant_number": (other_cards, other_cards), "creature_number": (0, 0), "sorcery_number": (0, 0), "land_number": (0, 0)})
+        self.scenario_replace_cards(self.player,"library",instant=(other_cards, other_cards))
         self.player.library = [card for card in self.player.library if card.type == "Instant"][:other_cards]
         for _ in range(basics):
             self.player.library.append(Plains(self.player))
         if nonbasic:
-            land = Land(self.player)
-            land.name, land.type = "Review nonbasic land", "Land"
+            land = self.scenario_cards(self.player,land=1,basic=False)[0]
             self.player.library.insert(0, land)
         for index in range(tapped):
             land = Plains(self.player)
-            land.tap()
+            self.scenario_tapped(land)
             self.stage_card(land, zone="land_area")
         if forest:
             self.stage_card(Forest(self.player), zone="land_area")
@@ -104,65 +107,65 @@ class Wild_Growth_Rush_Simulation(Card_Simulation):
 
     @simulate(evidence={'text': ('buff.stats', 'buff.trample', 'land.condition', 'land.effect', 'library.shuffle'), 'fields': ('mana_cost',)})
     def simulate_basic_none(self):
-        return self._resource_scene(0, role="self")
+        return self._resource_scene(0,role="self")
 
     @simulate(evidence={'text': ('buff.stats', 'buff.trample', 'land.condition', 'land.effect', 'library.shuffle'), 'fields': ('mana_cost',)})
     def simulate_basic_one(self):
-        return self._resource_scene(1, role="self")
+        return self._resource_scene(1,role="self")
 
     @simulate(evidence={'text': ('buff.stats', 'buff.trample', 'land.condition', 'land.effect', 'library.shuffle'), 'fields': ('mana_cost',)})
     def simulate_basic_several(self):
-        return self._resource_scene(4, role="self")
+        return self._resource_scene(4,role="self")
 
     @simulate(evidence={'text': ('buff.stats', 'buff.trample', 'land.condition', 'land.effect', 'library.shuffle'), 'fields': ('mana_cost',)})
     def simulate_nonbasic_first(self):
-        return self._resource_scene(2, nonbasic=True, role="self")
+        return self._resource_scene(2,nonbasic=True,role="self")
 
     @simulate(evidence={'text': ('buff.stats', 'buff.trample', 'land.condition', 'land.effect', 'library.shuffle'), 'fields': ('mana_cost',)})
     def simulate_empty_library(self):
-        return self._resource_scene(0, other_cards=0, role="self")
+        return self._resource_scene(0,other_cards=0,role="self")
 
     @simulate(evidence={'text': ('buff.stats', 'buff.trample', 'land.condition', 'land.effect', 'library.shuffle'), 'fields': ('mana_cost',)})
     def simulate_only_basic_library(self):
-        return self._resource_scene(1, other_cards=0, role="self")
+        return self._resource_scene(1,other_cards=0,role="self")
 
     @simulate(evidence={'text': ('buff.stats', 'buff.trample', 'land.condition', 'land.effect', 'library.shuffle'), 'fields': ('mana_cost',)})
     def simulate_self_forest_False(self):
-        return self._resource_scene(3, role='self', forest=False)
+        return self._resource_scene(3,role='self',forest=False)
 
     @simulate(evidence={'text': ('buff.stats', 'buff.trample', 'land.condition', 'land.effect', 'library.shuffle'), 'fields': ('mana_cost',)})
     def simulate_enemy_forest_False(self):
-        return self._resource_scene(3, role='enemy', forest=False)
+        return self._resource_scene(3,role='enemy',forest=False)
 
     @simulate(evidence={'text': ('buff.stats', 'buff.trample', 'land.condition', 'land.effect', 'library.shuffle'), 'fields': ('mana_cost',)})
     def simulate_none_forest_False(self):
-        return self._resource_scene(3, role='none', forest=False)
+        return self._resource_scene(3,role='none',forest=False)
 
     @simulate(evidence={'text': ('buff.stats', 'buff.trample', 'land.condition', 'land.effect', 'library.shuffle'), 'fields': ('mana_cost',)})
     def simulate_self_trample_forest_False(self):
-        return self._resource_scene(3, role='self_trample', forest=False)
+        return self._resource_scene(3,role='self_trample',forest=False)
 
     @simulate(evidence={'text': ('buff.stats', 'buff.trample', 'land.condition', 'land.effect', 'library.shuffle'), 'fields': ('mana_cost',)})
     def simulate_enemy_hexproof_forest_False(self):
-        return self._resource_scene(3, role='enemy_hexproof', forest=False)
+        return self._resource_scene(3,role='enemy_hexproof',forest=False)
 
     @simulate(evidence={'text': ('buff.stats', 'buff.trample', 'land.condition', 'land.effect', 'library.shuffle'), 'fields': ('mana_cost',)})
     def simulate_self_forest_True(self):
-        return self._resource_scene(3, role='self', forest=True)
+        return self._resource_scene(3,role='self',forest=True)
 
     @simulate(evidence={'text': ('buff.stats', 'buff.trample', 'land.condition', 'land.effect', 'library.shuffle'), 'fields': ('mana_cost',)})
     def simulate_enemy_forest_True(self):
-        return self._resource_scene(3, role='enemy', forest=True)
+        return self._resource_scene(3,role='enemy',forest=True)
 
     @simulate(evidence={'text': ('buff.stats', 'buff.trample', 'land.condition', 'land.effect', 'library.shuffle'), 'fields': ('mana_cost',)})
     def simulate_none_forest_True(self):
-        return self._resource_scene(3, role='none', forest=True)
+        return self._resource_scene(3,role='none',forest=True)
 
     @simulate(evidence={'text': ('buff.stats', 'buff.trample', 'land.condition', 'land.effect', 'library.shuffle'), 'fields': ('mana_cost',)})
     def simulate_self_trample_forest_True(self):
-        return self._resource_scene(3, role='self_trample', forest=True)
+        return self._resource_scene(3,role='self_trample',forest=True)
 
     @simulate(evidence={'text': ('buff.stats', 'buff.trample', 'land.condition', 'land.effect', 'library.shuffle'), 'fields': ('mana_cost',)})
     def simulate_enemy_hexproof_forest_True(self):
-        return self._resource_scene(3, role='enemy_hexproof', forest=True)
+        return self._resource_scene(3,role='enemy_hexproof',forest=True)
 

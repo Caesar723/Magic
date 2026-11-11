@@ -5,6 +5,11 @@ from pycards.Instant.Shadowstrike.model import Shadowstrike
 
 @bind_card(Shadowstrike)
 class Shadowstrike_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield', 'self.library'),
+        'simulate_no_creatures':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "Choose a target creature.",
@@ -62,16 +67,17 @@ class Shadowstrike_Simulation(Card_Simulation):
         return self.scenario_cast(provide_mana=False)
 
     def _target_scene(self, opponent, flags=None, power=3, current_power=None, health=5, missing=1, protected=False, library_count=None):
+        library_count=self.scenario_count("library",library_count)
         self.scenario_prepare()
         owner = self.player.opponent if opponent else self.player
         target = self.scenario_creature(owner, power=power, health=health, flags=flags or {})
         if current_power is not None:
             target.actual_power = current_power
         if protected:
-            target.gain_buff(Indestructible(self.card, target), self.card)
+            self.scenario_buff(target, Indestructible(self.card, target))
         self.player.life = max(1, self.player.ini_life - missing)
         if library_count is not None:
-            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "creature_number": (0, 0), "sorcery_number": (0, 0), "land_number": (0, 0)})
+            self.scenario_replace_cards(self.player,"library",instant=(library_count, library_count))
             self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
         subaction = 1 if opponent else 11
         return self.scenario_cast((subaction,))

@@ -5,6 +5,10 @@ from pycards.sorcery.Soul_Siphon.model import Soul_Siphon
 
 @bind_card(Soul_Siphon)
 class Soul_Siphon_Simulation(Card_Simulation):
+    scenario_locks={
+        '_random_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.selection": [
             "If your opponent controls any creatures, choose one at random.",

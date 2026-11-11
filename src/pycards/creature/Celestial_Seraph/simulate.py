@@ -4,6 +4,11 @@ from pycards.creature.Celestial_Seraph.model import Celestial_Seraph
 
 @bind_card(Celestial_Seraph)
 class Celestial_Seraph_Simulation(Card_Simulation):
+    scenario_locks={
+        '_exile_combat':('opponent.battlefield', 'self.battlefield'),
+        '_stored_defense':('opponent.exile_area',),
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",
@@ -132,9 +137,7 @@ class Celestial_Seraph_Simulation(Card_Simulation):
 
     def _stored_defense(self, enemy_dies, self_dies):
         record = self.scenario_combat(True, enemy_dies, self_dies)
-        creature = self.scenario_creature(self.player.opponent, power=1, health=3, flags={})
-        self.player.opponent.remove_card(creature, "battlefield")
-        self.player.opponent.append_card(creature, "exile_area")
+        creature = self.scenario_creature(self.player.opponent, power=1, health=3, flags={}, zone="exile_area")
         creature.flag_dict["exile"] = True
         self.card.creature_store.append(creature)
         return record

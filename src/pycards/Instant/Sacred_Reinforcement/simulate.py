@@ -4,6 +4,11 @@ from pycards.Instant.Sacred_Reinforcement.model import Sacred_Reinforcement
 
 @bind_card(Sacred_Reinforcement)
 class Sacred_Reinforcement_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield'),
+        'simulate_no_creatures':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "Choose a target creature your opponent controls.",

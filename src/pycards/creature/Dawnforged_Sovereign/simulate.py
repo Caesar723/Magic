@@ -4,6 +4,10 @@ from pycards.creature.Dawnforged_Sovereign.model import Dawnforged_Sovereign
 
 @bind_card(Dawnforged_Sovereign)
 class Dawnforged_Sovereign_Simulation(Card_Simulation):
+    scenario_locks={
+        '_token_scene':('self.battlefield',),
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",

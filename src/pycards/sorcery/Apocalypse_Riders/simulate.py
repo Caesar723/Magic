@@ -4,6 +4,10 @@ from pycards.sorcery.Apocalypse_Riders.model import Apocalypse_Riders
 
 @bind_card(Apocalypse_Riders)
 class Apocalypse_Riders_Simulation(Card_Simulation):
+    scenario_locks={
+        '_token_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "token.effect": [
             "create {token_count} {token_power}/{token_toughness} white Knight creature token{token_count_plural}.",

@@ -6,6 +6,10 @@ from pycards.sorcery.Rift_in_Reality.model import Rift_in_Reality
 
 @bind_card(Rift_in_Reality)
 class Rift_in_Reality_Simulation(Card_Simulation):
+    scenario_locks={
+        '_effect_scene':('opponent.battlefield', 'opponent.graveyard', 'opponent.land_area', 'opponent.library', 'self.battlefield', 'self.graveyard', 'self.hand', 'self.land_area', 'self.library'),
+    }
+
     text_parts = {
         "exile.effect": [
             "Exile a target opposing creature.",
@@ -38,31 +42,30 @@ class Rift_in_Reality_Simulation(Card_Simulation):
         self.scenario_prepare()
         return self.scenario_cast(provide_mana=False)
 
-    def _effect_scene(self, own_count, enemy_count, protected=False, mountains=0, offset=0, role="enemy", hand_count=1, library_count=None, grave_count=0, tapped=False):
+    def _effect_scene(self, own_count, enemy_count, protected=False, mountains=0, offset=0, role="enemy", hand_count=None, library_count=None, grave_count=0, tapped=False):
+        hand_count=self.scenario_count("hand",hand_count)
+        library_count=self.scenario_count("library",library_count)
         self.scenario_prepare()
         self.player.hand.clear()
         self.player.graveyard.clear()
         self.player.opponent.graveyard.clear()
-        for _ in range(hand_count):
-            self.player.append_card(self.card.copy_for_player(self.player), "hand")
+        self.scenario_random_cards(self.player,"hand",hand_count)
         for _ in range(mountains):
             land = Mountain(self.player)
-            land.tap()
+            self.scenario_tapped(land)
             self.stage_card(land, zone="land_area")
         for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
             for index in range(count):
                 health = max(1, self.card.effect_params.get("damage", 3) + offset + index)
                 creature = self.scenario_creature(owner, power=index + 1, health=health, flags={"tap": tapped, "Hexproof": False})
                 if protected:
-                    creature.gain_buff(Indestructible(self.card, creature), self.card)
+                    self.scenario_buff(creature, Indestructible(self.card, creature))
         for owner in (self.player, self.player.opponent):
             for _ in range(grave_count):
-                creature = self.scenario_creature(owner, power=2, health=3, flags={})
-                owner.remove_card(creature, "battlefield")
-                owner.append_card(creature, "graveyard")
+                creature = self.scenario_creature(owner, power=2, health=3, flags={}, zone="graveyard")
         if library_count is not None:
             owner = self.player.opponent
-            self.room.env_initinal_library(owner, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            self.scenario_replace_cards(owner,"library",instant=(library_count, library_count))
             owner.library = [card for card in owner.library if card.type == "Instant"][:library_count]
         self.player.mana.update(self.card.calculate_cost())
         subaction = 11 if role == "self" else 1 if role == "enemy" else 21

@@ -5,6 +5,11 @@ from pycards.sorcery.Gravebound_Reckoning.model import Gravebound_Reckoning
 
 @bind_card(Gravebound_Reckoning)
 class Gravebound_Reckoning_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield'),
+        'simulate_no_creatures':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "Choose a target opposing creature.",
@@ -56,7 +61,7 @@ class Gravebound_Reckoning_Simulation(Card_Simulation):
         if current_power is not None:
             target.actual_power = current_power
         if protected:
-            target.gain_buff(Indestructible(self.card, target), self.card)
+            self.scenario_buff(target, Indestructible(self.card, target))
         self.player.life = max(1, self.player.ini_life - missing)
         subaction = 1 if opponent else 11
         return self.scenario_cast((subaction,))

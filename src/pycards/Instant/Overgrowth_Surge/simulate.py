@@ -4,6 +4,11 @@ from pycards.Instant.Overgrowth_Surge.model import Overgrowth_Surge
 
 @bind_card(Overgrowth_Surge)
 class Overgrowth_Surge_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield'),
+        'simulate_no_creatures':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "Choose a target creature you control.",

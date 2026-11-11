@@ -4,6 +4,10 @@ from pycards.sorcery.Unyielding_Resolve.model import Unyielding_Resolve
 
 @bind_card(Unyielding_Resolve)
 class Unyielding_Resolve_Simulation(Card_Simulation):
+    scenario_locks={
+        '_group_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "This affects all creatures you control.",

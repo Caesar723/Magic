@@ -4,6 +4,11 @@ from pycards.creature.Aetherweaver.model import Aetherweaver
 
 @bind_card(Aetherweaver)
 class Aetherweaver_Simulation(Card_Simulation):
+    scenario_locks={
+        '_simulate_library':('self.library',),
+        'simulate_enter_empty_library':('self.library',),
+    }
+
     text_parts = {
         "enter.trigger": [
             "When {card_name} enters the battlefield,",

@@ -4,6 +4,9 @@ from pycards.creature.Dragon_Lord.model import Dragon_Lord
 
 @bind_card(Dragon_Lord)
 class Dragon_Lord_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",

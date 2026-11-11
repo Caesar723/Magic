@@ -4,6 +4,10 @@ from pycards.creature.Thundering_Behemoth.model import Thundering_Behemoth
 
 @bind_card(Thundering_Behemoth)
 class Thundering_Behemoth_Simulation(Card_Simulation):
+    scenario_locks={
+        '_enter_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "keyword.trample": [
             "Trample.",

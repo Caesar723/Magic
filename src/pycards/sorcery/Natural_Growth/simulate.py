@@ -4,6 +4,11 @@ from pycards.sorcery.Natural_Growth.model import Natural_Growth
 
 @bind_card(Natural_Growth)
 class Natural_Growth_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield'),
+        'simulate_no_creatures':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "Choose a target creature.",

@@ -4,6 +4,10 @@ from pycards.sorcery.Radiant_Procession.model import Radiant_Procession
 
 @bind_card(Radiant_Procession)
 class Radiant_Procession_Simulation(Card_Simulation):
+    scenario_locks={
+        '_token_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "token.effect": [
             "create {token_count} {token_power}/{token_toughness} white Knight creature token{token_count_plural}.",

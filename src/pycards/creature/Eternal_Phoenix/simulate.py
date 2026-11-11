@@ -4,6 +4,10 @@ from pycards.creature.Eternal_Phoenix.model import Eternal_Phoenix
 
 @bind_card(Eternal_Phoenix)
 class Eternal_Phoenix_Simulation(Card_Simulation):
+    scenario_locks={
+        '_marked_combat':(),
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",

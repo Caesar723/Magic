@@ -5,6 +5,10 @@ from pycards.sorcery.Vampiric_Revelry.model import Vampiric_Revelry
 
 @bind_card(Vampiric_Revelry)
 class Vampiric_Revelry_Simulation(Card_Simulation):
+    scenario_locks={
+        '_random_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.selection": [
             "If either player controls a creature, choose one at random.",

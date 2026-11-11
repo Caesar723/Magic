@@ -4,6 +4,10 @@ from pycards.Instant.Ephemeral_Bolt.model import Ephemeral_Bolt
 
 @bind_card(Ephemeral_Bolt)
 class Ephemeral_Bolt_Simulation(Card_Simulation):
+    scenario_locks={
+        '_damage_scene':('self.land_area', 'self.library'),
+    }
+
     text_parts = {
         "damage.base": [
             "{card_name} deals {damage} damage to a target creature or player.",
@@ -36,10 +40,11 @@ class Ephemeral_Bolt_Simulation(Card_Simulation):
         self.scenario_prepare()
         return self.scenario_cast(provide_mana=False)
 
-    def _damage_scene(self, target_role, life_offset, branch=None, target_flags=None, library_count=None):
+    def _damage_scene(self,target_role,life_offset,target_flags=None,library_count=None):
+        library_count=self.scenario_count("library",library_count)
         self.scenario_prepare()
         if library_count is not None:
-            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            self.scenario_replace_cards(self.player,"library",instant=(library_count, library_count))
             self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
         params = self.card.effect_params
         damage = params.get("damage", params.get("damage_low", 0))
@@ -62,65 +67,65 @@ class Ephemeral_Bolt_Simulation(Card_Simulation):
 
     @simulate(evidence={'text': ('damage.base', 'draw.effect'), 'fields': ('mana_cost',)})
     def simulate_enemy_creature_normal_below_lethal(self):
-        return self._damage_scene('enemy_creature', -1, branch=None)
+        return self._damage_scene('enemy_creature',-1)
 
     @simulate(evidence={'text': ('damage.base', 'draw.effect'), 'fields': ('mana_cost',)})
     def simulate_enemy_creature_normal_equal_lethal(self):
-        return self._damage_scene('enemy_creature', 0, branch=None)
+        return self._damage_scene('enemy_creature',0)
 
     @simulate(evidence={'text': ('damage.base', 'draw.effect'), 'fields': ('mana_cost',)})
     def simulate_enemy_creature_normal_above_lethal(self):
-        return self._damage_scene('enemy_creature', 1, branch=None)
+        return self._damage_scene('enemy_creature',1)
 
     @simulate(evidence={'text': ('damage.base', 'draw.effect'), 'fields': ('mana_cost',)})
     def simulate_self_creature_normal_below_lethal(self):
-        return self._damage_scene('self_creature', -1, branch=None)
+        return self._damage_scene('self_creature',-1)
 
     @simulate(evidence={'text': ('damage.base', 'draw.effect'), 'fields': ('mana_cost',)})
     def simulate_self_creature_normal_equal_lethal(self):
-        return self._damage_scene('self_creature', 0, branch=None)
+        return self._damage_scene('self_creature',0)
 
     @simulate(evidence={'text': ('damage.base', 'draw.effect'), 'fields': ('mana_cost',)})
     def simulate_self_creature_normal_above_lethal(self):
-        return self._damage_scene('self_creature', 1, branch=None)
+        return self._damage_scene('self_creature',1)
 
     @simulate(evidence={'text': ('damage.base', 'draw.effect'), 'fields': ('mana_cost',)})
     def simulate_enemy_player_normal_below_lethal(self):
-        return self._damage_scene('enemy_player', -1, branch=None)
+        return self._damage_scene('enemy_player',-1)
 
     @simulate(evidence={'text': ('damage.base', 'draw.effect'), 'fields': ('mana_cost',)})
     def simulate_enemy_player_normal_equal_lethal(self):
-        return self._damage_scene('enemy_player', 0, branch=None)
+        return self._damage_scene('enemy_player',0)
 
     @simulate(evidence={'text': ('damage.base', 'draw.effect'), 'fields': ('mana_cost',)})
     def simulate_enemy_player_normal_above_lethal(self):
-        return self._damage_scene('enemy_player', 1, branch=None)
+        return self._damage_scene('enemy_player',1)
 
     @simulate(evidence={'text': ('damage.base', 'draw.effect'), 'fields': ('mana_cost',)})
     def simulate_self_player_normal_below_lethal(self):
-        return self._damage_scene('self_player', -1, branch=None)
+        return self._damage_scene('self_player',-1)
 
     @simulate(evidence={'text': ('damage.base', 'draw.effect'), 'fields': ('mana_cost',)})
     def simulate_self_player_normal_equal_lethal(self):
-        return self._damage_scene('self_player', 0, branch=None)
+        return self._damage_scene('self_player',0)
 
     @simulate(evidence={'text': ('damage.base', 'draw.effect'), 'fields': ('mana_cost',)})
     def simulate_self_player_normal_above_lethal(self):
-        return self._damage_scene('self_player', 1, branch=None)
+        return self._damage_scene('self_player',1)
 
     @simulate(evidence={'text': ('damage.base', 'draw.effect'), 'fields': ('mana_cost',)})
     def simulate_hexproof_target(self):
-        return self._damage_scene("enemy_creature", 1, branch=None, target_flags={"Hexproof": True})
+        return self._damage_scene("enemy_creature",1,target_flags={"Hexproof": True})
 
     @simulate(evidence={'text': ('damage.base', 'draw.effect'), 'fields': ('mana_cost',)})
     def simulate_draw_empty(self):
-        return self._damage_scene("enemy_player", 1, library_count=0)
+        return self._damage_scene("enemy_player",1,library_count=0)
 
     @simulate(evidence={'text': ('damage.base', 'draw.effect'), 'fields': ('mana_cost',)})
     def simulate_draw_short(self):
-        return self._damage_scene("enemy_player", 1, library_count=max(0, self.card.effect_params["draw_count"] - 1))
+        return self._damage_scene("enemy_player",1,library_count=max(0, self.card.effect_params["draw_count"] - 1))
 
     @simulate(evidence={'text': ('damage.base', 'draw.effect'), 'fields': ('mana_cost',)})
     def simulate_draw_exact(self):
-        return self._damage_scene("enemy_player", 1, library_count=self.card.effect_params["draw_count"])
+        return self._damage_scene("enemy_player",1,library_count=self.card.effect_params["draw_count"])
 

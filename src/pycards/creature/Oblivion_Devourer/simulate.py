@@ -5,6 +5,10 @@ from pycards.creature.Oblivion_Devourer.model import Oblivion_Devourer
 
 @bind_card(Oblivion_Devourer)
 class Oblivion_Devourer_Simulation(Card_Simulation):
+    scenario_locks={
+        '_sacrifice_attack':('opponent.battlefield', 'opponent.hand', 'self.battlefield'),
+    }
+
     text_parts = {
         "keyword.menace": [
             "Menace.",
@@ -147,8 +151,9 @@ class Oblivion_Devourer_Simulation(Card_Simulation):
         for index in range(count):
             creature = self.scenario_creature(self.player, power=1 if tied else index + 1, health=1 if tied else index + 2, flags={})
             if protected:
-                creature.gain_buff(Indestructible(self.card, creature), self.card)
-        self.room.env_initinal_hand(self.player.opponent, {"instant_number": (hand_count, hand_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+                self.scenario_buff(creature, Indestructible(self.card, creature))
+        self.scenario_clear(self.player.opponent,"hand")
+        self.scenario_random_cards(self.player.opponent,"hand",hand_count)
         self.player.opponent.hand = [card for card in self.player.opponent.hand if card.type == "Instant"][:hand_count]
         return record
 

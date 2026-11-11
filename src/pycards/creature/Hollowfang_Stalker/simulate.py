@@ -4,6 +4,9 @@ from pycards.creature.Hollowfang_Stalker.model import Hollowfang_Stalker
 
 @bind_card(Hollowfang_Stalker)
 class Hollowfang_Stalker_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "keyword.lifelink": [
             "Lifelink.",

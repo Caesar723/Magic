@@ -4,6 +4,10 @@ from pycards.creature.Vorinclex__Apex_of_Mutation.model import Vorinclex__Apex_o
 
 @bind_card(Vorinclex__Apex_of_Mutation)
 class Vorinclex__Apex_of_Mutation_Simulation(Card_Simulation):
+    scenario_locks={
+        '_infect_combat':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "keyword.trample": [
             "Trample.",

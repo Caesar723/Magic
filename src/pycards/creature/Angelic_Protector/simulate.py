@@ -4,6 +4,10 @@ from pycards.creature.Angelic_Protector.model import Angelic_Protector
 
 @bind_card(Angelic_Protector)
 class Angelic_Protector_Simulation(Card_Simulation):
+    scenario_locks={
+        '_enter_target':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "enter.trigger": [
             "When {card_name} enters the battlefield,",

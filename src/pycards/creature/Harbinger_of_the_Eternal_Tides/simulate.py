@@ -4,6 +4,10 @@ from pycards.creature.Harbinger_of_the_Eternal_Tides.model import Harbinger_of_t
 
 @bind_card(Harbinger_of_the_Eternal_Tides)
 class Harbinger_of_the_Eternal_Tides_Simulation(Card_Simulation):
+    scenario_locks={
+        '_enter_target':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "keyword.flash": [
             "Flash.",

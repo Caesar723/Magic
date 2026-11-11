@@ -4,6 +4,10 @@ from pycards.Instant.Titan_s_Strength.model import Titan_s_Strength
 
 @bind_card(Titan_s_Strength)
 class Titan_s_Strength_Simulation(Card_Simulation):
+    scenario_locks={
+        '_group_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "target.scope": [
             "This affects all creatures you control.",

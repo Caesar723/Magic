@@ -4,6 +4,10 @@ from pycards.creature.Radiant_Angel.model import Radiant_Angel
 
 @bind_card(Radiant_Angel)
 class Radiant_Angel_Simulation(Card_Simulation):
+    scenario_locks={
+        '_color_attack':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "keyword.flying": [
             "Flying.",

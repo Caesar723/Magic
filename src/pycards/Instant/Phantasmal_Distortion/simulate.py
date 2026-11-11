@@ -4,6 +4,10 @@ from pycards.Instant.Phantasmal_Distortion.model import Phantasmal_Distortion
 
 @bind_card(Phantasmal_Distortion)
 class Phantasmal_Distortion_Simulation(Card_Simulation):
+    scenario_locks={
+        '_target_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "clone.effect": [
             "Until your end step, a target creature you control copies the stats and methods of another random creature you control.",
@@ -24,7 +28,7 @@ class Phantasmal_Distortion_Simulation(Card_Simulation):
         self.scenario_prepare()
         return self.scenario_cast(provide_mana=False)
 
-    def _target_scene(self, own_target=True, others=1, same_name=True, counterpart_enemy=False, hexproof=False, donors=0):
+    def _target_scene(self,own_target=True,others=1,same_name=True,counterpart_enemy=False,hexproof=False):
         self.scenario_prepare()
         owner = self.player if own_target else self.player.opponent
         target = self.scenario_creature(owner, power=2, health=4, flags={"Hexproof": hexproof})
@@ -38,29 +42,29 @@ class Phantasmal_Distortion_Simulation(Card_Simulation):
 
     @simulate(evidence={'text': ('clone.effect',), 'fields': ('mana_cost',)})
     def simulate_target_own_False_others_0_same_True(self):
-        return self._target_scene(False, 0, same_name=True)
+        return self._target_scene(False,0,same_name=True)
 
     @simulate(evidence={'text': ('clone.effect',), 'fields': ('mana_cost',)})
     def simulate_target_own_False_others_1_same_True(self):
-        return self._target_scene(False, 1, same_name=True)
+        return self._target_scene(False,1,same_name=True)
 
     @simulate(evidence={'text': ('clone.effect',), 'fields': ('mana_cost',)})
     def simulate_target_own_False_others_3_same_True(self):
-        return self._target_scene(False, 3, same_name=True)
+        return self._target_scene(False,3,same_name=True)
 
     @simulate(evidence={'text': ('clone.effect',), 'fields': ('mana_cost',)})
     def simulate_target_own_True_others_0_same_True(self):
-        return self._target_scene(True, 0, same_name=True)
+        return self._target_scene(True,0,same_name=True)
 
     @simulate(evidence={'text': ('clone.effect',), 'fields': ('mana_cost',)})
     def simulate_target_own_True_others_1_same_True(self):
-        return self._target_scene(True, 1, same_name=True)
+        return self._target_scene(True,1,same_name=True)
 
     @simulate(evidence={'text': ('clone.effect',), 'fields': ('mana_cost',)})
     def simulate_target_own_True_others_3_same_True(self):
-        return self._target_scene(True, 3, same_name=True)
+        return self._target_scene(True,3,same_name=True)
 
     @simulate(evidence={'text': ('clone.effect',), 'fields': ('mana_cost',)})
     def simulate_enemy_hexproof(self):
-        return self._target_scene(False, hexproof=True)
+        return self._target_scene(False,hexproof=True)
 

@@ -4,6 +4,9 @@ from pycards.creature.Essence_Channeler.model import Essence_Channeler
 
 @bind_card(Essence_Channeler)
 class Essence_Channeler_Simulation(Card_Simulation):
+    scenario_locks={
+    }
+
     text_parts = {
         "cast.trigger": [
             "Whenever you cast a creature while this creature is on your battlefield,",

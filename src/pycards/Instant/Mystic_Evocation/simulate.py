@@ -4,6 +4,10 @@ from pycards.Instant.Mystic_Evocation.model import Mystic_Evocation
 
 @bind_card(Mystic_Evocation)
 class Mystic_Evocation_Simulation(Card_Simulation):
+    scenario_locks={
+        '_scry_scene':('self.library',),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the instant, sorcery, or land spell on top of the stack.",

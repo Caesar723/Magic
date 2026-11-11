@@ -4,6 +4,12 @@ from pycards.Instant.Summoner_s_Arcane_Acquisition.model import Summoner_s_Arcan
 
 @bind_card(Summoner_s_Arcane_Acquisition)
 class Summoner_s_Arcane_Acquisition_Simulation(Card_Simulation):
+    scenario_locks={
+        '_counter_scene':(),
+        'simulate_land_on_stack':('opponent.land_area',),
+        'simulate_blocking_creature':('self.battlefield',),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the nonland spell on top of the stack.",

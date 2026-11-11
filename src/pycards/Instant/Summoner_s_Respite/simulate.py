@@ -4,6 +4,10 @@ from pycards.Instant.Summoner_s_Respite.model import Summoner_s_Respite
 
 @bind_card(Summoner_s_Respite)
 class Summoner_s_Respite_Simulation(Card_Simulation):
+    scenario_locks={
+        '_combat_scene':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "combat.effect": [
             "Until your next upkeep, whenever anything is damaged while combat is active, heal that object for the damage amount.",

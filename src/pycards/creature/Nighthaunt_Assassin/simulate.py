@@ -4,6 +4,10 @@ from pycards.creature.Nighthaunt_Assassin.model import Nighthaunt_Assassin
 
 @bind_card(Nighthaunt_Assassin)
 class Nighthaunt_Assassin_Simulation(Card_Simulation):
+    scenario_locks={
+        '_enter_group':('opponent.battlefield', 'self.battlefield'),
+    }
+
     text_parts = {
         "enter.trigger": [
             "When {card_name} enters the battlefield,",

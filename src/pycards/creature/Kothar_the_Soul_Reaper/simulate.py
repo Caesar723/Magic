@@ -4,6 +4,10 @@ from pycards.creature.Kothar_the_Soul_Reaper.model import Kothar_the_Soul_Reaper
 
 @bind_card(Kothar_the_Soul_Reaper)
 class Kothar_the_Soul_Reaper_Simulation(Card_Simulation):
+    scenario_locks={
+        '_simulate_enter':('opponent.battlefield',),
+    }
+
     text_parts = {
         "enter.trigger": [
             "When {card_name} enters the battlefield,",

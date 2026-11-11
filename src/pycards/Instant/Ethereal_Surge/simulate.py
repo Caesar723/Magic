@@ -4,6 +4,12 @@ from pycards.Instant.Ethereal_Surge.model import Ethereal_Surge
 
 @bind_card(Ethereal_Surge)
 class Ethereal_Surge_Simulation(Card_Simulation):
+    scenario_locks={
+        '_counter_scene':(),
+        'simulate_land_on_stack':('opponent.land_area',),
+        'simulate_blocking_creature':('self.battlefield',),
+    }
+
     text_parts = {
         "counter.effect": [
             "Counter the nonland spell on top of the stack.",
