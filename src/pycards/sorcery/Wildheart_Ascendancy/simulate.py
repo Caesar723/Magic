@@ -1,30 +1,81 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.sorcery.Wildheart_Ascendancy.model import Wildheart_Ascendancy
 
 
 @bind_card(Wildheart_Ascendancy)
 class Wildheart_Ascendancy_Simulation(Card_Simulation):
+    text_parts = {
+        "target.scope": [
+            "This affects all creatures you control.",
+            "Apply the following effects to each creature you control.",
+            "Each creature on your battlefield receives the following effects.",
+            "The following effects apply to all your creatures.",
+            "Apply this to every creature under your control.",
+            "Every creature on your side receives the following effects.",
+            "Affect each of the creatures under your control.",
+            "Apply these effects to all creatures on your battlefield.",
+            "All creatures you control are affected.",
+            "Give every creature you control the following effects.",
+        ],
+        "state.effect": [
+            "Each gets +{power_bonus}/+{toughness_bonus} until your turn ends.",
+            "Give each +{power_bonus}/+{toughness_bonus} until your turn ends.",
+            "Each gains +{power_bonus}/+{toughness_bonus} until your turn ends.",
+            "Until your turn ends, each gets +{power_bonus}/+{toughness_bonus}.",
+            "Increase each creature's power by {power_bonus} and toughness by {toughness_bonus} until your turn ends.",
+            "Each receives +{power_bonus}/+{toughness_bonus} until your turn ends.",
+            "Its power increases by {power_bonus} and each creature's toughness by {toughness_bonus} until your turn ends.",
+            "Grant each +{power_bonus}/+{toughness_bonus} until your turn ends.",
+            "Each gets an extra {power_bonus} power and {toughness_bonus} toughness until your turn ends.",
+            "Until your turn ends, add {power_bonus} to each creature's power and {toughness_bonus} to each creature's toughness.",
+        ],
+        "keyword.effect": [
+            "Each also gains trample until your turn ends.",
+            "Each receives trample until your turn ends.",
+            "Give each trample until your turn ends.",
+            "Each has trample until your turn ends.",
+            "Until your turn ends, each also has trample.",
+            "Each gains the trample ability until your turn ends.",
+            "Grant each trample until your turn ends.",
+            "Until your turn ends, each receives trample.",
+            "Until your turn ends, each also gains trample.",
+            "Each is granted trample until your turn ends.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Creatures you control get +3/+3 and gain trample until end of turn.",
-        "Until the turn ends, all your creatures gain +3/+3 and trample.",
-        "Give each creature you control three additional power, three additional toughness, and trample for this turn."
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        self.room.env_mana(self.player,{"G":(2,5)},least_mana={"colorless":3,"G":2})
-        return self.room.simulate_play(self.card,preferred_subactions=(0,))
+    def _group_scene(self, own_count, enemy_count, existing_keyword=False):
+        self.scenario_prepare()
+        for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
+            for _ in range(count):
+                self.scenario_creature(owner, power=2, health=3, flags={'Trample': True} if existing_keyword else {})
+        return self.scenario_cast()
+
+    @simulate(evidence={'text': ('target.scope', 'state.effect', 'keyword.effect'), 'fields': ('mana_cost',)})
+    def simulate_group_self_0_enemy_0(self):
+        return self._group_scene(0, 0)
+
+    @simulate(evidence={'text': ('target.scope', 'state.effect', 'keyword.effect'), 'fields': ('mana_cost',)})
+    def simulate_group_self_0_enemy_3(self):
+        return self._group_scene(0, 3)
+
+    @simulate(evidence={'text': ('target.scope', 'state.effect', 'keyword.effect'), 'fields': ('mana_cost',)})
+    def simulate_group_self_1_enemy_0(self):
+        return self._group_scene(1, 0)
+
+    @simulate(evidence={'text': ('target.scope', 'state.effect', 'keyword.effect'), 'fields': ('mana_cost',)})
+    def simulate_group_self_1_enemy_1(self):
+        return self._group_scene(1, 1)
+
+    @simulate(evidence={'text': ('target.scope', 'state.effect', 'keyword.effect'), 'fields': ('mana_cost',)})
+    def simulate_group_self_3_enemy_3(self):
+        return self._group_scene(3, 3)
+
+    @simulate(evidence={'text': ('target.scope', 'state.effect', 'keyword.effect'), 'fields': ('mana_cost',)})
+    def simulate_group_existing_keyword(self):
+        return self._group_scene(3, 1, True)
+

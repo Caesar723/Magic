@@ -1,40 +1,100 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
+from game.buffs import Indestructible
+from pycards.land.Plains.model import Plains
 from pycards.Instant.Timeless_Intervention.model import Timeless_Intervention
+
 
 @bind_card(Timeless_Intervention)
 class Timeless_Intervention_Simulation(Card_Simulation):
+    text_parts = {
+        "exile.effect": [
+            "Exile all creatures.",
+            "Exile every creature on both battlefields.",
+            "Remove all creatures from play into exile.",
+            "Put every creature in play into exile.",
+            "Exile each creature on either battlefield.",
+            "All creatures on both sides are exiled.",
+            "Every creature in play goes into exile.",
+            "Move the creatures on both battlefields into exile.",
+            "Exile all creatures controlled by either player.",
+            "Send every creature on the battlefield into exile.",
+        ],
+        "return.delayed": [
+            "At the beginning of your next turn, return all creatures in either player's exile area to their owners' battlefields.",
+            "When your next turn begins, return every exiled creature to its owner's battlefield.",
+            "At your next turn start, put all creatures from both exile areas back onto their owners' battlefields.",
+            "When you next begin a turn, return all exiled creatures under their owners' control.",
+            "At the start of your next turn, bring back every creature in either exile area for its owner.",
+            "On your next turn's beginning, all creatures in both exile areas return to their owners' battlefields.",
+            "Return every creature in either player's exile area to its owner when your next turn starts.",
+            "Your next turn begins by returning all exiled creatures to their owners' battlefields.",
+            "At your next turn start, each owner gets back all creatures in their exile area.",
+            "When your following turn starts, restore all creatures from both exile areas to their owners' battlefields.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Exile all creatures and planeswalkers. Return all exiled creatures and planeswalkers to the battlefield under their owners' control at the beginning of the next end step.",
-        "[CARD_NAME] exiles all creatures and planeswalkers, then returns them at the next end step.",
-        "Exile all creatures and planeswalkers. They return at beginning of next end step.",
-        "Blink all creatures and planeswalkers—they return next end step.",
-        "[CARD_NAME]: mass exile creatures and planeswalkers; return next end step.",
-        "Exile every creature and planeswalker. They come back at next end step.",
-        "All creatures and planeswalkers exiled temporarily; return next end step.",
-        "With [CARD_NAME], exile all creatures and planeswalkers and return them next end step.",
-        "Mass exile creatures and planeswalkers; they re-enter at next end step.",
-        "[CARD_NAME] blinks all creatures and planeswalkers until next end step.",
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_card(self):
-        self.basic_initinal()
-        self.room.env_creature(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    def _board_scene(self, own_count, enemy_count, offset=0, protected=False, library_count=None, life=None, old_exile=False):
+        self.scenario_prepare()
+        if life is not None:
+            if not 1 <= life <= self.player.ini_life:
+                return self.scenario_skip()
+            self.player.life = life
+        for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
+            for index in range(count):
+                creature = self.scenario_creature(owner, power=2 + index, health=3 + index, flags={"Hexproof": index % 2 == 0, "tap": index % 2 == 1})
+                if protected:
+                    creature.gain_buff(Indestructible(self.card, creature), self.card)
+            land = Plains(owner)
+            land.tap()
+            self.stage_card(land, owner, zone="land_area")
+            if old_exile:
+                creature = self.scenario_creature(owner, power=1, health=2, flags={})
+                owner.remove_card(creature, "battlefield")
+                owner.append_card(creature, "exile_area")
+        if library_count is not None:
+            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "creature_number": (0, 0), "sorcery_number": (0, 0), "land_number": (0, 0)})
+            self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
+        self.player.mana.update(self.card.calculate_cost())
+        return self.scenario_cast(provide_mana=False)
 
-        self.room.env_mana(
-            self.player,
-            {"G":(1,7),"W":(1,7)},
-            least_mana={"colorless":2,"G":1,"W":1}
-        )
+    @simulate(evidence={'text': ('exile.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_normal(self):
+        return self._board_scene(0, 0, offset=0)
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('exile.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_normal(self):
+        return self._board_scene(1, 0, offset=0)
+
+    @simulate(evidence={'text': ('exile.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_normal(self):
+        return self._board_scene(0, 1, offset=0)
+
+    @simulate(evidence={'text': ('exile.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_normal(self):
+        return self._board_scene(1, 1, offset=0)
+
+    @simulate(evidence={'text': ('exile.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_normal(self):
+        return self._board_scene(3, 3, offset=0)
+
+    @simulate(evidence={'text': ('exile.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_normal(self):
+        return self._board_scene(0, 5, offset=0)
+
+    @simulate(evidence={'text': ('exile.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_5_enemy_0_normal(self):
+        return self._board_scene(5, 0, offset=0)
+
+    @simulate(evidence={'text': ('exile.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_protected_battlefields(self):
+        return self._board_scene(3, 3, protected=True)
+
+    @simulate(evidence={'text': ('exile.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_old_exiled_creatures(self):
+        return self._board_scene(2, 2, old_exile=True)
+

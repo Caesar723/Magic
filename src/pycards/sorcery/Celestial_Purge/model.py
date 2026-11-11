@@ -29,7 +29,7 @@ class Celestial_Purge(Sorcery):
         self.content:str="Exile target black or red permanent."
         self.image_path:str="cards/sorcery/Celestial Purge/image.jpg"
 
-    @select_object("opponent_roles",1)
+    @select_object("opponent_creatures",1)
     async def card_ability(self, player: "Player" = None, opponent: "Player" = None, selected_object: tuple["Card"] = ...):
         if selected_object:
             target = selected_object[0]

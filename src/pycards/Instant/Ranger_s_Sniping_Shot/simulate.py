@@ -1,43 +1,212 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.Instant.Ranger_s_Sniping_Shot.model import Ranger_s_Sniping_Shot
+
 
 @bind_card(Ranger_s_Sniping_Shot)
 class Ranger_s_Sniping_Shot_Simulation(Card_Simulation):
+    text_parts = {
+        "counter.effect": [
+            "Counter the nonland spell on top of the stack.",
+            "Counter the top spell on the stack if it is not a land.",
+            "Remove the top nonland spell from the stack without resolving it.",
+            "Counter the nonland spell currently on top of the stack.",
+            "Stop the top nonland spell on the stack from resolving.",
+            "Counter the spell at the top of the stack, excluding lands.",
+            "Cancel the nonland spell at the top of the stack.",
+            "Counter the topmost spell on the stack if it is not a land.",
+            "Prevent the nonland spell on top of the stack from resolving.",
+            "Counter the current top spell on the stack, provided it is not a land.",
+        ],
+        "damage.condition": [
+            "If that spell was a creature spell,",
+            "If the countered spell was a creature,",
+            "When the countered spell represents a creature,",
+            "If a creature spell was countered,",
+            "If you countered a creature spell,",
+            "When that countered card is a creature,",
+            "If the spell just countered was a creature,",
+            "If the countered card has creature type,",
+            "When you have countered a creature spell,",
+            "If that card was cast as a creature spell,",
+        ],
+        "damage.effect": [
+            "deal damage to its controller equal to that creature's power.",
+            "its controller takes damage equal to that creature's power.",
+            "deal its controller an amount of damage matching that creature's power.",
+            "inflict damage equal to that creature's power on its controller.",
+            "hit its controller for damage matching the creature's power.",
+            "{card_name} deals damage equal to that creature's power to its controller.",
+            "damage its controller for an amount equal to that creature's power.",
+            "deal its controller as much damage as that creature has power.",
+            "deal an amount of damage equal to the countered creature's power to its controller.",
+            "its controller is dealt damage matching the creature's power.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Counter target spell. If that spell is a creature spell, deal damage to its controller equal to that creature's power.",
-        "[CARD_NAME] counters target spell; if it's a creature spell, deal damage equal to power to controller.",
-        "Counter a spell. Creature spells deal damage equal to power to controller.",
-        "With [CARD_NAME], counter target spell and snipe controller for creature power if creature spell.",
-        "Counter target spell. On creature spell, damage controller equal to creature power.",
-        "[CARD_NAME]: counter spell; damage controller equal to creature power if creature spell.",
-        "Counter a spell. If creature spell, controller takes damage equal to creature's power.",
-        "Counter target spell. Creature spell controllers take damage equal to power.",
-        "[CARD_NAME] counters and punishes creature spell controllers with damage equal to power.",
-        "Counter spell; if creature, deal damage to controller equal to its power.",
-    ]
+    def _counter_scene(self, target_type="instant", own_target=False, cost=3, lower_count=0, life_offset=1, power=3):
+        self.scenario_prepare()
+        target = self.scenario_stack(target_type, own_target, cost, power=power, lower_count=lower_count)
+        amount = target.state[0] if target.type == "Creature" else 0
+        life = amount + life_offset
+        if not 1 <= life <= target.player.ini_life:
+            return self.scenario_skip()
+        target.player.life = life
+        return self.scenario_cast(in_stack=True)
 
-    @simulate
-    def simulate_card_stack(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_empty_stack(self):
+        self.scenario_prepare()
+        return self.scenario_cast(in_stack=True)
 
-        self.room.env_mana(
-            self.player,
-            {"G":(1,7)},
-            least_mana={"colorless":1,"G":1}
-        )
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_outside_response(self):
+        self.scenario_prepare()
+        self.scenario_stack()
+        return self.scenario_cast()
 
-        self.room.env_stack_cards(
-            self.player,self.card,preferred_types=("creature",)
-        )
-        simulate_info=self.room.simulate_play_in_stack(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        self.scenario_stack()
+        return self.scenario_cast(in_stack=True, provide_mana=False)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_land_on_stack(self):
+        self.scenario_prepare()
+        self.scenario_stack()
+        self.room.env_mana(self.player.opponent, {"W": (1, 1)})
+        self.room.stack[-1]["card"] = self.player.opponent.land_area[-1]
+        return self.scenario_cast(in_stack=True)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_blocking_creature(self):
+        self.scenario_prepare()
+        self.scenario_stack("creature")
+        self.room.attacker = self.scenario_creature(self.player, flags={})
+        self.room.flag_dict["attacker_defenders"] = True
+        return self.scenario_cast(in_stack=True)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_instant_cost_0(self):
+        return self._counter_scene('instant', False, 0)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_instant_cost_1(self):
+        return self._counter_scene('instant', False, 1)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_instant_cost_3(self):
+        return self._counter_scene('instant', False, 3)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_instant_cost_6(self):
+        return self._counter_scene('instant', False, 6)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_instant_cost_0(self):
+        return self._counter_scene('instant', True, 0)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_instant_cost_1(self):
+        return self._counter_scene('instant', True, 1)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_instant_cost_3(self):
+        return self._counter_scene('instant', True, 3)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_instant_cost_6(self):
+        return self._counter_scene('instant', True, 6)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_sorcery_cost_0(self):
+        return self._counter_scene('sorcery', False, 0)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_sorcery_cost_1(self):
+        return self._counter_scene('sorcery', False, 1)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_sorcery_cost_3(self):
+        return self._counter_scene('sorcery', False, 3)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_sorcery_cost_6(self):
+        return self._counter_scene('sorcery', False, 6)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_sorcery_cost_0(self):
+        return self._counter_scene('sorcery', True, 0)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_sorcery_cost_1(self):
+        return self._counter_scene('sorcery', True, 1)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_sorcery_cost_3(self):
+        return self._counter_scene('sorcery', True, 3)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_sorcery_cost_6(self):
+        return self._counter_scene('sorcery', True, 6)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_cost_0(self):
+        return self._counter_scene('creature', False, 0)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_cost_1(self):
+        return self._counter_scene('creature', False, 1)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_cost_3(self):
+        return self._counter_scene('creature', False, 3)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_cost_6(self):
+        return self._counter_scene('creature', False, 6)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_creature_cost_0(self):
+        return self._counter_scene('creature', True, 0)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_creature_cost_1(self):
+        return self._counter_scene('creature', True, 1)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_creature_cost_3(self):
+        return self._counter_scene('creature', True, 3)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_creature_cost_6(self):
+        return self._counter_scene('creature', True, 6)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_damage_below_lethal(self):
+        return self._counter_scene("creature", cost=3, life_offset=-1)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_damage_equal_lethal(self):
+        return self._counter_scene("creature", cost=3, life_offset=0)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_damage_above_lethal(self):
+        return self._counter_scene("creature", cost=3, life_offset=1)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_creature_power_0(self):
+        return self._counter_scene("creature", power=0)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_creature_power_1(self):
+        return self._counter_scene("creature", power=1)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_creature_power_5(self):
+        return self._counter_scene("creature", power=5)
+
+    @simulate(evidence={'text': ('counter.effect', 'damage.condition', 'damage.effect'), 'fields': ('mana_cost',)})
+    def simulate_lower_stack_preserved(self):
+        return self._counter_scene(lower_count=2)
+

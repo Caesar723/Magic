@@ -1,41 +1,171 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.Instant.Rogue_s_Trickery.model import Rogue_s_Trickery
+
 
 @bind_card(Rogue_s_Trickery)
 class Rogue_s_Trickery_Simulation(Card_Simulation):
+    text_parts = {
+        "counter.effect": [
+            "Counter the nonland spell on top of the stack.",
+            "Counter the top spell on the stack if it is not a land.",
+            "Remove the top nonland spell from the stack without resolving it.",
+            "Counter the nonland spell currently on top of the stack.",
+            "Stop the top nonland spell on the stack from resolving.",
+            "Counter the spell at the top of the stack, excluding lands.",
+            "Cancel the nonland spell at the top of the stack.",
+            "Counter the topmost spell on the stack if it is not a land.",
+            "Prevent the nonland spell on top of the stack from resolving.",
+            "Counter the current top spell on the stack, provided it is not a land.",
+        ],
+        "copy.effect": [
+            "Add a copy of the countered card to your hand.",
+            "Put a fresh copy of that spell into your hand.",
+            "Create a copy of the countered card in your hand.",
+            "You receive a copy of that card in your hand.",
+            "Put a copy of the spell you countered into your hand.",
+            "Give yourself a fresh copy of that card in hand.",
+            "Add a new copy of the countered spell to your hand.",
+            "Create a fresh copy of that card in your hand.",
+            "You gain a copy of the countered card in your hand.",
+            "A copy of that card is placed in your hand.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Counter target spell. If the spell is countered this way, you gain this card.",
-        "[CARD_NAME] counters target spell; if countered, you gain control of [CARD_NAME].",
-        "Counter a spell. If countered this way, you gain this card.",
-        "With [CARD_NAME], counter target spell and keep the card if you counter it.",
-        "Counter target spell. On counter, you gain [CARD_NAME].",
-        "[CARD_NAME]: counter spell; gain this card when countered.",
-        "Counter a spell. Successful counter lets you gain [CARD_NAME].",
-        "Counter target spell. If countered, you gain this card permanently.",
-        "[CARD_NAME] counters and rewards you with itself when counter succeeds.",
-        "Counter spell; gain [CARD_NAME] if countered this way.",
-    ]
+    def _counter_scene(self, target_type="instant", own_target=False, cost=3, lower_count=0):
+        self.scenario_prepare()
+        self.scenario_stack(target_type, own_target, cost, lower_count=lower_count)
+        return self.scenario_cast(in_stack=True)
 
-    @simulate
-    def simulate_card_stack(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_empty_stack(self):
+        self.scenario_prepare()
+        return self.scenario_cast(in_stack=True)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(1,7)},
-            least_mana={"colorless":1,"U":1}
-        )
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_outside_response(self):
+        self.scenario_prepare()
+        self.scenario_stack()
+        return self.scenario_cast()
 
-        self.room.env_stack_cards(self.player,self.card)
-        simulate_info=self.room.simulate_play_in_stack(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        self.scenario_stack()
+        return self.scenario_cast(in_stack=True, provide_mana=False)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_land_on_stack(self):
+        self.scenario_prepare()
+        self.scenario_stack()
+        self.room.env_mana(self.player.opponent, {"W": (1, 1)})
+        self.room.stack[-1]["card"] = self.player.opponent.land_area[-1]
+        return self.scenario_cast(in_stack=True)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_blocking_creature(self):
+        self.scenario_prepare()
+        self.scenario_stack("creature")
+        self.room.attacker = self.scenario_creature(self.player, flags={})
+        self.room.flag_dict["attacker_defenders"] = True
+        return self.scenario_cast(in_stack=True)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_instant_cost_0(self):
+        return self._counter_scene('instant', False, 0)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_instant_cost_1(self):
+        return self._counter_scene('instant', False, 1)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_instant_cost_3(self):
+        return self._counter_scene('instant', False, 3)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_instant_cost_6(self):
+        return self._counter_scene('instant', False, 6)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_instant_cost_0(self):
+        return self._counter_scene('instant', True, 0)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_instant_cost_1(self):
+        return self._counter_scene('instant', True, 1)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_instant_cost_3(self):
+        return self._counter_scene('instant', True, 3)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_instant_cost_6(self):
+        return self._counter_scene('instant', True, 6)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_sorcery_cost_0(self):
+        return self._counter_scene('sorcery', False, 0)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_sorcery_cost_1(self):
+        return self._counter_scene('sorcery', False, 1)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_sorcery_cost_3(self):
+        return self._counter_scene('sorcery', False, 3)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_sorcery_cost_6(self):
+        return self._counter_scene('sorcery', False, 6)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_sorcery_cost_0(self):
+        return self._counter_scene('sorcery', True, 0)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_sorcery_cost_1(self):
+        return self._counter_scene('sorcery', True, 1)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_sorcery_cost_3(self):
+        return self._counter_scene('sorcery', True, 3)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_sorcery_cost_6(self):
+        return self._counter_scene('sorcery', True, 6)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_cost_0(self):
+        return self._counter_scene('creature', False, 0)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_cost_1(self):
+        return self._counter_scene('creature', False, 1)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_cost_3(self):
+        return self._counter_scene('creature', False, 3)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_cost_6(self):
+        return self._counter_scene('creature', False, 6)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_creature_cost_0(self):
+        return self._counter_scene('creature', True, 0)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_creature_cost_1(self):
+        return self._counter_scene('creature', True, 1)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_creature_cost_3(self):
+        return self._counter_scene('creature', True, 3)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_creature_cost_6(self):
+        return self._counter_scene('creature', True, 6)
+
+    @simulate(evidence={'text': ('counter.effect', 'copy.effect'), 'fields': ('mana_cost',)})
+    def simulate_lower_stack_preserved(self):
+        return self._counter_scene(lower_count=2)
+

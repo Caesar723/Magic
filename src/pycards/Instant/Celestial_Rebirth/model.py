@@ -27,7 +27,7 @@ class Celestial_Rebirth(Instant):
         self.color:str="gold"
         self.type_card:str="Instant"
         self.rarity:str="Rare"
-        self.content:str="Return a creature card from your graveyard to the battlefield. It gains indestructible until end of turn. Exile Celestial Rebirth."
+        self.content:str="Return a creature card from your graveyard to the battlefield. It gains indestructible until end of turn"
         self.image_path:str="cards/Instant/Celestial Rebirth/image.jpg"
 
     @select_object("",1)
@@ -38,8 +38,10 @@ class Celestial_Rebirth(Instant):
         creatures = player.get_cards_by_pos_type("graveyard", (Creature,))
         if creatures:
             creature:Creature=random.choice(creatures)
+            
             player.remove_card(creature, "graveyard")
-            player.append_card(creature.copy_for_player(player), "battlefield")
+            creature=creature.copy_for_player(player)
+            player.append_card(creature, "battlefield")
             
             buff = Indestructible(self, creature)
             buff.set_end_of_turn()

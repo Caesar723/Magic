@@ -37,6 +37,7 @@ class Demonic_Ascendance(Sorcery):
         if creatures:
             creature = await opponent.send_selection_cards(creatures, selection_random=True)
             opponent.remove_card(creature, "hand")
+            creature=creature.copy_for_player(player)
             player.append_card(creature, "battlefield")
 
 

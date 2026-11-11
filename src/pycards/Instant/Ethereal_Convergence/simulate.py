@@ -1,41 +1,80 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
+from game.buffs import Indestructible
+from pycards.land.Plains.model import Plains
 from pycards.Instant.Ethereal_Convergence.model import Ethereal_Convergence
+
 
 @bind_card(Ethereal_Convergence)
 class Ethereal_Convergence_Simulation(Card_Simulation):
+    text_parts = {
+        "return.effect": [
+            "Return every creature to its owner's hand.",
+            "Put all creatures into their owners' hands.",
+            "All creatures return to the hands of their owners.",
+            "Move every creature from the battlefield to its owner's hand.",
+            "Return all creatures in play to their owners' hands.",
+            "Put each creature back into its owner's hand.",
+            "Every creature on either battlefield goes back to its owner's hand.",
+            "Return the creatures on both sides to their owners' hands.",
+            "Take all creatures off the battlefield and put them into their owners' hands.",
+            "Move all creatures on both battlefields back to their owners' hands.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Return all creatures to their owners' hands. You may search your library for a creature card, reveal it, put it into your hand, then shuffle your library.",
-        "[CARD_NAME] bounces all creatures, then lets you search your library for a creature card to hand.",
-        "All creatures return to their owners' hands. You may tutor a creature into your hand.",
-        "Return every creature to hand. Optionally search your library for a creature and put it in your hand.",
-        "[CARD_NAME]: mass bounce all creatures; optional creature tutor to hand.",
-        "Bounce all creatures. You may search for a creature card and put it into your hand.",
-        "All creatures go back to hand. You may find a creature in your library and add it to hand.",
-        "With [CARD_NAME], return all creatures to hand and optionally tutor a creature to hand.",
-        "Return all creatures to owners' hands. Search library for a creature if you want.",
-        "[CARD_NAME] returns all creatures to hand and may search your library for a creature card.",
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_card(self):
-        self.basic_initinal()
-        self.room.env_initinal_library(self.player,{"creature_number":(1,10)})
-        self.room.env_creature(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    def _board_scene(self, own_count, enemy_count, offset=0, protected=False, library_count=None, life=None, old_exile=False):
+        self.scenario_prepare()
+        if life is not None:
+            if not 1 <= life <= self.player.ini_life:
+                return self.scenario_skip()
+            self.player.life = life
+        for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
+            for index in range(count):
+                creature = self.scenario_creature(owner, power=2 + index, health=3 + index, flags={"Hexproof": index % 2 == 0, "tap": index % 2 == 1})
+                if protected:
+                    creature.gain_buff(Indestructible(self.card, creature), self.card)
+            land = Plains(owner)
+            land.tap()
+            self.stage_card(land, owner, zone="land_area")
+        if library_count is not None:
+            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "creature_number": (0, 0), "sorcery_number": (0, 0), "land_number": (0, 0)})
+            self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
+        self.player.mana.update(self.card.calculate_cost())
+        return self.scenario_cast(provide_mana=False)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(2,7)},
-            least_mana={"colorless":3,"U":2}
-        )
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_normal(self):
+        return self._board_scene(0, 0, offset=0)
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_normal(self):
+        return self._board_scene(1, 0, offset=0)
+
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_normal(self):
+        return self._board_scene(0, 1, offset=0)
+
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_normal(self):
+        return self._board_scene(1, 1, offset=0)
+
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_normal(self):
+        return self._board_scene(3, 3, offset=0)
+
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_normal(self):
+        return self._board_scene(0, 5, offset=0)
+
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_self_5_enemy_0_normal(self):
+        return self._board_scene(5, 0, offset=0)
+
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_protected_battlefields(self):
+        return self._board_scene(3, 3, protected=True)
+

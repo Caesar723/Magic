@@ -31,6 +31,8 @@ class Mind_s_Insight(Sorcery):
     @select_object("",1)
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
         player.draw_card(self.effect_params["draw_count"])
+        if not player.hand:
+            return
         discard_candidates=random.choice(player.hand)
         if discard_candidates.type_card not in ("Island"):
             player.discard(discard_candidates)

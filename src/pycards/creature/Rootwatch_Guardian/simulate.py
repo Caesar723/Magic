@@ -1,66 +1,149 @@
-from typing import TYPE_CHECKING
-import random
-if TYPE_CHECKING:
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.creature.Rootwatch_Guardian.model import Rootwatch_Guardian
 
 
 @bind_card(Rootwatch_Guardian)
 class Rootwatch_Guardian_Simulation(Card_Simulation):
+    text_parts = {
+        "keyword.reach": [
+            "Reach.",
+            "This creature has reach.",
+            "{card_name} has reach.",
+            "This creature has the reach ability.",
+            "{card_name} has the reach ability.",
+            "This creature can block creatures with flying.",
+            "{card_name} can block creatures with flying.",
+            "Reach (This creature can block creatures with flying).",
+            "This creature has reach and can block creatures with flying.",
+            "{card_name} has reach and can block creatures with flying.",
+        ],
+        "enter.trigger": [
+            "When {card_name} enters the battlefield,",
+            "Whenever {card_name} enters the battlefield,",
+            "When this creature enters the battlefield,",
+            "Whenever this creature enters the battlefield,",
+            "When {card_name} enters play,",
+            "Whenever {card_name} enters play,",
+            "When this creature enters play,",
+            "Whenever this creature enters play,",
+            "When {card_name} comes into play,",
+            "Whenever {card_name} comes into play,",
+        ],
+        "enter.heal": [
+            "you gain {heal} life.",
+            "gain {heal} life.",
+            "you gain a total of {heal} life.",
+            "gain a total of {heal} life.",
+            "increase your life total by {heal}.",
+            "you increase your life total by {heal}.",
+            "restore {heal} life.",
+            "you restore {heal} life.",
+            "gain an amount of life equal to {heal}.",
+            "you gain an amount of life equal to {heal}.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Reach. When [CARD_NAME] enters the battlefield, you gain 2 life.",
-        "Reach. When [CARD_NAME] enters play, restore 2 life to yourself.",
-        "[CARD_NAME] has reach. You gain two life when it enters the battlefield."
-    ]
+    def _simulate_heal(self, life):
+        self.scenario_prepare()
+        if not 1 <= life <= self.player.ini_life:
+            return self.scenario_skip()
+        self.player.life = life
+        return self.scenario_cast()
 
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        heal=self.card.effect_params["heal"]
-        missing=random.choice((0,1,heal,heal+1,self.player.ini_life-1))
-        self.player.life=max(1,self.player.ini_life-missing)
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal'), 'fields': ('mana_cost',)})
+    def simulate_enter_heal_injured(self):
+        return self._simulate_heal(1)
 
-        self.room.env_mana(self.player,{"G":(2,5)},least_mana={"colorless":2,"G":2})
-        return self.room.simulate_play(self.card,preferred_subactions=(0,))
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal'), 'fields': ('mana_cost',)})
+    def simulate_enter_heal_missing_one(self):
+        return self._simulate_heal(self.player.ini_life - 1)
 
-    @simulate
-    def simulate_when_attack(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        self.room.env_mana(self.player,{"G":(2,5)},least_mana={"colorless":2,"G":2})
-        return self.room.simulate_creature_attack(self.card)
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal'), 'fields': ('mana_cost',)})
+    def simulate_enter_heal_full(self):
+        return self._simulate_heal(self.player.ini_life)
 
-    @simulate
-    def simulate_when_defend(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        self.room.env_one_creature(self.player.opponent)
-        if not self.card.get_flag("flying") and not self.card.get_flag("reach"):
-            self.player.opponent.battlefield[0].flag_dict["flying"]=False
-        self.room.env_mana(self.player,{"G":(2,5)},least_mana={"colorless":2,"G":2})
-        return self.room.simulate_creature_defend(self.card)
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal'), 'fields': ('mana_cost',)})
+    def simulate_enter_heal_exact_heal(self):
+        return self._simulate_heal(self.player.ini_life - self.card.effect_params["heal"])
+
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_cast_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_dies_self_survives(self):
+        return self.scenario_combat(False, True, False, margin=0)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(False, True, False, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_survive(self):
+        return self.scenario_combat(False, False, False, margin=0)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_survive_beyond_boundary(self):
+        return self.scenario_combat(False, False, False, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_survives_self_dies(self):
+        return self.scenario_combat(False, False, True, margin=0)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(False, False, True, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_die(self):
+        return self.scenario_combat(False, True, True, margin=0)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_die_beyond_boundary(self):
+        return self.scenario_combat(False, True, True, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_dies_self_survives(self):
+        return self.scenario_combat(True, True, False, margin=0)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(True, True, False, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive(self):
+        return self.scenario_combat(True, False, False, margin=0)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive_beyond_boundary(self):
+        return self.scenario_combat(True, False, False, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies(self):
+        return self.scenario_combat(True, False, True, margin=0)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(True, False, True, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_die(self):
+        return self.scenario_combat(True, True, True, margin=0)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_die_beyond_boundary(self):
+        return self.scenario_combat(True, True, True, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'special_type')})
+    def simulate_attack_empty_board(self):
+        return self.scenario_unblocked(False)
+
+    @simulate(evidence={'fields': ('attack', 'special_type')})
+    def simulate_attack_opponent_passes(self):
+        return self.scenario_unblocked(True)
+
+    @simulate(evidence={'text': ('keyword.reach',), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_block_flying_creature(self):
+        return self.scenario_combat(True, False, False, enemy_flags={"flying": True})
+

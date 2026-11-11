@@ -161,6 +161,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         return result
 
     def clear_environmrnt(self):
+        self.simulation_opponent_action = None
         self.flag_dict:dict={}
         self.counter_dict:dict={}
         self.attacker:Creature=None
@@ -608,7 +609,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
 
         
     
-    def simulate_play(self,card:Card,preferred_subactions=None):
+    def simulate_play(self,card:Card,preferred_subactions=None,populate_targets=True):
         
         card.flag_dict["tap"]=False
         if self.player_1.hand and len(self.player_1.hand)!=1:
@@ -643,11 +644,11 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         for cls in instance_dict:
             if isinstance(card,cls):
                 select_range=getattr(card,instance_dict[cls]).select_range
-        if select_range in select_dict:
+        if populate_targets and select_range in select_dict:
             for player in select_dict[select_range]:
                 if not player.battlefield:
                     self.env_creature(player)
-        elif select_range in land_select_dict:
+        elif populate_targets and select_range in land_select_dict:
             for player in land_select_dict[select_range]:
                 if not player.land_area:
                     player.land_area.append(Plains(player))
@@ -665,7 +666,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         return simulate_info
 
     
-    def simulate_play_in_stack(self,card:Card,preferred_subactions=None):
+    def simulate_play_in_stack(self,card:Card,preferred_subactions=None,populate_targets=True):
         self.flag_dict["bullet_time"]=True
 
         card.flag_dict["tap"]=False
@@ -701,11 +702,11 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
         for cls in instance_dict:
             if isinstance(card,cls):
                 select_range=getattr(card,instance_dict[cls]).select_range
-        if select_range in select_dict:
+        if populate_targets and select_range in select_dict:
             for player in select_dict[select_range]:
                 if not player.battlefield:
                     self.env_creature(player)
-        elif select_range in land_select_dict:
+        elif populate_targets and select_range in land_select_dict:
             for player in land_select_dict[select_range]:
                 if not player.land_area:
                     player.land_area.append(Plains(player))
@@ -861,39 +862,61 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             
         #self.active_player.update()
 
-    def get_card_used_info(self,simulate_info:dict):
+    def get_card_used_info(self,simulate_info):
         card=simulate_info["card"]
-        similar_description=simulate_info["similar_description"]
+        description_info=simulate_info.get("description_info") or {
+            "text":card.content,
+            "spans":{},
+        }
+        supervision=simulate_info.get("supervision") or {}
+        text_parts=list(supervision.get("text_parts",()))
+        spans={
+            part_id:description_info["spans"][part_id]
+            for part_id in text_parts
+        }
+
         card_type,card_special_type=self.get_card_special_types(card)
-        max_mana=20
-        max_state=20
-        card_manas=[]
-        for mana in list(card.calculate_cost().values()):
-            mana=max(0,min(max_mana,int(mana)))
-            # mana_one_hot=np.zeros(max_mana)
-            # mana_one_hot[mana]=1
-            card_manas.append(mana/max_mana)
+        ability_name={
+            1:"when_enter_battlefield",
+            2:"card_ability",
+            3:"when_enter_landarea",
+            4:"card_ability",
+        }.get(card_type,"")
+        ability=getattr(card,ability_name,None)
+        select_range=getattr(ability,"select_range","") or getattr(card,"select_range","")
+
+        max_mana,max_state=20,20
+        card_manas=[
+            max(0,min(max_mana,int(mana)))/max_mana
+            for mana in card.calculate_cost().values()
+        ]
+
         if card_type==1:
             has_state=1
-            attack,defend=list(card.state)
-            
+            attack,defend=card.state
         else:
             has_state=0
             attack=defend=0
 
-
         return {
-            "description":card.content,
-            "similar_description":similar_description,
+            "description":description_info["text"],
+            "similar_description":simulate_info.get("similar_description",description_info["text"]),
             "special_type":card_special_type,
             "mana_cost":np.array(card_manas),
-            "color_identity":color_identity(card.mana_cost, getattr(card, "color", ""), card.name),
+            "color_identity":color_identity(card.mana_cost,getattr(card,"color",""),card.name),
             "attack":attack/max_state,
             "defend":defend/max_state,
             "has_state":has_state,
             "card_type":card_type,
             "card_key":f"{card.name}_{card.type}",
+            "select_range":select_range,
             "scenario":simulate_info["scenario"],
+            "supervision":{
+                "source_id":int(card.card_id),
+                "text_parts":text_parts,
+                "spans":spans,
+                "fields":list(supervision.get("fields",())),
+            },
         }
 
     def send_data_to_host(self,agent:Agent_Train):
@@ -953,7 +976,14 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
             actions = [i for i in range(min_index, max_index) if mask[0][i]]+[1]
             if not actions:
                 return None
-            action_oppo = random.choice(actions)
+            opponent_action = getattr(self, "simulation_opponent_action", None)
+            self.simulation_opponent_action = None
+            if opponent_action is None:
+                action_oppo = random.choice(actions)
+            else:
+                if opponent_action not in actions:
+                    raise ValueError(f"Simulation opponent action {opponent_action} is not legal: {actions}")
+                action_oppo = opponent_action
             await self.process_action(agent_oppo,action_oppo)
 
         elif action>=22 and action <=31:
@@ -1081,7 +1111,7 @@ class Multi_Agent_Parallel_Specific_Room(Multi_Agent_Parallel_Room):
                 
                 await self.attacker.check_dead()
                 
-                if not ( self.attacker.get_flag("die") or  self.attacker.get_flag("exile")) or self.attacker.get_flag("Menace"):
+                if not ( self.attacker.get_flag("die") or  self.attacker.get_flag("exile") or self.attacker not in self.attacker.player.battlefield) or self.attacker.get_flag("Menace"):
                     await self.start_attack(self.non_active_player)
                 self.flag_dict["attacker_defenders"]=False
                 #print(self.flag_dict["attacker_defenders"])

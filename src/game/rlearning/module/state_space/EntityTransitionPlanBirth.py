@@ -26,14 +26,14 @@ class EntityTransitionPlanBirthCVAETrainer(EntityTransitionBirthCVAETrainer):
         return batch
 
     @staticmethod
-    def _synthesis_decoder_predictions(models, batch, selection):
-        """Compare deterministic prior and posterior plans with the same direct plan memory."""
-        inputs = {"state_tokens": batch["tokens_s"].index_select(0, selection), "state_padding_mask": batch["pad_s"].index_select(0, selection), "spans": batch["spans_s"], "transition_plan": batch["transition_plan"].index_select(0, selection)}
-        decoder = models["TokenTransitionStateDecoder"]
-        return {
-            "prior": {"encoder": "PriorEncoder", "label": "Prior · inference", "condition": "current state + card + action", "prediction": decoder(**inputs, transition_vec=batch["mean_p"].index_select(0, selection))},
-            "posterior": {"encoder": "PosteriorEncoder", "label": "Posterior · reconstruction", "condition": "current state + card + action + true next state", "prediction": decoder(**inputs, transition_vec=batch["mean_q"].index_select(0, selection))},
-        }
+    def _synthesis_decoder_predictions(models,batch,selection,prior_only=False):
+        """Compare prior and optional posterior plans with the same direct plan memory."""
+        inputs={"state_tokens":batch["tokens_s"].index_select(0,selection),"state_padding_mask":batch["pad_s"].index_select(0,selection),"spans":batch["spans_s"],"transition_plan":batch["transition_plan"].index_select(0,selection)}
+        decoder=models["TokenTransitionStateDecoder"]
+        views={"prior":{"encoder":"PriorEncoder","label":"Prior · inference","condition":"current state + card + action","prediction":decoder(**inputs,transition_vec=batch["mean_p"].index_select(0,selection))}}
+        if not prior_only:
+            views["posterior"]={"encoder":"PosteriorEncoder","label":"Posterior · reconstruction","condition":"current state + card + action + true next state","prediction":decoder(**inputs,transition_vec=batch["mean_q"].index_select(0,selection))}
+        return views
 
     @torch.no_grad()
     def _synthesis(self, models):

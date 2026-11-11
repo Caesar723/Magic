@@ -1,49 +1,80 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.sorcery.Icy_Imprisonment.model import Icy_Imprisonment
+
 
 @bind_card(Icy_Imprisonment)
 class Icy_Imprisonment_Simulation(Card_Simulation):
+    text_parts = {
+        "target.scope": [
+            "Apply this to all creatures your opponent controls.",
+            "Affect every creature on your opponent's battlefield.",
+            "The following effect applies to all creatures under your opponent's control.",
+            "Apply the effect to each creature your opponent controls.",
+            "Give every creature on your opponent's side the following effect.",
+            "All opposing creatures receive this effect.",
+            "Affect each creature under your opponent's control with this effect.",
+            "The effect applies to every creature your opponent has in play.",
+            "Apply the following effect to all creatures on your opponent's side.",
+            "Give this effect to all creatures your opponent controls.",
+        ],
+        "freeze.effect": [
+            "It counts as tapped until its controller's end step.",
+            "Treat it as tapped until its controller's turn ends.",
+            "Its tapped status is forced until the end of its controller's turn.",
+            "Until its controller's end step, it is treated as tapped.",
+            "The creature reports being tapped until its controller's turn ends.",
+            "Keep its tapped status true until its controller's end step.",
+            "It is considered tapped until the end step of its controller.",
+            "Apply a tapped-status override until its controller's turn ends.",
+            "Its tapped check returns true until its controller's end step.",
+            "The creature is frozen as tapped until its controller's end step.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Freeze all creatures your opponents control until the start of your next turn.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "[CARD_NAME] freezes all creatures your opponents control until the start of your next turn.",
+    def _protection_scene(self, own_count, enemy_count, role="self", selected_index=0, health=3, tapped=False, knight=False, creature_knight=False, library_count=None, time_count=0, stack_type="instant", own_stack=False):
+        self.scenario_prepare()
+        for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
+            for index in range(count):
+                creature = self.scenario_creature(owner, power=index + 1, health=health + index, flags={"tap": tapped, "Hexproof": owner is self.player.opponent and index % 2 == 0})
+                if knight:
+                    creature.type_card = "Human Knight"
+                if creature_knight:
+                    creature.type_creature = "Knight"
+        if library_count is not None:
+            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
+        return self.scenario_cast()
 
-        "All creatures your opponents control are frozen until the start of your next turn.",
+    @simulate(evidence={'text': ('target.scope', 'freeze.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_health_3(self):
+        return self._protection_scene(0, 0, health=3)
 
-        "[CARD_NAME] causes all creatures your opponents control to be frozen until the start of your next turn.",
+    @simulate(evidence={'text': ('target.scope', 'freeze.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_health_3(self):
+        return self._protection_scene(1, 0, health=3)
 
-        "Freeze every creature controlled by your opponents until the start of your next turn.",
+    @simulate(evidence={'text': ('target.scope', 'freeze.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_health_3(self):
+        return self._protection_scene(0, 1, health=3)
 
-        "[CARD_NAME] freezes all opponent-controlled creatures until the start of your next turn.",
+    @simulate(evidence={'text': ('target.scope', 'freeze.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_health_3(self):
+        return self._protection_scene(1, 1, health=3)
 
-        "All creatures your opponents control cannot act until the start of your next turn.",
+    @simulate(evidence={'text': ('target.scope', 'freeze.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_health_3(self):
+        return self._protection_scene(3, 3, health=3)
 
-        "[CARD_NAME] freezes all creatures controlled by your opponents until the start of your next turn.",
+    @simulate(evidence={'text': ('target.scope', 'freeze.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_health_3(self):
+        return self._protection_scene(0, 5, health=3)
 
-        "Freeze each creature your opponents control until the start of your next turn.",
+    @simulate(evidence={'text': ('target.scope', 'freeze.effect'), 'fields': ('mana_cost',)})
+    def simulate_already_tapped(self):
+        return self._protection_scene(3, 3, tapped=True)
 
-        "[CARD_NAME] keeps all creatures your opponents control frozen until the start of your next turn."
-    ]
-
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
-
-        self.room.env_mana(
-            self.player,
-            {"U": (2, 7)},
-            least_mana={"colorless": 1, "U": 2},
-        )
-
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info

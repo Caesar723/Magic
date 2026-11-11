@@ -40,6 +40,7 @@ class Temporal_Traveler(Creature):
         cards_graveyard=player.get_cards_by_pos_type("graveyard",(Instant,Sorcery),except_type=(Instant_Undo,))
         if cards_graveyard:
             card_graveyard:"Instant|Sorcery"=random.choice(cards_graveyard)
+            card_graveyard=card_graveyard.copy_for_player(player)
 
             # player.action_store.start_record()
             await player.auto_play_card(card_graveyard,start_bullet_time=False)

@@ -1,49 +1,101 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.sorcery.Righteous_Conviction.model import Righteous_Conviction
+
 
 @bind_card(Righteous_Conviction)
 class Righteous_Conviction_Simulation(Card_Simulation):
+    text_parts = {
+        "target.scope": [
+            "Choose a target creature you control.",
+            "Target one creature you control.",
+            "Select a creature you control as the target.",
+            "Choose one creature you control to target.",
+            "Select a target creature you control.",
+            "Choose any creature you control as your target.",
+            "Target a creature you control of your choice.",
+            "Choose a creature you control as the target for this spell.",
+            "Select one creature you control to target.",
+            "Choose a creature you control as your target.",
+        ],
+        "state.effect": [
+            "It gets +{power_bonus}/+{toughness_bonus} until your turn ends.",
+            "Give it +{power_bonus}/+{toughness_bonus} until your turn ends.",
+            "It gains +{power_bonus}/+{toughness_bonus} until your turn ends.",
+            "Until your turn ends, it gets +{power_bonus}/+{toughness_bonus}.",
+            "Increase its power by {power_bonus} and toughness by {toughness_bonus} until your turn ends.",
+            "It receives +{power_bonus}/+{toughness_bonus} until your turn ends.",
+            "Its power increases by {power_bonus} and its toughness by {toughness_bonus} until your turn ends.",
+            "Grant it +{power_bonus}/+{toughness_bonus} until your turn ends.",
+            "It gets an extra {power_bonus} power and {toughness_bonus} toughness until your turn ends.",
+            "Until your turn ends, add {power_bonus} to its power and {toughness_bonus} to its toughness.",
+        ],
+        "keyword.effect": [
+            "It also gains lifelink until your turn ends.",
+            "It receives lifelink until your turn ends.",
+            "Give it lifelink until your turn ends.",
+            "It has lifelink until your turn ends.",
+            "Until your turn ends, it also has lifelink.",
+            "It gains the lifelink ability until your turn ends.",
+            "Grant it lifelink until your turn ends.",
+            "Until your turn ends, it receives lifelink.",
+            "Until your turn ends, it also gains lifelink.",
+            "It is granted lifelink until your turn ends.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Choose a creature you control. Until end of turn, that creature gets +2/+2 and gains lifelink.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "[CARD_NAME] lets you choose a creature you control. Until end of turn, it gets +2/+2 and gains lifelink.",
+    def _target_scene(self, opponent, card_type="Creature - Human", creature_type="Human", tapped=False, hexproof=False, offset=1, damaged=False):
+        self.scenario_prepare()
+        owner = self.player.opponent if opponent else self.player
+        health = self.card.effect_params.get("toughness_reduction", 2) + offset
+        if health <= 0:
+            return self.scenario_skip()
+        target = self.scenario_creature(owner, power=2, health=health, flags={"tap": tapped, "Hexproof": hexproof})
+        target.type_card, target.type_creature = card_type, creature_type
+        if damaged:
+            target.live = health + 3
+        self.scenario_creature(owner.opponent, power=1, health=5, flags={})
+        subaction = 1 if opponent else 11
+        return self.scenario_cast((subaction,))
 
-        "Choose a creature you control. It gets +2/+2 and gains lifelink until end of turn.",
+    @simulate(evidence={'text': ('target.scope', 'state.effect', 'keyword.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_normal_ready(self):
+        return self._target_scene(False, 'Creature - Human', 'Human', False, False, damaged=False)
 
-        "[CARD_NAME] causes a creature you control to get +2/+2 and gain lifelink until end of turn.",
+    @simulate(evidence={'text': ('target.scope', 'state.effect', 'keyword.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_normal_tapped(self):
+        return self._target_scene(False, 'Creature - Human', 'Human', True, False, damaged=False)
 
-        "Select a creature you control. Until end of turn, that creature gets +2/+2 and has lifelink.",
+    @simulate(evidence={'text': ('target.scope', 'state.effect', 'keyword.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_normal_hexproof(self):
+        return self._target_scene(False, 'Creature - Human', 'Human', False, True, damaged=False)
 
-        "[CARD_NAME] grants a creature you control +2/+2 and lifelink until end of turn.",
+    @simulate(evidence={'text': ('target.scope', 'state.effect', 'keyword.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_normal_damaged(self):
+        return self._target_scene(False, 'Creature - Human', 'Human', False, False, damaged=True)
 
-        "Pick a creature you control. Until end of turn, it gets +2/+2 and gains lifelink.",
+    @simulate(evidence={'text': ('target.scope', 'state.effect', 'keyword.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_normal_ready(self):
+        return self._target_scene(True, 'Creature - Human', 'Human', False, False, damaged=False)
 
-        "[CARD_NAME] buffs a creature you control with +2/+2 and lifelink until end of turn.",
+    @simulate(evidence={'text': ('target.scope', 'state.effect', 'keyword.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_normal_tapped(self):
+        return self._target_scene(True, 'Creature - Human', 'Human', True, False, damaged=False)
 
-        "Choose one of your creatures. Until end of turn, it gets +2/+2 and gains lifelink.",
+    @simulate(evidence={'text': ('target.scope', 'state.effect', 'keyword.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_normal_hexproof(self):
+        return self._target_scene(True, 'Creature - Human', 'Human', False, True, damaged=False)
 
-        "[CARD_NAME] gives a creature you control +2/+2 and lifelink until end of turn."
-    ]
+    @simulate(evidence={'text': ('target.scope', 'state.effect', 'keyword.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_normal_damaged(self):
+        return self._target_scene(True, 'Creature - Human', 'Human', False, False, damaged=True)
 
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.room.env_creature(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'text': ('target.scope', 'state.effect', 'keyword.effect'), 'fields': ('mana_cost',)})
+    def simulate_no_creatures(self):
+        self.scenario_prepare()
+        return self.scenario_cast()
 
-        self.room.env_mana(
-            self.player,
-            {"W": (1, 7)},
-            least_mana={"colorless": 1, "W": 1},
-        )
-
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info

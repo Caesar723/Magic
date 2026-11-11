@@ -439,6 +439,8 @@ class Player:
             for key in keys:
                 self.remove_card_from_dict(key,card)
             deck_type[type].remove(card)
+            if type=="battlefield" and not card.__dict__.get("_clone_leaving",False):
+                card.clear_clone()
             if type=='hand':
                 self.action_store.add_action(actions.Lose_Card(self,self,card,True))# 一定是需要的，这个动作
             elif  (type=='land_area' or type=='battlefield'):
@@ -522,6 +524,7 @@ class Player:
     def discard(self,card:"Card"):
         if card in self.hand:
             self.remove_card(card,"hand")
+            self.append_card(card,"graveyard")
             card.when_discard(self,self.opponent)
 
 

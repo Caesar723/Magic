@@ -1,80 +1,146 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.creature.Ancient_Stonewood.model import Ancient_Stonewood
+
 
 @bind_card(Ancient_Stonewood)
 class Ancient_Stonewood_Simulation(Card_Simulation):
+    text_parts = {
+        "keyword.indestructible": [
+            "Indestructible. Lethal damage is reduced to leave this creature at one health, and destruction attempts are ignored.",
+            "This creature has indestructible, retaining one health from lethal damage and ignoring destruction attempts.",
+            "Lethal damage leaves this indestructible creature at one health, and it ignores attempted destruction.",
+            "This creature ignores destruction and reduces otherwise lethal damage to keep one health.",
+            "Indestructible protects this creature from destruction, with lethal damage reduced to retain one health.",
+            "Attempted destruction is ignored by this creature, and damage that would kill it leaves one health instead.",
+            "This creature cannot be destroyed, and otherwise lethal damage is reduced so that one health remains.",
+            "Destruction does nothing to this creature, and lethal damage is limited to leave it at one health.",
+            "This creature has indestructible and keeps one health when damage would otherwise kill it.",
+            "Indestructible makes this creature ignore destruction and reduce lethal damage to retain one health.",
+        ],
+        "hurt.trigger": [
+            "Whenever this creature receives positive damage after damage reduction,",
+            "When this creature takes a positive amount of damage after reduction,",
+            "Each positive damage amount this creature actually receives triggers this ability.",
+            "If this creature takes more than zero damage after damage reduction,",
+            "Whenever a positive amount of damage reaches this creature,",
+            "When damage greater than zero is received by this creature after reduction,",
+            "After this creature takes positive damage that survives reduction,",
+            "Whenever this creature is damaged for a positive amount after reductions,",
+            "Each time this creature receives more than zero actual damage,",
+            "When this creature takes positive damage after any reduction,",
+        ],
+        "hurt.effect": [
+            "deal that much damage to a random opposing creature, if any are available.",
+            "randomly choose an opposing creature and deal it the same damage, if possible.",
+            "hit one random available opposing creature for the amount of damage this creature received.",
+            "deal an equal amount of damage to a randomly selected opposing creature, if one exists.",
+            "damage one random opposing creature by the amount this creature actually took, if available.",
+            "choose an opposing creature at random to receive that same damage amount, if possible.",
+            "randomly deal the received damage amount to one available opposing creature.",
+            "if your opponent has any creatures, deal the same damage to one chosen at random.",
+            "return that damage amount to a randomly chosen opposing creature, if available.",
+            "deal damage equal to what this creature received to one random opposing creature, if present.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Indestructible. Whenever [CARD_NAME] is dealt damage, it deals that much damage to a random creature an opponent controls.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_when_cast(self):
+        self.scenario_prepare()
+        return self.scenario_cast()
 
-        "Indestructible. Each time [CARD_NAME] takes damage, it retaliates by dealing equal damage to a random opposing creature.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_cast_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "Indestructible. When damage is dealt to [CARD_NAME], it strikes back for the same amount at a random enemy creature.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect')})
+    def simulate_attack_opponent_dies_self_survives(self):
+        return self._reflect_combat(False, True, False, margin=0)
 
-        "Indestructible. If [CARD_NAME] is hurt, it mirrors that damage onto a random creature controlled by an opponent.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect')})
+    def simulate_attack_opponent_dies_self_survives_beyond_boundary(self):
+        return self._reflect_combat(False, True, False, margin=1)
 
-        "Indestructible. Whenever [CARD_NAME] suffers damage, redirect that much damage to a random creature your opponent controls.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect')})
+    def simulate_attack_both_survive(self):
+        return self._reflect_combat(False, False, False, margin=0)
 
-        "Indestructible. Damage dealt to [CARD_NAME] causes it to deal an equal amount of damage to a random opposing creature.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect')})
+    def simulate_attack_both_survive_beyond_boundary(self):
+        return self._reflect_combat(False, False, False, margin=1)
 
-        "Indestructible. Each instance of damage to [CARD_NAME] triggers it to deal the same amount to a random enemy creature.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect')})
+    def simulate_defend_opponent_dies_self_survives(self):
+        return self._reflect_combat(True, True, False, margin=0)
 
-        "Indestructible. When [CARD_NAME] is damaged, it lashes out and deals that much damage to a random creature an opponent controls.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect')})
+    def simulate_defend_opponent_dies_self_survives_beyond_boundary(self):
+        return self._reflect_combat(True, True, False, margin=1)
 
-        "Indestructible. Any damage [CARD_NAME] receives is reflected back as equal damage to a random creature on the opposing battlefield.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect')})
+    def simulate_defend_both_survive(self):
+        return self._reflect_combat(True, False, False, margin=0)
 
-    ]
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect')})
+    def simulate_defend_both_survive_beyond_boundary(self):
+        return self._reflect_combat(True, False, False, margin=1)
 
-    @simulate
-    def simulate_when_enter_battlefield(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'special_type')})
+    def simulate_attack_empty_board(self):
+        return self.scenario_unblocked(False)
 
-        self.room.env_mana(
-            self.player,
-            {"G":(2,7)},
-            least_mana={"colorless":4,"G":2}
-        )
+    @simulate(evidence={'fields': ('attack', 'special_type')})
+    def simulate_attack_opponent_passes(self):
+        return self.scenario_unblocked(True)
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    def _reflect_combat(self, defending, enemy_dies, self_dies=False, margin=0):
+        self.scenario_prepare()
+        power, health = self.card.state
+        if health <= 0:
+            return self.scenario_skip()
+        enemy_power = health + margin
+        reflected = min(enemy_power, max(0, health - 1))
+        total = power + reflected
+        enemy_health = total - margin if enemy_dies else total + 1 + margin
+        if enemy_power < 0 or enemy_health <= 0:
+            return self.scenario_skip()
+        self.scenario_creature(self.player.opponent, power=enemy_power, health=enemy_health, flags={})
+        record = self.room.simulate_creature_defend(self.card) if defending else self.room.simulate_creature_attack(self.card)
+        self.stage_card(self.card)
+        if not defending:
+            self.scenario_block()
+        return record
 
-    @simulate
-    def simulate_when_attack_opponent(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    def _reflect_group(self, count, incoming):
+        self.scenario_prepare()
+        for _ in range(count):
+            self.scenario_creature(self.player.opponent, power=incoming, health=self.card.state[0] + self.card.state[1] + 10, flags={})
+        record = self.room.simulate_creature_attack(self.card)
+        self.stage_card(self.card)
+        self.scenario_block()
+        return record
 
-        self.room.env_mana(
-            self.player,
-            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
-        )
+    @simulate(evidence={'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_reflect_count_1_incoming_zero(self):
+        return self._reflect_group(1, 0)
 
-        simulate_info=self.room.simulate_creature_attack(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_reflect_count_1_incoming_one(self):
+        return self._reflect_group(1, 1)
 
-    @simulate
-    def simulate_when_defend_opponent(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_reflect_count_1_incoming_lethal(self):
+        return self._reflect_group(1, self.card.state[1] + 3)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
-        )
+    @simulate(evidence={'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_reflect_count_3_incoming_zero(self):
+        return self._reflect_group(3, 0)
 
-        simulate_info=self.room.simulate_creature_defend(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_reflect_count_3_incoming_one(self):
+        return self._reflect_group(3, 1)
+
+    @simulate(evidence={'text': ('keyword.indestructible', 'hurt.trigger', 'hurt.effect'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_reflect_count_3_incoming_lethal(self):
+        return self._reflect_group(3, self.card.state[1] + 3)
+

@@ -1,57 +1,93 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.sorcery.Eldritch_Rebirth.model import Eldritch_Rebirth
-from pycards.creature.Elite_Squire.model import Elite_Squire
+
 
 @bind_card(Eldritch_Rebirth)
 class Eldritch_Rebirth_Simulation(Card_Simulation):
+    text_parts = {
+        "return.effect": [
+            "Return every creature in your graveyard with total mana value at most {mana_threshold} to your battlefield.",
+            "Put all creatures from your graveyard with mana value {mana_threshold} or less onto your battlefield.",
+            "Move each graveyard creature whose total mana cost does not exceed {mana_threshold} onto your battlefield.",
+            "Every creature in your graveyard with mana value no greater than {mana_threshold} returns to your battlefield.",
+            "Return all graveyard creatures whose mana value is at most {mana_threshold} to your battlefield.",
+            "Take each creature from your graveyard with total mana cost of {mana_threshold} or less and put it into play.",
+            "All creatures in your graveyard with mana value equal to or below {mana_threshold} return to your battlefield.",
+            "Move every graveyard creature with total mana value no higher than {mana_threshold} into play under your control.",
+            "Return your graveyard creatures to your battlefield if their total mana value is {mana_threshold} or less.",
+            "Put each creature in your graveyard with mana value at most {mana_threshold} into play on your side.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "[CARD_NAME] allows you to return all creature cards with converted mana cost 3 or less from your graveyard to the battlefield. If [CARD_NAME] was cast from your graveyard, you may return all creature cards with converted mana cost 4 or greater from your graveyard to the battlefield instead.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "Return every creature card with mana value 3 or less from your graveyard to the battlefield. If you cast [CARD_NAME] from your graveyard, you may return all creature cards with mana value 4 or greater from your graveyard instead.",
+    def _recursion_scene(self, own_count, enemy_count=0, other_count=0, offset=0, colored=False, library_count=None, hand_count=0):
+        self.scenario_prepare()
+        self.player.graveyard.clear()
+        self.player.opponent.graveyard.clear()
+        self.player.hand.clear()
+        self.player.opponent.hand.clear()
+        for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
+            for index in range(count):
+                threshold = self.card.effect_params.get("mana_threshold", 2)
+                cost = "W" * (threshold + offset + index + 1) if colored else str(max(0, threshold + offset + index))
+                creature = self.scenario_creature(owner, power=index + 2, health=index + 3, flags={})
+                creature.mana_cost = cost
+                owner.remove_card(creature, "battlefield")
+                owner.append_card(creature, "graveyard")
+        for _ in range(other_count):
+            self.player.append_card(self.card.copy_for_player(self.player), "graveyard")
+        if library_count is not None:
+            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
+        for _ in range(hand_count):
+            self.player.append_card(self.card.copy_for_player(self.player), "hand")
+        return self.scenario_cast()
 
-        "[CARD_NAME] returns all creature cards with CMC 3 or less from your graveyard to the battlefield. When cast from your graveyard, you may return all creature cards with CMC 4 or greater instead.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_none(self):
+        return self._recursion_scene(0, 0, 0)
 
-        "Put all creature cards with converted mana cost 3 or less from your graveyard onto the battlefield. If [CARD_NAME] was cast from your graveyard, you may put all creature cards with converted mana cost 4 or greater onto the battlefield instead.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_one_own(self):
+        return self._recursion_scene(1, 0, 0)
 
-        "[CARD_NAME] lets you return all graveyard creature cards costing 3 or less to the battlefield. If cast from your graveyard, you may return all graveyard creature cards costing 4 or more instead.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_one_enemy(self):
+        return self._recursion_scene(0, 1, 0)
 
-        "Return all creature cards with mana value 3 or less from your graveyard to play. If [CARD_NAME] was cast from your graveyard, you may return all creature cards with mana value 4 or greater instead.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_both(self):
+        return self._recursion_scene(1, 1, 0)
 
-        "[CARD_NAME] brings back every creature card with converted mana cost 3 or less from your graveyard. If cast from your graveyard, you may bring back every creature card with converted mana cost 4 or greater instead.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_several(self):
+        return self._recursion_scene(3, 3, 0)
 
-        "All creature cards with CMC 3 or less in your graveyard return to the battlefield. If [CARD_NAME] was cast from your graveyard, you may return all creature cards with CMC 4 or greater instead.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_noncreatures(self):
+        return self._recursion_scene(0, 0, 3)
 
-        "[CARD_NAME] returns all creature cards costing 3 or less from your graveyard to the battlefield. When cast from your graveyard, you may return all creature cards costing 4 or more instead.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_mixed(self):
+        return self._recursion_scene(3, 3, 3)
 
-        "Return each creature card with converted mana cost 3 or less from your graveyard to the battlefield. If [CARD_NAME] was cast from your graveyard, you may return each creature card with converted mana cost 4 or greater instead."
-    ]
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_cost_below(self):
+        return self._recursion_scene(1, offset=-1)
 
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.room.env_initinal_graveyard(self.player, {"creature_number": (2, 5)})
-        self.player.graveyard.append(Elite_Squire(self.player))
-        self.room.env_no_creature(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_cost_equal(self):
+        return self._recursion_scene(1, offset=0)
 
-        threshold=self.card.effect_params["mana_threshold"]
-        creatures=[card for card in self.player.graveyard if card.type=="Creature"]
-        for index,creature in enumerate(creatures):
-            creature.mana_cost=str(max(0,threshold+index%3-1))
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_cost_above(self):
+        return self._recursion_scene(1, offset=1)
 
-        self.room.env_mana(
-            self.player,
-            {"G": (2, 7)},
-            least_mana={"colorless": 2, "G": 2},
-        )
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_colored_cost(self):
+        return self._recursion_scene(2, colored=True)
 
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info

@@ -1,43 +1,111 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.Instant.Flames_of_Fury.model import Flames_of_Fury
+
 
 @bind_card(Flames_of_Fury)
 class Flames_of_Fury_Simulation(Card_Simulation):
+    text_parts = {
+        "damage.base": [
+            "{card_name} deals {damage} damage to a target creature or player.",
+            "Deal {damage} damage to a chosen creature or player.",
+            "Target creature or player takes {damage} damage from {card_name}.",
+            "{card_name} inflicts {damage} damage on a target creature or player.",
+            "Choose a creature or player and deal {damage} damage to it.",
+            "Hit a target creature or player for {damage} damage.",
+            "A creature or player of your choice is dealt {damage} damage.",
+            "{card_name} deals {damage} damage to the creature or player you target.",
+            "Deal a target creature or player an amount of damage equal to {damage}.",
+            "Target a creature or player to be dealt {damage} damage by {card_name}.",
+        ],
+        "exile.effect": [
+            "If the creature is dead immediately after this damage, also mark it for exile.",
+            "If a creature dies immediately from this damage, exile it.",
+            "After the damage, exile the target if it is a creature that is already dead.",
+            "If the damaged creature is immediately dead, exile that creature.",
+            "If the target is a creature and is dead right after this damage, exile it.",
+            "Exile the target when it is a creature that dies immediately from this damage.",
+            "If this damage immediately kills a creature, exile that creature.",
+            "After dealing damage, exile the targeted creature if it is now dead.",
+            "If a creature is already dead immediately following this hit, exile it.",
+            "Exile the creature if it is dead directly after taking this damage.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "[CARD_NAME] deals 3 damage to any target. If a creature dealt damage this way would die this turn, exile it instead.",
-        "Deal 3 damage to any target. Exile creatures that would die from this damage this turn.",
-        "[CARD_NAME] hits any target for 3; creatures that would die from it are exiled instead.",
-        "Choose any target. Deal 3 damage. Creatures that would die this turn are exiled.",
-        "Deal 3 damage to any target. If a creature would die from [CARD_NAME] this turn, exile it.",
-        "[CARD_NAME]: 3 damage to any target; exile instead of die this turn.",
-        "Any target takes 3 damage. Creatures that would die from this are exiled this turn.",
-        "Inflict 3 damage on any target. Exile creatures that would die from this damage.",
-        "[CARD_NAME] deals 3 and exiles creatures that would die from the damage this turn.",
-        "Three damage to any target; creatures killed this way are exiled instead.",
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_card(self):
-        self.basic_initinal()
-        self.room.env_creature(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        for creature in self.player.battlefield+self.player.opponent.battlefield:
-            creature.live=min(creature.live,3)
-            creature.actual_live=creature.live
+    def _damage_scene(self, target_role, life_offset, branch=None, target_flags=None):
+        self.scenario_prepare()
+        params = self.card.effect_params
+        damage = params.get("damage", params.get("damage_low", 0))
+        life = damage + life_offset
+        if life <= 0:
+            return self.scenario_skip()
+        if target_role in ("self_creature", "enemy_creature"):
+            owner = self.player if target_role == "self_creature" else self.player.opponent
+            power = 1
+            target = self.scenario_creature(owner, power=power, health=life, flags=target_flags or {})
+            subaction = (11 if owner is self.player else 1) + owner.battlefield.index(target)
+        else:
+            owner = self.player if target_role == "self_player" else self.player.opponent
+            if life > owner.ini_life:
+                return self.scenario_skip()
+            owner.life = life
+            subaction = 22 if owner is self.player else 21
+        self.player.mana.update(self.card.calculate_cost())
+        return self.scenario_cast((subaction,), provide_mana=False)
 
-        self.room.env_mana(
-            self.player,
-            {"R":(1,7)},
-            least_mana={"colorless":1,"R":1}
-        )
+    @simulate(evidence={'text': ('damage.base', 'exile.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_normal_below_lethal(self):
+        return self._damage_scene('enemy_creature', -1, branch=None)
 
-        simulate_info=self.room.simulate_play(self.card,preferred_subactions=range(1,21))
-        return simulate_info
+    @simulate(evidence={'text': ('damage.base', 'exile.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_normal_equal_lethal(self):
+        return self._damage_scene('enemy_creature', 0, branch=None)
+
+    @simulate(evidence={'text': ('damage.base', 'exile.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_normal_above_lethal(self):
+        return self._damage_scene('enemy_creature', 1, branch=None)
+
+    @simulate(evidence={'text': ('damage.base', 'exile.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_creature_normal_below_lethal(self):
+        return self._damage_scene('self_creature', -1, branch=None)
+
+    @simulate(evidence={'text': ('damage.base', 'exile.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_creature_normal_equal_lethal(self):
+        return self._damage_scene('self_creature', 0, branch=None)
+
+    @simulate(evidence={'text': ('damage.base', 'exile.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_creature_normal_above_lethal(self):
+        return self._damage_scene('self_creature', 1, branch=None)
+
+    @simulate(evidence={'text': ('damage.base', 'exile.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_player_normal_below_lethal(self):
+        return self._damage_scene('enemy_player', -1, branch=None)
+
+    @simulate(evidence={'text': ('damage.base', 'exile.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_player_normal_equal_lethal(self):
+        return self._damage_scene('enemy_player', 0, branch=None)
+
+    @simulate(evidence={'text': ('damage.base', 'exile.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_player_normal_above_lethal(self):
+        return self._damage_scene('enemy_player', 1, branch=None)
+
+    @simulate(evidence={'text': ('damage.base', 'exile.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_player_normal_below_lethal(self):
+        return self._damage_scene('self_player', -1, branch=None)
+
+    @simulate(evidence={'text': ('damage.base', 'exile.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_player_normal_equal_lethal(self):
+        return self._damage_scene('self_player', 0, branch=None)
+
+    @simulate(evidence={'text': ('damage.base', 'exile.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_player_normal_above_lethal(self):
+        return self._damage_scene('self_player', 1, branch=None)
+
+    @simulate(evidence={'text': ('damage.base', 'exile.effect'), 'fields': ('mana_cost',)})
+    def simulate_hexproof_target(self):
+        return self._damage_scene("enemy_creature", 1, branch=None, target_flags={"Hexproof": True})
+

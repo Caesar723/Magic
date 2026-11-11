@@ -1,80 +1,115 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.creature.Soul_Devourer.model import Soul_Devourer
+
 
 @bind_card(Soul_Devourer)
 class Soul_Devourer_Simulation(Card_Simulation):
+    text_parts = {
+        "death.trigger": [
+            "Whenever another creature dies while this creature is on your battlefield,",
+            "When another creature dies with this creature still on your battlefield,",
+            "Each other creature death while this creature is in play triggers this.",
+            "Whenever a different creature dies and this creature remains on your battlefield,",
+            "When another creature is put into a graveyard by death while this creature is on your side,",
+            "For each other creature that dies while this creature is in play,",
+            "Whenever this creature is on your battlefield and another creature dies,",
+            "When a creature other than this one dies with this creature on your battlefield,",
+            "While this creature remains in play, each other creature death triggers this.",
+            "Whenever another creature dies and this creature is still on your battlefield,",
+        ],
+        "death.effect": [
+            "it gains a permanent +{power_bonus}/+{toughness_bonus} buff for each positive point of the dead creature's current power.",
+            "give it +{power_bonus}/+{toughness_bonus} permanently repeated for the dead creature's current power, doing nothing for non-positive power.",
+            "apply a permanent +{power_bonus}/+{toughness_bonus} buff once per positive current power of the creature that died.",
+            "it permanently gets +{power_bonus}/+{toughness_bonus} repeated by the dead creature's current power, treating negative power as zero.",
+            "grant it permanent +{power_bonus}/+{toughness_bonus} buffs equal in count to the dead creature's positive current power.",
+            "it gains one permanent +{power_bonus}/+{toughness_bonus} bonus for every positive point of that creature's current power.",
+            "add permanent +{power_bonus}/+{toughness_bonus} buffs to it, one per positive current power of the dead creature.",
+            "increase its stats by +{power_bonus}/+{toughness_bonus} once for each positive current power of the creature that died, with no expiry.",
+            "its permanent +{power_bonus}/+{toughness_bonus} bonuses number the positive current power of the dead creature.",
+            "give it a permanent +{power_bonus}/+{toughness_bonus} bonus for every positive unit of that dead creature's current power.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Whenever a creature dies, [CARD_NAME] gets +1/+1 counters equal to the power of that creature.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_when_cast(self):
+        self.scenario_prepare()
+        return self.scenario_cast()
 
-        "Whenever a creature dies, [CARD_NAME] gains +1/+1 counters equal to that creature's power.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_cast_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "Each time a creature dies, [CARD_NAME] gets +1/+1 counters equal to the power of that creature.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('death.trigger', 'death.effect')})
+    def simulate_attack_opponent_dies_self_survives(self):
+        return self.scenario_combat(False, True, False, margin=0)
 
-        "When a creature dies, [CARD_NAME] receives +1/+1 counters equal to the power of that creature.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('death.trigger', 'death.effect')})
+    def simulate_attack_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(False, True, False, margin=1)
 
-        "Whenever any creature dies, [CARD_NAME] gets +1/+1 counters equal to the power of that creature.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_survive(self):
+        return self.scenario_combat(False, False, False, margin=0)
 
-        "Whenever a creature dies, [CARD_NAME] grows by +1/+1 counters equal to the power of that creature.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_survive_beyond_boundary(self):
+        return self.scenario_combat(False, False, False, margin=1)
 
-        "Whenever a creature dies, [CARD_NAME] gets +1/+1 counters matching the power of that creature.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_survives_self_dies(self):
+        return self.scenario_combat(False, False, True, margin=0)
 
-        "Whenever a creature dies, [CARD_NAME] gains counters equal to that creature's power.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(False, False, True, margin=1)
 
-        "On a creature's death, [CARD_NAME] gets +1/+1 counters equal to the power of that creature.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('death.trigger', 'death.effect')})
+    def simulate_attack_both_die(self):
+        return self.scenario_combat(False, True, True, margin=0)
 
-    ]
-    @simulate
-    def simulate_when_enter_battlefield(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('death.trigger', 'death.effect')})
+    def simulate_attack_both_die_beyond_boundary(self):
+        return self.scenario_combat(False, True, True, margin=1)
 
-        self.room.env_mana(
-            self.player,
-            {"B":(2,7)},
-            least_mana={"colorless":4,"B":2}
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('death.trigger', 'death.effect')})
+    def simulate_defend_opponent_dies_self_survives(self):
+        return self.scenario_combat(True, True, False, margin=0)
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('death.trigger', 'death.effect')})
+    def simulate_defend_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(True, True, False, margin=1)
 
-    @simulate
-    def simulate_when_attack_opponent(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive(self):
+        return self.scenario_combat(True, False, False, margin=0)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive_beyond_boundary(self):
+        return self.scenario_combat(True, False, False, margin=1)
 
-        simulate_info=self.room.simulate_creature_attack(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies(self):
+        return self.scenario_combat(True, False, True, margin=0)
 
-    @simulate
-    def simulate_when_defend_opponent(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(True, False, True, margin=1)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('death.trigger', 'death.effect')})
+    def simulate_defend_both_die(self):
+        return self.scenario_combat(True, True, True, margin=0)
 
-        simulate_info=self.room.simulate_creature_defend(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('death.trigger', 'death.effect')})
+    def simulate_defend_both_die_beyond_boundary(self):
+        return self.scenario_combat(True, True, True, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'special_type')})
+    def simulate_attack_empty_board(self):
+        return self.scenario_unblocked(False)
+
+    @simulate(evidence={'fields': ('attack', 'special_type')})
+    def simulate_attack_opponent_passes(self):
+        return self.scenario_unblocked(True)
 

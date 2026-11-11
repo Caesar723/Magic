@@ -32,8 +32,10 @@ class Mystic_Tides(Instant_Undo):
     @select_object("",1)
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
         func,card=await self.undo_stack(player,opponent)
-        buff_tap=Tap(self,random.choice(opponent.battlefield))
-        random.choice(opponent.battlefield).gain_buff(buff_tap,self)
+        if opponent.battlefield:
+            oppo_creature=random.choice(opponent.battlefield)
+            buff_tap=Tap(self,oppo_creature)
+            oppo_creature.gain_buff(buff_tap,self)
 
 
 

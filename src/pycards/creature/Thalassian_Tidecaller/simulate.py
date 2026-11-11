@@ -1,97 +1,115 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.creature.Thalassian_Tidecaller.model import Thalassian_Tidecaller
-from pycards.sorcery.Mystic_Insight.model import Mystic_Insight
+
 
 @bind_card(Thalassian_Tidecaller)
 class Thalassian_Tidecaller_Simulation(Card_Simulation):
+    text_parts = {
+        "cast.trigger": [
+            "Whenever you cast a blue card while this creature is on your battlefield,",
+            "When you cast a blue card with this creature in play,",
+            "Each blue card you cast while this creature is on your battlefield triggers this ability.",
+            "Whenever this creature is on your battlefield and you cast a blue card,",
+            "For every instant or sorcery you cast with this creature in play,",
+            "When a blue card is cast by you while this creature remains on your battlefield,",
+            "While this creature is on your battlefield, each blue card you cast triggers this.",
+            "If you cast a blue card while this creature is in play,",
+            "Whenever you cast a blue card with this creature on your battlefield,",
+            "Each time you cast a blue card while controlling this creature on the battlefield,",
+        ],
+        "cast.effect": [
+            "draw {draw_count} card{draw_count_plural}.",
+            "draw {draw_count_word} card{draw_count_plural}.",
+            "take the top {draw_count} card{draw_count_plural} of your library into your hand.",
+            "put the top {draw_count} card{draw_count_plural} from your library into your hand.",
+            "add the top {draw_count} card{draw_count_plural} of your library to your hand.",
+            "you draw {draw_count} card{draw_count_plural}.",
+            "draw a total of {draw_count} card{draw_count_plural}.",
+            "you draw a total of {draw_count_word} card{draw_count_plural}.",
+            "take {draw_count} card{draw_count_plural} from the top of your library into your hand.",
+            "put {draw_count} card{draw_count_plural} from the top of your library into your hand.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Whenever you cast a blue spell, you may draw a card.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_when_cast(self):
+        self.scenario_prepare()
+        return self.scenario_cast()
 
-        "Each time you cast a blue spell, you may draw a card.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_cast_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "When you cast a blue spell, you may draw a card.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_dies_self_survives(self):
+        return self.scenario_combat(False, True, False, margin=0)
 
-        "Whenever you cast a blue spell, you may draw one card.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(False, True, False, margin=1)
 
-        "On casting a blue spell, you may draw a card.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_survive(self):
+        return self.scenario_combat(False, False, False, margin=0)
 
-        "Whenever you play a blue spell, you may draw a card.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_survive_beyond_boundary(self):
+        return self.scenario_combat(False, False, False, margin=1)
 
-        "Whenever you cast a blue spell, you may draw a card from your library.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_survives_self_dies(self):
+        return self.scenario_combat(False, False, True, margin=0)
 
-        "Each blue spell you cast lets you draw a card.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(False, False, True, margin=1)
 
-        "Whenever you cast a blue spell, you may optionally draw a card.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_die(self):
+        return self.scenario_combat(False, True, True, margin=0)
 
-    ]
-    @simulate
-    def simulate_when_enter_battlefield(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_die_beyond_boundary(self):
+        return self.scenario_combat(False, True, True, margin=1)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(1,7)},
-            least_mana={"colorless":1,"U":1}
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_dies_self_survives(self):
+        return self.scenario_combat(True, True, False, margin=0)
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(True, True, False, margin=1)
 
-    @simulate
-    def simulate_when_attack_opponent(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive(self):
+        return self.scenario_combat(True, False, False, margin=0)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive_beyond_boundary(self):
+        return self.scenario_combat(True, False, False, margin=1)
 
-        simulate_info=self.room.simulate_creature_attack(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies(self):
+        return self.scenario_combat(True, False, True, margin=0)
 
-    @simulate
-    def simulate_when_defend_opponent(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(True, False, True, margin=1)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_die(self):
+        return self.scenario_combat(True, True, True, margin=0)
 
-        simulate_info=self.room.simulate_creature_defend(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_die_beyond_boundary(self):
+        return self.scenario_combat(True, True, True, margin=1)
 
-    @simulate
-    def simulate_when_play_a_card(self):
-        self.basic_initinal()
-        self.random_life()(self.player)
-        self.random_life()(self.player.opponent)
-        self.stage_card(self.card)
-        self.room.env_mana(
-            self.player,
-            {"U":(1,7)},
-            least_mana={"colorless":1,"U":1}
-        )
+    @simulate(evidence={'fields': ('attack', 'special_type')})
+    def simulate_attack_empty_board(self):
+        return self.scenario_unblocked(False)
 
-        trigger_card=Mystic_Insight(self.player)
-        simulate_info=self.room.simulate_play(trigger_card)
-        simulate_info["card"]=self.card
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'special_type')})
+    def simulate_attack_opponent_passes(self):
+        return self.scenario_unblocked(True)
+

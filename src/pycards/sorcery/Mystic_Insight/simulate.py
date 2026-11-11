@@ -1,50 +1,99 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
+from pycards.land.Island.model import Island
 from pycards.sorcery.Mystic_Insight.model import Mystic_Insight
+
 
 @bind_card(Mystic_Insight)
 class Mystic_Insight_Simulation(Card_Simulation):
+    text_parts = {
+        "scry.effect": [
+            "Look at up to the top {scry_count} cards of your library, keep any of them on top in their existing order, and move the rest to the bottom in their existing order.",
+            "Examine the top {scry_count} cards of your library or fewer if necessary, keep any on top in order, and put the others on the bottom in order.",
+            "Inspect up to {scry_count} cards from the top of your library, leaving chosen cards on top and moving the unchosen cards to the bottom without reordering either group.",
+            "Look at the first {scry_count} available library cards, choose which to keep on top, and put the rest on the bottom while preserving each group's order.",
+            "Examine up to the first {scry_count} cards of your library, retaining any on top and moving the others to the bottom in their current order.",
+            "Look through up to the top {scry_count} library cards, leave any chosen cards on top in order, and place the remaining cards at the bottom in order.",
+            "Inspect the top {scry_count} cards of your library or all of it if smaller, keep any on top, and move the rest to the bottom without changing their relative order.",
+            "View up to {scry_count} cards from the top of your library, keep your chosen cards there, and place the rest at the bottom while maintaining both groups' order.",
+            "Examine at most the top {scry_count} library cards, retaining any chosen cards in place and moving all remaining examined cards to the bottom in order.",
+            "Look at up to {scry_count} cards from the top, keep any of them there in their current order, and put the remaining examined cards at the bottom in their current order.",
+        ],
+        "draw.effect": [
+            "Draw {draw_count} card{draw_count_plural}.",
+            "Draw {draw_count_word} card{draw_count_plural}.",
+            "Take the top {draw_count} card{draw_count_plural} of your library into your hand.",
+            "Put the top {draw_count} card{draw_count_plural} from your library into your hand.",
+            "Add the top {draw_count} card{draw_count_plural} of your library to your hand.",
+            "You draw {draw_count} card{draw_count_plural}.",
+            "Draw a total of {draw_count} card{draw_count_plural}.",
+            "You draw a total of {draw_count_word} card{draw_count_plural}.",
+            "Take {draw_count} card{draw_count_plural} from the top of your library into your hand.",
+            "Put {draw_count} card{draw_count_plural} from the top of your library into your hand.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Scry 2, then draw a card.",
+    def _draw_scene(self, count, hand_count, card_kind="Instant", used=False):
+        size = count + hand_count + 1
+        self.scenario_prepare({"library": {"instant_number": (size, size), "sorcery_number": (size, size), "creature_number": (size, size), "land_number": (0, 0)}})
+        pool = [card for card in self.player.library if card.type == card_kind]
+        if card_kind == "Island":
+            pool = [Island(self.player) for _ in range(size)]
+        self.player.library = pool[:count]
+        self.player.hand = pool[count:count + hand_count + 1] if hand_count else []
+        if used:
+            self.card.flag_dict["been used"] = True
+        return self.scenario_cast()
 
-        "[CARD_NAME] lets you scry 2, then draw a card.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "Scry 2. Then draw a card.",
+    @simulate(evidence={'text': ('scry.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_empty_hand_0_instant(self):
+        return self._draw_scene(0, 0, 'Instant')
 
-        "[CARD_NAME] causes you to scry 2, then draw a card.",
+    @simulate(evidence={'text': ('scry.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_empty_hand_1_instant(self):
+        return self._draw_scene(0, 1, 'Instant')
 
-        "Look at the top two cards of your library, put any number on the bottom and the rest on top, then draw a card.",
+    @simulate(evidence={'text': ('scry.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_empty_hand_3_instant(self):
+        return self._draw_scene(0, 3, 'Instant')
 
-        "[CARD_NAME] allows you to scry 2 and then draw a card.",
+    @simulate(evidence={'text': ('scry.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_short_draw_hand_0_instant(self):
+        return self._draw_scene(max(0, self.card.effect_params["draw_count"] - 1), 0, 'Instant')
 
-        "Scry two, then draw one card.",
+    @simulate(evidence={'text': ('scry.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_short_draw_hand_1_instant(self):
+        return self._draw_scene(max(0, self.card.effect_params["draw_count"] - 1), 1, 'Instant')
 
-        "[CARD_NAME] scrys 2, then you draw a card.",
+    @simulate(evidence={'text': ('scry.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_short_draw_hand_3_instant(self):
+        return self._draw_scene(max(0, self.card.effect_params["draw_count"] - 1), 3, 'Instant')
 
-        "Scry 2, then draw one card from your library.",
+    @simulate(evidence={'text': ('scry.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_exact_draw_hand_0_instant(self):
+        return self._draw_scene(self.card.effect_params["draw_count"], 0, 'Instant')
 
-        "[CARD_NAME] lets you scry 2 and draw a card."
-    ]
+    @simulate(evidence={'text': ('scry.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_exact_draw_hand_1_instant(self):
+        return self._draw_scene(self.card.effect_params["draw_count"], 1, 'Instant')
 
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.room.env_initinal_library(self.player, {"land_number": (2, 5), "instant_number": (1, 3)})
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'text': ('scry.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_exact_draw_hand_3_instant(self):
+        return self._draw_scene(self.card.effect_params["draw_count"], 3, 'Instant')
 
-        self.room.env_mana(
-            self.player,
-            {"U": (1, 7)},
-            least_mana={"colorless": 1, "U": 1},
-        )
+    @simulate(evidence={'text': ('scry.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_plenty_hand_0_instant(self):
+        return self._draw_scene(self.card.effect_params["draw_count"] + self.card.effect_params.get("scry_count", 0) + 3, 0, 'Instant')
 
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('scry.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_plenty_hand_1_instant(self):
+        return self._draw_scene(self.card.effect_params["draw_count"] + self.card.effect_params.get("scry_count", 0) + 3, 1, 'Instant')
+
+    @simulate(evidence={'text': ('scry.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_plenty_hand_3_instant(self):
+        return self._draw_scene(self.card.effect_params["draw_count"] + self.card.effect_params.get("scry_count", 0) + 3, 3, 'Instant')
+

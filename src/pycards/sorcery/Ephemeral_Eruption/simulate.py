@@ -1,52 +1,149 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
+from game.buffs import Indestructible
+from pycards.land.Plains.model import Plains
 from pycards.sorcery.Ephemeral_Eruption.model import Ephemeral_Eruption
+
 
 @bind_card(Ephemeral_Eruption)
 class Ephemeral_Eruption_Simulation(Card_Simulation):
+    text_parts = {
+        "damage.effect": [
+            "{card_name} deals {damage} damage to every creature.",
+            "Deal {damage} damage to each creature on the battlefield.",
+            "Every creature takes {damage} damage from {card_name}.",
+            "Inflict {damage} damage on all creatures.",
+            "Deal {damage} damage to all creatures on both sides.",
+            "{card_name} hits each creature for {damage} damage.",
+            "Each creature on either battlefield is dealt {damage} damage.",
+            "{card_name} deals {damage} damage to all creatures in play.",
+            "Deal an amount of damage equal to {damage} to each creature.",
+            "All creatures take {damage} damage each.",
+        ],
+        "return.delayed": [
+            "At your turn's end step, create fresh battlefield copies of the creatures that immediately died from this damage, leaving the originals in their graveyards.",
+            "At the end of your turn, put fresh copies of this hit's immediately killed creatures onto their owners' battlefields without removing the graveyard originals.",
+            "During your end step, bring back fresh copies of the creatures immediately killed by this hit while retaining the originals in their graveyards.",
+            "When your turn ends, each creature immediately killed by this damage produces a fresh battlefield copy for its owner and remains in its graveyard.",
+            "At your end step, copy the immediately killed creatures back to their owners' battlefields, preserving the graveyard cards.",
+            "Your turn's end step returns fresh copies of this damage's immediate victims, with the originals still in their graveyards.",
+            "At the end of your turn, restore fresh battlefield copies of the immediate victims without moving their graveyard originals.",
+            "On your end step, each creature immediately killed by this damage is copied onto its owner's battlefield and stays in its graveyard.",
+            "Fresh copies of the creatures immediately killed here appear on their owners' battlefields at your end step, while originals stay in their graveyards.",
+            "When your end step occurs, create battlefield copies of this damage's immediate victims and retain their original graveyard cards.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "[CARD_NAME] deals 4 damage to each creature. At the beginning of the next end step, return all creatures killed by this way to the battlefield under their owner's control.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "Deal 4 damage to every creature. At the beginning of the next end step, return all creatures killed this way to the battlefield under their owner's control.",
+    def _board_scene(self, own_count, enemy_count, offset=0, protected=False, library_count=None, life=None, old_exile=False):
+        self.scenario_prepare()
+        if life is not None:
+            if not 1 <= life <= self.player.ini_life:
+                return self.scenario_skip()
+            self.player.life = life
+        for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
+            for index in range(count):
+                creature = self.scenario_creature(owner, power=2 + index, health=3 + index, flags={"Hexproof": index % 2 == 0, "tap": index % 2 == 1})
+                creature.live = creature.actual_live = max(1, self.card.effect_params["damage"] + offset + index)
+                if protected:
+                    creature.gain_buff(Indestructible(self.card, creature), self.card)
+            land = Plains(owner)
+            land.tap()
+            self.stage_card(land, owner, zone="land_area")
+        if library_count is not None:
+            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "creature_number": (0, 0), "sorcery_number": (0, 0), "land_number": (0, 0)})
+            self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
+        self.player.mana.update(self.card.calculate_cost())
+        return self.scenario_cast(provide_mana=False)
 
-        "[CARD_NAME] inflicts 4 damage on each creature. At the next end step, return all creatures killed this way to the battlefield.",
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_below(self):
+        return self._board_scene(0, 0, offset=-1)
 
-        "Each creature takes 4 damage. At the beginning of the next end step, return all creatures killed this way to the battlefield under their owner's control.",
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_equal(self):
+        return self._board_scene(0, 0, offset=0)
 
-        "[CARD_NAME] deals 4 damage to all creatures. At the beginning of the next end step, creatures killed this way return to the battlefield under their owner's control.",
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_above(self):
+        return self._board_scene(0, 0, offset=1)
 
-        "Deal 4 damage to each creature. At the beginning of the next end step, return each creature killed this way to the battlefield under its owner's control.",
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_below(self):
+        return self._board_scene(1, 0, offset=-1)
 
-        "[CARD_NAME] hits every creature for 4 damage. At the next end step, return all creatures killed this way to the battlefield.",
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_equal(self):
+        return self._board_scene(1, 0, offset=0)
 
-        "All creatures take 4 damage. At the beginning of the next end step, return all creatures killed this way to the battlefield under their owner's control.",
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_above(self):
+        return self._board_scene(1, 0, offset=1)
 
-        "[CARD_NAME] deals 4 damage to each creature. At the beginning of the next end step, return creatures killed this way to the battlefield under their owner's control.",
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_below(self):
+        return self._board_scene(0, 1, offset=-1)
 
-        "Deal 4 damage to each creature. At the beginning of the next end step, return all creatures killed by [CARD_NAME] to the battlefield under their owner's control."
-    ]
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_equal(self):
+        return self._board_scene(0, 1, offset=0)
 
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.room.env_creature(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_above(self):
+        return self._board_scene(0, 1, offset=1)
 
-        self.room.env_mana(
-            self.player,
-            {"R": (2, 7)},
-            least_mana={"colorless": 1, "R": 2},
-        )
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_below(self):
+        return self._board_scene(1, 1, offset=-1)
 
-        for creature in self.player.battlefield + self.player.opponent.battlefield:
-            creature.actual_live = min(creature.actual_live, 4)
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_equal(self):
+        return self._board_scene(1, 1, offset=0)
 
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_above(self):
+        return self._board_scene(1, 1, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_below(self):
+        return self._board_scene(3, 3, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_equal(self):
+        return self._board_scene(3, 3, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_above(self):
+        return self._board_scene(3, 3, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_below(self):
+        return self._board_scene(0, 5, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_equal(self):
+        return self._board_scene(0, 5, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_above(self):
+        return self._board_scene(0, 5, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_5_enemy_0_below(self):
+        return self._board_scene(5, 0, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_5_enemy_0_equal(self):
+        return self._board_scene(5, 0, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_self_5_enemy_0_above(self):
+        return self._board_scene(5, 0, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'return.delayed'), 'fields': ('mana_cost',)})
+    def simulate_protected_battlefields(self):
+        return self._board_scene(3, 3, protected=True)
+

@@ -31,7 +31,10 @@ class Soul_Transfer_buff(Buff):
         async def when_die(self_card,player,opponent):
             await previews_func(player,opponent)
             for target_card in self.target_cards:
-                await type(target_card).when_die(self_card,player,opponent)
+                try:
+                    await type(target_card).when_die(self_card,player,opponent)
+                except:
+                    pass
             
         card.when_die = types.MethodType(when_die, card)
 

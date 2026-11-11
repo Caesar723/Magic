@@ -1,49 +1,74 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
+from game.buffs import Indestructible
+from pycards.land.Plains.model import Plains
 from pycards.sorcery.Temporal_Distortion.model import Temporal_Distortion
+
 
 @bind_card(Temporal_Distortion)
 class Temporal_Distortion_Simulation(Card_Simulation):
+    text_parts = {
+        "turn.effect": [
+            "Take {extra_turns} extra turn{extra_turns_plural} after this turn.",
+            "After this turn, take {extra_turns} additional turn{extra_turns_plural}.",
+            "You get {extra_turns} extra turn{extra_turns_plural} following this one.",
+            "Add {extra_turns} extra turn{extra_turns_plural} for yourself after the current turn.",
+            "Take {extra_turns_article_an} extra turn{extra_turns_plural} following the current one.",
+            "You take {extra_turns} additional turn{extra_turns_plural} after this one ends.",
+            "The current turn is followed by {extra_turns} extra turn{extra_turns_plural} for you.",
+            "Give yourself {extra_turns} extra turn{extra_turns_plural} after this turn.",
+            "You gain {extra_turns} extra turn{extra_turns_plural} to take after this one.",
+            "Queue {extra_turns} additional turn{extra_turns_plural} for yourself after the current turn.",
+        ],
+        "self.mark": [
+            "Mark {card_name} for exile.",
+            "Flag {card_name} for exile.",
+            "Also mark {card_name} for exile.",
+            "Also flag {card_name} for exile.",
+            "Then mark {card_name} for exile.",
+            "Then flag {card_name} for exile.",
+            "Afterward mark {card_name} for exile.",
+            "Afterward flag {card_name} for exile.",
+            "Next mark {card_name} for exile.",
+            "Next flag {card_name} for exile.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "[CARD_NAME] allows you to take an extra turn after this one. Exile [CARD_NAME].",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "Take an extra turn after this one. Exile [CARD_NAME].",
+    def _turn_scene(self, queued, lands=0):
+        self.scenario_prepare()
+        self.player.counter_dict["extra_turn"] = queued
+        for _ in range(lands):
+            land = Plains(self.player)
+            land.tap()
+            self.stage_card(land, zone="land_area")
+        self.player.mana.update(self.card.calculate_cost())
+        return self.scenario_cast(provide_mana=False)
 
-        "[CARD_NAME] grants you an extra turn after this one, then exiles itself.",
+    @simulate(evidence={'text': ('turn.effect', 'self.mark'), 'fields': ('mana_cost',)})
+    def simulate_queued_0_tapped_0(self):
+        return self._turn_scene(0, 0)
 
-        "You take an extra turn after this one. Exile [CARD_NAME].",
+    @simulate(evidence={'text': ('turn.effect', 'self.mark'), 'fields': ('mana_cost',)})
+    def simulate_queued_0_tapped_3(self):
+        return self._turn_scene(0, 3)
 
-        "[CARD_NAME] lets you take an additional turn after this one. Exile [CARD_NAME].",
+    @simulate(evidence={'text': ('turn.effect', 'self.mark'), 'fields': ('mana_cost',)})
+    def simulate_queued_1_tapped_0(self):
+        return self._turn_scene(1, 0)
 
-        "Take one extra turn after this one. Exile [CARD_NAME].",
+    @simulate(evidence={'text': ('turn.effect', 'self.mark'), 'fields': ('mana_cost',)})
+    def simulate_queued_1_tapped_3(self):
+        return self._turn_scene(1, 3)
 
-        "[CARD_NAME] gives you an extra turn after this one. Exile [CARD_NAME].",
+    @simulate(evidence={'text': ('turn.effect', 'self.mark'), 'fields': ('mana_cost',)})
+    def simulate_queued_3_tapped_0(self):
+        return self._turn_scene(3, 0)
 
-        "After this turn, take an extra turn. Exile [CARD_NAME].",
+    @simulate(evidence={'text': ('turn.effect', 'self.mark'), 'fields': ('mana_cost',)})
+    def simulate_queued_3_tapped_3(self):
+        return self._turn_scene(3, 3)
 
-        "[CARD_NAME] allows an extra turn after this one. Exile [CARD_NAME].",
-
-        "You get an extra turn after this one. Exile [CARD_NAME]."
-    ]
-
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-
-        self.room.env_mana(
-            self.player,
-            {"U": (2, 7)},
-            least_mana={"colorless": 3, "U": 2},
-        )
-
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info

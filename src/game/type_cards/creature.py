@@ -250,6 +250,7 @@ class Creature(Card):
             self.flag_dict["tap"]=False#横置
     
     def reset_to_orginal_state(self):
+        self.clear_clone()
         if hasattr(self,"_effect_params_before_clone"):
             self.effect_params=self._effect_params_before_clone.copy()
             del self._effect_params_before_clone

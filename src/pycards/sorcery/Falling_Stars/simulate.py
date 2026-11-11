@@ -1,52 +1,118 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.sorcery.Falling_Stars.model import Falling_Stars
+
 
 @bind_card(Falling_Stars)
 class Falling_Stars_Simulation(Card_Simulation):
+    text_parts = {
+        "damage.effect": [
+            "{card_name} deals {damage} damage to every creature.",
+            "Deal {damage} damage to each creature on the battlefield.",
+            "Every creature takes {damage} damage from {card_name}.",
+            "Inflict {damage} damage on all creatures.",
+            "Deal {damage} damage to all creatures on both sides.",
+            "{card_name} hits each creature for {damage} damage.",
+            "Each creature on either battlefield is dealt {damage} damage.",
+            "{card_name} deals {damage} damage to all creatures in play.",
+            "Deal an amount of damage equal to {damage} to each creature.",
+            "All creatures take {damage} damage each.",
+        ],
+        "token.effect": [
+            "create {token_count} {token_power}/{token_toughness} red Star Beast creature token{token_count_plural}.",
+            "put {token_count} {token_power}/{token_toughness} red Star Beast creature token{token_count_plural} onto the battlefield.",
+            "summon {token_count} red {token_power}/{token_toughness} Star Beast creature token{token_count_plural}.",
+            "create {token_count_word} red Star Beast creature token{token_count_plural} with power {token_power} and toughness {token_toughness}.",
+            "create {token_count_word} {token_power}/{token_toughness} red Star Beast creature token{token_count_plural} under your control.",
+            "put {token_count_word} red {token_power}/{token_toughness} Star Beast creature token{token_count_plural} into play.",
+            "create a total of {token_count} red Star Beast creature token{token_count_plural}, each {token_power}/{token_toughness}.",
+            "add {token_count} {token_power}/{token_toughness} red Star Beast creature token{token_count_plural} to your battlefield.",
+            "bring {token_count_word} red Star Beast creature token{token_count_plural} into play with {token_power} power and {token_toughness} toughness each.",
+            "create {token_count} Star Beast creature token{token_count_plural} that are red and {token_power}/{token_toughness}.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Deal 7 damage to all creatures, then summon a 7/7 Star Beast creature token onto the battlefield.",
+    def _token_scene(self, own_count, enemy_count, offset=0):
+        self.scenario_prepare()
+        damage = self.card.effect_params.get("damage", 3)
+        for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
+            for index in range(count):
+                self.scenario_creature(owner, power=index + 1, health=max(1, damage + offset), flags={})
+        return self.scenario_cast()
 
-        "[CARD_NAME] deals 7 damage to each creature, then creates a 7/7 Star Beast creature token.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "All creatures take 7 damage. Then put a 7/7 Star Beast creature token onto the battlefield.",
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_below(self):
+        return self._token_scene(0, 0, -1)
 
-        "[CARD_NAME] inflicts 7 damage on every creature, then summons a 7/7 Star Beast token.",
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_equal(self):
+        return self._token_scene(0, 0, 0)
 
-        "Deal seven damage to all creatures. Afterward, create a 7/7 Star Beast creature token.",
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_above(self):
+        return self._token_scene(0, 0, 1)
 
-        "[CARD_NAME] deals 7 damage to all creatures on the battlefield, then places a 7/7 Star Beast creature token into play.",
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_below(self):
+        return self._token_scene(1, 0, -1)
 
-        "Each creature takes 7 damage. Then you create a 7/7 Star Beast creature token.",
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_equal(self):
+        return self._token_scene(1, 0, 0)
 
-        "[CARD_NAME] hits all creatures for 7 damage, then puts a 7/7 Star Beast creature token onto the battlefield.",
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_above(self):
+        return self._token_scene(1, 0, 1)
 
-        "Deal 7 damage to every creature, then generate a 7/7 Star Beast creature token.",
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_below(self):
+        return self._token_scene(0, 1, -1)
 
-        "[CARD_NAME] deals 7 damage to all creatures and then summons a 7/7 Star Beast creature token onto the battlefield."
-    ]
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_equal(self):
+        return self._token_scene(0, 1, 0)
 
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.room.env_creature(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_above(self):
+        return self._token_scene(0, 1, 1)
 
-        self.room.env_mana(
-            self.player,
-            {"R": (2, 7)},
-            least_mana={"colorless": 7, "R": 2},
-        )
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_below(self):
+        return self._token_scene(1, 1, -1)
 
-        for creature in self.player.battlefield + self.player.opponent.battlefield:
-            creature.actual_live = min(creature.actual_live, 7)
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_equal(self):
+        return self._token_scene(1, 1, 0)
 
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_above(self):
+        return self._token_scene(1, 1, 1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_below(self):
+        return self._token_scene(3, 3, -1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_equal(self):
+        return self._token_scene(3, 3, 0)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_above(self):
+        return self._token_scene(3, 3, 1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_fill_board_enemy_0_below(self):
+        return self._token_scene(max(0, 10 - self.card.effect_params["token_count"]), 0, -1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_fill_board_enemy_0_equal(self):
+        return self._token_scene(max(0, 10 - self.card.effect_params["token_count"]), 0, 0)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_fill_board_enemy_0_above(self):
+        return self._token_scene(max(0, 10 - self.card.effect_params["token_count"]), 0, 1)
+

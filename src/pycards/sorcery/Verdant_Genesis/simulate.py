@@ -1,50 +1,87 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
+from game.type_cards.land import Land
+from pycards.land.Plains.model import Plains
+from pycards.land.Forest.model import Forest
 from pycards.sorcery.Verdant_Genesis.model import Verdant_Genesis
+
 
 @bind_card(Verdant_Genesis)
 class Verdant_Genesis_Simulation(Card_Simulation):
+    text_parts = {
+        "land.effect": [
+            "Put the first {land_count} lands in your library onto your battlefield tapped, or all if fewer remain.",
+            "Move up to {land_count} lands from your library into play tapped, taking them in library order.",
+            "Find the earliest {land_count} lands in your library and put all available ones onto your battlefield tapped.",
+            "Put your library's first {land_count} available lands into play tapped.",
+            "Take lands in library order, up to {land_count}, and put them onto your battlefield tapped.",
+            "Move the earliest available lands from your library into play tapped, stopping after {land_count}.",
+            "Scan your library in order and put the first {land_count} available lands onto your battlefield tapped.",
+            "The first available {land_count} lands in your library enter your battlefield tapped.",
+            "Move lands from your library onto your battlefield tapped in their existing order, up to {land_count}.",
+            "Put up to {land_count} of the earliest lands in your library into play tapped, taking all if fewer remain.",
+        ],
+        "buff.stats": [
+            "Give each creature you control +{power_bonus}/+{toughness_bonus} permanently.",
+            "Also give each creature you control +{power_bonus}/+{toughness_bonus} permanently.",
+            "Then give each creature you control +{power_bonus}/+{toughness_bonus} permanently.",
+            "You give each creature you control +{power_bonus}/+{toughness_bonus} permanently.",
+            "Now give each creature you control +{power_bonus}/+{toughness_bonus} permanently.",
+            "Immediately give each creature you control +{power_bonus}/+{toughness_bonus} permanently.",
+            "Additionally give each creature you control +{power_bonus}/+{toughness_bonus} permanently.",
+            "Finally give each creature you control +{power_bonus}/+{toughness_bonus} permanently.",
+            "With this effect give each creature you control +{power_bonus}/+{toughness_bonus} permanently.",
+            "After the land step give each creature you control +{power_bonus}/+{toughness_bonus} permanently.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Search your library for up to two land cards, put them onto the battlefield tapped, then shuffle your library. You may put a +1/+1 counter on each creature you control.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "[CARD_NAME] lets you search for up to two land cards, put them onto the battlefield tapped, shuffle, and optionally put a +1/+1 counter on each creature you control.",
+    def _resource_scene(self, basics, other_cards=3, nonbasic=False, role="none", forest=False, tapped=0, missing=1, grave_count=0):
+        self.scenario_prepare()
+        self.player.life = max(1, self.player.ini_life - missing)
+        self.player.graveyard.clear()
+        self.room.env_initinal_library(self.player, {"instant_number": (other_cards, other_cards), "creature_number": (0, 0), "sorcery_number": (0, 0), "land_number": (0, 0)})
+        self.player.library = [card for card in self.player.library if card.type == "Instant"][:other_cards]
+        for _ in range(basics):
+            self.player.library.append(Plains(self.player))
+        if nonbasic:
+            land = Land(self.player)
+            land.name, land.type = "Review nonbasic land", "Land"
+            self.player.library.insert(0, land)
+        for index in range(tapped):
+            land = Plains(self.player)
+            land.tap()
+            self.stage_card(land, zone="land_area")
+        for owner in (self.player, self.player.opponent):
+            for index in range(3):
+                self.scenario_creature(owner, power=index + 1, health=index + 2, flags={})
+        self.player.mana.update(self.card.calculate_cost())
+        return self.scenario_cast(provide_mana=False)
 
-        "Search your library for up to two lands, put them onto the battlefield tapped, shuffle your library. You may put a +1/+1 counter on each creature you control.",
+    @simulate(evidence={'text': ('land.effect', 'buff.stats'), 'fields': ('mana_cost',)})
+    def simulate_basic_none(self):
+        return self._resource_scene(0)
 
-        "[CARD_NAME] searches for up to two land cards, puts them onto the battlefield tapped, shuffles, and you may put a +1/+1 counter on each creature you control.",
+    @simulate(evidence={'text': ('land.effect', 'buff.stats'), 'fields': ('mana_cost',)})
+    def simulate_basic_one(self):
+        return self._resource_scene(1)
 
-        "Find up to two land cards in your library, put them onto the battlefield tapped, shuffle. You may put a +1/+1 counter on each creature you control.",
+    @simulate(evidence={'text': ('land.effect', 'buff.stats'), 'fields': ('mana_cost',)})
+    def simulate_basic_several(self):
+        return self._resource_scene(4)
 
-        "[CARD_NAME] finds up to two lands, puts them onto the battlefield tapped, shuffles your library, and optionally gives each creature you control a +1/+1 counter.",
+    @simulate(evidence={'text': ('land.effect', 'buff.stats'), 'fields': ('mana_cost',)})
+    def simulate_nonbasic_first(self):
+        return self._resource_scene(2, nonbasic=True)
 
-        "Search for up to two land cards, put them onto the battlefield tapped, shuffle your library. You may put a +1/+1 counter on every creature you control.",
+    @simulate(evidence={'text': ('land.effect', 'buff.stats'), 'fields': ('mana_cost',)})
+    def simulate_empty_library(self):
+        return self._resource_scene(0, other_cards=0)
 
-        "[CARD_NAME] allows you to search for up to two lands, put them onto the battlefield tapped, shuffle, and put a +1/+1 counter on each creature you control if you choose.",
+    @simulate(evidence={'text': ('land.effect', 'buff.stats'), 'fields': ('mana_cost',)})
+    def simulate_only_basic_library(self):
+        return self._resource_scene(1, other_cards=0)
 
-        "Search your library for up to two land cards and put them onto the battlefield tapped. Shuffle. You may put a +1/+1 counter on each creature you control.",
-
-        "[CARD_NAME] searches your library for up to two land cards, puts them onto the battlefield tapped, shuffles, and you may put a +1/+1 counter on each creature you control."
-    ]
-
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.room.env_initinal_library(self.player, {"land_number": (3, 6)})
-        self.room.env_creature(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-
-        self.room.env_mana(
-            self.player,
-            {"G": (1, 7)},
-            least_mana={"colorless": 5, "G": 1},
-        )
-
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info

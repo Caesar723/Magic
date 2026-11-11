@@ -1,48 +1,255 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
+from pycards.land.Island.model import Island
 from pycards.Instant.Arcane_Insight.model import Arcane_Insight
+
 
 @bind_card(Arcane_Insight)
 class Arcane_Insight_Simulation(Card_Simulation):
+    text_parts = {
+        "draw.effect": [
+            "Draw {draw_count} card{draw_count_plural}.",
+            "Draw {draw_count_word} card{draw_count_plural}.",
+            "Take the top {draw_count} card{draw_count_plural} of your library into your hand.",
+            "Put the top {draw_count} card{draw_count_plural} from your library into your hand.",
+            "Add the top {draw_count} card{draw_count_plural} of your library to your hand.",
+            "You draw {draw_count} card{draw_count_plural}.",
+            "Draw a total of {draw_count} card{draw_count_plural}.",
+            "You draw a total of {draw_count_word} card{draw_count_plural}.",
+            "Take {draw_count} card{draw_count_plural} from the top of your library into your hand.",
+            "Put {draw_count} card{draw_count_plural} from the top of your library into your hand.",
+        ],
+        "remove.selection": [
+            "Then choose a random card in your hand, if any.",
+            "Afterward, select a random hand card if available.",
+            "Next, pick a card at random from your hand if it is nonempty.",
+            "Then, if your hand contains a card, randomly choose one.",
+            "After drawing, choose one random hand card if possible.",
+            "Following the draw, randomly select one card in your hand, if any.",
+            "Then randomly pick one card from your hand if one is present.",
+            "Next, choose one of your hand cards at random if any remain.",
+            "Afterward, randomly choose a card from your hand if there is one.",
+            "Then pick one randomly selected card in your hand, if possible.",
+        ],
+        "remove.condition": [
+            "If it is an instant or sorcery, remove it from your hand. Otherwise, keep it.",
+            "Remove that card from your hand only if it is an instant or sorcery.",
+            "If the chosen card is an instant or sorcery, take it out of your hand. Otherwise, leave it there.",
+            "Only when that card is an instant or sorcery, remove it from your hand.",
+            "Take the chosen card out of your hand if its type is Instant or Sorcery, leaving it there otherwise.",
+            "If that card has type Instant or Sorcery, remove it from your hand. Otherwise, do nothing further.",
+            "Remove the chosen hand card if it is an instant or sorcery, and keep it otherwise.",
+            "An instant or sorcery chosen this way is removed from your hand. Any other chosen card remains.",
+            "If an instant or sorcery was chosen, remove that card from your hand. Other card types stay there.",
+            "Only a selected instant or sorcery is taken out of your hand. Leave any other selected card in place.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Draw two cards, then randomly discard a card unless you discard an instant or sorcery card.",
-        "[CARD_NAME] lets you draw two cards, then discard a random card unless you choose an instant or sorcery.",
-        "Draw two cards. Then discard a card at random unless you discard an instant or sorcery instead.",
-        "With [CARD_NAME], draw two cards, then randomly discard unless you discard an instant or sorcery card.",
-        "Draw two cards, then discard a random card from your hand unless you discard an instant or sorcery.",
-        "[CARD_NAME]: draw two, then random discard unless you discard an instant or sorcery card.",
-        "Draw two cards. Unless you discard an instant or sorcery card, discard a card at random.",
-        "Use [CARD_NAME] to draw two cards, then discard randomly unless you discard an instant or sorcery.",
-        "Draw two cards, then you must randomly discard a card unless you discard an instant or sorcery instead.",
-        "Draw two cards, then discard a card at random unless you discard an instant or sorcery card from your hand.",
-    ]
+    def _draw_scene(self, count, hand_count, card_kind="Instant", used=False):
+        size = count + hand_count + 1
+        self.scenario_prepare({"library": {"instant_number": (size, size), "sorcery_number": (size, size), "creature_number": (size, size), "land_number": (0, 0)}})
+        pool = [card for card in self.player.library if card.type == card_kind]
+        if card_kind == "Island":
+            pool = [Island(self.player) for _ in range(size)]
+        self.player.library = pool[:count]
+        self.player.hand = pool[count:count + hand_count + 1] if hand_count else []
+        if used:
+            self.card.flag_dict["been used"] = True
+        return self.scenario_cast()
 
-    @simulate
-    def simulate_card(self):
-        self.basic_initinal()
-        self.room.env_initinal_hand(
-            self.player,
-            {"instant_number":(1,2),"sorcery_number":(1,2)},
-        )
-        # Keep every post-draw choice an Instant so the implemented discard branch
-        # is deterministic instead of depending on the seeded basic lands.
-        self.player.hand=[type(self.card)(self.player) for _ in range(4)]
-        self.player.library=[type(self.card)(self.player) for _ in range(5)]
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(1,7)},
-            least_mana={"colorless":2,"U":1}
-        )
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_empty_hand_0_instant(self):
+        return self._draw_scene(0, 0, 'Instant')
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_empty_hand_0_sorcery(self):
+        return self._draw_scene(0, 0, 'Sorcery')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_empty_hand_0_creature(self):
+        return self._draw_scene(0, 0, 'Creature')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_empty_hand_0_island(self):
+        return self._draw_scene(0, 0, 'Island')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_empty_hand_1_instant(self):
+        return self._draw_scene(0, 1, 'Instant')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_empty_hand_1_sorcery(self):
+        return self._draw_scene(0, 1, 'Sorcery')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_empty_hand_1_creature(self):
+        return self._draw_scene(0, 1, 'Creature')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_empty_hand_1_island(self):
+        return self._draw_scene(0, 1, 'Island')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_empty_hand_3_instant(self):
+        return self._draw_scene(0, 3, 'Instant')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_empty_hand_3_sorcery(self):
+        return self._draw_scene(0, 3, 'Sorcery')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_empty_hand_3_creature(self):
+        return self._draw_scene(0, 3, 'Creature')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_empty_hand_3_island(self):
+        return self._draw_scene(0, 3, 'Island')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_short_draw_hand_0_instant(self):
+        return self._draw_scene(max(0, self.card.effect_params["draw_count"] - 1), 0, 'Instant')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_short_draw_hand_0_sorcery(self):
+        return self._draw_scene(max(0, self.card.effect_params["draw_count"] - 1), 0, 'Sorcery')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_short_draw_hand_0_creature(self):
+        return self._draw_scene(max(0, self.card.effect_params["draw_count"] - 1), 0, 'Creature')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_short_draw_hand_0_island(self):
+        return self._draw_scene(max(0, self.card.effect_params["draw_count"] - 1), 0, 'Island')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_short_draw_hand_1_instant(self):
+        return self._draw_scene(max(0, self.card.effect_params["draw_count"] - 1), 1, 'Instant')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_short_draw_hand_1_sorcery(self):
+        return self._draw_scene(max(0, self.card.effect_params["draw_count"] - 1), 1, 'Sorcery')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_short_draw_hand_1_creature(self):
+        return self._draw_scene(max(0, self.card.effect_params["draw_count"] - 1), 1, 'Creature')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_short_draw_hand_1_island(self):
+        return self._draw_scene(max(0, self.card.effect_params["draw_count"] - 1), 1, 'Island')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_short_draw_hand_3_instant(self):
+        return self._draw_scene(max(0, self.card.effect_params["draw_count"] - 1), 3, 'Instant')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_short_draw_hand_3_sorcery(self):
+        return self._draw_scene(max(0, self.card.effect_params["draw_count"] - 1), 3, 'Sorcery')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_short_draw_hand_3_creature(self):
+        return self._draw_scene(max(0, self.card.effect_params["draw_count"] - 1), 3, 'Creature')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_short_draw_hand_3_island(self):
+        return self._draw_scene(max(0, self.card.effect_params["draw_count"] - 1), 3, 'Island')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_exact_draw_hand_0_instant(self):
+        return self._draw_scene(self.card.effect_params["draw_count"], 0, 'Instant')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_exact_draw_hand_0_sorcery(self):
+        return self._draw_scene(self.card.effect_params["draw_count"], 0, 'Sorcery')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_exact_draw_hand_0_creature(self):
+        return self._draw_scene(self.card.effect_params["draw_count"], 0, 'Creature')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_exact_draw_hand_0_island(self):
+        return self._draw_scene(self.card.effect_params["draw_count"], 0, 'Island')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_exact_draw_hand_1_instant(self):
+        return self._draw_scene(self.card.effect_params["draw_count"], 1, 'Instant')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_exact_draw_hand_1_sorcery(self):
+        return self._draw_scene(self.card.effect_params["draw_count"], 1, 'Sorcery')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_exact_draw_hand_1_creature(self):
+        return self._draw_scene(self.card.effect_params["draw_count"], 1, 'Creature')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_exact_draw_hand_1_island(self):
+        return self._draw_scene(self.card.effect_params["draw_count"], 1, 'Island')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_exact_draw_hand_3_instant(self):
+        return self._draw_scene(self.card.effect_params["draw_count"], 3, 'Instant')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_exact_draw_hand_3_sorcery(self):
+        return self._draw_scene(self.card.effect_params["draw_count"], 3, 'Sorcery')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_exact_draw_hand_3_creature(self):
+        return self._draw_scene(self.card.effect_params["draw_count"], 3, 'Creature')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_exact_draw_hand_3_island(self):
+        return self._draw_scene(self.card.effect_params["draw_count"], 3, 'Island')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_plenty_hand_0_instant(self):
+        return self._draw_scene(self.card.effect_params["draw_count"] + self.card.effect_params.get("scry_count", 0) + 3, 0, 'Instant')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_plenty_hand_0_sorcery(self):
+        return self._draw_scene(self.card.effect_params["draw_count"] + self.card.effect_params.get("scry_count", 0) + 3, 0, 'Sorcery')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_plenty_hand_0_creature(self):
+        return self._draw_scene(self.card.effect_params["draw_count"] + self.card.effect_params.get("scry_count", 0) + 3, 0, 'Creature')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_plenty_hand_0_island(self):
+        return self._draw_scene(self.card.effect_params["draw_count"] + self.card.effect_params.get("scry_count", 0) + 3, 0, 'Island')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_plenty_hand_1_instant(self):
+        return self._draw_scene(self.card.effect_params["draw_count"] + self.card.effect_params.get("scry_count", 0) + 3, 1, 'Instant')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_plenty_hand_1_sorcery(self):
+        return self._draw_scene(self.card.effect_params["draw_count"] + self.card.effect_params.get("scry_count", 0) + 3, 1, 'Sorcery')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_plenty_hand_1_creature(self):
+        return self._draw_scene(self.card.effect_params["draw_count"] + self.card.effect_params.get("scry_count", 0) + 3, 1, 'Creature')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_plenty_hand_1_island(self):
+        return self._draw_scene(self.card.effect_params["draw_count"] + self.card.effect_params.get("scry_count", 0) + 3, 1, 'Island')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_plenty_hand_3_instant(self):
+        return self._draw_scene(self.card.effect_params["draw_count"] + self.card.effect_params.get("scry_count", 0) + 3, 3, 'Instant')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_plenty_hand_3_sorcery(self):
+        return self._draw_scene(self.card.effect_params["draw_count"] + self.card.effect_params.get("scry_count", 0) + 3, 3, 'Sorcery')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_plenty_hand_3_creature(self):
+        return self._draw_scene(self.card.effect_params["draw_count"] + self.card.effect_params.get("scry_count", 0) + 3, 3, 'Creature')
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.selection', 'remove.condition'), 'fields': ('mana_cost',)})
+    def simulate_plenty_hand_3_island(self):
+        return self._draw_scene(self.card.effect_params["draw_count"] + self.card.effect_params.get("scry_count", 0) + 3, 3, 'Island')
+

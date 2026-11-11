@@ -1,50 +1,74 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
+from game.type_cards.land import Land
+from pycards.land.Plains.model import Plains
+from pycards.land.Forest.model import Forest
 from pycards.sorcery.Arcane_Torrent.model import Arcane_Torrent
+
 
 @bind_card(Arcane_Torrent)
 class Arcane_Torrent_Simulation(Card_Simulation):
+    text_parts = {
+        "search.effect": [
+            "Put a random sorcery card from your library into your hand, if one is available.",
+            "If your library has a sorcery card, randomly choose one and put it into your hand.",
+            "Choose a sorcery card from your library at random and put it into your hand, if possible.",
+            "If available, move one random sorcery card from your library into your hand.",
+            "Randomly select a sorcery card in your library and put it into your hand, when available.",
+            "When your library contains a sorcery card, put one selected at random into your hand.",
+            "Move a randomly chosen sorcery card from your library into your hand if any exist.",
+            "Put one sorcery card chosen randomly from your library into your hand, if you have one.",
+            "From your library, take a random sorcery card if present and put it into your hand.",
+            "If any sorcery cards remain in your library, randomly choose one to enter your hand.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "[CARD_NAME] allows you to search your library for a random sorcery card, reveal it, and put it into your hand. Then shuffle your library.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "Search your library for a random sorcery card, reveal it, and put it into your hand. Then shuffle your library.",
+    def _resource_scene(self, basics, other_cards=3, nonbasic=False, role="none", forest=False, tapped=0, missing=1, grave_count=0):
+        self.scenario_prepare()
+        self.player.life = max(1, self.player.ini_life - missing)
+        self.player.graveyard.clear()
+        self.room.env_initinal_library(self.player, {"instant_number": (other_cards, other_cards), "creature_number": (0, 0), "sorcery_number": (0, 0), "land_number": (0, 0)})
+        self.player.library = [card for card in self.player.library if card.type == "Instant"][:other_cards]
+        for _ in range(basics):
+            self.player.library.append(Plains(self.player))
+        if nonbasic:
+            land = Land(self.player)
+            land.name, land.type = "Review nonbasic land", "Land"
+            self.player.library.insert(0, land)
+        for index in range(tapped):
+            land = Plains(self.player)
+            land.tap()
+            self.stage_card(land, zone="land_area")
+        for _ in range(basics):
+            self.player.library.append(self.card.copy_for_player(self.player))
+        self.player.mana.update(self.card.calculate_cost())
+        return self.scenario_cast(provide_mana=False)
 
-        "[CARD_NAME] searches your library for a random sorcery card, reveals it, puts it into your hand, then shuffles.",
+    @simulate(evidence={'text': ('search.effect',), 'fields': ('mana_cost',)})
+    def simulate_basic_none(self):
+        return self._resource_scene(0)
 
-        "Find a random sorcery card in your library, reveal it, put it into your hand, then shuffle your library.",
+    @simulate(evidence={'text': ('search.effect',), 'fields': ('mana_cost',)})
+    def simulate_basic_one(self):
+        return self._resource_scene(1)
 
-        "[CARD_NAME] lets you search your library for a random sorcery, reveal it, add it to your hand, and shuffle.",
+    @simulate(evidence={'text': ('search.effect',), 'fields': ('mana_cost',)})
+    def simulate_basic_several(self):
+        return self._resource_scene(4)
 
-        "Search your library for a random sorcery card. Reveal it and put it into your hand. Shuffle your library.",
+    @simulate(evidence={'text': ('search.effect',), 'fields': ('mana_cost',)})
+    def simulate_nonbasic_first(self):
+        return self._resource_scene(2, nonbasic=True)
 
-        "[CARD_NAME] finds a random sorcery in your library, reveals it, puts it into your hand, then shuffles your library.",
+    @simulate(evidence={'text': ('search.effect',), 'fields': ('mana_cost',)})
+    def simulate_empty_library(self):
+        return self._resource_scene(0, other_cards=0)
 
-        "Search for a random sorcery card in your library, reveal it, put it into your hand, then shuffle.",
+    @simulate(evidence={'text': ('search.effect',), 'fields': ('mana_cost',)})
+    def simulate_only_basic_library(self):
+        return self._resource_scene(1, other_cards=0)
 
-        "[CARD_NAME] allows you to search your library for a random sorcery card, reveal it, put it in your hand, and shuffle.",
-
-        "Search your library for a random sorcery card, reveal it, put it into your hand, and shuffle your library."
-    ]
-
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.room.env_initinal_library(self.player, {"sorcery_number": (2, 5)})
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-
-        self.room.env_mana(
-            self.player,
-            {"U": (2, 7)},
-            least_mana={"colorless": 2, "U": 2},
-        )
-
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info

@@ -1,92 +1,130 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.Instant.Giantbreaker_Spark.model import Giantbreaker_Spark
 
 
 @bind_card(Giantbreaker_Spark)
 class Giantbreaker_Spark_Simulation(Card_Simulation):
+    text_parts = {
+        "damage.target": [
+            "Choose a target creature your opponent controls.",
+            "Target a creature your opponent controls.",
+            "Choose any opposing creature your opponent controls as the target.",
+            "Select a creature your opponent controls to target.",
+            "Target any one creature your opponent controls.",
+            "Choose one creature your opponent controls as a target.",
+            "Select a target from among opposing creatures.",
+            "Choose a creature your opponent controls to receive the damage.",
+            "Select any opposing creature your opponent controls as your target.",
+            "Choose the target from any opposing creature your opponent controls.",
+        ],
+        "damage.condition": [
+            "If the target has power at least {power_threshold},",
+            "If the target has power {power_threshold} or greater,",
+            "When the target has power no lower than {power_threshold},",
+            "If the target has at least {power_threshold} power,",
+            "If the target's power is {power_threshold} or more,",
+            "When the target has power at least {power_threshold},",
+            "If the target has {power_threshold} or more power,",
+            "If the target has power of at least {power_threshold},",
+            "If the target's power is {power_threshold} or higher,",
+            "When the target has power equal to or above {power_threshold},",
+        ],
+        "damage.high": [
+            "{card_name} deals {damage_high} damage to that target.",
+            "deal {damage_high} damage to the target.",
+            "inflict {damage_high} damage on that creature.",
+            "that creature takes {damage_high} damage.",
+            "the target is dealt {damage_high} damage.",
+            "{card_name} inflicts {damage_high} damage on the target.",
+            "hit the targeted creature for {damage_high} damage.",
+            "the targeted creature takes {damage_high} damage from {card_name}.",
+            "deal an amount of damage equal to {damage_high} to that creature.",
+            "{card_name} hits the target for {damage_high} damage.",
+        ],
+        "damage.low": [
+            "Otherwise, {card_name} deals {damage_low} damage to that target.",
+            "Otherwise, deal {damage_low} damage to the target.",
+            "Otherwise, inflict {damage_low} damage on that creature.",
+            "Otherwise, that creature takes {damage_low} damage.",
+            "Otherwise, the target is dealt {damage_low} damage.",
+            "Otherwise, {card_name} inflicts {damage_low} damage on the target.",
+            "Otherwise, hit the targeted creature for {damage_low} damage.",
+            "Otherwise, the targeted creature takes {damage_low} damage from {card_name}.",
+            "Otherwise, deal an amount of damage equal to {damage_low} to that creature.",
+            "Otherwise, {card_name} hits the target for {damage_low} damage.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "[CARD_NAME] deals 6 damage to target creature an opponent controls if its power is 4 or greater. Otherwise, it deals 3 damage to that creature.",
-        "Deal 6 damage to a target opposing creature with power at least 4; if its power is lower, deal 3 damage instead.",
-        "Target an enemy creature. It takes six damage if its power is four or more, and three damage otherwise."
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_power_3(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        from game.testing_room import Testing_Spawn_Creature
-        self.player.opponent.battlefield=[]
-        threshold=self.card.effect_params["power_threshold"]
-        life=max(self.card.effect_params["damage_low"],self.card.effect_params["damage_high"])+1
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,max(0,threshold-1),life),self.player.opponent)
-        self.room.env_mana(self.player,{"R":(2,5)},least_mana={"colorless":1,"R":2})
-        return self.room.simulate_play(self.card,preferred_subactions=(1,))
+    def _damage_scene(self, target_role, life_offset, branch=None, target_flags=None):
+        self.scenario_prepare()
+        params = self.card.effect_params
+        damage = params.get("damage", params.get("damage_low", 0))
+        power = max(0, params["power_threshold"] + branch)
+        damage = params["damage_high"] if power >= params["power_threshold"] else params["damage_low"]
+        life = damage + life_offset
+        if life <= 0:
+            return self.scenario_skip()
+        if target_role in ("self_creature", "enemy_creature"):
+            owner = self.player if target_role == "self_creature" else self.player.opponent
+            target = self.scenario_creature(owner, power=power, health=life, flags=target_flags or {})
+            subaction = (11 if owner is self.player else 1) + owner.battlefield.index(target)
+        else:
+            owner = self.player if target_role == "self_player" else self.player.opponent
+            if life > owner.ini_life:
+                return self.scenario_skip()
+            owner.life = life
+            subaction = 22 if owner is self.player else 21
+        self.player.mana.update(self.card.calculate_cost())
+        return self.scenario_cast((subaction,), provide_mana=False)
 
-    @simulate
-    def simulate_power_4(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        from game.testing_room import Testing_Spawn_Creature
-        self.player.opponent.battlefield=[]
-        threshold=self.card.effect_params["power_threshold"]
-        life=max(self.card.effect_params["damage_low"],self.card.effect_params["damage_high"])+1
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,threshold,life),self.player.opponent)
-        self.room.env_mana(self.player,{"R":(2,5)},least_mana={"colorless":1,"R":2})
-        return self.room.simulate_play(self.card,preferred_subactions=(1,))
+    @simulate(evidence={'text': ('damage.target', 'damage.condition', 'damage.low'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_below_condition_below_lethal(self):
+        return self._damage_scene('enemy_creature', -1, branch=-1)
 
-    @simulate
-    def simulate_power_5(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        from game.testing_room import Testing_Spawn_Creature
-        self.player.opponent.battlefield=[]
-        threshold=self.card.effect_params["power_threshold"]
-        life=max(self.card.effect_params["damage_low"],self.card.effect_params["damage_high"])+1
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,max(0,threshold+1),life),self.player.opponent)
-        self.room.env_mana(self.player,{"R":(2,5)},least_mana={"colorless":1,"R":2})
-        return self.room.simulate_play(self.card,preferred_subactions=(1,))
+    @simulate(evidence={'text': ('damage.target', 'damage.condition', 'damage.low'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_below_condition_equal_lethal(self):
+        return self._damage_scene('enemy_creature', 0, branch=-1)
 
-    @simulate
-    def simulate_lethal(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        from game.testing_room import Testing_Spawn_Creature
-        self.player.opponent.battlefield=[]
-        threshold=self.card.effect_params["power_threshold"]
-        life=self.card.effect_params["damage_high"]
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,threshold,life),self.player.opponent)
-        self.room.env_mana(self.player,{"R":(2,5)},least_mana={"colorless":1,"R":2})
-        return self.room.simulate_play(self.card,preferred_subactions=(1,))
+    @simulate(evidence={'text': ('damage.target', 'damage.condition', 'damage.low'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_below_condition_above_lethal(self):
+        return self._damage_scene('enemy_creature', 1, branch=-1)
+
+    @simulate(evidence={'text': ('damage.target', 'damage.condition', 'damage.high'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_equal_condition_below_lethal(self):
+        return self._damage_scene('enemy_creature', -1, branch=0)
+
+    @simulate(evidence={'text': ('damage.target', 'damage.condition', 'damage.high'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_equal_condition_equal_lethal(self):
+        return self._damage_scene('enemy_creature', 0, branch=0)
+
+    @simulate(evidence={'text': ('damage.target', 'damage.condition', 'damage.high'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_equal_condition_above_lethal(self):
+        return self._damage_scene('enemy_creature', 1, branch=0)
+
+    @simulate(evidence={'text': ('damage.target', 'damage.condition', 'damage.high'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_above_condition_below_lethal(self):
+        return self._damage_scene('enemy_creature', -1, branch=1)
+
+    @simulate(evidence={'text': ('damage.target', 'damage.condition', 'damage.high'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_above_condition_equal_lethal(self):
+        return self._damage_scene('enemy_creature', 0, branch=1)
+
+    @simulate(evidence={'text': ('damage.target', 'damage.condition', 'damage.high'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_above_condition_above_lethal(self):
+        return self._damage_scene('enemy_creature', 1, branch=1)
+
+    @simulate(evidence={'text': ('damage.target', 'damage.condition', 'damage.high', 'damage.low'), 'fields': ('mana_cost',)})
+    def simulate_hexproof_target(self):
+        return self._damage_scene("enemy_creature", 1, branch=0, target_flags={"Hexproof": True})
+
+    @simulate(evidence={'text': ('damage.target', 'damage.condition', 'damage.high', 'damage.low'), 'fields': ('mana_cost',)})
+    def simulate_no_opponent_creatures(self):
+        self.scenario_prepare()
+        self.scenario_creature(self.player, flags={})
+        return self.scenario_cast((1,))
+

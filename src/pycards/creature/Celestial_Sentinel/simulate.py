@@ -1,80 +1,119 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.creature.Celestial_Sentinel.model import Celestial_Sentinel
+
 
 @bind_card(Celestial_Sentinel)
 class Celestial_Sentinel_Simulation(Card_Simulation):
+    text_parts = {
+        "keyword.flying": [
+            "Flying.",
+            "This creature has flying.",
+            "{card_name} has flying.",
+            "This creature has the flying ability.",
+            "{card_name} has the flying ability.",
+            "Flying (Only creatures with flying or reach can block this creature).",
+            "This creature can be blocked only by creatures with flying or reach.",
+            "Only creatures with flying or reach can block this creature.",
+            "Creatures without flying or reach cannot block this creature.",
+            "This creature has flying. Creatures without flying or reach cannot block it.",
+        ],
+        "keyword.vigilance": [
+            "Vigilance.",
+            "This creature has vigilance.",
+            "{card_name} has vigilance.",
+            "This creature has the vigilance ability.",
+            "{card_name} has the vigilance ability.",
+            "Attacking does not cause this creature to tap.",
+            "This creature does not tap when it attacks.",
+            "{card_name} does not tap when it attacks.",
+            "Vigilance (Attacking does not cause this creature to tap).",
+            "This creature has vigilance and does not tap when it attacks.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Flying, Vigilance.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_when_cast(self):
+        self.scenario_prepare()
+        return self.scenario_cast()
 
-        "Vigilance, Flying.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_cast_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "Flying. Vigilance.",
+    @simulate(evidence={'text': ('keyword.flying', 'keyword.vigilance'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_dies_self_survives(self):
+        return self.scenario_combat(False, True, False, margin=0)
 
-        "Vigilance, Flying (this creature doesn't tap when attacking).",
+    @simulate(evidence={'text': ('keyword.flying', 'keyword.vigilance'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(False, True, False, margin=1)
 
-        "Flying, Vigilance — can attack without tapping.",
+    @simulate(evidence={'text': ('keyword.flying', 'keyword.vigilance'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_survive(self):
+        return self.scenario_combat(False, False, False, margin=0)
 
-        "Vigilance, Flying (attacks without tapping).",
+    @simulate(evidence={'text': ('keyword.flying', 'keyword.vigilance'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_survive_beyond_boundary(self):
+        return self.scenario_combat(False, False, False, margin=1)
 
-        "Flying, Vigilance (doesn't tap to attack).",
+    @simulate(evidence={'text': ('keyword.flying', 'keyword.vigilance'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_survives_self_dies(self):
+        return self.scenario_combat(False, False, True, margin=0)
 
-        "Vigilance, Flying (this doesn't tap when it attacks).",
+    @simulate(evidence={'text': ('keyword.flying', 'keyword.vigilance'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(False, False, True, margin=1)
 
-        "Flying, Vigilance (untapped while attacking).",
+    @simulate(evidence={'text': ('keyword.flying', 'keyword.vigilance'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_die(self):
+        return self.scenario_combat(False, True, True, margin=0)
 
-    ]
+    @simulate(evidence={'text': ('keyword.flying', 'keyword.vigilance'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_die_beyond_boundary(self):
+        return self.scenario_combat(False, True, True, margin=1)
 
-    @simulate
-    def simulate_when_enter_battlefield(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_dies_self_survives(self):
+        return self.scenario_combat(True, True, False, margin=0)
 
-        self.room.env_mana(
-            self.player,
-            {"W":(1,7)},
-            least_mana={"colorless":2,"W":1}
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(True, True, False, margin=1)
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive(self):
+        return self.scenario_combat(True, False, False, margin=0)
 
-    @simulate
-    def simulate_when_attack_opponent(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive_beyond_boundary(self):
+        return self.scenario_combat(True, False, False, margin=1)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies(self):
+        return self.scenario_combat(True, False, True, margin=0)
 
-        simulate_info=self.room.simulate_creature_attack(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(True, False, True, margin=1)
 
-    @simulate
-    def simulate_when_defend_opponent(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_die(self):
+        return self.scenario_combat(True, True, True, margin=0)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_die_beyond_boundary(self):
+        return self.scenario_combat(True, True, True, margin=1)
 
-        simulate_info=self.room.simulate_creature_defend(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('keyword.vigilance',), 'fields': ('attack', 'special_type')})
+    def simulate_attack_empty_board(self):
+        return self.scenario_unblocked(False)
+
+    @simulate(evidence={'text': ('keyword.vigilance',), 'fields': ('attack', 'special_type')})
+    def simulate_attack_opponent_passes(self):
+        return self.scenario_unblocked(True)
+
+    @simulate(evidence={'text': ('keyword.flying',), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_block_flying_creature(self):
+        return self.scenario_combat(True, False, False, enemy_flags={"flying": True})
+

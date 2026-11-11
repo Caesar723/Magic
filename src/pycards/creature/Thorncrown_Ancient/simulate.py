@@ -1,77 +1,145 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.creature.Thorncrown_Ancient.model import Thorncrown_Ancient
 
 
 @bind_card(Thorncrown_Ancient)
 class Thorncrown_Ancient_Simulation(Card_Simulation):
+    text_parts = {
+        "keyword.trample": [
+            "Trample.",
+            "This creature has trample.",
+            "{card_name} has trample.",
+            "This creature has the trample ability.",
+            "{card_name} has the trample ability.",
+            "Trample (This creature can deal excess combat damage to the defending player).",
+            "This creature has trample and can deal excess combat damage to the defending player.",
+            "{card_name} has trample and can deal excess combat damage to the defending player.",
+            "This creature can deal excess combat damage to the defending player through trample.",
+            "{card_name} can deal excess combat damage to the defending player through trample.",
+        ],
+        "enter.trigger": [
+            "When {card_name} enters the battlefield,",
+            "Whenever {card_name} enters the battlefield,",
+            "When this creature enters the battlefield,",
+            "Whenever this creature enters the battlefield,",
+            "When {card_name} enters play,",
+            "Whenever {card_name} enters play,",
+            "When this creature enters play,",
+            "Whenever this creature enters play,",
+            "When {card_name} comes into play,",
+            "Whenever {card_name} comes into play,",
+        ],
+        "enter.tokens": [
+            "create {token_count} {token_power}/{token_toughness} green Scout creature token{token_count_plural}.",
+            "put {token_count} {token_power}/{token_toughness} green Scout creature token{token_count_plural} onto the battlefield.",
+            "summon {token_count} green {token_power}/{token_toughness} Scout creature token{token_count_plural}.",
+            "create {token_count_word} green Scout creature token{token_count_plural} with power {token_power} and toughness {token_toughness}.",
+            "create {token_count_word} {token_power}/{token_toughness} green Scout creature token{token_count_plural} under your control.",
+            "put {token_count_word} green {token_power}/{token_toughness} Scout creature token{token_count_plural} into play.",
+            "create a total of {token_count} green Scout creature token{token_count_plural}, each {token_power}/{token_toughness}.",
+            "add {token_count} {token_power}/{token_toughness} green Scout creature token{token_count_plural} to your battlefield.",
+            "bring {token_count_word} green Scout creature token{token_count_plural} into play with {token_power} power and {token_toughness} toughness each.",
+            "create {token_count} Scout creature token{token_count_plural} that are green and {token_power}/{token_toughness}.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Trample. When [CARD_NAME] enters the battlefield, create two 1/1 green Scout creature tokens.",
-        "Trample. When [CARD_NAME] enters play, summon two green 1/1 Scouts.",
-        "[CARD_NAME] has trample and creates two 1/1 green Scout tokens on entering the battlefield."
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_cast_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_empty_battlefield(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        self.room.env_no_creature(self.player)
-        self.room.env_mana(self.player,{"G":(3,6)},least_mana={"colorless":4,"G":3})
-        return self.room.simulate_play(self.card,preferred_subactions=(0,))
+    @simulate(evidence={'text': ('keyword.trample',), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_dies_self_survives(self):
+        return self.scenario_combat(False, True, False, margin=0)
 
-    @simulate
-    def simulate_occupied_battlefield(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        self.room.env_one_creature(self.player)
-        self.room.env_mana(self.player,{"G":(3,6)},least_mana={"colorless":4,"G":3})
-        return self.room.simulate_play(self.card,preferred_subactions=(0,))
+    @simulate(evidence={'text': ('keyword.trample',), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(False, True, False, margin=1)
 
-    @simulate
-    def simulate_when_attack(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        self.room.env_mana(self.player,{"G":(3,6)},least_mana={"colorless":4,"G":3})
-        return self.room.simulate_creature_attack(self.card)
+    @simulate(evidence={'text': ('keyword.trample',), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_survive(self):
+        return self.scenario_combat(False, False, False, margin=0)
 
-    @simulate
-    def simulate_when_defend(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        self.room.env_one_creature(self.player.opponent)
-        if not self.card.get_flag("flying") and not self.card.get_flag("reach"):
-            self.player.opponent.battlefield[0].flag_dict["flying"]=False
-        self.room.env_mana(self.player,{"G":(3,6)},least_mana={"colorless":4,"G":3})
-        return self.room.simulate_creature_defend(self.card)
+    @simulate(evidence={'text': ('keyword.trample',), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_survive_beyond_boundary(self):
+        return self.scenario_combat(False, False, False, margin=1)
+
+    @simulate(evidence={'text': ('keyword.trample',), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_survives_self_dies(self):
+        return self.scenario_combat(False, False, True, margin=0)
+
+    @simulate(evidence={'text': ('keyword.trample',), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(False, False, True, margin=1)
+
+    @simulate(evidence={'text': ('keyword.trample',), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_die(self):
+        return self.scenario_combat(False, True, True, margin=0)
+
+    @simulate(evidence={'text': ('keyword.trample',), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_die_beyond_boundary(self):
+        return self.scenario_combat(False, True, True, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_dies_self_survives(self):
+        return self.scenario_combat(True, True, False, margin=0)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(True, True, False, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive(self):
+        return self.scenario_combat(True, False, False, margin=0)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive_beyond_boundary(self):
+        return self.scenario_combat(True, False, False, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies(self):
+        return self.scenario_combat(True, False, True, margin=0)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(True, False, True, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_die(self):
+        return self.scenario_combat(True, True, True, margin=0)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_die_beyond_boundary(self):
+        return self.scenario_combat(True, True, True, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'special_type')})
+    def simulate_attack_empty_board(self):
+        return self.scenario_unblocked(False)
+
+    @simulate(evidence={'fields': ('attack', 'special_type')})
+    def simulate_attack_opponent_passes(self):
+        return self.scenario_unblocked(True)
+
+    def _token_scene(self, count, missing_life=0):
+        self.scenario_prepare()
+        for _ in range(count):
+            self.scenario_creature(self.player, flags={})
+        self.player.life = max(1, self.player.ini_life - missing_life)
+        return self.scenario_cast()
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_empty_board(self):
+        return self._token_scene(0)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_one_creature(self):
+        return self._token_scene(1)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_multiple_creatures(self):
+        return self._token_scene(3)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_fill_visible_board(self):
+        return self._token_scene(max(0, 9 - self.card.effect_params["token_count"]))
+

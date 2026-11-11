@@ -88,8 +88,10 @@ class Card:
         new_card=type(self)(player)
         new_card.effect_params=values.copy()
         if self.type=="Creature":
-            new_card.power=new_card.actual_power=self.power
-            new_card.live=new_card.actual_live=self.live
+            active=self.__dict__.get("_active_clone")
+            power,live=active.maximum_state if active is not None else (self.power,self.live)
+            new_card.power=new_card.actual_power=power
+            new_card.live=new_card.actual_live=live
         return new_card
 
     @property
@@ -388,17 +390,46 @@ class Card:
         self.when_gain_buff(self.player,self.player.opponent,buff,card)
 
     def update_buff(self):
+        active=self.__dict__.get("_active_clone")
+        cloning=active is not None or any(buff.card_type=="Clone" for buff in self.buffs)
+        in_play=self in getattr(self.player,"battlefield",()) or self in getattr(self.player,"land_area",())
+        old_keys=set(self.check_overwritten()) if cloning else set()
+        store=getattr(self.player,"cards_store_dict",{})
+        registered=cloning and (in_play or any(self in store.get(key,()) for key in old_keys))
+        if active is not None:
+            active.restore(self)
+            if not any(buff.card_type=="Clone" for buff in self.buffs):
+                self.actual_live=min(self.actual_live,self.live)
         if hasattr(self,"_effect_params_before_clone"):
             self.effect_params=self._effect_params_before_clone.copy()
-            if not any(buff.card_type=="Clone" for buff in self.buffs):
-                del self._effect_params_before_clone
+            del self._effect_params_before_clone
         reset_instance_methods(self)
         self.change_function_by_buff()
-        
-    def change_function_by_buff(self):#遍历buffs，改变函数
-        for buff in self.buffs:
-            buff.change_function(self)
-            
+        if registered:
+            new_keys=set(self.check_overwritten())
+            for key in old_keys-new_keys:
+                self.player.remove_card_from_dict(key,self)
+            for key in new_keys:
+                self.player.put_card_to_dict(key,self)
+
+    def change_function_by_buff(self):
+        clones=[buff for buff in self.buffs if buff.card_type=="Clone"]
+        if clones:
+            clones[-1].change_function(self)
+        for buff in list(self.buffs):
+            if buff.card_type!="Clone":
+                buff.change_function(self)
+
+    def clear_clone(self):
+        clones=[buff for buff in self.buffs if buff.card_type=="Clone"]
+        active=self.__dict__.get("_active_clone")
+        if not clones and active is None:
+            return
+        for buff in clones:
+            buff.cancel_expiry()
+            self.buffs.remove(buff)
+        self.update_buff()
+
     def get_select_range(self):
         pass
     def text(self,player:'Player',show_hide:bool=False)-> str:

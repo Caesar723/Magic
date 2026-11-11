@@ -1,86 +1,221 @@
-from typing import TYPE_CHECKING
-import random
-if TYPE_CHECKING:
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.creature.Dawnforged_Sovereign.model import Dawnforged_Sovereign
 
 
 @bind_card(Dawnforged_Sovereign)
 class Dawnforged_Sovereign_Simulation(Card_Simulation):
+    text_parts = {
+        "keyword.flying": [
+            "Flying.",
+            "This creature has flying.",
+            "{card_name} has flying.",
+            "This creature has the flying ability.",
+            "{card_name} has the flying ability.",
+            "Flying (Only creatures with flying or reach can block this creature).",
+            "This creature can be blocked only by creatures with flying or reach.",
+            "Only creatures with flying or reach can block this creature.",
+            "Creatures without flying or reach cannot block this creature.",
+            "This creature has flying. Creatures without flying or reach cannot block it.",
+        ],
+        "keyword.vigilance": [
+            "Vigilance.",
+            "This creature has vigilance.",
+            "{card_name} has vigilance.",
+            "This creature has the vigilance ability.",
+            "{card_name} has the vigilance ability.",
+            "Attacking does not cause this creature to tap.",
+            "This creature does not tap when it attacks.",
+            "{card_name} does not tap when it attacks.",
+            "Vigilance (Attacking does not cause this creature to tap).",
+            "This creature has vigilance and does not tap when it attacks.",
+        ],
+        "enter.trigger": [
+            "When {card_name} enters the battlefield,",
+            "Whenever {card_name} enters the battlefield,",
+            "When this creature enters the battlefield,",
+            "Whenever this creature enters the battlefield,",
+            "When {card_name} enters play,",
+            "Whenever {card_name} enters play,",
+            "When this creature enters play,",
+            "Whenever this creature enters play,",
+            "When {card_name} comes into play,",
+            "Whenever {card_name} comes into play,",
+        ],
+        "enter.heal": [
+            "you gain {heal} life.",
+            "gain {heal} life.",
+            "you gain a total of {heal} life.",
+            "gain a total of {heal} life.",
+            "increase your life total by {heal}.",
+            "you increase your life total by {heal}.",
+            "restore {heal} life.",
+            "you restore {heal} life.",
+            "gain an amount of life equal to {heal}.",
+            "you gain an amount of life equal to {heal}.",
+        ],
+        "enter.tokens": [
+            "create {token_count} {token_power}/{token_toughness} white Knight creature token{token_count_plural}.",
+            "put {token_count} {token_power}/{token_toughness} white Knight creature token{token_count_plural} onto the battlefield.",
+            "summon {token_count} white {token_power}/{token_toughness} Knight creature token{token_count_plural}.",
+            "create {token_count_word} white Knight creature token{token_count_plural} with power {token_power} and toughness {token_toughness}.",
+            "create {token_count_word} {token_power}/{token_toughness} white Knight creature token{token_count_plural} under your control.",
+            "put {token_count_word} white {token_power}/{token_toughness} Knight creature token{token_count_plural} into play.",
+            "create a total of {token_count} white Knight creature token{token_count_plural}, each {token_power}/{token_toughness}.",
+            "add {token_count} {token_power}/{token_toughness} white Knight creature token{token_count_plural} to your battlefield.",
+            "bring {token_count_word} white Knight creature token{token_count_plural} into play with {token_power} power and {token_toughness} toughness each.",
+            "create {token_count} Knight creature token{token_count_plural} that are white and {token_power}/{token_toughness}.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Flying, vigilance. When [CARD_NAME] enters the battlefield, you gain 8 life and create two 2/2 white Knight creature tokens.",
-        "Flying and vigilance. When [CARD_NAME] enters play, gain 8 life and summon two white 2/2 Knights.",
-        "[CARD_NAME] has flying and vigilance; on entering the battlefield, it restores eight life to you and creates two 2/2 white Knight tokens."
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_cast_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_empty_battlefield(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        self.room.env_no_creature(self.player)
-        heal=self.card.effect_params["heal"]
-        missing=random.choice((0,1,heal,heal+1,self.player.ini_life-1))
-        self.player.life=max(1,self.player.ini_life-missing)
+    @simulate(evidence={'text': ('keyword.flying', 'keyword.vigilance'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_dies_self_survives(self):
+        return self.scenario_combat(False, True, False, margin=0)
 
-        self.room.env_mana(self.player,{"W":(4,7)},least_mana={"colorless":6,"W":4})
-        return self.room.simulate_play(self.card,preferred_subactions=(0,))
+    @simulate(evidence={'text': ('keyword.flying', 'keyword.vigilance'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(False, True, False, margin=1)
 
-    @simulate
-    def simulate_occupied_battlefield(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        self.room.env_one_creature(self.player)
-        heal=self.card.effect_params["heal"]
-        missing=random.choice((0,1,heal,heal+1,self.player.ini_life-1))
-        self.player.life=max(1,self.player.ini_life-missing)
+    @simulate(evidence={'text': ('keyword.flying', 'keyword.vigilance'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_survive(self):
+        return self.scenario_combat(False, False, False, margin=0)
 
-        self.room.env_mana(self.player,{"W":(4,7)},least_mana={"colorless":6,"W":4})
-        return self.room.simulate_play(self.card,preferred_subactions=(0,))
+    @simulate(evidence={'text': ('keyword.flying', 'keyword.vigilance'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_survive_beyond_boundary(self):
+        return self.scenario_combat(False, False, False, margin=1)
 
-    @simulate
-    def simulate_when_attack(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        self.room.env_mana(self.player,{"W":(4,7)},least_mana={"colorless":6,"W":4})
-        return self.room.simulate_creature_attack(self.card)
+    @simulate(evidence={'text': ('keyword.flying', 'keyword.vigilance'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_survives_self_dies(self):
+        return self.scenario_combat(False, False, True, margin=0)
 
-    @simulate
-    def simulate_when_defend(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        self.room.env_one_creature(self.player.opponent)
-        if not self.card.get_flag("flying") and not self.card.get_flag("reach"):
-            self.player.opponent.battlefield[0].flag_dict["flying"]=False
-        self.room.env_mana(self.player,{"W":(4,7)},least_mana={"colorless":6,"W":4})
-        return self.room.simulate_creature_defend(self.card)
+    @simulate(evidence={'text': ('keyword.flying', 'keyword.vigilance'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(False, False, True, margin=1)
+
+    @simulate(evidence={'text': ('keyword.flying', 'keyword.vigilance'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_die(self):
+        return self.scenario_combat(False, True, True, margin=0)
+
+    @simulate(evidence={'text': ('keyword.flying', 'keyword.vigilance'), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_die_beyond_boundary(self):
+        return self.scenario_combat(False, True, True, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_dies_self_survives(self):
+        return self.scenario_combat(True, True, False, margin=0)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(True, True, False, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive(self):
+        return self.scenario_combat(True, False, False, margin=0)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive_beyond_boundary(self):
+        return self.scenario_combat(True, False, False, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies(self):
+        return self.scenario_combat(True, False, True, margin=0)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(True, False, True, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_die(self):
+        return self.scenario_combat(True, True, True, margin=0)
+
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_die_beyond_boundary(self):
+        return self.scenario_combat(True, True, True, margin=1)
+
+    @simulate(evidence={'text': ('keyword.vigilance',), 'fields': ('attack', 'special_type')})
+    def simulate_attack_empty_board(self):
+        return self.scenario_unblocked(False)
+
+    @simulate(evidence={'text': ('keyword.vigilance',), 'fields': ('attack', 'special_type')})
+    def simulate_attack_opponent_passes(self):
+        return self.scenario_unblocked(True)
+
+    @simulate(evidence={'text': ('keyword.flying',), 'fields': ('attack', 'defend', 'special_type')})
+    def simulate_block_flying_creature(self):
+        return self.scenario_combat(True, False, False, enemy_flags={"flying": True})
+
+    def _token_scene(self, count, missing_life=0):
+        self.scenario_prepare()
+        for _ in range(count):
+            self.scenario_creature(self.player, flags={})
+        self.player.life = max(1, self.player.ini_life - missing_life)
+        return self.scenario_cast()
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_empty_board_full(self):
+        return self._token_scene(0, 0)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_empty_board_near_full(self):
+        return self._token_scene(0, 1)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_empty_board_exact_heal(self):
+        return self._token_scene(0, self.card.effect_params["heal"])
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_empty_board_injured(self):
+        return self._token_scene(0, self.player.ini_life - 1)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_one_creature_full(self):
+        return self._token_scene(1, 0)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_one_creature_near_full(self):
+        return self._token_scene(1, 1)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_one_creature_exact_heal(self):
+        return self._token_scene(1, self.card.effect_params["heal"])
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_one_creature_injured(self):
+        return self._token_scene(1, self.player.ini_life - 1)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_multiple_creatures_full(self):
+        return self._token_scene(3, 0)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_multiple_creatures_near_full(self):
+        return self._token_scene(3, 1)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_multiple_creatures_exact_heal(self):
+        return self._token_scene(3, self.card.effect_params["heal"])
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_multiple_creatures_injured(self):
+        return self._token_scene(3, self.player.ini_life - 1)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_fill_visible_board_full(self):
+        return self._token_scene(max(0, 9 - self.card.effect_params["token_count"]), 0)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_fill_visible_board_near_full(self):
+        return self._token_scene(max(0, 9 - self.card.effect_params["token_count"]), 1)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_fill_visible_board_exact_heal(self):
+        return self._token_scene(max(0, 9 - self.card.effect_params["token_count"]), self.card.effect_params["heal"])
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.heal', 'enter.tokens'), 'fields': ('mana_cost',)})
+    def simulate_enter_fill_visible_board_injured(self):
+        return self._token_scene(max(0, 9 - self.card.effect_params["token_count"]), self.player.ini_life - 1)
+

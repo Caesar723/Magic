@@ -34,7 +34,7 @@ class Call_of_the_Ancient_Ones(Sorcery):
         from game.type_cards.creature import Creature
         import random
         
-        all_graveyards = player.graveyard + opponent.graveyard
+        all_graveyards = player.graveyard
         creatures = [c for c in all_graveyards if isinstance(c, Creature)]
         
         if creatures:

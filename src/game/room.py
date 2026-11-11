@@ -391,7 +391,7 @@ class Room:
                 
                 await self.attacker.check_dead()
                 
-                if not ( self.attacker.get_flag("die") or  self.attacker.get_flag("exile")) or self.attacker.get_flag("Menace"):
+                if not ( self.attacker.get_flag("die") or  self.attacker.get_flag("exile") or self.attacker not in self.attacker.player.battlefield) or self.attacker.get_flag("Menace"):
                     await self.start_attack(self.non_active_player)
                 self.flag_dict["attacker_defenders"]=False
                 #print(self.flag_dict["attacker_defenders"])
@@ -789,6 +789,8 @@ class Room:
 
             for creature in self.players[name].battlefield.copy():
                 await self.players[name].check_creature_die(creature)
+            for land in self.players[name].land_area.copy():
+                await self.players[name].check_land_die(land)
         self.action_processor.end_record()
         if (died_player):
             #print(died_player)

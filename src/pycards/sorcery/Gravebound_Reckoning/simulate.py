@@ -1,38 +1,132 @@
-from typing import TYPE_CHECKING
-import random
-if TYPE_CHECKING:
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation
+from game.card_simulation import bind_card, simulate, Card_Simulation
+from game.buffs import Indestructible
 from pycards.sorcery.Gravebound_Reckoning.model import Gravebound_Reckoning
 
 
 @bind_card(Gravebound_Reckoning)
 class Gravebound_Reckoning_Simulation(Card_Simulation):
+    text_parts = {
+        "target.scope": [
+            "Choose a target opposing creature.",
+            "Target one opposing creature.",
+            "Select a opposing creature as the target.",
+            "Choose one opposing creature to target.",
+            "Select a target opposing creature.",
+            "Choose any opposing creature as your target.",
+            "Target a opposing creature of your choice.",
+            "Choose a opposing creature as the target for this spell.",
+            "Select one opposing creature to target.",
+            "Choose a opposing creature as your target.",
+        ],
+        "remove.effect": [
+            "Destroy that creature.",
+            "Destroy the targeted creature.",
+            "Destroy the creature you chose.",
+            "That creature is destroyed.",
+            "The selected creature is destroyed.",
+            "Destroy your chosen creature.",
+            "Cause that creature to be destroyed.",
+            "Destroy the chosen target.",
+            "Have the targeted creature destroyed.",
+            "Destroy the creature selected this way.",
+        ],
+        "heal.effect": [
+            "you gain {heal} life.",
+            "gain {heal} life.",
+            "you gain a total of {heal} life.",
+            "gain a total of {heal} life.",
+            "increase your life total by {heal}.",
+            "you increase your life total by {heal}.",
+            "restore {heal} life.",
+            "you restore {heal} life.",
+            "gain an amount of life equal to {heal}.",
+            "you gain an amount of life equal to {heal}.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Destroy target creature an opponent controls. You gain 3 life.",
-        "Destroy a target opposing creature, then gain 3 life.",
-        "Eliminate target creature controlled by an opponent. Restore three life to yourself."
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_target_creature(self):
-        self.basic_initinal({
-            "graveyard":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(0,0)},
-            "hand":{"creature_number":(0,1),"instant_number":(0,1),"sorcery_number":(0,1),"land_number":(0,1)},
-            "library":{"creature_number":(0,0),"instant_number":(0,0),"sorcery_number":(0,0),"land_number":(6,8)},
-        })
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        from game.testing_room import Testing_Spawn_Creature
-        self.player.opponent.battlefield=[]
-        self.stage_card(Testing_Spawn_Creature(self.player.opponent,3,5),self.player.opponent)
-        heal=self.card.effect_params["heal"]
-        missing=random.choice((0,1,heal,heal+1,self.player.ini_life-1))
-        self.player.life=max(1,self.player.ini_life-missing)
+    def _target_scene(self, opponent, flags=None, power=3, current_power=None, health=5, missing=1, protected=False):
+        self.scenario_prepare()
+        owner = self.player.opponent if opponent else self.player
+        target = self.scenario_creature(owner, power=power, health=health, flags=flags or {})
+        if current_power is not None:
+            target.actual_power = current_power
+        if protected:
+            target.gain_buff(Indestructible(self.card, target), self.card)
+        self.player.life = max(1, self.player.ini_life - missing)
+        subaction = 1 if opponent else 11
+        return self.scenario_cast((subaction,))
 
-        self.room.env_mana(self.player,{"B":(2,5)},least_mana={"colorless":3,"B":2})
-        return self.room.simulate_play(self.card,preferred_subactions=(1,))
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_ready(self):
+        return self._target_scene(False, {})
+
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_tapped(self):
+        return self._target_scene(False, {'tap': True})
+
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_flying(self):
+        return self._target_scene(False, {'flying': True})
+
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_hexproof(self):
+        return self._target_scene(False, {'Hexproof': True})
+
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_indestructible(self):
+        return self._target_scene(False, protected=True, flags={"flying": True, "tap": True})
+
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_healing_full(self):
+        return self._target_scene(False, missing=0, flags={"flying": True})
+
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_healing_near_full(self):
+        return self._target_scene(False, missing=1, flags={"flying": True})
+
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_healing_injured(self):
+        return self._target_scene(False, missing=self.player.ini_life - 1, flags={"flying": True})
+
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_ready(self):
+        return self._target_scene(True, {})
+
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_tapped(self):
+        return self._target_scene(True, {'tap': True})
+
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_flying(self):
+        return self._target_scene(True, {'flying': True})
+
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_hexproof(self):
+        return self._target_scene(True, {'Hexproof': True})
+
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_indestructible(self):
+        return self._target_scene(True, protected=True, flags={"flying": True, "tap": True})
+
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_healing_full(self):
+        return self._target_scene(True, missing=0, flags={"flying": True})
+
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_healing_near_full(self):
+        return self._target_scene(True, missing=1, flags={"flying": True})
+
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_enemy_healing_injured(self):
+        return self._target_scene(True, missing=self.player.ini_life - 1, flags={"flying": True})
+
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_no_creatures(self):
+        self.scenario_prepare()
+        return self.scenario_cast()
+

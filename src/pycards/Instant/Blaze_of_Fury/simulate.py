@@ -1,43 +1,111 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.Instant.Blaze_of_Fury.model import Blaze_of_Fury
+
 
 @bind_card(Blaze_of_Fury)
 class Blaze_of_Fury_Simulation(Card_Simulation):
+    text_parts = {
+        "damage.base": [
+            "{card_name} deals {damage} damage to a target creature or player.",
+            "Deal {damage} damage to a chosen creature or player.",
+            "Target creature or player takes {damage} damage from {card_name}.",
+            "{card_name} inflicts {damage} damage on a target creature or player.",
+            "Choose a creature or player and deal {damage} damage to it.",
+            "Hit a target creature or player for {damage} damage.",
+            "A creature or player of your choice is dealt {damage} damage.",
+            "{card_name} deals {damage} damage to the creature or player you target.",
+            "Deal a target creature or player an amount of damage equal to {damage}.",
+            "Target a creature or player to be dealt {damage} damage by {card_name}.",
+        ],
+        "damage.tap": [
+            "If the target is a creature, tap it afterward.",
+            "Then tap the target if it is a creature.",
+            "Afterward, if you targeted a creature, tap that creature.",
+            "Tap the target afterward when it is a creature.",
+            "When the target is a creature, it also becomes tapped.",
+            "If a creature was targeted, tap it after dealing damage.",
+            "If you chose a creature, make that creature tapped afterward.",
+            "Following the damage, tap the target if it is a creature.",
+            "Once damage is dealt, tap the target when it is a creature.",
+            "After the damage, the targeted creature, if any, becomes tapped.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "[CARD_NAME] deals 3 damage to any target. If a creature is dealt damage this way, tap it.",
-        "Deal 3 damage to any target. If a creature is dealt damage this way, tap it.",
-        "[CARD_NAME] hits any target for 3. Tap any creature damaged this way.",
-        "Choose any target. Deal 3 damage. Tap creatures damaged this way.",
-        "Deal 3 damage to any target; tap creatures that take damage from [CARD_NAME].",
-        "[CARD_NAME] deals 3 to any target and taps creatures damaged by it.",
-        "Any target takes 3 damage. Tap creatures dealt damage this way.",
-        "Inflict 3 damage on any target. Tap creatures damaged by [CARD_NAME].",
-        "Deal 3 damage to any target. Creatures damaged this way become tapped.",
-        "[CARD_NAME]: 3 damage to any target; tap creatures hit this way.",
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_card(self):
-        self.basic_initinal()
-        self.room.env_creature(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        for creature in self.player.battlefield+self.player.opponent.battlefield:
-            creature.live=max(creature.live,4)
-            creature.actual_live=creature.live
+    def _damage_scene(self, target_role, life_offset, branch=None, target_flags=None):
+        self.scenario_prepare()
+        params = self.card.effect_params
+        damage = params.get("damage", params.get("damage_low", 0))
+        life = damage + life_offset
+        if life <= 0:
+            return self.scenario_skip()
+        if target_role in ("self_creature", "enemy_creature"):
+            owner = self.player if target_role == "self_creature" else self.player.opponent
+            power = 1
+            target = self.scenario_creature(owner, power=power, health=life, flags=target_flags or {})
+            subaction = (11 if owner is self.player else 1) + owner.battlefield.index(target)
+        else:
+            owner = self.player if target_role == "self_player" else self.player.opponent
+            if life > owner.ini_life:
+                return self.scenario_skip()
+            owner.life = life
+            subaction = 22 if owner is self.player else 21
+        self.player.mana.update(self.card.calculate_cost())
+        return self.scenario_cast((subaction,), provide_mana=False)
 
-        self.room.env_mana(
-            self.player,
-            {"R":(2,7)},
-            least_mana={"colorless":1,"R":2}
-        )
+    @simulate(evidence={'text': ('damage.base', 'damage.tap'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_normal_below_lethal(self):
+        return self._damage_scene('enemy_creature', -1, branch=None)
 
-        simulate_info=self.room.simulate_play(self.card,preferred_subactions=range(1,21))
-        return simulate_info
+    @simulate(evidence={'text': ('damage.base', 'damage.tap'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_normal_equal_lethal(self):
+        return self._damage_scene('enemy_creature', 0, branch=None)
+
+    @simulate(evidence={'text': ('damage.base', 'damage.tap'), 'fields': ('mana_cost',)})
+    def simulate_enemy_creature_normal_above_lethal(self):
+        return self._damage_scene('enemy_creature', 1, branch=None)
+
+    @simulate(evidence={'text': ('damage.base', 'damage.tap'), 'fields': ('mana_cost',)})
+    def simulate_self_creature_normal_below_lethal(self):
+        return self._damage_scene('self_creature', -1, branch=None)
+
+    @simulate(evidence={'text': ('damage.base', 'damage.tap'), 'fields': ('mana_cost',)})
+    def simulate_self_creature_normal_equal_lethal(self):
+        return self._damage_scene('self_creature', 0, branch=None)
+
+    @simulate(evidence={'text': ('damage.base', 'damage.tap'), 'fields': ('mana_cost',)})
+    def simulate_self_creature_normal_above_lethal(self):
+        return self._damage_scene('self_creature', 1, branch=None)
+
+    @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
+    def simulate_enemy_player_normal_below_lethal(self):
+        return self._damage_scene('enemy_player', -1, branch=None)
+
+    @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
+    def simulate_enemy_player_normal_equal_lethal(self):
+        return self._damage_scene('enemy_player', 0, branch=None)
+
+    @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
+    def simulate_enemy_player_normal_above_lethal(self):
+        return self._damage_scene('enemy_player', 1, branch=None)
+
+    @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
+    def simulate_self_player_normal_below_lethal(self):
+        return self._damage_scene('self_player', -1, branch=None)
+
+    @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
+    def simulate_self_player_normal_equal_lethal(self):
+        return self._damage_scene('self_player', 0, branch=None)
+
+    @simulate(evidence={'text': ('damage.base',), 'fields': ('mana_cost',)})
+    def simulate_self_player_normal_above_lethal(self):
+        return self._damage_scene('self_player', 1, branch=None)
+
+    @simulate(evidence={'text': ('damage.base', 'damage.tap'), 'fields': ('mana_cost',)})
+    def simulate_hexproof_target(self):
+        return self._damage_scene("enemy_creature", 1, branch=None, target_flags={"Hexproof": True})
+

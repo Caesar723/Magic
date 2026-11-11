@@ -43,7 +43,7 @@ class Nature_s_Embrace(Sorcery):
             new_creature.actual_live=self.effect_params["creature_toughness"]
             new_creature.actual_power=self.effect_params["creature_power"]
             player.append_card(new_creature, "battlefield")
-            creature.tap()
+            new_creature.tap()
 
 
 

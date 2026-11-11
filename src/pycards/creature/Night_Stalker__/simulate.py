@@ -1,80 +1,103 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.creature.Night_Stalker__.model import Night_Stalker__
+
 
 @bind_card(Night_Stalker__)
 class Night_Stalker___Simulation(Card_Simulation):
+    text_parts = {
+        "keyword.menace": [
+            "Menace.",
+            "This creature has menace.",
+            "{card_name} has menace.",
+            "This creature carries the menace keyword.",
+            "Menace is an ability of this creature.",
+            "{card_name} carries the menace keyword.",
+            "This creature is marked with menace.",
+            "The creature has the menace ability.",
+            "Menace is present on this creature.",
+            "{card_name} is marked with menace.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Menace (This creature can't be blocked except by two or more creatures).",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_when_cast(self):
+        self.scenario_prepare()
+        return self.scenario_cast()
 
-        "Menace.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_cast_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "Menace (can't be blocked except by two or more creatures).",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.menace',)})
+    def simulate_attack_opponent_dies_self_survives(self):
+        return self.scenario_combat(False, True, False, margin=0)
 
-        "Menace (requires two or more blockers).",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.menace',)})
+    def simulate_attack_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(False, True, False, margin=1)
 
-        "Menace (must be blocked by two or more creatures).",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.menace',)})
+    def simulate_attack_both_survive(self):
+        return self.scenario_combat(False, False, False, margin=0)
 
-        "Menace (only blockable by two or more creatures).",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.menace',)})
+    def simulate_attack_both_survive_beyond_boundary(self):
+        return self.scenario_combat(False, False, False, margin=1)
 
-        "Menace (this can't be blocked except by two or more creatures).",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.menace',)})
+    def simulate_attack_opponent_survives_self_dies(self):
+        return self.scenario_combat(False, False, True, margin=0)
 
-        "Menace (needs at least two creatures to block it).",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.menace',)})
+    def simulate_attack_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(False, False, True, margin=1)
 
-        "Menace (opponents need two or more creatures to block this).",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.menace',)})
+    def simulate_attack_both_die(self):
+        return self.scenario_combat(False, True, True, margin=0)
 
-    ]
-    @simulate
-    def simulate_when_enter_battlefield(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type'), 'text': ('keyword.menace',)})
+    def simulate_attack_both_die_beyond_boundary(self):
+        return self.scenario_combat(False, True, True, margin=1)
 
-        self.room.env_mana(
-            self.player,
-            {"B":(1,7)},
-            least_mana={"colorless":1,"B":1}
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_dies_self_survives(self):
+        return self.scenario_combat(True, True, False, margin=0)
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(True, True, False, margin=1)
 
-    @simulate
-    def simulate_when_attack_opponent(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive(self):
+        return self.scenario_combat(True, False, False, margin=0)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive_beyond_boundary(self):
+        return self.scenario_combat(True, False, False, margin=1)
 
-        simulate_info=self.room.simulate_creature_attack(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies(self):
+        return self.scenario_combat(True, False, True, margin=0)
 
-    @simulate
-    def simulate_when_defend_opponent(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(True, False, True, margin=1)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_die(self):
+        return self.scenario_combat(True, True, True, margin=0)
 
-        simulate_info=self.room.simulate_creature_defend(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_die_beyond_boundary(self):
+        return self.scenario_combat(True, True, True, margin=1)
+
+    @simulate(evidence={'fields': ('attack', 'special_type'), 'text': ('keyword.menace',)})
+    def simulate_attack_empty_board(self):
+        return self.scenario_unblocked(False)
+
+    @simulate(evidence={'fields': ('attack', 'special_type'), 'text': ('keyword.menace',)})
+    def simulate_attack_opponent_passes(self):
+        return self.scenario_unblocked(True)
 

@@ -1,52 +1,112 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.sorcery.Chaos_Unleashed.model import Chaos_Unleashed
+
 
 @bind_card(Chaos_Unleashed)
 class Chaos_Unleashed_Simulation(Card_Simulation):
+    text_parts = {
+        "damage.creatures": [
+            "{card_name} deals {damage} damage to every creature.",
+            "Deal {damage} damage to each creature on the battlefield.",
+            "Every creature takes {damage} damage from {card_name}.",
+            "Inflict {damage} damage on all creatures.",
+            "Deal {damage} damage to all creatures on both sides.",
+            "{card_name} hits each creature for {damage} damage.",
+            "Each creature on either battlefield is dealt {damage} damage.",
+            "{card_name} deals {damage} damage to all creatures in play.",
+            "Deal an amount of damage equal to {damage} to each creature.",
+            "All creatures take {damage} damage each.",
+        ],
+        "damage.players": [
+            "Then it deals {damage} damage to each player.",
+            "It also deals {damage} damage to both players.",
+            "Afterward, each player takes {damage} damage.",
+            "Next, deal {damage} damage to every player.",
+            "It then hits both players for {damage} damage each.",
+            "Then inflict {damage} damage on each player.",
+            "Both players are then dealt {damage} damage.",
+            "It deals {damage} damage to you and your opponent afterward.",
+            "Next, both you and your opponent take {damage} damage.",
+            "Then deal an amount of damage equal to {damage} to each player.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "[CARD_NAME] deals 3 damage to each creature and each player.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "Deal 3 damage to every creature and every player.",
+    def _sweep_scene(self, own_count, enemy_count, life_offset, enemy_life_offset):
+        self.scenario_prepare()
+        damage = self.card.effect_params["damage"]
+        for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
+            for index in range(count):
+                self.scenario_creature(owner, power=index + 1, health=max(1, damage + index - 1), flags={})
+        own_life = damage + life_offset
+        enemy_life = self.card.effect_params.get("opponent_damage", damage) + enemy_life_offset
+        if not (1 <= own_life <= self.player.ini_life and 1 <= enemy_life <= self.player.opponent.ini_life):
+            return self.scenario_skip()
+        self.player.life = own_life
+        self.player.opponent.life = enemy_life
+        return self.scenario_cast()
 
-        "[CARD_NAME] inflicts 3 damage on each creature and each player.",
+    @simulate(evidence={'text': ('damage.creatures', 'damage.players'), 'fields': ('mana_cost',)})
+    def simulate_sweep_self_0_enemy_0_below_lethal(self):
+        return self._sweep_scene(0, 0, -1, -1)
 
-        "Each creature and each player takes 3 damage.",
+    @simulate(evidence={'text': ('damage.creatures', 'damage.players'), 'fields': ('mana_cost',)})
+    def simulate_sweep_self_0_enemy_0_equal_lethal(self):
+        return self._sweep_scene(0, 0, 0, 0)
 
-        "[CARD_NAME] deals three damage to all creatures and all players.",
+    @simulate(evidence={'text': ('damage.creatures', 'damage.players'), 'fields': ('mana_cost',)})
+    def simulate_sweep_self_0_enemy_0_above_lethal(self):
+        return self._sweep_scene(0, 0, 1, 1)
 
-        "Deal 3 damage to each creature on the battlefield and each player.",
+    @simulate(evidence={'text': ('damage.creatures', 'damage.players'), 'fields': ('mana_cost',)})
+    def simulate_sweep_self_0_enemy_1_below_lethal(self):
+        return self._sweep_scene(0, 1, -1, -1)
 
-        "[CARD_NAME] hits every creature and every player for 3 damage.",
+    @simulate(evidence={'text': ('damage.creatures', 'damage.players'), 'fields': ('mana_cost',)})
+    def simulate_sweep_self_0_enemy_1_equal_lethal(self):
+        return self._sweep_scene(0, 1, 0, 0)
 
-        "All creatures and all players take 3 damage.",
+    @simulate(evidence={'text': ('damage.creatures', 'damage.players'), 'fields': ('mana_cost',)})
+    def simulate_sweep_self_0_enemy_1_above_lethal(self):
+        return self._sweep_scene(0, 1, 1, 1)
 
-        "[CARD_NAME] deals 3 damage to each creature and each player in the game.",
+    @simulate(evidence={'text': ('damage.creatures', 'damage.players'), 'fields': ('mana_cost',)})
+    def simulate_sweep_self_1_enemy_0_below_lethal(self):
+        return self._sweep_scene(1, 0, -1, -1)
 
-        "Deal three damage to each creature and each player."
-    ]
+    @simulate(evidence={'text': ('damage.creatures', 'damage.players'), 'fields': ('mana_cost',)})
+    def simulate_sweep_self_1_enemy_0_equal_lethal(self):
+        return self._sweep_scene(1, 0, 0, 0)
 
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.room.env_creature(self.player)
-        self.room.env_life_high(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.room.env_life_high(self.player.opponent)
+    @simulate(evidence={'text': ('damage.creatures', 'damage.players'), 'fields': ('mana_cost',)})
+    def simulate_sweep_self_1_enemy_0_above_lethal(self):
+        return self._sweep_scene(1, 0, 1, 1)
 
-        self.room.env_mana(
-            self.player,
-            {"B": (1, 7), "R": (1, 7)},
-            least_mana={"colorless": 1, "B": 1, "R": 1},
-        )
+    @simulate(evidence={'text': ('damage.creatures', 'damage.players'), 'fields': ('mana_cost',)})
+    def simulate_sweep_self_1_enemy_1_below_lethal(self):
+        return self._sweep_scene(1, 1, -1, -1)
 
-        for creature in self.player.battlefield + self.player.opponent.battlefield:
-            creature.actual_live = min(creature.actual_live, 3)
+    @simulate(evidence={'text': ('damage.creatures', 'damage.players'), 'fields': ('mana_cost',)})
+    def simulate_sweep_self_1_enemy_1_equal_lethal(self):
+        return self._sweep_scene(1, 1, 0, 0)
 
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('damage.creatures', 'damage.players'), 'fields': ('mana_cost',)})
+    def simulate_sweep_self_1_enemy_1_above_lethal(self):
+        return self._sweep_scene(1, 1, 1, 1)
+
+    @simulate(evidence={'text': ('damage.creatures', 'damage.players'), 'fields': ('mana_cost',)})
+    def simulate_sweep_self_3_enemy_3_below_lethal(self):
+        return self._sweep_scene(3, 3, -1, -1)
+
+    @simulate(evidence={'text': ('damage.creatures', 'damage.players'), 'fields': ('mana_cost',)})
+    def simulate_sweep_self_3_enemy_3_equal_lethal(self):
+        return self._sweep_scene(3, 3, 0, 0)
+
+    @simulate(evidence={'text': ('damage.creatures', 'damage.players'), 'fields': ('mana_cost',)})
+    def simulate_sweep_self_3_enemy_3_above_lethal(self):
+        return self._sweep_scene(3, 3, 1, 1)
+

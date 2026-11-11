@@ -1,0 +1,39 @@
+agent_config: game/rlearning/config/agents/specific/stage1_evidence_v01.yaml
+
+opponent_config:
+  - game/rlearning/config/agents/specific/stage1_evidence_v01.yaml
+
+info_communication: "game.rlearning.communicate.training_parallel_specific_room.Info_Communication"
+num_worker: 25
+env: "game.rlearning.parallel_env.training_parallel_specific_env.Parallel_Env"
+room: "game.rlearning.trainingRoom.condition_event_room.ConditionEventRoom"
+
+evaluation_config: game/rlearning/config/evaluation/standard_v1.yaml
+evaluation_interval: 2000
+
+test_mode: false
+test_samples_per_scene: 100
+test_output: /mnt/data/trainData/stage1_test_v1.pt
+
+test_cards: [
+  "Dawnwell Acolyte_Creature", "Pocket Discovery_Sorcery", "Cinder Needle_Instant",
+  "Tideglass Recoil_Instant", "Ashen Bargain_Sorcery", "Frontier Reinforcements_Sorcery",
+  "Hollowfang Stalker_Creature", "Giantbreaker Spark_Instant", "Lastlight Remedy_Instant",
+  "Emberforge Raider_Creature", "Rootwatch Guardian_Creature", "Mistbound Archivist_Creature",
+  "Wildheart Ascendancy_Sorcery", "Sunward Captain_Creature", "Gravebound Reckoning_Sorcery",
+  "Radiant Procession_Sorcery", "Twin Current Recall_Sorcery", "Furnace Sweep_Sorcery",
+  "Skytide Leviathan_Creature", "Cryptwake Colossus_Creature", "Thorncrown Ancient_Creature",
+  "Nightfall Harvest_Sorcery", "Ashwing Tyrant_Creature", "Sanctuary Judgment_Sorcery",
+  "Worldpyre Cataclysm_Sorcery", "Verdant Stampede_Sorcery", "Deluge of Forgotten Shores_Sorcery",
+  "Heartwood Worldtitan_Creature", "Dawnforged Sovereign_Creature", "Lord of the Second Grave_Creature"
+]
+
+effect_augmentation:
+  probability: 0.8
+  values:
+    heal: [1, 2, 4, 6, 8]
+    damage: [1, 2, 3, 4, 6, 8]
+    token_count: [1, 2, 3, 4]
+    token_count_empty: [1, 2, 3, 4]
+    token_power: [1, 2, 3, 4, 5, 6]
+    token_toughness: [1, 2, 3, 4, 5, 6]

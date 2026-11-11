@@ -1,44 +1,98 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.Instant.Primal_Surge.model import Primal_Surge
+
 
 @bind_card(Primal_Surge)
 class Primal_Surge_Simulation(Card_Simulation):
+    text_parts = {
+        "hand.effect": [
+            "For each card currently in your hand, move that card to the bottom of your library and immediately draw one card.",
+            "Process your current hand cards one at a time, placing each at the library bottom and drawing one after each move.",
+            "For every current hand card in order, put it on your library's bottom and then draw a card immediately.",
+            "Move the cards presently in your hand to the library bottom one by one, drawing one card after every move.",
+            "Take each card from your initial hand in order, place it at the library bottom, and draw once before continuing.",
+            "One at a time, send each of your current hand cards to the library bottom and draw a card after sending it.",
+            "Put every currently held card on the library bottom in sequence, drawing one immediately after each card.",
+            "Cycle each initial hand card through the library bottom, drawing one card after every insertion.",
+            "For each card in your hand when this resolves, place it beneath the library and immediately draw one.",
+            "Go through your current hand in order, bottom each card in your library, and draw one after each bottoming.",
+        ],
+        "land.effect": [
+            "Increase your land-play limit by {extra_lands} until your end step.",
+            "You may play {extra_lands} additional lands until your turn ends.",
+            "Add {extra_lands} to your land-play limit until your end step.",
+            "Your land-play limit increases by {extra_lands} until the end of your turn.",
+            "Until your end step, you receive {extra_lands} extra land plays.",
+            "Give yourself {extra_lands} additional permitted land plays through your turn.",
+            "Raise your land-play allowance by {extra_lands} until your end step.",
+            "Until your turn ends, add {extra_lands} to your maximum land plays.",
+            "Grant {extra_lands} extra land plays until your end step.",
+            "Your maximum land plays rises by {extra_lands} until your turn ends.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Target player shuffles their hand and graveyard into their library, then draws that many cards. They may play an additional land this turn.",
-        "[CARD_NAME] makes a player shuffle hand and graveyard into library, redraw, and play an extra land.",
-        "Target player resets hand and graveyard into library, redraws, and may play an extra land.",
-        "Shuffle hand and graveyard into library, draw that many. Extra land this turn.",
-        "[CARD_NAME]: full hand/graveyard shuffle and redraw; extra land allowed.",
-        "Target player shuffles hand and graveyard into deck, draws equal number, extra land this turn.",
-        "Reset a player's hand and graveyard into library and redraw. They may play another land.",
-        "With [CARD_NAME], shuffle hand/graveyard into library, redraw, play extra land.",
-        "Target player shuffles hand and graveyard in, draws same count, may play additional land.",
-        "[CARD_NAME] shuffles hand and graveyard into library, redraws, grants extra land play.",
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_card(self):
-        self.basic_initinal()
-        self.room.env_initinal_hand(
-            self.player,
-            {"creature_number":(1,2),"land_number":(1,2)},
-        )
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    def _resource_scene(self, count, offset=0, role="enemy", library_count=3, hand_count=2, colored=False):
+        self.scenario_prepare()
+        self.player.hand.clear()
+        self.player.opponent.hand.clear()
+        self.player.library.clear()
+        for owner in (self.player, self.player.opponent):
+            self.room.env_initinal_library(owner, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            owner.library = [card for card in owner.library if card.type == "Instant"][:library_count]
+        self.room.env_initinal_hand(self.player, {"instant_number": (hand_count, hand_count), "sorcery_number": (hand_count, hand_count), "creature_number": (0, 0), "land_number": (0, 0)})
+        subaction = 0
+        return self.scenario_cast()
 
-        self.room.env_mana(
-            self.player,
-            {"G":(1,7)},
-            least_mana={"colorless":2,"G":1}
-        )
+    @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
+    def simulate_count_0_normal(self):
+        return self._resource_scene(0, offset=0)
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
+    def simulate_count_1_normal(self):
+        return self._resource_scene(1, offset=0)
+
+    @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
+    def simulate_count_3_normal(self):
+        return self._resource_scene(3, offset=0)
+
+    @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_0_hand_0(self):
+        return self._resource_scene(0, library_count=0, hand_count=0)
+
+    @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_0_hand_1(self):
+        return self._resource_scene(0, library_count=0, hand_count=1)
+
+    @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_0_hand_3(self):
+        return self._resource_scene(0, library_count=0, hand_count=3)
+
+    @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_1_hand_0(self):
+        return self._resource_scene(0, library_count=1, hand_count=0)
+
+    @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_1_hand_1(self):
+        return self._resource_scene(0, library_count=1, hand_count=1)
+
+    @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_1_hand_3(self):
+        return self._resource_scene(0, library_count=1, hand_count=3)
+
+    @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_3_hand_0(self):
+        return self._resource_scene(0, library_count=3, hand_count=0)
+
+    @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_3_hand_1(self):
+        return self._resource_scene(0, library_count=3, hand_count=1)
+
+    @simulate(evidence={'text': ('hand.effect', 'land.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_3_hand_3(self):
+        return self._resource_scene(0, library_count=3, hand_count=3)
+

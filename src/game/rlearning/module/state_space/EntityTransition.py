@@ -140,6 +140,9 @@ def _change_weighted_stat_loss(
 class EntityTransitionCVAETrainer(CVAETrainer):
     """Train source-aligned location and dynamic-attribute predictions."""
 
+    def _test_states(self,prediction,source,target,index):
+        return state_from_entity_prediction(prediction,source,index),state_from_entity_target(target,index)
+
     def reconstruction_loss(self, batch):
         prediction = batch["pred_next"]
         target = squeeze_entity_time_dim(batch["next_state"])

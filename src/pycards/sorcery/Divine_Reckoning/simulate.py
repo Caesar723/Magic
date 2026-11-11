@@ -1,55 +1,149 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
+from game.buffs import Indestructible
+from pycards.land.Plains.model import Plains
 from pycards.sorcery.Divine_Reckoning.model import Divine_Reckoning
+
 
 @bind_card(Divine_Reckoning)
 class Divine_Reckoning_Simulation(Card_Simulation):
+    text_parts = {
+        "destroy.effect": [
+            "Destroy every creature whose creature subtype does not contain Angel.",
+            "Destroy all creatures without Angel in their creature subtype.",
+            "Every creature that lacks Angel in its creature subtype is destroyed.",
+            "Destroy each creature unless its creature subtype contains Angel.",
+            "All creatures with no Angel in their creature subtype are destroyed.",
+            "Destroy creatures on both battlefields whose creature subtype lacks Angel.",
+            "Destroy all creatures other than those with Angel in their creature subtype.",
+            "Each creature without Angel in its creature subtype is marked for destruction.",
+            "Destroy the creatures on either side whose creature subtype does not include Angel.",
+            "Destroy every creature except those whose creature subtype includes Angel.",
+        ],
+        "heal.effect": [
+            "Each player gains one life for each of their creatures marked this way, even if protected from destruction.",
+            "For every creature selected for destruction this way, its controller gains one life, including protected creatures.",
+            "Count the attempted destructions for each player and give that player that much life, including attempts on protected creatures.",
+            "Each player gains life equal to their creatures selected for destruction, even when protection keeps them alive.",
+            "Give each player one life per creature of theirs this effect tried to destroy, including protected creatures.",
+            "A player gains one life for each of their creatures targeted by this destruction, whether destruction succeeds or is prevented.",
+            "Each controller restores one life per attempted destruction of their creatures, counting protected ones too.",
+            "Gain for each player one life per creature selected for destruction on their side, even if it survives protection.",
+            "Each player restores life equal to the number of their creatures this effect marked for destruction, including protected targets.",
+            "Every attempted destruction grants the creature's controller one life, even if that creature cannot be destroyed.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Destroy all non-angel creatures. Each player gains life equal to the number of creatures they controlled that were destroyed this way.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "[CARD_NAME] destroys all non-angel creatures. Each player gains life equal to the number of creatures they controlled that were destroyed this way.",
+    def _board_scene(self, own_count, enemy_count, offset=0, protected=False, library_count=None, life=None, old_exile=False):
+        self.scenario_prepare()
+        if life is not None:
+            if not 1 <= life <= self.player.ini_life:
+                return self.scenario_skip()
+            self.player.life = life
+        for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
+            for index in range(count):
+                creature = self.scenario_creature(owner, power=2 + index, health=3 + index, flags={"Hexproof": index % 2 == 0, "tap": index % 2 == 1})
+                creature.type_creature = "Angel" if (index + offset) % 2 == 0 else "Human"
+                if protected:
+                    creature.gain_buff(Indestructible(self.card, creature), self.card)
+            land = Plains(owner)
+            land.tap()
+            self.stage_card(land, owner, zone="land_area")
+        if library_count is not None:
+            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "creature_number": (0, 0), "sorcery_number": (0, 0), "land_number": (0, 0)})
+            self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
+        self.player.mana.update(self.card.calculate_cost())
+        return self.scenario_cast(provide_mana=False)
 
-        "Destroy every creature that isn't an Angel. Each player gains life equal to the number of their creatures destroyed this way.",
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_below(self):
+        return self._board_scene(0, 0, offset=-1)
 
-        "[CARD_NAME] destroys all creatures except Angels. Each player gains life equal to the number of their creatures destroyed this way.",
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_equal(self):
+        return self._board_scene(0, 0, offset=0)
 
-        "All non-angel creatures are destroyed. Each player gains life equal to the number of creatures they controlled that were destroyed this way.",
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_above(self):
+        return self._board_scene(0, 0, offset=1)
 
-        "[CARD_NAME] wipes all non-angel creatures. Each player gains life equal to how many of their creatures were destroyed this way.",
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_below(self):
+        return self._board_scene(1, 0, offset=-1)
 
-        "Destroy all creatures that are not Angels. Each player gains life equal to the number of their creatures destroyed this way.",
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_equal(self):
+        return self._board_scene(1, 0, offset=0)
 
-        "[CARD_NAME] destroys all non-angel creatures. Each player gains life equal to the count of their creatures destroyed this way.",
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_above(self):
+        return self._board_scene(1, 0, offset=1)
 
-        "Every non-angel creature is destroyed. Each player gains life equal to the number of creatures they controlled that were destroyed this way.",
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_below(self):
+        return self._board_scene(0, 1, offset=-1)
 
-        "[CARD_NAME] destroys all non-angel creatures. Each player gains life equal to the number of their own creatures destroyed this way."
-    ]
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_equal(self):
+        return self._board_scene(0, 1, offset=0)
 
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.room.env_creature(self.player)
-        self.room.env_life_middle(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.room.env_life_middle(self.player.opponent)
-        for participant in (self.player,self.player.opponent):
-            while len(participant.battlefield)<2:
-                participant.battlefield.append(type(participant.battlefield[0])(participant))
-            participant.battlefield[0].type_creature="Angel"
-            for creature in participant.battlefield[1:]:
-                creature.type_creature="Merfolk Creature"
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_above(self):
+        return self._board_scene(0, 1, offset=1)
 
-        self.room.env_mana(
-            self.player,
-            {"W": (1, 7)},
-            least_mana={"colorless": 4, "W": 1},
-        )
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_below(self):
+        return self._board_scene(1, 1, offset=-1)
 
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_equal(self):
+        return self._board_scene(1, 1, offset=0)
+
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_above(self):
+        return self._board_scene(1, 1, offset=1)
+
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_below(self):
+        return self._board_scene(3, 3, offset=-1)
+
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_equal(self):
+        return self._board_scene(3, 3, offset=0)
+
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_above(self):
+        return self._board_scene(3, 3, offset=1)
+
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_below(self):
+        return self._board_scene(0, 5, offset=-1)
+
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_equal(self):
+        return self._board_scene(0, 5, offset=0)
+
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_above(self):
+        return self._board_scene(0, 5, offset=1)
+
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_5_enemy_0_below(self):
+        return self._board_scene(5, 0, offset=-1)
+
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_5_enemy_0_equal(self):
+        return self._board_scene(5, 0, offset=0)
+
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_5_enemy_0_above(self):
+        return self._board_scene(5, 0, offset=1)
+
+    @simulate(evidence={'text': ('destroy.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_protected_battlefields(self):
+        return self._board_scene(3, 3, protected=True)
+

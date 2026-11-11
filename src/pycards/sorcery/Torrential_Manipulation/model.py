@@ -39,7 +39,7 @@ class Torrential_Manipulation(Sorcery):
             if target in opponent.battlefield:
                 opponent.remove_card(target, "battlefield")
                 opponent.append_card(target.copy_for_player(opponent), "hand")
-        sorceries = opponent.get_cards_by_pos_type("hand", (Sorcery,Instant),except_type=(Instant_Undo,))
+        sorceries = player.get_cards_by_pos_type("hand", (Sorcery,Instant),except_type=(Instant_Undo,))
         if sorceries:
             sorcery = random.choice(sorceries)
             await player.auto_play_card(sorcery,start_bullet_time=False)

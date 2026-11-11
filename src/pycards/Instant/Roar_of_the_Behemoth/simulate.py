@@ -1,40 +1,80 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.Instant.Roar_of_the_Behemoth.model import Roar_of_the_Behemoth
+
 
 @bind_card(Roar_of_the_Behemoth)
 class Roar_of_the_Behemoth_Simulation(Card_Simulation):
+    text_parts = {
+        "target.scope": [
+            "Apply this to all creatures your opponent controls.",
+            "Affect every creature on your opponent's battlefield.",
+            "The following effect applies to all creatures under your opponent's control.",
+            "Apply the effect to each creature your opponent controls.",
+            "Give every creature on your opponent's side the following effect.",
+            "All opposing creatures receive this effect.",
+            "Affect each creature under your opponent's control with this effect.",
+            "The effect applies to every creature your opponent has in play.",
+            "Apply the following effect to all creatures on your opponent's side.",
+            "Give this effect to all creatures your opponent controls.",
+        ],
+        "stats.effect": [
+            "Set its power to {power_set} until your end step.",
+            "Its power becomes {power_set} until your turn ends.",
+            "Give it exactly {power_set} power until the end of your turn.",
+            "Until your end step, its power is {power_set}.",
+            "Replace its current power with {power_set} until your turn ends.",
+            "Make its power equal to {power_set} until your end step.",
+            "The creature has {power_set} power until the end of your turn.",
+            "Its power is overridden to {power_set} until your end step.",
+            "Until your turn ends, use {power_set} as its power.",
+            "Force its power to be {power_set} until your end step.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "All enemy creatures get 0 power until the end of this turn.",
-        "[CARD_NAME] sets all enemy creatures to 0 power until end of turn.",
-        "Opponent's creatures have 0 power this turn.",
-        "All enemy creatures have zero power until end of turn.",
-        "[CARD_NAME]: enemy creatures get 0 power until end of turn.",
-        "Reduce all enemy creatures' power to 0 until end of turn.",
-        "Enemy creatures deal no damage—they have 0 power this turn.",
-        "With [CARD_NAME], all opposing creatures have 0 power until end of turn.",
-        "All enemy creatures' power becomes 0 until end of turn.",
-        "[CARD_NAME] roars, reducing all enemy creatures to 0 power this turn.",
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_card(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    def _protection_scene(self, own_count, enemy_count, role="self", selected_index=0, health=3, tapped=False, knight=False, creature_knight=False, library_count=None, time_count=0, stack_type="instant", own_stack=False):
+        self.scenario_prepare()
+        for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
+            for index in range(count):
+                creature = self.scenario_creature(owner, power=index + 1, health=health + index, flags={"tap": tapped, "Hexproof": owner is self.player.opponent and index % 2 == 0})
+                if knight:
+                    creature.type_card = "Human Knight"
+                if creature_knight:
+                    creature.type_creature = "Knight"
+        if library_count is not None:
+            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
+        return self.scenario_cast()
 
-        self.room.env_mana(
-            self.player,
-            {"G":(2,7)},
-            least_mana={"colorless":3,"G":2}
-        )
+    @simulate(evidence={'text': ('target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_health_3(self):
+        return self._protection_scene(0, 0, health=3)
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_health_3(self):
+        return self._protection_scene(1, 0, health=3)
+
+    @simulate(evidence={'text': ('target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_health_3(self):
+        return self._protection_scene(0, 1, health=3)
+
+    @simulate(evidence={'text': ('target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_health_3(self):
+        return self._protection_scene(1, 1, health=3)
+
+    @simulate(evidence={'text': ('target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_health_3(self):
+        return self._protection_scene(3, 3, health=3)
+
+    @simulate(evidence={'text': ('target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_health_3(self):
+        return self._protection_scene(0, 5, health=3)
+
+    @simulate(evidence={'text': ('target.scope', 'stats.effect'), 'fields': ('mana_cost',)})
+    def simulate_already_tapped(self):
+        return self._protection_scene(3, 3, tapped=True)
+

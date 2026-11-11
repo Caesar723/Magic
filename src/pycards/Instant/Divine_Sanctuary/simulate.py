@@ -1,40 +1,80 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.Instant.Divine_Sanctuary.model import Divine_Sanctuary
+
 
 @bind_card(Divine_Sanctuary)
 class Divine_Sanctuary_Simulation(Card_Simulation):
+    text_parts = {
+        "target.scope": [
+            "Apply this to all creatures you control.",
+            "Affect every creature on your battlefield.",
+            "The following effect applies to all creatures under your control.",
+            "Apply the effect to each creature you control.",
+            "Give every creature on your side the following effect.",
+            "All your creatures receive this effect.",
+            "Affect each creature under your control with this effect.",
+            "The effect applies to every creature you have in play.",
+            "Apply the following effect to all creatures on your side.",
+            "Give this effect to all creatures you control.",
+        ],
+        "protect.effect": [
+            "Prevent all damage to it until its controller's end step. It also ignores destruction and refuses additional buffs during that period.",
+            "It takes no damage until its controller's turn ends. It also ignores destruction and refuses additional buffs during that period.",
+            "All damage dealt to it is prevented until its controller's end step. It also ignores destruction and refuses additional buffs during that period.",
+            "Until its controller's turn ends, prevent damage dealt to it. It also ignores destruction and refuses additional buffs during that period.",
+            "It is protected from all incoming damage until its controller's end step. It also ignores destruction and refuses additional buffs during that period.",
+            "Damage to that creature is reduced to zero until its controller's turn ends. It also ignores destruction and refuses additional buffs during that period.",
+            "No damage can be dealt to it before its controller's end step. It also ignores destruction and refuses additional buffs during that period.",
+            "Prevent incoming damage to that creature until the end step of its controller. It also ignores destruction and refuses additional buffs during that period.",
+            "It receives damage prevention until its controller's end step. It also ignores destruction and refuses additional buffs during that period.",
+            "All damage it would receive becomes zero until its controller's turn ends. It also ignores destruction and refuses additional buffs during that period.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Until the end of your turn, you and all creatures you control gain immunity to all effects.",
-        "[CARD_NAME] grants you and your creatures immunity to all effects until end of your turn.",
-        "You and creatures you control have immunity to all effects until end of your turn.",
-        "Until end of your turn, you and your creatures can't be affected by any effects.",
-        "[CARD_NAME]: full immunity for you and your creatures until end of your turn.",
-        "Grant immunity to all effects to you and your creatures until end of your turn.",
-        "You and all creatures you control are immune to all effects until end of your turn.",
-        "With [CARD_NAME], you and your creatures gain total immunity until end of your turn.",
-        "Immunity to all effects for you and your creatures until end of your turn.",
-        "[CARD_NAME] makes you and your creatures immune to all effects this turn.",
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_card(self):
-        self.basic_initinal()
-        self.room.env_creature(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    def _protection_scene(self, own_count, enemy_count, role="self", selected_index=0, health=3, tapped=False, knight=False, creature_knight=False, library_count=None, time_count=0, stack_type="instant", own_stack=False):
+        self.scenario_prepare()
+        for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
+            for index in range(count):
+                creature = self.scenario_creature(owner, power=index + 1, health=health + index, flags={"tap": tapped, "Hexproof": owner is self.player.opponent and index % 2 == 0})
+                if knight:
+                    creature.type_card = "Human Knight"
+                if creature_knight:
+                    creature.type_creature = "Knight"
+        if library_count is not None:
+            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
+        return self.scenario_cast()
 
-        self.room.env_mana(
-            self.player,
-            {"W":(2,7)},
-            least_mana={"colorless":4,"W":2}
-        )
+    @simulate(evidence={'text': ('target.scope', 'protect.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_health_3(self):
+        return self._protection_scene(0, 0, health=3)
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('target.scope', 'protect.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_health_3(self):
+        return self._protection_scene(1, 0, health=3)
+
+    @simulate(evidence={'text': ('target.scope', 'protect.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_health_3(self):
+        return self._protection_scene(0, 1, health=3)
+
+    @simulate(evidence={'text': ('target.scope', 'protect.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_health_3(self):
+        return self._protection_scene(1, 1, health=3)
+
+    @simulate(evidence={'text': ('target.scope', 'protect.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_health_3(self):
+        return self._protection_scene(3, 3, health=3)
+
+    @simulate(evidence={'text': ('target.scope', 'protect.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_health_3(self):
+        return self._protection_scene(0, 5, health=3)
+
+    @simulate(evidence={'text': ('target.scope', 'protect.effect'), 'fields': ('mana_cost',)})
+    def simulate_already_tapped(self):
+        return self._protection_scene(3, 3, tapped=True)
+

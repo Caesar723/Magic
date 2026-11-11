@@ -1,51 +1,94 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
+from game.buffs import Indestructible
 from pycards.sorcery.Divine_Offering.model import Divine_Offering
+
 
 @bind_card(Divine_Offering)
 class Divine_Offering_Simulation(Card_Simulation):
+    text_parts = {
+        "target.scope": [
+            "Choose a target opposing land.",
+            "Target one opposing land.",
+            "Select a opposing land as the target.",
+            "Choose one opposing land to target.",
+            "Select a target opposing land.",
+            "Choose any opposing land as your target.",
+            "Target a opposing land of your choice.",
+            "Choose a opposing land as the target for this spell.",
+            "Select one opposing land to target.",
+            "Choose a opposing land as your target.",
+        ],
+        "remove.effect": [
+            "Mark the selected opposing land for destruction.",
+            "Set a destruction mark on the target opposing land.",
+            "Apply a destruction mark to that opposing land.",
+            "The selected opposing land is marked for destruction.",
+            "Mark that land controlled by your opponent as destroyed.",
+            "Flag the target opposing land as destroyed.",
+            "Put a destruction flag on the selected opposing land.",
+            "That opposing land receives a destruction mark.",
+            "Place a destruction mark on the target land your opponent controls.",
+            "The chosen opposing land is flagged for destruction.",
+        ],
+        "heal.effect": [
+            "Your opponent gains {heal} life.",
+            "The opposing player gains {heal} life.",
+            "Your opponent gains a total of {heal} life.",
+            "The opposing player gains a total of {heal} life.",
+            "Increase your opponent's life total by {heal}.",
+            "The opponent's life total increases by {heal}.",
+            "Your opponent restores {heal} life.",
+            "The opposing player restores {heal} life.",
+            "Your opponent gains an amount of life equal to {heal}.",
+            "The opposing player gains an amount of life equal to {heal}.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Destroy target land. Its controller gains 3 life.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "[CARD_NAME] destroys target land. Its controller gains 3 life.",
+    def _land_scene(self, count, missing=1, hand_count=3):
+        self.scenario_prepare()
+        self.room.env_mana(self.player.opponent, {"W": (count, count)})
+        self.player.opponent.life = max(1, self.player.opponent.ini_life - missing)
+        self.room.env_initinal_hand(self.player.opponent, {"instant_number": (hand_count, hand_count), "creature_number": (0, 0), "sorcery_number": (0, 0), "land_number": (0, 0)})
+        return self.scenario_cast((1,))
 
-        "Destroy a target land. That land's controller gains 3 life.",
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_0_lands_full(self):
+        return self._land_scene(0, 0)
 
-        "[CARD_NAME] destroys target land and its controller gains 3 life.",
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_0_lands_near_full(self):
+        return self._land_scene(0, 1)
 
-        "Choose target land. Destroy it. Its controller gains 3 life.",
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_0_lands_injured(self):
+        return self._land_scene(0, self.player.opponent.ini_life - 1)
 
-        "[CARD_NAME] destroys a chosen target land. Its controller gains 3 life.",
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_1_lands_full(self):
+        return self._land_scene(1, 0)
 
-        "Target land is destroyed. Its controller gains 3 life.",
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_1_lands_near_full(self):
+        return self._land_scene(1, 1)
 
-        "[CARD_NAME] destroys target land, and its controller gains three life.",
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_1_lands_injured(self):
+        return self._land_scene(1, self.player.opponent.ini_life - 1)
 
-        "Destroy one target land. Its controller gains 3 life.",
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_3_lands_full(self):
+        return self._land_scene(3, 0)
 
-        "[CARD_NAME] causes target land to be destroyed. Its controller gains 3 life."
-    ]
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_3_lands_near_full(self):
+        return self._land_scene(3, 1)
 
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.room.env_life_low(self.player.opponent)
+    @simulate(evidence={'text': ('target.scope', 'remove.effect', 'heal.effect'), 'fields': ('mana_cost',)})
+    def simulate_3_lands_injured(self):
+        return self._land_scene(3, self.player.opponent.ini_life - 1)
 
-        self.room.env_mana(
-            self.player,
-            {"W": (1, 7)},
-            least_mana={"colorless": 2, "W": 1},
-        )
-
-        self.room.env_mana(self.player.opponent, {"W": (1, 4)})
-
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info

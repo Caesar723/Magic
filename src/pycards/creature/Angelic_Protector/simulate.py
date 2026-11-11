@@ -1,80 +1,151 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.creature.Angelic_Protector.model import Angelic_Protector
+
 
 @bind_card(Angelic_Protector)
 class Angelic_Protector_Simulation(Card_Simulation):
+    text_parts = {
+        "enter.trigger": [
+            "When {card_name} enters the battlefield,",
+            "Whenever {card_name} enters the battlefield,",
+            "When this creature enters the battlefield,",
+            "Whenever this creature enters the battlefield,",
+            "When {card_name} enters play,",
+            "Whenever {card_name} enters play,",
+            "When this creature enters play,",
+            "Whenever this creature enters play,",
+            "When {card_name} comes into play,",
+            "Whenever {card_name} comes into play,",
+        ],
+        "enter.target": [
+            "Tap a target creature and prevent it from untapping until its controller's turn ends, then untap it.",
+            "The target becomes tapped and cannot untap until its controller's end step, when it untaps.",
+            "Tap the chosen creature, lock it until its controller's turn ends, and untap it at that end step.",
+            "Make a target creature tapped and unable to untap before its controller's end step, then untap it.",
+            "Tap the target and block untapping until the end of its controller's turn, then untap it.",
+            "A target creature becomes tapped, stays locked until its controller's end step, and untaps there.",
+            "Tap one chosen creature and keep it from untapping until its controller's end step, then untap it.",
+            "The selected creature is tapped and cannot untap until its controller's turn ends, at which point it untaps.",
+            "Tap a creature of your choice, prevent its untapping before its controller's end step, and untap it then.",
+            "Tap the creature you target and stop it untapping until its controller's turn ends, then make it untapped.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "When [CARD_NAME] enters the battlefield, you may tap target creature. It doesn't untap during its controller's next untap step.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_cast_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "When [CARD_NAME] enters play, you may tap a target creature. That creature remains tapped through its controller's next untap step.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_dies_self_survives(self):
+        return self.scenario_combat(False, True, False, margin=0)
 
-        "As [CARD_NAME] enters the battlefield, you may tap target creature. It won't untap during its controller's next untap step.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(False, True, False, margin=1)
 
-        "When [CARD_NAME] arrives on the battlefield, you may tap any target creature. It doesn't untap on its controller's next untap.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_survive(self):
+        return self.scenario_combat(False, False, False, margin=0)
 
-        "Upon entering the battlefield, [CARD_NAME] lets you tap target creature, which stays tapped through the next untap step of its controller.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_survive_beyond_boundary(self):
+        return self.scenario_combat(False, False, False, margin=1)
 
-        "When [CARD_NAME] enters the battlefield, you may choose a target creature and tap it. It doesn't untap during its controller's next untap step.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_survives_self_dies(self):
+        return self.scenario_combat(False, False, True, margin=0)
 
-        "When [CARD_NAME] enters the battlefield, you may tap one target creature. That creature skips untapping during its controller's next untap step.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(False, False, True, margin=1)
 
-        "When [CARD_NAME] enters the battlefield, you may tap a creature of your choice. It remains tapped until after its controller's next untap step.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_die(self):
+        return self.scenario_combat(False, True, True, margin=0)
 
-        "When [CARD_NAME] enters the battlefield, you may tap target creature. It cannot untap during its controller's next untap step.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_die_beyond_boundary(self):
+        return self.scenario_combat(False, True, True, margin=1)
 
-    ]
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_dies_self_survives(self):
+        return self.scenario_combat(True, True, False, margin=0)
 
-    @simulate
-    def simulate_when_enter_battlefield(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(True, True, False, margin=1)
 
-        self.room.env_mana(
-            self.player,
-            {"W":(1,7)},
-            least_mana={"colorless":1,"W":1}
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive(self):
+        return self.scenario_combat(True, False, False, margin=0)
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive_beyond_boundary(self):
+        return self.scenario_combat(True, False, False, margin=1)
 
-    @simulate
-    def simulate_when_attack_opponent(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies(self):
+        return self.scenario_combat(True, False, True, margin=0)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(True, False, True, margin=1)
 
-        simulate_info=self.room.simulate_creature_attack(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_die(self):
+        return self.scenario_combat(True, True, True, margin=0)
 
-    @simulate
-    def simulate_when_defend_opponent(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_die_beyond_boundary(self):
+        return self.scenario_combat(True, True, True, margin=1)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
-        )
+    @simulate(evidence={'fields': ('attack', 'special_type')})
+    def simulate_attack_empty_board(self):
+        return self.scenario_unblocked(False)
 
-        simulate_info=self.room.simulate_creature_defend(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'special_type')})
+    def simulate_attack_opponent_passes(self):
+        return self.scenario_unblocked(True)
+
+    def _enter_target(self, role, tapped=False, hexproof=False, in_stack=False):
+        self.scenario_prepare()
+        subaction = 0
+        if role != "none":
+            owner = self.player if role == "self" else self.player.opponent
+            self.scenario_creature(owner, power=2, health=4, flags={"tap": tapped, "Hexproof": hexproof})
+            subaction = 11 if role == "self" else 1
+        return self.scenario_cast((subaction,), in_stack=in_stack)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.target'), 'fields': ('mana_cost',)})
+    def simulate_enter_self_tapped_False(self):
+        return self._enter_target('self', tapped=False)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.target'), 'fields': ('mana_cost',)})
+    def simulate_enter_self_tapped_True(self):
+        return self._enter_target('self', tapped=True)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.target'), 'fields': ('mana_cost',)})
+    def simulate_enter_enemy_tapped_False(self):
+        return self._enter_target('enemy', tapped=False)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.target'), 'fields': ('mana_cost',)})
+    def simulate_enter_enemy_tapped_True(self):
+        return self._enter_target('enemy', tapped=True)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.target'), 'fields': ('mana_cost',)})
+    def simulate_enter_none_tapped_False(self):
+        return self._enter_target('none', tapped=False)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.target'), 'fields': ('mana_cost',)})
+    def simulate_enter_none_tapped_True(self):
+        return self._enter_target('none', tapped=True)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.target'), 'fields': ('mana_cost',)})
+    def simulate_enter_self_hexproof(self):
+        return self._enter_target('self', hexproof=True)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.target'), 'fields': ('mana_cost',)})
+    def simulate_enter_enemy_hexproof(self):
+        return self._enter_target('enemy', hexproof=True)
+

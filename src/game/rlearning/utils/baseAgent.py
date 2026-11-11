@@ -499,9 +499,8 @@ class BaseTrainer:
             # save model on each hour 
             self.save_checkpoint(suffix="temp")
 
-        # if self.step % self.config['eval_step'] == 0:
-        #     self.evaluate() 
-        #     torch.cuda.empty_cache()
+        if self.step % config["eval_step"] == 0:
+            self.evaluate_test()
             
         if self.step % self.config["synthesis_step"] == 0:
             self.synthesis() 
@@ -514,6 +513,54 @@ class BaseTrainer:
             
         
 
+
+    @torch.no_grad()
+    def evaluate_test(self):
+        """Evaluate the current inference weights using a trainer-specific hook."""
+        if self.rank!=0 or not self.config.get("test_data"):
+            return None
+
+        models=dict(self.models_test)
+        for name,model in self.models.items():
+            if name in models and not any(p.requires_grad for p in model.parameters()):
+                models[name]=model
+        modes={module:module.training for model in models.values() for module in model.modules()}
+        devices=sorted({p.device.index for model in models.values() for p in model.parameters() if p.is_cuda})
+        python_state,numpy_state=random.getstate(),np.random.get_state()
+        seed=int(self.config.get("test_seed",self.config.get("seed",1234)))
+
+        try:
+            with torch.random.fork_rng(devices=devices):
+                random.seed(seed)
+                np.random.seed(seed)
+                torch.default_generator.manual_seed(seed)
+                for device in devices:
+                    with torch.cuda.device(device):
+                        torch.cuda.manual_seed(seed)
+                for model in models.values():
+                    model.eval()
+                score=self._evaluate_test(models)
+        finally:
+            random.setstate(python_state)
+            np.random.set_state(numpy_state)
+            for module,training in modes.items():
+                module.training=training
+
+        if score is not None:
+            log.sw_scalar("test_score",score,self.step)
+            log.info(f"Step {self.step}, test_score: {score:.6f}")
+        return score
+
+    def _evaluate_test(self,models):
+        return None
+
+    @staticmethod
+    def _test_to_device(value,device):
+        if isinstance(value,torch.Tensor):
+            return value.to(device=device,dtype=torch.float32 if value.dtype==torch.float64 else value.dtype)
+        if isinstance(value,dict):
+            return {key:BaseTrainer._test_to_device(item,device) for key,item in value.items()}
+        return value
 
     def _init_extra(self):
         self.extra = {}

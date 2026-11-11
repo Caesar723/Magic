@@ -1,45 +1,54 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.Instant.Mystic_Barrier.model import Mystic_Barrier
+
 
 @bind_card(Mystic_Barrier)
 class Mystic_Barrier_Simulation(Card_Simulation):
+    text_parts = {
+        "lock.effect": [
+            "Until your opponent's end step, prevent casting of noncreature cards currently in their hand.",
+            "Noncreature cards now in your opponent's hand cannot be cast until that opponent's turn ends.",
+            "Block casting of the opposing hand's current noncreature cards until your opponent's end step.",
+            "Apply a casting lock to each noncreature card presently in the opposing hand until that player's turn ends.",
+            "The noncreature cards your opponent holds now are uncastable until their end step.",
+            "Until the opposing end step, prevent your opponent from casting their current noncreature hand cards.",
+            "Each noncreature card currently in your opponent's hand receives a casting lock until that opponent's end step.",
+            "Lock the current noncreature cards in the opposing hand against casting until that player's turn ends.",
+            "Make the opponent's existing noncreature hand cards uncastable until their end step.",
+            "Until your opponent ends their turn, their presently held noncreature cards cannot be cast.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Target player can't cast noncreature spells until end of turn.",
-        "[CARD_NAME] prevents target player from casting noncreature spells until end of turn.",
-        "Choose a player. They can't cast noncreature spells this turn.",
-        "Target player is locked out of noncreature spells until end of turn.",
-        "[CARD_NAME]: target player can't cast noncreature spells this turn.",
-        "Until end of turn, target player can't cast noncreature spells.",
-        "Silence noncreature spells for target player until end of turn.",
-        "With [CARD_NAME], stop a player from casting noncreature spells this turn.",
-        "Target player cannot cast instants, sorceries, etc. until end of turn.",
-        "[CARD_NAME] bars target player from noncreature spells until end of turn.",
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_card(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        # The implemented effect decorates cards already in the opponent's hand.
-        self.room.env_initinal_hand(
-            self.player.opponent,
-            {"creature_number":(1,2),"instant_number":(1,3),"sorcery_number":(1,3),"land_number":(1,2)},
-        )
+    def _resource_scene(self, count, offset=0, role="enemy", library_count=3, hand_count=2, colored=False):
+        self.scenario_prepare()
+        self.player.hand.clear()
+        self.player.opponent.hand.clear()
+        self.player.library.clear()
+        for owner in (self.player, self.player.opponent):
+            self.room.env_initinal_library(owner, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            owner.library = [card for card in owner.library if card.type == "Instant"][:library_count]
+        self.room.env_initinal_hand(self.player.opponent, {"instant_number": (hand_count, hand_count), "sorcery_number": (hand_count, hand_count), "creature_number": (0, 0), "land_number": (0, 0)})
+        subaction = 0
+        for _ in range(count):
+            creature = self.scenario_creature(self.player.opponent, power=2, health=3, flags={})
+            self.player.opponent.remove_card(creature, "battlefield")
+            self.player.opponent.append_card(creature, "hand")
+        return self.scenario_cast()
 
-        self.room.env_mana(
-            self.player,
-            {"W":(2,7)},
-            least_mana={"colorless":1,"W":2}
-        )
+    @simulate(evidence={'text': ('lock.effect',), 'fields': ('mana_cost',)})
+    def simulate_count_0_normal(self):
+        return self._resource_scene(0, offset=0)
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('lock.effect',), 'fields': ('mana_cost',)})
+    def simulate_count_1_normal(self):
+        return self._resource_scene(1, offset=0)
+
+    @simulate(evidence={'text': ('lock.effect',), 'fields': ('mana_cost',)})
+    def simulate_count_3_normal(self):
+        return self._resource_scene(3, offset=0)
+

@@ -1,50 +1,96 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
+from game.type_cards.land import Land
+from pycards.land.Plains.model import Plains
+from pycards.land.Forest.model import Forest
 from pycards.sorcery.Verdant_Harvest.model import Verdant_Harvest
+
 
 @bind_card(Verdant_Harvest)
 class Verdant_Harvest_Simulation(Card_Simulation):
+    text_parts = {
+        "land.effect": [
+            "Put a basic land you choose from your library onto your battlefield tapped, if one is available.",
+            "If your library has a basic land, choose one and put it onto your battlefield tapped.",
+            "Choose a basic land from your library of your choice and put it into play tapped, if possible.",
+            "If available, move one chosen basic land from your library onto your battlefield tapped.",
+            "Choose a basic land in your library and put it onto your battlefield tapped, when available.",
+            "When your library contains a basic land, put one selected of your choice into play tapped.",
+            "Move a chosen basic land from your library onto your battlefield tapped if any exist.",
+            "Put one basic land you choose from your library into play tapped, if you have one.",
+            "From your library, take a basic land you choose if present and put it onto your battlefield tapped.",
+            "If any basic lands remain in your library, choose one to enter your battlefield tapped.",
+        ],
+        "draw.effect": [
+            "If a basic land was put into play this way, draw {draw_count} card{draw_count_plural}.",
+            "If a basic land was put into play this way, draw {draw_count_word} card{draw_count_plural}.",
+            "If a basic land was put into play this way, take the top {draw_count} card{draw_count_plural} of your library into your hand.",
+            "If a basic land was put into play this way, put the top {draw_count} card{draw_count_plural} from your library into your hand.",
+            "If a basic land was put into play this way, add the top {draw_count} card{draw_count_plural} of your library to your hand.",
+            "If a basic land was put into play this way, you draw {draw_count} card{draw_count_plural}.",
+            "If a basic land was put into play this way, draw a total of {draw_count} card{draw_count_plural}.",
+            "If a basic land was put into play this way, you draw a total of {draw_count_word} card{draw_count_plural}.",
+            "If a basic land was put into play this way, take {draw_count} card{draw_count_plural} from the top of your library into your hand.",
+            "If a basic land was put into play this way, put {draw_count} card{draw_count_plural} from the top of your library into your hand.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Search your library for a basic land card and put it onto the battlefield tapped, then shuffle your library. Draw a card.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "[CARD_NAME] lets you search your library for a basic land, put it onto the battlefield tapped, shuffle, then draw a card.",
+    def _resource_scene(self, basics, other_cards=3, nonbasic=False, role="none", forest=False, tapped=0, missing=1, grave_count=0):
+        self.scenario_prepare()
+        self.player.life = max(1, self.player.ini_life - missing)
+        self.player.graveyard.clear()
+        self.room.env_initinal_library(self.player, {"instant_number": (other_cards, other_cards), "creature_number": (0, 0), "sorcery_number": (0, 0), "land_number": (0, 0)})
+        self.player.library = [card for card in self.player.library if card.type == "Instant"][:other_cards]
+        for _ in range(basics):
+            self.player.library.append(Plains(self.player))
+        if nonbasic:
+            land = Land(self.player)
+            land.name, land.type = "Review nonbasic land", "Land"
+            self.player.library.insert(0, land)
+        for index in range(tapped):
+            land = Plains(self.player)
+            land.tap()
+            self.stage_card(land, zone="land_area")
+        self.player.mana.update(self.card.calculate_cost())
+        return self.scenario_cast(provide_mana=False)
 
-        "Search your library for a basic land card, put it onto the battlefield tapped, shuffle your library, and draw a card.",
+    @simulate(evidence={'text': ('land.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_basic_none(self):
+        return self._resource_scene(0)
 
-        "[CARD_NAME] searches your library for a basic land, puts it onto the battlefield tapped, shuffles, then you draw a card.",
+    @simulate(evidence={'text': ('land.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_basic_one(self):
+        return self._resource_scene(1)
 
-        "Find a basic land card in your library, put it onto the battlefield tapped, shuffle, then draw a card.",
+    @simulate(evidence={'text': ('land.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_basic_several(self):
+        return self._resource_scene(4)
 
-        "[CARD_NAME] allows you to search for a basic land, put it onto the battlefield tapped, shuffle your library, and draw a card.",
+    @simulate(evidence={'text': ('land.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_nonbasic_first(self):
+        return self._resource_scene(2, nonbasic=True)
 
-        "Search your library for a basic land and put it onto the battlefield tapped. Shuffle your library. Draw a card.",
+    @simulate(evidence={'text': ('land.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_empty_library(self):
+        return self._resource_scene(0, other_cards=0)
 
-        "[CARD_NAME] finds a basic land in your library, puts it onto the battlefield tapped, shuffles, and draws you a card.",
+    @simulate(evidence={'text': ('land.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_only_basic_library(self):
+        return self._resource_scene(1, other_cards=0)
 
-        "Search for a basic land card, put it onto the battlefield tapped, shuffle your library, then draw one card.",
+    @simulate(evidence={'text': ('land.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_empty_tail(self):
+        return self._resource_scene(1, other_cards=0)
 
-        "[CARD_NAME] searches your library for a basic land card, puts it onto the battlefield tapped, shuffles, then draws a card."
-    ]
+    @simulate(evidence={'text': ('land.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_short_tail(self):
+        return self._resource_scene(1, other_cards=max(0, self.card.effect_params["draw_count"] - 1))
 
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.room.env_initinal_library(self.player, {"land_number": (2, 5), "creature_number": (1, 3)})
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'text': ('land.effect', 'draw.effect'), 'fields': ('mana_cost',)})
+    def simulate_exact_tail(self):
+        return self._resource_scene(1, other_cards=self.card.effect_params["draw_count"])
 
-        self.room.env_mana(
-            self.player,
-            {"G": (2, 7)},
-            least_mana={"colorless": 1, "G": 2},
-        )
-
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info

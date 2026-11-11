@@ -30,7 +30,9 @@ class Time_Rift_Convergence(Sorcery):
 
     @select_object("",1)
     async def card_ability(self,player:"Player"=None,opponent:"Player"=None,selected_object:tuple["Card"] = ()):
-        cards=random.sample(player.graveyard,self.effect_params["return_count"])
+        if not player.graveyard:
+            return
+        cards=random.sample(player.graveyard,max(self.effect_params["return_count"],len(player.graveyard)))
         for card in cards:
             player.remove_card(card,"graveyard")
             player.append_card(card.copy_for_player(player),"hand")

@@ -187,6 +187,58 @@ class CVAETrainer(BaseTrainer):
     def __init__(self, config, restore_step, rank=0, n_gpus=1, name="main"):
         super().__init__(config, restore_step, rank, n_gpus, name)
 
+    def _load_test_dataset(self):
+        path=self.config["test_data"]
+        if not Path(path).is_file():
+            if not getattr(self,"_test_missing_reported",False):
+                log.warning(f"Test score skipped: dataset does not exist: {path}")
+                self._test_missing_reported=True
+            return None
+        if getattr(self,"_test_dataset_path",None)==path:
+            return self._test_dataset
+
+        saved=torch.load(path,map_location="cpu",weights_only=False)
+        config=dict(self.config,binding_augmentation_probability=0.0,dataset_multiple=1)
+        dataset=self.dataset_class(config)
+        if dataset.pbar is not None:
+            dataset.pbar.close()
+            dataset.pbar=None
+        datas=saved["datas"]
+        dataset.datas=[sample for samples in datas.values() for sample in samples] if isinstance(datas,dict) else list(datas)
+        self._test_dataset,self._test_dataset_path=dataset,path
+        log.info(f"Loaded {len(dataset.datas)} fixed test samples from {path}")
+        return dataset
+
+    def _evaluate_test(self,models):
+        dataset=self._load_test_dataset()
+        if dataset is None or not dataset.datas:
+            return None
+
+        device=next(models["StateTransformerEncoder"].parameters()).device
+        batch_size=max(1,int(self.config.get("test_batch_size",self.config["dataloader"]["batch_size"])))
+        total,count=0.0,0
+
+        for start in range(0,len(dataset.datas),batch_size):
+            samples=[dataset.get_sample(data) for data in dataset.datas[start:start+batch_size]]
+            raw=dataset.collate_fn(samples)
+            batch=self._test_to_device(raw,device)
+            batch=self.encode(batch,models,False,self.step,self.epoch)
+            selection=torch.arange(len(samples),device=device)
+            views=self._synthesis_decoder_predictions(models,batch,selection,prior_only=True)
+            prediction=self._test_to_device(views["prior"]["prediction"],"cpu")
+            source=squeeze_time_dim_state(raw["state"])
+            target=squeeze_time_dim_state(raw["next_state"])
+
+            for index in range(len(samples)):
+                predicted,expected=self._test_states(prediction,source,target,index)
+                total+=state_reconstruction_metrics(predicted,expected)["score"]
+                count+=1
+            del batch,views,prediction
+        return total/count
+
+    def _test_states(self,prediction,source,target,index):
+        return state_from_prediction(prediction,index),state_from_target(target,index)
+
     def _synthesis(self, models):
         """Write a latent transition space with linked reconstruction highlights."""
         dataset_size = len(self.dataset.datas)
@@ -727,39 +779,26 @@ class CVAETrainer(BaseTrainer):
         return value
 
     @staticmethod
-    def _synthesis_decoder_predictions(models, batch, selection):
-        """Decode deterministic Prior and Posterior means for viewer comparison.
-
-        The Prior view represents inference from the current state, card and
-        action.  The Posterior view additionally observes the true next state,
-        so it remains useful as the reconstruction upper bound.
-        """
-        decoder_inputs = {
-            "state_tokens": batch["tokens_s"].index_select(0, selection),
-            "state_padding_mask": batch["pad_s"].index_select(0, selection),
-            "spans": batch["spans_s"],
+    def _synthesis_decoder_predictions(models,batch,selection,prior_only=False):
+        """Decode prior means for inference and optional posterior means for comparison."""
+        inputs={
+            "state_tokens":batch["tokens_s"].index_select(0,selection),
+            "state_padding_mask":batch["pad_s"].index_select(0,selection),
+            "spans":batch["spans_s"],
         }
-        decoder = models["TokenTransitionStateDecoder"]
-        return {
-            "prior": {
-                "encoder": "PriorEncoder",
-                "label": "Prior · inference",
-                "condition": "current state + card + action",
-                "prediction": decoder(
-                    **decoder_inputs,
-                    transition_vec=batch["mean_p"].index_select(0, selection),
-                ),
-            },
-            "posterior": {
-                "encoder": "PosteriorEncoder",
-                "label": "Posterior · reconstruction",
-                "condition": "current state + card + action + true next state",
-                "prediction": decoder(
-                    **decoder_inputs,
-                    transition_vec=batch["mean_q"].index_select(0, selection),
-                ),
-            },
-        }
+        decoder=models["TokenTransitionStateDecoder"]
+        views={"prior":{
+            "encoder":"PriorEncoder","label":"Prior · inference",
+            "condition":"current state + card + action",
+            "prediction":decoder(**inputs,transition_vec=batch["mean_p"].index_select(0,selection)),
+        }}
+        if not prior_only:
+            views["posterior"]={
+                "encoder":"PosteriorEncoder","label":"Posterior · reconstruction",
+                "condition":"current state + card + action + true next state",
+                "prediction":decoder(**inputs,transition_vec=batch["mean_q"].index_select(0,selection)),
+            }
+        return views
 
     def _forward(self, batch, models, isTrain, step, epoch):
 

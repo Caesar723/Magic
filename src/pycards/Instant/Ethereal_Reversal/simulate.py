@@ -1,46 +1,105 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.Instant.Ethereal_Reversal.model import Ethereal_Reversal
+
 
 @bind_card(Ethereal_Reversal)
 class Ethereal_Reversal_Simulation(Card_Simulation):
+    text_parts = {
+        "return.effect": [
+            "Return the selected creature to its owner's hand.",
+            "Put the target creature into its owner's hand.",
+            "The chosen creature returns to its owner's hand.",
+            "Move that creature from the battlefield to its owner's hand.",
+            "Return the creature you targeted to the hand of its owner.",
+            "Put that creature back into its owner's hand.",
+            "The targeted creature goes back to its owner's hand.",
+            "Return your chosen creature from play to its owner's hand.",
+            "Take that creature off the battlefield and put it into its owner's hand.",
+            "Move the targeted creature back to its owner's hand.",
+        ],
+        "cast.effect": [
+            "If the returned creature had positive mana value, cast the first instant or sorcery in your hand costing no more than that value, without paying its cost.",
+            "When the returned creature's mana value is positive, cast the earliest hand instant or sorcery with mana value no greater than it for free.",
+            "If its mana value exceeds zero, freely cast the first instant or sorcery in hand whose mana value does not exceed that creature's.",
+            "After returning a creature with positive mana value, cast your first eligible hand instant or sorcery of at most that mana value without cost.",
+            "For a returned creature with mana value above zero, cast the first hand instant or sorcery costing that much or less for free.",
+            "If a positive-mana-value creature was returned, freely cast the first qualifying instant or sorcery in your hand costing no more than it.",
+            "When the returned creature costs more than zero, cast your earliest hand instant or sorcery with no greater mana value, paying nothing.",
+            "If the returned creature has positive total mana cost, cast the first hand instant or sorcery whose total cost is at most that value for free.",
+            "Cast your first eligible hand instant or sorcery for free if its mana value is no greater than the returned creature's positive mana value.",
+            "If that creature's mana value was positive, take the first instant or sorcery in hand costing no more and cast it without paying.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Return target nonland permanent to its owner's hand. You may cast a spell with converted mana cost equal to or less than the returned card's from your hand without paying its mana cost.",
-        "[CARD_NAME] bounces a nonland permanent; you may cast a spell from hand for free if its CMC is equal or less.",
-        "Return a nonland permanent to hand. You may cast a spell from your hand without paying mana if CMC is low enough.",
-        "Bounce target nonland permanent. Cast a spell from hand for free if its mana cost is equal or less than the bounced card.",
-        "[CARD_NAME]: bounce nonland permanent; free cast from hand if CMC ≤ returned card's.",
-        "Return nonland permanent to hand. Optionally cast a spell from hand without paying if CMC is equal or lower.",
-        "Send a nonland permanent back to hand. You may cast a cheaper-or-equal spell from hand for free.",
-        "With [CARD_NAME], bounce a nonland permanent and possibly cast a spell from hand without paying.",
-        "Return target nonland permanent to hand. Free cast a spell from hand with CMC equal or less.",
-        "[CARD_NAME] returns a nonland permanent and may let you cast a spell from hand without paying mana.",
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_card(self):
-        self.basic_initinal()
-        self.room.env_initinal_hand(
-            self.player,
-            {"instant_number":(1,2),"sorcery_number":(1,2)},
-        )
-        self.room.env_creature(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
-        for creature in self.player.battlefield+self.player.opponent.battlefield:
-            creature.mana_cost="9"
+    def _resource_scene(self, count, offset=0, role="enemy", library_count=3, hand_count=2, colored=False):
+        self.scenario_prepare()
+        self.player.hand.clear()
+        self.player.opponent.hand.clear()
+        self.player.library.clear()
+        for owner in (self.player, self.player.opponent):
+            self.room.env_initinal_library(owner, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            owner.library = [card for card in owner.library if card.type == "Instant"][:library_count]
+        self.room.env_initinal_hand(self.player, {"instant_number": (hand_count, hand_count), "sorcery_number": (hand_count, hand_count), "creature_number": (0, 0), "land_number": (0, 0)})
+        subaction = 0
+        if count:
+            owner = self.player if role == "self" else self.player.opponent
+            self.scenario_creature(owner, power=2, health=4, flags={}, mana_cost=str(max(0, 2 + offset)))
+            subaction = 11 if owner is self.player else 1
+        hand_owner = self.player
+        for index, card in enumerate(hand_owner.hand):
+            card.mana_cost = str(max(0, 2 + offset + index - 1))
+        return self.scenario_cast((subaction,))
 
-        self.room.env_mana(
-            self.player,
-            {"U":(2,7)},
-            least_mana={"colorless":1,"U":2}
-        )
+    @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
+    def simulate_count_0_below(self):
+        return self._resource_scene(0, offset=-1)
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
+    def simulate_count_0_equal(self):
+        return self._resource_scene(0, offset=0)
+
+    @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
+    def simulate_count_0_above(self):
+        return self._resource_scene(0, offset=1)
+
+    @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
+    def simulate_count_1_below(self):
+        return self._resource_scene(1, offset=-1)
+
+    @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
+    def simulate_count_1_equal(self):
+        return self._resource_scene(1, offset=0)
+
+    @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
+    def simulate_count_1_above(self):
+        return self._resource_scene(1, offset=1)
+
+    @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
+    def simulate_count_3_below(self):
+        return self._resource_scene(3, offset=-1)
+
+    @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
+    def simulate_count_3_equal(self):
+        return self._resource_scene(3, offset=0)
+
+    @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
+    def simulate_count_3_above(self):
+        return self._resource_scene(3, offset=1)
+
+    @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_target(self):
+        return self._resource_scene(1, role="self")
+
+    @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
+    def simulate_no_followup_spell(self):
+        return self._resource_scene(1, hand_count=0)
+
+    @simulate(evidence={'text': ('return.effect', 'cast.effect'), 'fields': ('mana_cost',)})
+    def simulate_zero_cost_target(self):
+        return self._resource_scene(1, offset=-2)
+

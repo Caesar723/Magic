@@ -1,50 +1,77 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.sorcery.Demonic_Ascendance.model import Demonic_Ascendance
+
 
 @bind_card(Demonic_Ascendance)
 class Demonic_Ascendance_Simulation(Card_Simulation):
+    text_parts = {
+        "return.effect": [
+            "Your opponent selects a creature from their hand to move onto your battlefield, if one is available.",
+            "If your opponent has a creature in hand, they select one to enter your battlefield.",
+            "Move an opposing hand creature selected by your opponent onto your battlefield, if possible.",
+            "Your opponent chooses an available creature card from their hand and puts it onto your battlefield.",
+            "Put a creature selected from your opponent's hand by that opponent onto your battlefield, if present.",
+            "An available creature chosen by your opponent from their hand moves onto your battlefield.",
+            "Let your opponent select a creature in their hand to put onto your battlefield, when available.",
+            "Take one creature your opponent selects from their hand and put it onto your battlefield.",
+            "If any creature is in the opposing hand, the opponent selects one to move onto your battlefield.",
+            "Move one available creature card from your opponent's hand onto your battlefield, chosen by your opponent.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Target opponent reveals their hand. You may choose a creature card from it and put it onto the battlefield under your control. That creature gains haste. Sacrifice it at the beginning of the next end step.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "[CARD_NAME] makes target opponent reveal their hand. You may put a creature card from it onto the battlefield under your control with haste. Sacrifice it at the beginning of the next end step.",
+    def _recursion_scene(self, own_count, enemy_count=0, other_count=0, offset=0, colored=False, library_count=None, hand_count=0):
+        self.scenario_prepare()
+        self.player.graveyard.clear()
+        self.player.opponent.graveyard.clear()
+        self.player.hand.clear()
+        self.player.opponent.hand.clear()
+        for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
+            for index in range(count):
+                threshold = self.card.effect_params.get("mana_threshold", 2)
+                cost = "W" * (threshold + offset + index + 1) if colored else str(max(0, threshold + offset + index))
+                creature = self.scenario_creature(owner, power=index + 2, health=index + 3, flags={})
+                creature.mana_cost = cost
+                owner.remove_card(creature, "battlefield")
+                owner.append_card(creature, "hand" if owner is self.player.opponent else "graveyard")
+        for _ in range(other_count):
+            self.player.append_card(self.card.copy_for_player(self.player), "graveyard")
+        if library_count is not None:
+            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
+        for _ in range(hand_count):
+            self.player.append_card(self.card.copy_for_player(self.player), "hand")
+        return self.scenario_cast()
 
-        "Target opponent reveals their hand. You may choose a creature card and put it onto the battlefield under your control with haste. Sacrifice it at the next end step.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_none(self):
+        return self._recursion_scene(0, 0, 0)
 
-        "[CARD_NAME] causes target opponent to reveal their hand. You may steal a creature card from it, which gains haste. Sacrifice it at the beginning of the next end step.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_one_own(self):
+        return self._recursion_scene(1, 0, 0)
 
-        "Target opponent reveals their hand. You may put a creature card from their hand onto the battlefield under your control. It gains haste. Sacrifice it at the beginning of the next end step.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_one_enemy(self):
+        return self._recursion_scene(0, 1, 0)
 
-        "[CARD_NAME] lets target opponent reveal their hand. You may choose a creature card and put it onto the battlefield under your control with haste, then sacrifice it at the next end step.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_both(self):
+        return self._recursion_scene(1, 1, 0)
 
-        "Make target opponent reveal their hand. You may put a creature card from it onto the battlefield under your control with haste. Sacrifice it at the beginning of the next end step.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_several(self):
+        return self._recursion_scene(3, 3, 0)
 
-        "[CARD_NAME] has target opponent reveal their hand. You may put a creature card onto the battlefield under your control with haste. Sacrifice it at the beginning of the next end step.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_noncreatures(self):
+        return self._recursion_scene(0, 0, 3)
 
-        "Target opponent reveals their hand. You may choose a creature card and put it into play under your control with haste. Sacrifice it at the beginning of the next end step.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_mixed(self):
+        return self._recursion_scene(3, 3, 3)
 
-        "[CARD_NAME] makes an opponent reveal their hand. You may put a creature card from it onto the battlefield under your control with haste, sacrificing it at the beginning of the next end step."
-    ]
-
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.room.env_initinal_hand(self.player.opponent, {"creature_number": (2, 4), "instant_number": (0, 1)})
-        self.room.env_no_creature(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-
-        self.room.env_mana(
-            self.player,
-            {"B": (1, 7)},
-            least_mana={"colorless": 3, "B": 1},
-        )
-
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info

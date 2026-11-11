@@ -1,52 +1,291 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
+from game.buffs import Indestructible
+from pycards.land.Mountain.model import Mountain
 from pycards.sorcery.Cataclysmic_Inferno.model import Cataclysmic_Inferno
+
 
 @bind_card(Cataclysmic_Inferno)
 class Cataclysmic_Inferno_Simulation(Card_Simulation):
+    text_parts = {
+        "damage.effect": [
+            "Deal damage to every opposing creature equal to the number of lands you control named Mountain.",
+            "Each opposing creature takes damage equal to your count of lands named Mountain.",
+            "Count your lands named Mountain and deal that much damage to each opposing creature.",
+            "Deal one damage per land you control named Mountain to every opposing creature.",
+            "All opposing creatures are dealt damage equal to the number of your Mountains by name.",
+            "For each of your lands named Mountain, deal one damage to every opposing creature.",
+            "Damage each creature on the opposing battlefield by your number of lands named Mountain.",
+            "Your count of lands with the name Mountain is the damage dealt to every opposing creature.",
+            "Deal your Mountain-name land count as damage to all opposing creatures.",
+            "Each creature your opponent controls is hit for the number of lands you have named Mountain.",
+        ],
+        "token.effect": [
+            "For each creature that immediately dies from this damage, create {tokens_per_destroyed} {token_power}/{token_toughness} Elemental tokens with haste.",
+            "Create {tokens_per_destroyed} hasty {token_power}/{token_toughness} Elementals per immediate creature death from this damage.",
+            "Every creature immediately killed by the damage gives you {tokens_per_destroyed} {token_power}/{token_toughness} Elementals with haste.",
+            "Put {tokens_per_destroyed} {token_power}/{token_toughness} Elemental tokens with haste onto your battlefield for each immediate victim.",
+            "For each opposing creature that dies immediately from the hit, summon {tokens_per_destroyed} hasty {token_power}/{token_toughness} Elementals.",
+            "You receive {tokens_per_destroyed} {token_power}/{token_toughness} Elemental tokens with haste for each creature immediately killed.",
+            "Each immediate death caused by this damage produces {tokens_per_destroyed} {token_power}/{token_toughness} hasty Elementals for you.",
+            "Summon {tokens_per_destroyed} hasty Elementals of size {token_power}/{token_toughness} for every creature immediately killed here.",
+            "Create {tokens_per_destroyed} {token_power}/{token_toughness} haste Elementals per opposing creature that dies directly from this damage.",
+            "For every immediate creature death following this hit, create {tokens_per_destroyed} hasty {token_power}/{token_toughness} Elemental tokens.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "[CARD_NAME] deals X damage to each creature your opponents control, where X is the number of Mountains you control. Then, for each creature destroyed this way, create a 1/1 red Elemental creature token with haste.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "Deal X damage to each creature your opponents control, where X is the number of Mountains you control. Then create a 1/1 red Elemental creature token with haste for each creature destroyed this way.",
+    def _effect_scene(self, own_count, enemy_count, protected=False, mountains=0, offset=0, role="enemy", hand_count=1, library_count=None, grave_count=0, tapped=False):
+        self.scenario_prepare()
+        self.player.hand.clear()
+        self.player.graveyard.clear()
+        self.player.opponent.graveyard.clear()
+        for _ in range(hand_count):
+            self.player.append_card(self.card.copy_for_player(self.player), "hand")
+        for _ in range(mountains):
+            land = Mountain(self.player)
+            land.tap()
+            self.stage_card(land, zone="land_area")
+        for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
+            for index in range(count):
+                health = max(1, mountains + offset + index)
+                creature = self.scenario_creature(owner, power=index + 1, health=health, flags={"tap": tapped, "Hexproof": False})
+                if protected:
+                    creature.gain_buff(Indestructible(self.card, creature), self.card)
+        for owner in (self.player, self.player.opponent):
+            for _ in range(grave_count):
+                creature = self.scenario_creature(owner, power=2, health=3, flags={})
+                owner.remove_card(creature, "battlefield")
+                owner.append_card(creature, "graveyard")
+        if library_count is not None:
+            owner = self.player
+            self.room.env_initinal_library(owner, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            owner.library = [card for card in owner.library if card.type == "Instant"][:library_count]
+        self.player.mana.update(self.card.calculate_cost())
+        if (own_count or enemy_count) and mountains + offset <= 0:
+            return self.scenario_skip()
+        return self.scenario_cast(provide_mana=False)
 
-        "[CARD_NAME] deals damage equal to the number of Mountains you control to each creature your opponents control. For each creature destroyed, create a 1/1 red Elemental token with haste.",
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_mountains_0_below(self):
+        return self._effect_scene(0, 0, mountains=0, offset=-1)
 
-        "Each creature your opponents control takes X damage, where X is the number of Mountains you control. Then create a 1/1 red Elemental creature token with haste for each one destroyed.",
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_mountains_0_equal(self):
+        return self._effect_scene(0, 0, mountains=0, offset=0)
 
-        "[CARD_NAME] hits each opponent's creature for X damage, where X is your Mountain count. For each creature destroyed, create a 1/1 red Elemental token with haste.",
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_mountains_0_above(self):
+        return self._effect_scene(0, 0, mountains=0, offset=1)
 
-        "Deal X damage to every creature your opponents control, where X equals the number of Mountains you control. Then create a 1/1 red Elemental token with haste for each creature destroyed.",
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_mountains_1_below(self):
+        return self._effect_scene(0, 0, mountains=1, offset=-1)
 
-        "[CARD_NAME] deals X damage to opponent-controlled creatures, where X is the number of Mountains you control. Create a 1/1 red Elemental token with haste for each destroyed.",
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_mountains_1_equal(self):
+        return self._effect_scene(0, 0, mountains=1, offset=0)
 
-        "Each creature your opponents control takes damage equal to the number of Mountains you control. For each creature destroyed this way, create a 1/1 red Elemental creature token with haste.",
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_mountains_1_above(self):
+        return self._effect_scene(0, 0, mountains=1, offset=1)
 
-        "[CARD_NAME] deals X damage to each creature your opponents control based on your Mountain count. Then create a 1/1 red Elemental token with haste for each creature destroyed.",
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_mountains_3_below(self):
+        return self._effect_scene(0, 0, mountains=3, offset=-1)
 
-        "Deal damage equal to the number of Mountains you control to each creature your opponents control. Then create a 1/1 red Elemental creature token with haste for each creature destroyed this way."
-    ]
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_mountains_3_equal(self):
+        return self._effect_scene(0, 0, mountains=3, offset=0)
 
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.room.env_no_creature(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_0_mountains_3_above(self):
+        return self._effect_scene(0, 0, mountains=3, offset=1)
 
-        self.room.env_mana(
-            self.player,
-            {"R": (4, 7)},
-            least_mana={"colorless": 3, "R": 1},
-        )
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_mountains_0_below(self):
+        return self._effect_scene(1, 0, mountains=0, offset=-1)
 
-        for creature in self.player.opponent.battlefield:
-            creature.actual_live = min(creature.actual_live, 3)
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_mountains_0_equal(self):
+        return self._effect_scene(1, 0, mountains=0, offset=0)
 
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_mountains_0_above(self):
+        return self._effect_scene(1, 0, mountains=0, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_mountains_1_below(self):
+        return self._effect_scene(1, 0, mountains=1, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_mountains_1_equal(self):
+        return self._effect_scene(1, 0, mountains=1, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_mountains_1_above(self):
+        return self._effect_scene(1, 0, mountains=1, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_mountains_3_below(self):
+        return self._effect_scene(1, 0, mountains=3, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_mountains_3_equal(self):
+        return self._effect_scene(1, 0, mountains=3, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_0_mountains_3_above(self):
+        return self._effect_scene(1, 0, mountains=3, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_mountains_0_below(self):
+        return self._effect_scene(0, 1, mountains=0, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_mountains_0_equal(self):
+        return self._effect_scene(0, 1, mountains=0, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_mountains_0_above(self):
+        return self._effect_scene(0, 1, mountains=0, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_mountains_1_below(self):
+        return self._effect_scene(0, 1, mountains=1, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_mountains_1_equal(self):
+        return self._effect_scene(0, 1, mountains=1, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_mountains_1_above(self):
+        return self._effect_scene(0, 1, mountains=1, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_mountains_3_below(self):
+        return self._effect_scene(0, 1, mountains=3, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_mountains_3_equal(self):
+        return self._effect_scene(0, 1, mountains=3, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_1_mountains_3_above(self):
+        return self._effect_scene(0, 1, mountains=3, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_mountains_0_below(self):
+        return self._effect_scene(1, 1, mountains=0, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_mountains_0_equal(self):
+        return self._effect_scene(1, 1, mountains=0, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_mountains_0_above(self):
+        return self._effect_scene(1, 1, mountains=0, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_mountains_1_below(self):
+        return self._effect_scene(1, 1, mountains=1, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_mountains_1_equal(self):
+        return self._effect_scene(1, 1, mountains=1, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_mountains_1_above(self):
+        return self._effect_scene(1, 1, mountains=1, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_mountains_3_below(self):
+        return self._effect_scene(1, 1, mountains=3, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_mountains_3_equal(self):
+        return self._effect_scene(1, 1, mountains=3, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_1_enemy_1_mountains_3_above(self):
+        return self._effect_scene(1, 1, mountains=3, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_mountains_0_below(self):
+        return self._effect_scene(3, 3, mountains=0, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_mountains_0_equal(self):
+        return self._effect_scene(3, 3, mountains=0, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_mountains_0_above(self):
+        return self._effect_scene(3, 3, mountains=0, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_mountains_1_below(self):
+        return self._effect_scene(3, 3, mountains=1, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_mountains_1_equal(self):
+        return self._effect_scene(3, 3, mountains=1, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_mountains_1_above(self):
+        return self._effect_scene(3, 3, mountains=1, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_mountains_3_below(self):
+        return self._effect_scene(3, 3, mountains=3, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_mountains_3_equal(self):
+        return self._effect_scene(3, 3, mountains=3, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_3_enemy_3_mountains_3_above(self):
+        return self._effect_scene(3, 3, mountains=3, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_mountains_0_below(self):
+        return self._effect_scene(0, 5, mountains=0, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_mountains_0_equal(self):
+        return self._effect_scene(0, 5, mountains=0, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_mountains_0_above(self):
+        return self._effect_scene(0, 5, mountains=0, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_mountains_1_below(self):
+        return self._effect_scene(0, 5, mountains=1, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_mountains_1_equal(self):
+        return self._effect_scene(0, 5, mountains=1, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_mountains_1_above(self):
+        return self._effect_scene(0, 5, mountains=1, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_mountains_3_below(self):
+        return self._effect_scene(0, 5, mountains=3, offset=-1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_mountains_3_equal(self):
+        return self._effect_scene(0, 5, mountains=3, offset=0)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_self_0_enemy_5_mountains_3_above(self):
+        return self._effect_scene(0, 5, mountains=3, offset=1)
+
+    @simulate(evidence={'text': ('damage.effect', 'token.effect'), 'fields': ('mana_cost',)})
+    def simulate_indestructible(self):
+        return self._effect_scene(2, 5, mountains=3, protected=True)
+

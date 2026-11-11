@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 from functools import wraps
+from game.rlearning.utils.simulation_scenarios import ScenarioTools
 import random
 if TYPE_CHECKING:
     from rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
@@ -8,13 +9,26 @@ if TYPE_CHECKING:
 
 
 
-def simulate(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        return func(self, *args, **kwargs)
+def simulate(func=None, *, evidence=None):
+    labels = evidence or {}
+    text_parts = tuple(labels.get("text", ()))
+    field_names = tuple(labels.get("fields", ()))
 
-    wrapper._is_simulate = True
-    return wrapper
+    def decorate(method):
+        @wraps(method)
+        def wrapper(self, *args, **kwargs):
+            result = method(self, *args, **kwargs)
+            result["description_info"] = self.build_description()
+            result["supervision"] = {
+                "text_parts": list(text_parts),
+                "fields": list(field_names),
+            }
+            return result
+
+        wrapper._is_simulate = True
+        return wrapper
+
+    return decorate(func) if func is not None else decorate
 
 def bind_card(card_cls):
     def decorator(simulation_cls):
@@ -26,11 +40,12 @@ def test(simulation_cls):
     simulation_cls._is_test = True
     return simulation_cls
 
-class Card_Simulation:
+class Card_Simulation(ScenarioTools):
     
     card:"Card"
     _is_test:bool=False
     similar_descriptions:list[str]=[]
+    text_parts = {}
 
     ADJECTIVES = [
     "Aether", "Void", "Rune", "Sky", "Ember",
@@ -95,6 +110,27 @@ class Card_Simulation:
         )
 
         return description
+
+    def build_description(self):
+        if not self.text_parts:
+            return {"text": self.card.content, "spans": {}}
+
+        values = self.description_values()
+        text, spans = "", {}
+
+        for part_id, phrases in self.text_parts.items():
+            fragment = random.choice(phrases).format(**values)
+            text += " " if text else ""
+
+            start = len(text)
+            text += fragment
+            spans[part_id] = [(start, len(text))]
+
+        extra = " ".join(self.card.extra_content)
+        if extra:
+            text += " " + extra
+
+        return {"text": text, "spans": spans}
 
 
     def get_card(self):

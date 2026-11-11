@@ -1,44 +1,89 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.Instant.Astral_Resurgence.model import Astral_Resurgence
+
 
 @bind_card(Astral_Resurgence)
 class Astral_Resurgence_Simulation(Card_Simulation):
+    text_parts = {
+        "return.effect": [
+            "Put a fresh copy of a random creature in your graveyard onto your battlefield, leaving the original in your graveyard.",
+            "Choose a creature in your graveyard randomly and create a fresh battlefield copy, retaining the original graveyard card.",
+            "Copy a random creature card from your graveyard onto your battlefield without moving the original.",
+            "Create a fresh copy on your battlefield of a random graveyard creature you own, leaving that card in the graveyard.",
+            "Randomly select a creature in your graveyard and put its fresh copy into play while keeping the original in the graveyard.",
+            "Put a fresh battlefield copy of a randomly chosen creature from your graveyard into play and keep the original card there.",
+            "If a creature is available in your graveyard, put a random one's fresh copy onto your battlefield and retain the original.",
+            "Create a fresh battlefield copy from one random creature in your graveyard without removing that graveyard card.",
+            "Choose a random creature card from your graveyard to copy onto your battlefield, preserving the original in the graveyard.",
+            "Put a fresh copy of one randomly selected graveyard creature onto your battlefield while the original stays in your graveyard.",
+        ],
+        "return.lifelink": [
+            "The new copy gains lifelink until your end step.",
+            "Give that copy lifelink until your turn ends.",
+            "Until your end step, the returned copy has lifelink.",
+            "Grant the new creature lifelink through your turn.",
+            "The copy receives lifelink until the end of your turn.",
+            "That new battlefield copy gains lifelink until your end step.",
+            "Until your turn ends, the newly created creature has lifelink.",
+            "Give lifelink to the new copy until your end step.",
+            "The newly created creature is granted lifelink until your turn ends.",
+            "The copy gets the lifelink ability until your end step.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Return a creature cards from your graveyard to the battlefield. It gains lifelink until end of turn.",
-        "[CARD_NAME] returns a creature card from your graveyard to the battlefield with lifelink until end of turn.",
-        "Put a creature card from your graveyard onto the battlefield. It has lifelink until end of turn.",
-        "Return a creature from your graveyard to the battlefield. It gains lifelink this turn.",
-        "[CARD_NAME] reanimates a creature from your graveyard; it gains lifelink until end of turn.",
-        "Bring a creature card from your graveyard back to the battlefield with lifelink until end of turn.",
-        "Return one creature card from your graveyard to the battlefield. It gains lifelink until end of turn.",
-        "[CARD_NAME] puts a creature from your graveyard onto the battlefield with lifelink this turn.",
-        "Reanimate a creature from your graveyard. It gains lifelink until end of turn.",
-        "Return a creature card from graveyard to battlefield; it has lifelink until end of turn.",
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_card(self):
-        self.basic_initinal()
-        self.room.env_initinal_graveyard(
-            self.player,
-            {"creature_number":(1,10)},
-        )
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    def _recursion_scene(self, own_count, enemy_count=0, other_count=0, offset=0, colored=False, library_count=None, hand_count=0):
+        self.scenario_prepare()
+        self.player.graveyard.clear()
+        self.player.opponent.graveyard.clear()
+        self.player.hand.clear()
+        self.player.opponent.hand.clear()
+        for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
+            for index in range(count):
+                threshold = self.card.effect_params.get("mana_threshold", 2)
+                cost = "W" * (threshold + offset + index + 1) if colored else str(max(0, threshold + offset + index))
+                creature = self.scenario_creature(owner, power=index + 2, health=index + 3, flags={})
+                creature.mana_cost = cost
+                owner.remove_card(creature, "battlefield")
+                owner.append_card(creature, "graveyard")
+        for _ in range(other_count):
+            self.player.append_card(self.card.copy_for_player(self.player), "graveyard")
+        if library_count is not None:
+            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
+        for _ in range(hand_count):
+            self.player.append_card(self.card.copy_for_player(self.player), "hand")
+        return self.scenario_cast()
 
-        self.room.env_mana(
-            self.player,
-            {"W":(2,7)},
-            least_mana={"colorless":1,"W":2}
-        )
+    @simulate(evidence={'text': ('return.effect', 'return.lifelink'), 'fields': ('mana_cost',)})
+    def simulate_graves_none(self):
+        return self._recursion_scene(0, 0, 0)
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('return.effect', 'return.lifelink'), 'fields': ('mana_cost',)})
+    def simulate_graves_one_own(self):
+        return self._recursion_scene(1, 0, 0)
+
+    @simulate(evidence={'text': ('return.effect', 'return.lifelink'), 'fields': ('mana_cost',)})
+    def simulate_graves_one_enemy(self):
+        return self._recursion_scene(0, 1, 0)
+
+    @simulate(evidence={'text': ('return.effect', 'return.lifelink'), 'fields': ('mana_cost',)})
+    def simulate_graves_both(self):
+        return self._recursion_scene(1, 1, 0)
+
+    @simulate(evidence={'text': ('return.effect', 'return.lifelink'), 'fields': ('mana_cost',)})
+    def simulate_graves_several(self):
+        return self._recursion_scene(3, 3, 0)
+
+    @simulate(evidence={'text': ('return.effect', 'return.lifelink'), 'fields': ('mana_cost',)})
+    def simulate_graves_noncreatures(self):
+        return self._recursion_scene(0, 0, 3)
+
+    @simulate(evidence={'text': ('return.effect', 'return.lifelink'), 'fields': ('mana_cost',)})
+    def simulate_graves_mixed(self):
+        return self._recursion_scene(3, 3, 3)
+

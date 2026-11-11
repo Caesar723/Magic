@@ -1,51 +1,137 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.sorcery.Time_Warp.model import Time_Warp
+
 
 @bind_card(Time_Warp)
 class Time_Warp_Simulation(Card_Simulation):
+    text_parts = {
+        "draw.effect": [
+            "Draw {draw_count} card{draw_count_plural}.",
+            "Draw {draw_count_word} card{draw_count_plural}.",
+            "Take the top {draw_count} card{draw_count_plural} of your library into your hand.",
+            "Put the top {draw_count} card{draw_count_plural} from your library into your hand.",
+            "Add the top {draw_count} card{draw_count_plural} of your library to your hand.",
+            "You draw {draw_count} card{draw_count_plural}.",
+            "Draw a total of {draw_count} card{draw_count_plural}.",
+            "You draw a total of {draw_count_word} card{draw_count_plural}.",
+            "Take {draw_count} card{draw_count_plural} from the top of your library into your hand.",
+            "Put {draw_count} card{draw_count_plural} from the top of your library into your hand.",
+        ],
+        "remove.effect": [
+            "Then randomly remove {discard_count} cards from your hand, or all if fewer remain.",
+            "Next, remove {discard_count} randomly chosen hand cards, limited by availability.",
+            "Randomly choose and remove up to {discard_count} cards from your hand, taking all if fewer.",
+            "Afterward, remove {discard_count} random cards from your hand if available.",
+            "Take {discard_count} random cards out of your hand, or as many as remain.",
+            "Remove cards randomly from your hand {discard_count} times while any are available.",
+            "Then remove as many as {discard_count} available cards randomly from your hand.",
+            "Remove up to {discard_count} randomly selected hand cards, taking all available if fewer.",
+            "Next, randomly take {discard_count} cards out of your hand, stopping if empty.",
+            "After drawing, remove {discard_count} random hand cards, or all if there are fewer.",
+        ],
+        "return.effect": [
+            "Put a random card from your graveyard, including this spell into the top of your library, if available.",
+            "If there is a card from your graveyard, including this spell, choose one randomly and put it into the top of your library.",
+            "Choose a card from your graveyard, including this spell at random and move it into the top of your library, if possible.",
+            "Move one random card from your graveyard, including this spell into the top of your library when available.",
+            "Randomly select a card from your graveyard, including this spell and put that card into the top of your library, if one exists.",
+            "When any card from your graveyard, including this spell is available, choose one at random to move into the top of your library.",
+            "Put one available card from your graveyard, including this spell, chosen randomly, into the top of your library.",
+            "If possible, take a card from your graveyard, including this spell chosen at random and put it into the top of your library.",
+            "Move a randomly chosen card from your graveyard, including this spell into the top of your library if any are available.",
+            "Take a random card from your graveyard, including this spell and move it into the top of your library, when one exists.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Draw two cards, then randomly discard a card. You may put a card from your graveyard on top of your library.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "[CARD_NAME] lets you draw two cards, randomly discard a card, and optionally put a card from your graveyard on top of your library.",
+    def _recursion_scene(self, own_count, enemy_count=0, other_count=0, offset=0, colored=False, library_count=None, hand_count=0):
+        self.scenario_prepare()
+        self.player.graveyard.clear()
+        self.player.opponent.graveyard.clear()
+        self.player.hand.clear()
+        self.player.opponent.hand.clear()
+        for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
+            for index in range(count):
+                threshold = self.card.effect_params.get("mana_threshold", 2)
+                cost = "W" * (threshold + offset + index + 1) if colored else str(max(0, threshold + offset + index))
+                creature = self.scenario_creature(owner, power=index + 2, health=index + 3, flags={})
+                creature.mana_cost = cost
+                owner.remove_card(creature, "battlefield")
+                owner.append_card(creature, "graveyard")
+        for _ in range(other_count):
+            self.player.append_card(self.card.copy_for_player(self.player), "graveyard")
+        if library_count is not None:
+            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
+        for _ in range(hand_count):
+            self.player.append_card(self.card.copy_for_player(self.player), "hand")
+        return self.scenario_cast()
 
-        "Draw two cards, then discard a card at random. You may put a card from your graveyard on top of your library.",
+    @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})
+    def simulate_graves_none(self):
+        return self._recursion_scene(0, 0, 0)
 
-        "[CARD_NAME] draws you two cards, then you randomly discard a card. You may put a card from your graveyard on top of your library.",
+    @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})
+    def simulate_graves_one_own(self):
+        return self._recursion_scene(1, 0, 0)
 
-        "Draw two cards. Then randomly discard one card. You may put a card from your graveyard on top of your library.",
+    @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})
+    def simulate_graves_one_enemy(self):
+        return self._recursion_scene(0, 1, 0)
 
-        "[CARD_NAME] causes you to draw two cards, randomly discard a card, and optionally place a card from your graveyard on top of your library.",
+    @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})
+    def simulate_graves_both(self):
+        return self._recursion_scene(1, 1, 0)
 
-        "Draw a pair of cards, then randomly discard one. You may put a card from your graveyard on top of your library.",
+    @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})
+    def simulate_graves_several(self):
+        return self._recursion_scene(3, 3, 0)
 
-        "[CARD_NAME] draws two cards, then you discard a random card. You may put a card from your graveyard on top of your library.",
+    @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})
+    def simulate_graves_noncreatures(self):
+        return self._recursion_scene(0, 0, 3)
 
-        "Draw two cards, randomly discard a card from your hand, then you may put a card from your graveyard on top of your library.",
+    @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})
+    def simulate_graves_mixed(self):
+        return self._recursion_scene(3, 3, 3)
 
-        "[CARD_NAME] allows you to draw two cards, randomly discard a card, and put a card from your graveyard on top of your library if you choose."
-    ]
+    @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_empty_hand_0(self):
+        return self._recursion_scene(0, other_count=3, library_count=0, hand_count=0)
 
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.room.env_initinal_graveyard(self.player, {"creature_number": (1, 3), "instant_number": (1, 3), "sorcery_number": (1, 3)})
-        self.room.env_initinal_hand(self.player, {"creature_number": (1, 2), "instant_number": (1, 2)})
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_empty_hand_1(self):
+        return self._recursion_scene(0, other_count=3, library_count=0, hand_count=1)
 
-        self.room.env_mana(
-            self.player,
-            {"U": (2, 7)},
-            least_mana={"colorless": 3, "U": 2},
-        )
+    @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_empty_hand_3(self):
+        return self._recursion_scene(0, other_count=3, library_count=0, hand_count=3)
 
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_short_hand_0(self):
+        return self._recursion_scene(0, other_count=3, library_count=max(0, self.card.effect_params["draw_count"] - 1), hand_count=0)
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_short_hand_1(self):
+        return self._recursion_scene(0, other_count=3, library_count=max(0, self.card.effect_params["draw_count"] - 1), hand_count=1)
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_short_hand_3(self):
+        return self._recursion_scene(0, other_count=3, library_count=max(0, self.card.effect_params["draw_count"] - 1), hand_count=3)
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_exact_hand_0(self):
+        return self._recursion_scene(0, other_count=3, library_count=self.card.effect_params["draw_count"], hand_count=0)
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_exact_hand_1(self):
+        return self._recursion_scene(0, other_count=3, library_count=self.card.effect_params["draw_count"], hand_count=1)
+
+    @simulate(evidence={'text': ('draw.effect', 'remove.effect', 'return.effect'), 'fields': ('mana_cost',)})
+    def simulate_library_exact_hand_3(self):
+        return self._recursion_scene(0, other_count=3, library_count=self.card.effect_params["draw_count"], hand_count=3)
+

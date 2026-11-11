@@ -1,50 +1,77 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.sorcery.Divine_Rebirth.model import Divine_Rebirth
+
 
 @bind_card(Divine_Rebirth)
 class Divine_Rebirth_Simulation(Card_Simulation):
+    text_parts = {
+        "return.effect": [
+            "Put a random creature card from your graveyard into your battlefield, if available.",
+            "If there is a creature card from your graveyard, choose one randomly and put it into your battlefield.",
+            "Choose a creature card from your graveyard at random and move it into your battlefield, if possible.",
+            "Move one random creature card from your graveyard into your battlefield when available.",
+            "Randomly select a creature card from your graveyard and put that card into your battlefield, if one exists.",
+            "When any creature card from your graveyard is available, choose one at random to move into your battlefield.",
+            "Put one available creature card from your graveyard, chosen randomly, into your battlefield.",
+            "If possible, take a creature card from your graveyard chosen at random and put it into your battlefield.",
+            "Move a randomly chosen creature card from your graveyard into your battlefield if any are available.",
+            "Take a random creature card from your graveyard and move it into your battlefield, when one exists.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Return target creature card from your graveyard to the battlefield. If it's an Angel, create two 4/4 white Angel creature tokens with flying tapped and attacking.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "[CARD_NAME] returns target creature card from your graveyard to the battlefield. If it's an Angel, create two 4/4 white Angel creature tokens with flying tapped and attacking.",
+    def _recursion_scene(self, own_count, enemy_count=0, other_count=0, offset=0, colored=False, library_count=None, hand_count=0):
+        self.scenario_prepare()
+        self.player.graveyard.clear()
+        self.player.opponent.graveyard.clear()
+        self.player.hand.clear()
+        self.player.opponent.hand.clear()
+        for owner, count in ((self.player, own_count), (self.player.opponent, enemy_count)):
+            for index in range(count):
+                threshold = self.card.effect_params.get("mana_threshold", 2)
+                cost = "W" * (threshold + offset + index + 1) if colored else str(max(0, threshold + offset + index))
+                creature = self.scenario_creature(owner, power=index + 2, health=index + 3, flags={})
+                creature.mana_cost = cost
+                owner.remove_card(creature, "battlefield")
+                owner.append_card(creature, "graveyard")
+        for _ in range(other_count):
+            self.player.append_card(self.card.copy_for_player(self.player), "graveyard")
+        if library_count is not None:
+            self.room.env_initinal_library(self.player, {"instant_number": (library_count, library_count), "sorcery_number": (0, 0), "creature_number": (0, 0), "land_number": (0, 0)})
+            self.player.library = [card for card in self.player.library if card.type == "Instant"][:library_count]
+        for _ in range(hand_count):
+            self.player.append_card(self.card.copy_for_player(self.player), "hand")
+        return self.scenario_cast()
 
-        "Return a target creature card from your graveyard to the battlefield. If that creature is an Angel, create two 4/4 white Angel tokens with flying that are tapped and attacking.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_none(self):
+        return self._recursion_scene(0, 0, 0)
 
-        "[CARD_NAME] brings target creature card from your graveyard to the battlefield. If it's an Angel, create two 4/4 white flying Angel tokens tapped and attacking.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_one_own(self):
+        return self._recursion_scene(1, 0, 0)
 
-        "Put target creature card from your graveyard onto the battlefield. If it's an Angel, create two 4/4 white Angel creature tokens with flying, tapped and attacking.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_one_enemy(self):
+        return self._recursion_scene(0, 1, 0)
 
-        "[CARD_NAME] returns target creature from your graveyard to the battlefield. If it's an Angel, create two 4/4 white Angel tokens with flying that are tapped and attacking.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_both(self):
+        return self._recursion_scene(1, 1, 0)
 
-        "Return target creature card from your graveyard to play. If it's an Angel, create two 4/4 white Angel creature tokens with flying, tapped and attacking.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_several(self):
+        return self._recursion_scene(3, 3, 0)
 
-        "[CARD_NAME] puts target creature card from your graveyard onto the battlefield. If it's an Angel, create two 4/4 white flying Angel tokens tapped and attacking.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_noncreatures(self):
+        return self._recursion_scene(0, 0, 3)
 
-        "Return a creature card from your graveyard to the battlefield. If it's an Angel, create two 4/4 white Angel creature tokens with flying that are tapped and attacking.",
+    @simulate(evidence={'text': ('return.effect',), 'fields': ('mana_cost',)})
+    def simulate_graves_mixed(self):
+        return self._recursion_scene(3, 3, 3)
 
-        "[CARD_NAME] returns target creature card from your graveyard to the battlefield. If the returned card is an Angel, create two 4/4 white Angel tokens with flying, tapped and attacking."
-    ]
-
-    @simulate
-    def simulate_when_cast(self):
-        self.basic_initinal()
-        self.room.env_initinal_graveyard(self.player, {"creature_number": (2, 5)})
-        self.room.env_no_creature(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-
-        self.room.env_mana(
-            self.player,
-            {"W": (1, 7)},
-            least_mana={"colorless": 3, "W": 1},
-        )
-
-        simulate_info = self.room.simulate_play(self.card)
-        return simulate_info

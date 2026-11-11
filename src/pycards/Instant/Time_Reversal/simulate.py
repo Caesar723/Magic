@@ -1,43 +1,88 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.Instant.Time_Reversal.model import Time_Reversal
+
 
 @bind_card(Time_Reversal)
 class Time_Reversal_Simulation(Card_Simulation):
+    text_parts = {
+        "counter.effect": [
+            "Cancel the pending effects of all opposing instants and sorceries currently on the stack.",
+            "Replace every opposing instant or sorcery effect on the stack with no effect.",
+            "All opposing instant and sorcery effects now in the stack are cancelled.",
+            "Cancel each currently stacked instant or sorcery controlled by your opponent.",
+            "Make the pending effects of your opponent's stacked instants and sorceries do nothing.",
+            "Nullify every opposing instant and sorcery effect currently waiting on the stack.",
+            "Cancel the effects of all your opponent's instants and sorceries in the current stack.",
+            "Every opposing instant or sorcery on the stack has its pending effect replaced with no action.",
+            "Turn all current opposing instant and sorcery stack effects into empty effects.",
+            "Neutralize each instant or sorcery effect your opponent currently has on the stack.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Undo all spells and effects from your opponent.",
-        "[CARD_NAME] undoes all spells and effects from your opponent.",
-        "Reverse all of your opponent's spells and effects.",
-        "Undo opponent's spells and effects.",
-        "[CARD_NAME]: undo opponent spells and effects.",
-        "Roll back all opponent spells and effects.",
-        "With [CARD_NAME], undo everything your opponent has cast or triggered.",
-        "Cancel all opponent spells and effects.",
-        "Reverse opponent's active spells and effects.",
-        "[CARD_NAME] reverses all opponent spells and effects.",
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_card_stack(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    def _stack_scene(self, kind="instant", own_stack=False, lower_count=0, role="enemy", target_top=False, library_count=None):
+        self.scenario_prepare()
+        self.scenario_stack(kind, own_target=own_stack, lower_count=lower_count)
+        for index, item in enumerate(self.room.stack[:-1]):
+            if index % 2 == 0:
+                old = item["card"]
+                owner = old.player.opponent
+                zone = "battlefield" if old.type == "Creature" else "graveyard"
+                old.player.remove_card(old, zone)
+                new = old.copy_for_player(owner)
+                owner.append_card(new, zone)
+                item["card"] = new
+        return self.scenario_cast(in_stack=True)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(2,7)},
-            least_mana={"colorless":5,"U":2}
-        )
+    @simulate(evidence={'text': ('counter.effect',), 'fields': ('mana_cost',)})
+    def simulate_stack_instant_own_False_lower_0(self):
+        return self._stack_scene('instant', False, 0)
 
-        self.room.env_stack_cards(
-            self.player,self.card,preferred_types=("instant","sorcery")
-        )
-        simulate_info=self.room.simulate_play_in_stack(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('counter.effect',), 'fields': ('mana_cost',)})
+    def simulate_stack_instant_own_False_lower_3(self):
+        return self._stack_scene('instant', False, 3)
+
+    @simulate(evidence={'text': ('counter.effect',), 'fields': ('mana_cost',)})
+    def simulate_stack_instant_own_True_lower_0(self):
+        return self._stack_scene('instant', True, 0)
+
+    @simulate(evidence={'text': ('counter.effect',), 'fields': ('mana_cost',)})
+    def simulate_stack_instant_own_True_lower_3(self):
+        return self._stack_scene('instant', True, 3)
+
+    @simulate(evidence={'text': ('counter.effect',), 'fields': ('mana_cost',)})
+    def simulate_stack_sorcery_own_False_lower_0(self):
+        return self._stack_scene('sorcery', False, 0)
+
+    @simulate(evidence={'text': ('counter.effect',), 'fields': ('mana_cost',)})
+    def simulate_stack_sorcery_own_False_lower_3(self):
+        return self._stack_scene('sorcery', False, 3)
+
+    @simulate(evidence={'text': ('counter.effect',), 'fields': ('mana_cost',)})
+    def simulate_stack_sorcery_own_True_lower_0(self):
+        return self._stack_scene('sorcery', True, 0)
+
+    @simulate(evidence={'text': ('counter.effect',), 'fields': ('mana_cost',)})
+    def simulate_stack_sorcery_own_True_lower_3(self):
+        return self._stack_scene('sorcery', True, 3)
+
+    @simulate(evidence={'text': ('counter.effect',), 'fields': ('mana_cost',)})
+    def simulate_stack_creature_own_False_lower_0(self):
+        return self._stack_scene('creature', False, 0)
+
+    @simulate(evidence={'text': ('counter.effect',), 'fields': ('mana_cost',)})
+    def simulate_stack_creature_own_False_lower_3(self):
+        return self._stack_scene('creature', False, 3)
+
+    @simulate(evidence={'text': ('counter.effect',), 'fields': ('mana_cost',)})
+    def simulate_stack_creature_own_True_lower_0(self):
+        return self._stack_scene('creature', True, 0)
+
+    @simulate(evidence={'text': ('counter.effect',), 'fields': ('mana_cost',)})
+    def simulate_stack_creature_own_True_lower_3(self):
+        return self._stack_scene('creature', True, 3)
+

@@ -1,42 +1,66 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.Instant.Phantasmal_Distortion.model import Phantasmal_Distortion
+
 
 @bind_card(Phantasmal_Distortion)
 class Phantasmal_Distortion_Simulation(Card_Simulation):
+    text_parts = {
+        "clone.effect": [
+            "Until your end step, a target creature you control copies the stats and methods of another random creature you control.",
+            "Choose one of your creatures to copy another random friendly creature's stats and methods until your turn ends.",
+            "Make a target creature you control copy a randomly chosen other friendly creature through your turn.",
+            "Your target creature copies the stats and methods of one random other creature you control until your end step.",
+            "Until your turn ends, let a chosen friendly creature copy another random creature under your control.",
+            "A target friendly creature becomes a temporary copy of a random other friendly creature until your end step.",
+            "Copy another randomly chosen friendly creature onto the targeted creature you control until your turn ends.",
+            "Give one of your creatures the stats and methods of a random other friendly creature until your end step.",
+            "The selected creature you control copies one random other creature on your battlefield through your turn.",
+            "Until your end step, transform a target friendly creature by copying another random friendly creature's stats and methods.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "Until end of turn, target creature you control becomes a copy of another your random creature, except it retains its abilities. Return that creature to its owner's hand at the beginning of the next end step.",
-        "[CARD_NAME] makes your creature a copy of a random creature you control until end of turn, keeping abilities; bounce at next end step.",
-        "Target creature you control copies a random creature of yours this turn, keeping abilities. Bounce at next end step.",
-        "Your creature becomes a copy of a random creature you control until end of turn. Return it at next end step.",
-        "[CARD_NAME]: copy random own creature on target, retain abilities, bounce next end step.",
-        "Until end of turn, your creature copies a random creature you control. Bounce at beginning of next end step.",
-        "Transform your creature into a copy of random ally creature this turn. Return to hand next end step.",
-        "With [CARD_NAME], copy a random creature you control onto target, keep abilities, bounce later.",
-        "Target creature copies random creature you control until EOT; returns to hand next end step.",
-        "[CARD_NAME] distorts your creature into a random copy, then bounces it next end step.",
-    ]
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-    @simulate
-    def simulate_card(self):
-        self.basic_initinal()
-        self.room.env_creature(self.player)
-        if len(self.player.battlefield)==1:
-            self.player.battlefield.append(type(self.player.battlefield[0])(self.player))
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    def _target_scene(self, own_target=True, others=1, same_name=True, counterpart_enemy=False, hexproof=False, donors=0):
+        self.scenario_prepare()
+        owner = self.player if own_target else self.player.opponent
+        target = self.scenario_creature(owner, power=2, health=4, flags={"Hexproof": hexproof})
+        for index in range(others):
+            other_owner = self.player.opponent if counterpart_enemy else self.player
+            creature = self.scenario_creature(other_owner, power=3 + index, health=6 + index, flags={"reach": True})
+            if same_name:
+                creature.name = target.name
+        subaction = 11 if own_target else 1
+        return self.scenario_cast((subaction,))
 
-        self.room.env_mana(
-            self.player,
-            {"U":(2,7)},
-            least_mana={"colorless":1,"U":2}
-        )
+    @simulate(evidence={'text': ('clone.effect',), 'fields': ('mana_cost',)})
+    def simulate_target_own_False_others_0_same_True(self):
+        return self._target_scene(False, 0, same_name=True)
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'text': ('clone.effect',), 'fields': ('mana_cost',)})
+    def simulate_target_own_False_others_1_same_True(self):
+        return self._target_scene(False, 1, same_name=True)
+
+    @simulate(evidence={'text': ('clone.effect',), 'fields': ('mana_cost',)})
+    def simulate_target_own_False_others_3_same_True(self):
+        return self._target_scene(False, 3, same_name=True)
+
+    @simulate(evidence={'text': ('clone.effect',), 'fields': ('mana_cost',)})
+    def simulate_target_own_True_others_0_same_True(self):
+        return self._target_scene(True, 0, same_name=True)
+
+    @simulate(evidence={'text': ('clone.effect',), 'fields': ('mana_cost',)})
+    def simulate_target_own_True_others_1_same_True(self):
+        return self._target_scene(True, 1, same_name=True)
+
+    @simulate(evidence={'text': ('clone.effect',), 'fields': ('mana_cost',)})
+    def simulate_target_own_True_others_3_same_True(self):
+        return self._target_scene(True, 3, same_name=True)
+
+    @simulate(evidence={'text': ('clone.effect',), 'fields': ('mana_cost',)})
+    def simulate_enemy_hexproof(self):
+        return self._target_scene(False, hexproof=True)
+

@@ -1,40 +1,47 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.land.Plains.model import Plains
+
 
 @bind_card(Plains)
 class Plains_Simulation(Card_Simulation):
+    text_parts = {
+        "mana.effect": [
+            "Tap this land to add {mana_amount} white mana.",
+            "You may tap {card_name} to add {mana_amount} white mana to your pool.",
+            "Tap {card_name} to produce {mana_amount} white mana.",
+            "Tapping this land for mana adds {mana_amount} white mana.",
+            "This land can be tapped for {mana_amount} white mana.",
+            "You may tap this land for {mana_amount} white mana.",
+            "Tap it for mana to add {mana_amount} white mana to your mana pool.",
+            "By tapping {card_name} for mana, you gain {mana_amount} white mana.",
+            "You can tap this land to produce {mana_amount} white mana.",
+            "{card_name} can produce {mana_amount} white mana when tapped for mana.",
+        ],
+    }
 
-    @simulate
-    def simulate_when_enter_landarea(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('card_type',)})
+    def simulate_enter(self):
+        self.scenario_prepare()
+        return self.scenario_cast()
 
-        self.room.env_mana(
-            self.player,
-            {"U": (0, 4), "B": (0, 4), "G": (0, 4), "R": (0, 4), "W": (0, 4)},
-        )
+    @simulate(evidence={'fields': ('card_type',)})
+    def simulate_enter_land_limit(self):
+        self.scenario_prepare()
+        record = self.scenario_cast()
+        self.player.counter_dict["lands_summon"] = self.player.get_counter_from_dict("lands_summon_max")
+        record["action"] = self.room.sample_card_action(self.player.hand.index(self.card), (0,))
+        return record
 
-        return self.room.simulate_play(self.card)
+    @simulate(evidence={})
+    def simulate_activate_tapped(self):
+        self.scenario_prepare()
+        record = self.room.simulate_activate_ability(self.card)
+        self.card.flag_dict["tap"] = True
+        record["action"] = self.room.sample_action((22, 23))
+        return record
 
-    @simulate
-    def simulate_activate_ability(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
-
-        self.room.env_mana(
-            self.player,
-            {"U": (0, 4), "B": (0, 4), "G": (0, 4), "R": (0, 4), "W": (0, 4)},
-        )
-
+    @simulate(evidence={'text': ('mana.effect',), 'fields': ('color_identity',)})
+    def simulate_activate_mana(self):
+        self.scenario_prepare()
         return self.room.simulate_activate_ability(self.card)
+

@@ -43,6 +43,9 @@ def _masked_cross_entropy(logits, target, valid_mask):
 class EntityTransitionBirthCVAETrainer(EntityTransitionCVAETrainer):
     """Add set-prediction losses for source-free next-state entities."""
 
+    def _test_states(self,prediction,source,target,index):
+        return state_from_entity_birth_prediction(prediction,source,index),state_from_entity_target(target,index)
+
     def reconstruction_loss(self, batch):
         result = super().reconstruction_loss(batch)
         prediction = batch["pred_next"]

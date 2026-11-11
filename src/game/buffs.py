@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 
 
 import types
+import copy
 import inspect
 
 
@@ -229,54 +230,156 @@ class Infect(Buff):
         card.attact_to_object = types.MethodType(attact_to_object, card)
         
 class Clone(Buff):
+    runtime_fields={"player","card_id","buffs","counter_dict","current_position","actual_power","actual_live",
+                    "flag_dict","_original_methods","_active_clone","_clone_leaving"}
+    runtime_flags={"tap","summoning_sickness","die","exile"}
+    keyword_flags={"reach","Trample","flying","haste","Flash","lifelink","Vigilance","Menace","Hexproof",
+                   "Islandwalk","Double strike","Defender","unblockable"}
+    definition_fields=("name","type","type_card","type_creature","mana_cost","color","rarity","fixed_id",
+                       "image_path","_content_template","extra_content","select_range")
+
     def __init__(self,card:"Card",selected_card:"Creature",reference_card:"Creature") -> None:
         super().__init__(card,selected_card)
-        self.card=card#这个buff是属于哪一张卡的
-        self.card_type:str="Clone"#这个buff是用在那个类型的
-        self.content:str=f"clone({reference_card.name})"#描述buff
-        self.buff_name=f"{card.name}"
+        self.card_type="Clone"
+        self.content=f"clone({reference_card.name})"
+        self.buff_name=card.name
         self.reference_card=reference_card
+        self.init_params.update({"reference_card":reference_card})
+        self.prepare_copy(selected_card)
 
-        self.state_reference=self.reference_card.state
-        
-        self.state_card=selected_card.state
-    def change_function(self,card:"Creature"):
+    @staticmethod
+    def make_template(card_class,player):
+        template=object.__new__(card_class)
+        # Constructor buffs belong to the template and emit no gameplay actions.
+        template.when_gain_buff=lambda *args,**kwargs:None
+        card_class.__init__(template,player)
+        template.__dict__.pop("when_gain_buff",None)
+        return template
 
-        if not hasattr(card,"_effect_params_before_clone"):
-            card._effect_params_before_clone=card.effect_params.copy()
-        card.effect_params=card.effect_params|self.reference_card.effect_params
-        previews_func_key=card.get_flag
-        previews_func_state=card.calculate_state
+    @classmethod
+    def values(cls,card):
+        return {key:value for key,value in card.__dict__.items()
+                if key not in cls.runtime_fields and not callable(value)}
 
-        for attr_name in dir(self.reference_card.__class__):
-            attr = getattr(self.reference_card.__class__, attr_name)
-            if callable(attr) and not attr_name.startswith("__"):
-                bound_method = types.MethodType(attr, card)
-                setattr(card, attr_name, bound_method)
+    @staticmethod
+    def copy_values(values):
+        # Keep references to real game entities while giving the copy its own containers.
+        return {key:value.copy() if isinstance(value,(dict,list,set)) else value for key,value in values.items()}
 
-        
-        copid_flag_dict=self.reference_card.flag_dict.copy()
-        def get_flag(self_card,key):
-            result=previews_func_key(key)
-            if key in copid_flag_dict:
-                return copid_flag_dict[key]
-            return result
-        card.get_flag = types.MethodType(get_flag, card)
+    @staticmethod
+    def original_actual(card):
+        actual=(card.actual_power,card.actual_live)
+        active=card.__dict__.get("_active_clone")
+        if active is None:
+            return actual
+        return tuple(active.saved_actual[i]+actual[i]-active.applied_actual[i] for i in range(2))
 
-        
-        
-        
-        def calculate_state(self_card):
-            power,live=previews_func_state()
-            power+=self.state_reference[0]-self.state_card[0]
-            live+=self.state_reference[1]-self.state_card[1]
-            return (power,live)
-        card.calculate_state = types.MethodType(calculate_state, card)
-
-        keys=card.check_overwritten()
+    def prepare_copy(self,card):
+        reference=self.reference_card
+        self.reference_class=type(reference)
+        self.template=self.make_template(self.reference_class,card.player)
+        self.copy_data=self.copy_values(self.values(self.template))
+        for key in self.definition_fields:
+            if key in reference.__dict__:
+                self.copy_data[key]=reference.__dict__[key]
+        self.copy_data=self.copy_values(self.copy_data)
+        self.copy_data["effect_params"]=reference.effect_params.copy()
+        self.copy_flags=self.template.flag_dict.copy()
+        keys=self.keyword_flags|{buff.key_name for buff in reference.buffs if isinstance(buff,KeyBuff)}
         for key in keys:
-            card.player.put_card_to_dict(key,card)
+            self.copy_flags[key]=reference.get_flag(key)
+        self.state_reference=reference.state
+        self.state_card=card.state
+        self.base_actual=self.original_actual(card)
+        actual=(card.actual_power,card.actual_live)
+        self.state_bonus=tuple(self.state_card[i]-actual[i] for i in range(2))
+        self.maximum_state=(reference.power+reference.state[0]-reference.actual_power,
+                            reference.live+reference.state[1]-reference.actual_live)
+        self.intrinsic_buffs=None
 
-        
+    def set_end_of_turn(self):
+        self._end_turn_player=self.selected_card.player
+        self._end_turn_player.put_card_to_dict("end_step_buff",self)
 
-        
+    def cancel_expiry(self):
+        owner=getattr(self,"_end_turn_player",self.selected_card.player)
+        owner.remove_card_from_dict("end_step_buff",self)
+
+    def when_end_turn(self):
+        self.cancel_expiry()
+        self.selected_card.loss_buff(self,self.card)
+
+    def change_function(self,card:"Creature"):
+        from game.game_function_tool import backup_instance_methods
+
+        if not hasattr(self,"copy_data"):
+            self.prepare_copy(card)
+            self.init_params["reference_card"]=self.reference_card
+        self.saved_class=type(card)
+        self.saved_data=self.values(card)
+        self.saved_flags=card.flag_dict.copy()
+        self.saved_methods=card._original_methods
+        self.saved_actual=(card.actual_power,card.actual_live)
+        original_template=self.make_template(type(card),card.player)
+        intrinsic_types={type(buff) for buff in original_template.buffs}
+        self.removed_buffs=[(index,buff) for index,buff in enumerate(card.buffs)
+                            if type(buff) in intrinsic_types and buff.card is card and buff.selected_card is card]
+        for _,buff in self.removed_buffs:
+            card.buffs.remove(buff)
+        for key in list(card.__dict__):
+            if key in self.saved_data or callable(card.__dict__[key]):
+                del card.__dict__[key]
+
+        card.__class__=self.reference_class
+        card.__dict__.update(self.copy_values(self.copy_data))
+        card.flag_dict=self.copy_flags|{key:value for key,value in self.saved_flags.items() if key in self.runtime_flags}
+        card.power=self.maximum_state[0]-self.state_bonus[0]
+        card.live=self.maximum_state[1]-self.state_bonus[1]
+        delta=tuple(self.saved_actual[i]-self.base_actual[i] for i in range(2))
+        self.applied_actual=tuple(self.state_reference[i]-self.state_bonus[i]+delta[i] for i in range(2))
+        card.actual_power,card.actual_live=self.applied_actual
+        card._active_clone=self
+        backup_instance_methods(card)
+
+        if self.intrinsic_buffs is None:
+            self.intrinsic_buffs=copy.deepcopy(self.template.buffs,{id(self.template):card,id(self.template.player):card.player})
+        card.buffs.extend(self.intrinsic_buffs)
+
+        for name in ("when_move_to_graveyard","when_move_to_exile_area"):
+            method=getattr(card,name)
+
+            async def leave(self_card,*args,_method=method,**kwargs):
+                leaving=self_card.__dict__.get("_clone_leaving",False)
+                self_card._clone_leaving=True
+                try:
+                    return await _method(*args,**kwargs)
+                finally:
+                    if leaving:
+                        self_card._clone_leaving=True
+                    else:
+                        self_card.__dict__.pop("_clone_leaving",None)
+                        if self_card not in self_card.player.battlefield:
+                            self_card.clear_clone()
+
+            setattr(card,name,types.MethodType(leave,card))
+
+    def restore(self,card):
+        # Preserve damage, healing and ability state through buff recalculation.
+        actual=self.original_actual(card)
+        self.copy_data=self.values(card)
+        self.copy_flags={key:value for key,value in card.flag_dict.items() if key not in self.runtime_flags}
+        flags=self.saved_flags|{key:value for key,value in card.flag_dict.items() if key in self.runtime_flags}
+        for buff in self.intrinsic_buffs:
+            if buff in card.buffs:
+                card.buffs.remove(buff)
+        for index,buff in self.removed_buffs:
+            card.buffs.insert(min(index,len(card.buffs)),buff)
+        for key in list(card.__dict__):
+            if key not in self.runtime_fields or callable(card.__dict__[key]):
+                del card.__dict__[key]
+        card.__class__=self.saved_class
+        card.__dict__.update(self.saved_data)
+        card.actual_power,card.actual_live=actual
+        card.flag_dict=flags
+        card._original_methods=self.saved_methods
+        card.__dict__.pop("_active_clone",None)

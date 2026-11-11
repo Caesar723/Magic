@@ -1,80 +1,156 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.rlearning.trainingRoom.training_parallel_specific_room import Multi_Agent_Parallel_Specific_Room
-    from game.player import Player
-
-from game.card_simulation import bind_card,simulate,Card_Simulation,test
+from game.card_simulation import bind_card, simulate, Card_Simulation
 from pycards.creature.Inferno_Titan.model import Inferno_Titan
+
 
 @bind_card(Inferno_Titan)
 class Inferno_Titan_Simulation(Card_Simulation):
+    text_parts = {
+        "enter.trigger": [
+            "When {card_name} enters the battlefield,",
+            "Whenever {card_name} enters the battlefield,",
+            "When this creature enters the battlefield,",
+            "Whenever this creature enters the battlefield,",
+            "When {card_name} enters play,",
+            "Whenever {card_name} enters play,",
+            "When this creature enters play,",
+            "Whenever this creature enters play,",
+            "When {card_name} comes into play,",
+            "Whenever {card_name} comes into play,",
+        ],
+        "enter.effect": [
+            "Repeat {damage} times, dealing one damage to a random opposing creature or your opponent each time.",
+            "Deal {damage} separate one-damage hits, each randomly directed at your opponent or an opposing creature.",
+            "For {damage} hits, randomly choose your opponent or one of their creatures and deal one damage.",
+            "Make {damage} independent random choices among the opposing player and creatures, dealing one damage per choice.",
+            "Randomly deal one damage {damage} times among your opponent and their creatures.",
+            "Each of {damage} one-damage hits picks your opponent or one of their creatures at random.",
+            "Deal one damage to a random opposing creature or player, repeating this {damage} times.",
+            "Perform {damage} one-point hits, randomly selecting from your opponent and their creatures for each hit.",
+            "Choose randomly among your opponent and their creatures for each of {damage} separate one-damage hits.",
+            "Apply {damage} hits of one damage, independently choosing the opposing player or an opposing creature each time.",
+        ],
+    }
 
-    similar_descriptions:list[str]=[
-        "When [CARD_NAME] enters the battlefield, it deals 4 damage divided among three target creatures and/or players.",
+    @simulate(evidence={'fields': ('mana_cost',)})
+    def simulate_cast_without_mana(self):
+        self.scenario_prepare()
+        return self.scenario_cast(provide_mana=False)
 
-        "When [CARD_NAME] enters play, it deals 4 damage divided among three target creatures and/or players.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_dies_self_survives(self):
+        return self.scenario_combat(False, True, False, margin=0)
 
-        "As [CARD_NAME] enters the battlefield, it deals 4 damage divided among three target creatures and/or players.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(False, True, False, margin=1)
 
-        "Upon entering the battlefield, [CARD_NAME] deals 4 damage split among three target creatures and/or players.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_survive(self):
+        return self.scenario_combat(False, False, False, margin=0)
 
-        "When [CARD_NAME] arrives, it deals 4 damage divided among three target creatures and/or players.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_survive_beyond_boundary(self):
+        return self.scenario_combat(False, False, False, margin=1)
 
-        "When [CARD_NAME] enters the battlefield, deal 4 damage divided among three target creatures and/or players.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_survives_self_dies(self):
+        return self.scenario_combat(False, False, True, margin=0)
 
-        "When [CARD_NAME] enters the battlefield, it deals four damage divided among three target creatures and/or players.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(False, False, True, margin=1)
 
-        "When [CARD_NAME] enters the battlefield, it distributes 4 damage among three target creatures and/or players.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_die(self):
+        return self.scenario_combat(False, True, True, margin=0)
 
-        "When [CARD_NAME] enters the battlefield, it deals 4 damage divided as you choose among three target creatures and/or players.",
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_attack_both_die_beyond_boundary(self):
+        return self.scenario_combat(False, True, True, margin=1)
 
-    ]
-    @simulate
-    def simulate_when_enter_battlefield(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_dies_self_survives(self):
+        return self.scenario_combat(True, True, False, margin=0)
 
-        self.room.env_mana(
-            self.player,
-            {"R":(2,7)},
-            least_mana={"colorless":3,"R":2}
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_dies_self_survives_beyond_boundary(self):
+        return self.scenario_combat(True, True, False, margin=1)
 
-        simulate_info=self.room.simulate_play(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive(self):
+        return self.scenario_combat(True, False, False, margin=0)
 
-    @simulate
-    def simulate_when_attack_opponent(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.random_env_creature()(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_survive_beyond_boundary(self):
+        return self.scenario_combat(True, False, False, margin=1)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies(self):
+        return self.scenario_combat(True, False, True, margin=0)
 
-        simulate_info=self.room.simulate_creature_attack(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_opponent_survives_self_dies_beyond_boundary(self):
+        return self.scenario_combat(True, False, True, margin=1)
 
-    @simulate
-    def simulate_when_defend_opponent(self):
-        self.basic_initinal()
-        self.random_env_creature()(self.player)
-        self.random_life()(self.player)
-        self.room.env_creature(self.player.opponent)
-        self.random_life()(self.player.opponent)
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_die(self):
+        return self.scenario_combat(True, True, True, margin=0)
 
-        self.room.env_mana(
-            self.player,
-            {"U":(0,7),"B":(0,7),"G":(0,7),"R":(0,7),"W":(0,7)},
-        )
+    @simulate(evidence={'fields': ('attack', 'defend', 'special_type')})
+    def simulate_defend_both_die_beyond_boundary(self):
+        return self.scenario_combat(True, True, True, margin=1)
 
-        simulate_info=self.room.simulate_creature_defend(self.card)
-        return simulate_info
+    @simulate(evidence={'fields': ('attack', 'special_type')})
+    def simulate_attack_empty_board(self):
+        return self.scenario_unblocked(False)
+
+    @simulate(evidence={'fields': ('attack', 'special_type')})
+    def simulate_attack_opponent_passes(self):
+        return self.scenario_unblocked(True)
+
+    def _enter_group(self, count, offset=0, colored=False, missing=1):
+        self.scenario_prepare()
+        self.player.life = max(1, self.player.ini_life - missing)
+        for index in range(count):
+            owner = self.player.opponent
+            creature = self.scenario_creature(owner, power=index + 1, health=max(1, self.card.effect_params.get("damage", 2) + offset + index), flags={"Hexproof": True})
+            cost = self.card.effect_params.get("mana_threshold", 2) + offset + index
+            creature.mana_cost = "W" * max(0, cost) if colored else str(max(0, cost))
+        return self.scenario_cast()
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
+    def simulate_enter_count_0_below(self):
+        return self._enter_group(0, offset=-1)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
+    def simulate_enter_count_0_equal(self):
+        return self._enter_group(0, offset=0)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
+    def simulate_enter_count_0_above(self):
+        return self._enter_group(0, offset=1)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
+    def simulate_enter_count_1_below(self):
+        return self._enter_group(1, offset=-1)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
+    def simulate_enter_count_1_equal(self):
+        return self._enter_group(1, offset=0)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
+    def simulate_enter_count_1_above(self):
+        return self._enter_group(1, offset=1)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
+    def simulate_enter_count_3_below(self):
+        return self._enter_group(3, offset=-1)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
+    def simulate_enter_count_3_equal(self):
+        return self._enter_group(3, offset=0)
+
+    @simulate(evidence={'text': ('enter.trigger', 'enter.effect'), 'fields': ('mana_cost',)})
+    def simulate_enter_count_3_above(self):
+        return self._enter_group(3, offset=1)
 

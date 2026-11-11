@@ -241,7 +241,7 @@ class EntityTransitionSupportPlanBirthZeroMessageCVAETrainer(EntityTransitionPla
 
 
 
-    def _synthesis_decoder_predictions(self, models, batch, selection):
+    def _synthesis_decoder_predictions(self, models, batch, selection, prior_only=False):
         plans = batch["transition_plan"].index_select(0, selection)
         entity_tokens = batch["entity_tokens"].index_select(0, selection)
         entity_padding = batch["entity_padding_mask"].index_select(0, selection)
@@ -287,23 +287,16 @@ class EntityTransitionSupportPlanBirthZeroMessageCVAETrainer(EntityTransitionPla
         prior_prediction, prior_mask = decode_view(
             batch["mean_p"].index_select(0, selection)
         )
-        posterior_prediction, posterior_mask = decode_view(
-            batch["mean_q"].index_select(0, selection)
-        )
-
-        return {
-            "prior": {
-                "encoder": "PriorEncoder",
-                "label": "Prior · inference",
-                "condition": "current state + card + action",
-                "prediction": prior_prediction,
-                "selected_mask": prior_mask,
-            },
-            "posterior": {
-                "encoder": "PosteriorEncoder",
-                "label": "Posterior · reconstruction",
-                "condition": "current state + card + action + true next state",
-                "prediction": posterior_prediction,
-                "selected_mask": posterior_mask,
-            },
-        }
+        views={"prior":{
+            "encoder":"PriorEncoder","label":"Prior · inference",
+            "condition":"current state + card + action",
+            "prediction":prior_prediction,"selected_mask":prior_mask,
+        }}
+        if not prior_only:
+            posterior_prediction,posterior_mask=decode_view(batch["mean_q"].index_select(0,selection))
+            views["posterior"]={
+                "encoder":"PosteriorEncoder","label":"Posterior · reconstruction",
+                "condition":"current state + card + action + true next state",
+                "prediction":posterior_prediction,"selected_mask":posterior_mask,
+            }
+        return views
