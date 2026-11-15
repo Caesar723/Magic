@@ -15,8 +15,9 @@ from game.rlearning.utils.file import read_yaml
 def main(args):
     config_path=args.config
     config=read_yaml(config_path)
-    env=get_class_by_name(config["env"])(config_path, restore_step=args.restore_step)
+    env = None
     try:
+        env=get_class_by_name(config["env"])(config_path, restore_step=args.restore_step)
         env.start_worker()
         env.run()
     except KeyboardInterrupt:
@@ -26,9 +27,23 @@ def main(args):
         # no top-level trainer to checkpoint here.
         agent = getattr(env, "agent1", None)
         if agent is not None and agent.rank == 0:
-            agent.save_checkpoint()
+            try:
+                diagnostics = getattr(env, "diagnostics", None)
+                if diagnostics is not None:
+                    diagnostics.mark("save_checkpoint_on_interrupt", step=agent.step)
+                agent.save_checkpoint()
+            except Exception as error:
+                if diagnostics is not None:
+                    diagnostics.capture(error)
+                raise
+    except Exception as error:
+        diagnostics = getattr(env, "diagnostics", None)
+        if diagnostics is not None:
+            diagnostics.capture(error)
+        raise
     finally:
-        env.shutdown()
+        if env is not None:
+            env.shutdown()
 
 
 def get_args():

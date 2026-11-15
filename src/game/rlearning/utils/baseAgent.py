@@ -1,5 +1,6 @@
 
 import os, random, yaml, tqdm,time, sys
+import traceback
 import numpy as np 
 import subprocess
 from multiprocessing import Process
@@ -360,21 +361,23 @@ class BaseTrainer:
             state_dict.update( torch.load(cpd, weights_only=False, map_location="cpu") ) 
 
         error_keys = []
+        restore_errors = {}
         for k in self._models:
             try:
                 if self.config["model"][k].get("ignore_state",False):
                     continue
                 self._models[k].load_state_dict(state_dict[k], strict=False)
                 self.models_test[k].load_state_dict(state_dict[k], strict=False) 
-            except:
+            except Exception:
+                restore_errors[k] = traceback.format_exc()
                 if self.rank == 0:
-                    log.info(f"error restore model {k}, but continue.")
+                    log.info(f"error restore model {k}, but continue.\n{restore_errors[k]}")
                 error_keys.append(k)
         if self.name.startswith("inference:"):
             # Skip loading optims and scheds
             if error_keys:
                 raise RuntimeError(
-                    f"Failed to load inference models: {error_keys}"
+                    f"Failed to load inference models: {error_keys}\n" + "\n".join(restore_errors.values())
                 )
 
             self.step = int(state_dict.get("step", 0))

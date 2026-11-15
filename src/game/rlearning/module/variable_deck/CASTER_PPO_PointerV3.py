@@ -6,6 +6,7 @@ import torch.nn.functional as F
 
 from game.game_function_tool import ORGPATH
 from game.rlearning.onnx_export.torch_session import TorchONNXSession
+from game.rlearning.utils.diagnostics import validate_cpu_batch
 from game.rlearning.utils.baseAgent import BaseTrainer
 from game.rlearning.utils.data import batch_to_cuda,detach_cuda,to_cpu
 
@@ -56,6 +57,11 @@ class CASTER_PPO_Pointer(BaseTrainer):
                 config["providers"],
             )
         }
+    def _trace_stage(self, stage, **details):
+        diagnostics = getattr(self, "diagnostics", None)
+        if diagnostics is not None:
+            diagnostics.mark(stage, **details)
+
     def _forward(self,batch,models,isTrain,step,epoch):
         batch=self.predict(batch,models,isTrain,step,epoch)
         mask=batch["valid_mask"].bool() & batch["time_mask"]
@@ -171,6 +177,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
                 onnx_inputs[name]=value.flatten(0,1).index_select(0,slots).to(dtype=dtype)
 
             output_specs={"card_embeddings":((slots.numel(),self.embed_dim),torch.float32)}
+            self._trace_stage("card_onnx", inputs={name: tuple(value.shape) for name, value in onnx_inputs.items()})
             encoded=self.extra["card_embedding"].run(onnx_inputs,output_specs)["card_embeddings"]
             card_embeddings.index_copy_(0,slots,encoded)
 
@@ -251,6 +258,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
         }
         encode_mask=candidate_mask & candidate_has_card & (candidate_actions>=0)
         if encode_mask.any().item():
+            self._trace_stage("action_onnx", inputs={name: tuple(value.shape) for name, value in onnx_inputs.items()})
             onnx_outputs=self.extra["action_embedding"].run(onnx_inputs,output_specs)
         else:
             onnx_outputs={
@@ -264,6 +272,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
 
         special_action_ids=torch.where(candidate_indices<=1,candidate_indices,torch.full_like(candidate_indices,-1))
 
+        self._trace_stage("candidate_encoder")
         candidate_features=models["CandidateEncoder"](
             planner.reshape(num_states*num_candidates,4,self.planner_dim),
             mean_p.reshape(num_states*num_candidates,self.q_dim),
@@ -293,6 +302,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
 
         stack_extra = batch["rl_state"]["stack_extra"]
 
+        self._trace_stage("state_transformer")
         state_result=models["StateTransformer"](
             global_scalars=global_scalars,
             entity_features=entity_features,
@@ -312,6 +322,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
         actor_state_in=(batch["actor_state_in"]["h"],batch["actor_state_in"]["c"])
         critic_state_in=(batch["critic_state_in"]["h"],batch["critic_state_in"]["c"])
 
+        self._trace_stage("temporal_blocks")
         actor_output,actor_state_out=models["TemporalBlockActor"](state_result["state_features"],lengths,actor_state_in)
         critic_output,critic_state_out=models["TemporalBlockCritic"](state_result["state_features"],lengths,critic_state_in)
 
@@ -320,6 +331,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
         candidate_features=self._select_time(state_result["all_candidates"],flat_time_mask)
         candidate_mask=self._select_time(candidates["mask"],flat_time_mask)
 
+        self._trace_stage("actor_distribution")
         logits=models["Actor"](actor_features,candidate_features,candidate_mask)
         dist=torch.distributions.Categorical(logits=logits)
         value=models["Critic"](critic_features)
@@ -386,9 +398,13 @@ class CASTER_PPO_Pointer(BaseTrainer):
         for model in models.values():
             model.train() if isTrain else model.eval()
 
+        self._trace_stage("preprocess_state")
         batch=[self.dataset.get_sample_preprocess(b,extra_keys) for b in batch]
 
+        self._trace_stage("collate_state")
         batch=self.dataset.collate_state(batch,extra_keys)
+        validate_cpu_batch(batch)
+        self._trace_stage("transfer_inputs", device=str(self.rank))
         batch=batch_to_cuda(batch,self.rank)
         return self.predict(batch,models,isTrain,self.step,self.epoch)
 

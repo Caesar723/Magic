@@ -7,6 +7,7 @@ import torch
 import random
 import math
 
+from game.rlearning.utils.diagnostics import FailureRecorder, describe_state, fatal_cuda_error
 from initinal_file import ORGPATH
 from game.rlearning.utils.common import CHECKPOINT_ROOT_PATH
 from game.rlearning.utils.agentSchedule import AgentSchedule
@@ -24,8 +25,11 @@ class BatchedInferenceServer:
         self.max_wait_seconds = config.get("max_wait_ms", 5) / 1000
         self.policies = {}
         self.running = True
+        self.diagnostics = None
 
     def _load_policy(self, config_path, restore_step, force=False, policy_key=None):
+        if self.diagnostics is not None:
+            self.diagnostics.mark("load_policy", config_path=config_path, restore_step=restore_step, policy_key=policy_key)
         try:
             step = int(restore_step)
         except (TypeError, ValueError):
@@ -61,6 +65,7 @@ class BatchedInferenceServer:
             self.policies[key] = current
 
         trainer = current["trainer"]
+        trainer.diagnostics = self.diagnostics
 
         if not force and current["restore_step"] == version:
             return trainer
@@ -92,6 +97,9 @@ class BatchedInferenceServer:
                 command = self.communication.control_queue.get_nowait()
             except queue.Empty:
                 return
+            if self.diagnostics is not None:
+                self.diagnostics.inputs = {"control": vars(command).copy() if hasattr(command, "__dict__") else command}
+                self.diagnostics.mark("apply_control", command=repr(command))
             if command == "stop":
                 self.running = False
                 return
@@ -104,8 +112,13 @@ class BatchedInferenceServer:
         trainer=self._load_policy(first.config_path,first.restore_step)
         trainer.deterministic_actions = getattr(self, "deterministic_actions", False) or first.policy_id == "pve"
         states=[request.state for request in requests]
+        self._trace_policy(trainer)
         results=trainer.inference(states,isTrain=False)
         return results,first.restore_step
+
+    def _trace_policy(self, trainer):
+        if self.diagnostics is not None:
+            self.diagnostics.mark("policy_inference", model_step=trainer.step)
 
     def _respond_error(self,request,error):
         response=InferenceResponse(
@@ -147,6 +160,10 @@ class BatchedInferenceServer:
                 )
                 groups.setdefault(key, []).append(request)
             for group in groups.values():
+                if self.diagnostics is not None:
+                    self.diagnostics.inputs = {"requests": [vars(request).copy() for request in group]}
+                    summaries = [{"worker_id": request.worker_id, "request_id": request.request_id, "policy_id": request.policy_id, "config_path": request.config_path, "restore_step": request.restore_step, **describe_state(request.state)} for request in group]
+                    self.diagnostics.mark("infer_group", requests=summaries)
                 try:
                     results,version=self._infer_group(group)
 
@@ -160,10 +177,15 @@ class BatchedInferenceServer:
                             policy_version=version
                         )
                         self.communication.response_queues[request.worker_id].put(response)
-                except Exception:
+                except Exception as exception:
                     error=traceback.format_exc()
+                    if self.diagnostics is not None:
+                        report = self.diagnostics.capture(exception)
+                        error += f"\nFailure report: {report}"
                     for request in group:
                         self._respond_error(request,error)
+                    if fatal_cuda_error(exception):
+                        raise
 
 
 class TrainingInferenceServer(BatchedInferenceServer):
@@ -211,11 +233,15 @@ class TrainingInferenceServer(BatchedInferenceServer):
         logdir = f"{CHECKPOINT_ROOT_PATH}/{config['log_dir']}"
         step = self.opponent_scheduler.get_restore_step(logdir, self.current_strength)
 
+        if step is None:
+            item.update(step=None, used=0)
+            return False
         if step < 0:
             raise ValueError("Opponent needs a fixed checkpoint number")
 
         self._load_policy(path, step, policy_key=("opponent", path))
         item.update(step=step, used=0)
+        return True
 
     def release_room(self, worker_id):
         self.waiting.pop(worker_id, None)
@@ -230,29 +256,25 @@ class TrainingInferenceServer(BatchedInferenceServer):
 
     def assign_rooms(self):
         for worker_id in list(self.waiting):
-            available = [
-                path for path, item in self.pool.items()
-                if item["used"] < item["limit"]
-            ]
+            available = [path for path, item in self.pool.items() if item["used"] < item["limit"]]
+            random.shuffle(available)
 
-            if not available:
+            for path in available:
+                item = self.pool[path]
+                if item["step"] is None and not self.change_checkpoint(path):
+                    continue
+
+                item["used"] += 1
+                item["active"].add(worker_id)
+                self.rooms[worker_id] = path
+                del self.waiting[worker_id]
+                self.communication.response_queues[worker_id].put({
+                    "config_path": path,
+                    "restore_step": item["step"]
+                })
+                break
+            else:
                 return
-
-            path = random.choice(available)
-            item = self.pool[path]
-
-            if item["step"] is None:
-                self.change_checkpoint(path)
-
-            item["used"] += 1
-            item["active"].add(worker_id)
-            self.rooms[worker_id] = path
-            del self.waiting[worker_id]
-
-            self.communication.response_queues[worker_id].put({
-                "config_path": path,
-                "restore_step": item["step"],
-            })
 
     def _apply_controls(self):
         while True:
@@ -261,6 +283,9 @@ class TrainingInferenceServer(BatchedInferenceServer):
             except queue.Empty:
                 break
 
+            if self.diagnostics is not None:
+                self.diagnostics.inputs = {"control": vars(command).copy() if hasattr(command, "__dict__") else command}
+                self.diagnostics.mark("apply_control", command=repr(command))
             if command == "stop":
                 self.running = False
                 return
@@ -302,6 +327,7 @@ class TrainingInferenceServer(BatchedInferenceServer):
                 self._load_policy(first.config_path, first.restore_step)
             trainer = self.policies[first.config_path]["trainer"]
 
+            self._trace_policy(trainer)
             results = trainer.inference(
                 [request.state for request in requests],isTrain=False
             )
@@ -316,6 +342,7 @@ class TrainingInferenceServer(BatchedInferenceServer):
                 raise RuntimeError("Opponent checkpoint does not match")
 
         trainer = self.policies[("opponent", first.config_path)]["trainer"]
+        self._trace_policy(trainer)
         results = trainer.inference(
             [request.state for request in requests], isTrain=False
         )
@@ -330,4 +357,11 @@ def inference_server_process(communication, config):
         else BatchedInferenceServer
     )
 
-    server_class(communication, config).run()
+    diagnostics = FailureRecorder(config.get("diagnostics_dir"), "inference")
+    try:
+        server = server_class(communication, config)
+        server.diagnostics = diagnostics
+        server.run()
+    except Exception as error:
+        diagnostics.capture(error)
+        raise

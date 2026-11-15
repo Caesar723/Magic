@@ -149,56 +149,48 @@ class BenchmarkGaussianSchedule(AgentSchedule):
         self.report_cache[folder] = (signature, scores)
         return scores
 
-    def _candidate_bins(self, logdir):
+    def _candidate_bins(self, logdir, candidates):
         scores = self._load_report_scores(logdir)
-        evaluated_steps = sorted(scores)
-        if not evaluated_steps:
-            raise RuntimeError(f"{logdir} 没有 benchmark={self.benchmark_id} 的有效评测")
-
-        available = self._available_steps(logdir)
-        candidate_steps = sorted(set(self._read_steps(Path(logdir) / self.candidate_list)))
+        evaluated = sorted(scores)
         bins = {}
+        if not evaluated:
+            return bins
 
-        for step in candidate_steps:
-            if step not in available:
-                continue
-
+        for step in candidates:
             if step in scores:
                 score = scores[step]
             else:
-                index = bisect_left(evaluated_steps, step)
-                if index == 0 or index == len(evaluated_steps):
+                index = bisect_left(evaluated, step)
+                if index == 0 or index == len(evaluated):
                     continue
-
-                left, right = evaluated_steps[index - 1], evaluated_steps[index]
+                left, right = evaluated[index - 1], evaluated[index]
                 fraction = (step - left) / (right - left)
                 score = scores[left] + fraction * (scores[right] - scores[left])
 
             bin_id = math.floor(score / self.bin_width)
             bins.setdefault(bin_id, []).append(step)
-
-        if not bins:
-            raise RuntimeError(f"{logdir} 没有可用且有评分的候选 checkpoint")
         return bins
 
     def get_restore_step(self, logdir, current_strength):
         strength = float(current_strength)
-        if not math.isfinite(strength) or not 0 <= strength <= 1:
-            raise ValueError("current_strength 必须位于 [0, 1]")
+        
+        steps = self._read_steps(Path(logdir) / self.candidate_list)
+        if not steps:
+            return None
+
+        candidates = sorted(set(steps) & self._available_steps(logdir))
+        if not candidates:
+            return None
+
+        bins = self._candidate_bins(logdir, candidates)
+        if not bins:
+            return self.rng.choice(candidates)
 
         position = max(0.0, min(1.0, strength + self.strength_offset))
         center = self.score_min + position * (self.score_max - self.score_min)
-
-        bins = self._candidate_bins(logdir)
         bin_ids = sorted(bins)
-        log_weights = []
-
-        for bin_id in bin_ids:
-            bin_center = (bin_id + 0.5) * self.bin_width
-            distance = (bin_center - center) / self.sigma
-            log_weights.append(-0.5 * distance * distance)
-
+        log_weights = [-0.5 * (((value + 0.5) * self.bin_width - center) / self.sigma) ** 2 for value in bin_ids]
         maximum = max(log_weights)
         weights = [math.exp(value - maximum) for value in log_weights]
-        chosen_bin = self.rng.choices(bin_ids, weights=weights, k=1)[0]
-        return self.rng.choice(bins[chosen_bin])
+        chosen = self.rng.choices(bin_ids, weights=weights, k=1)[0]
+        return self.rng.choice(bins[chosen])

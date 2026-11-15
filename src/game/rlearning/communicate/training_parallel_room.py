@@ -30,8 +30,8 @@ class Info_Communication:
         #             pass
         self.data_queue.put(data, block=True)
 
-    def get_game_data(self):
-        return self.data_queue.get()
+    def get_game_data(self, timeout=None):
+        return self.data_queue.get(timeout=timeout)
 
 
     def check_model_update(self,worker_id:int):

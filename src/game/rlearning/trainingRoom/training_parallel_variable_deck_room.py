@@ -1,3 +1,4 @@
+from game.rlearning.utils.diagnostics import describe_action, describe_state
 from game.train_agent import Agent_Train
 from game.rlearning.trainingRoom.training_parallel_room import Multi_Agent_Parallel_Room
 from game.rlearning.utils.stack_simulation import get_stack_reward
@@ -28,6 +29,9 @@ class Multi_Agent_Parallel_Variable_Deck_Room(Multi_Agent_Parallel_Room):
         if not use_model:
             return None,None,1
 
+        diagnostics = getattr(self, "diagnostics", None)
+        if diagnostics is not None:
+            diagnostics.mark("build_state", agent=agent.name)
         state=self.basic_func[agent.name]["get_state"](agent)
         mask=self.basic_func[agent.name]["create_action_mask"](agent)
         state["mask"]=mask
@@ -35,6 +39,9 @@ class Multi_Agent_Parallel_Variable_Deck_Room(Multi_Agent_Parallel_Room):
         if agent==self.player_1:
             await self.finish_pending_transition(agent,state)
 
+        if diagnostics is not None:
+            diagnostics.inputs = {"state": state, "agent": agent.name}
+            diagnostics.mark("choose_action", agent=agent.name, state=describe_state(state))
         action=agent.choose_action(state,isTrain=True)
         return state,mask,action
 
@@ -48,10 +55,16 @@ class Multi_Agent_Parallel_Variable_Deck_Room(Multi_Agent_Parallel_Room):
         async def collect_transition():
             return await reward_func(next_state,terminal)
 
+        diagnostics = getattr(self, "diagnostics", None)
+        if diagnostics is not None:
+            diagnostics.mark("store_transition", agent=agent.name, action=int(action), terminal=terminal)
         await agent.store_data(state,action,collect_transition)
 
     async def execute_action(self,agent,action,reset_response=False):
         action=int(action)
+        diagnostics = getattr(self, "diagnostics", None)
+        if diagnostics is not None:
+            diagnostics.mark("decode_action", **describe_action(agent, action))
         message=await self.basic_func[agent.name]["num2action"](agent,action)
         self.basic_func[agent.opponent.name]["add_opponent_history"](agent.opponent,agent,message)
         username,action_type,content=message.split("|",2)
@@ -59,14 +72,22 @@ class Multi_Agent_Parallel_Variable_Deck_Room(Multi_Agent_Parallel_Room):
         if reset_response and self.get_flag("bullet_time") and self.trigger_bullet_response(action_type):
             self.reset_bullet_pass()
 
+        if diagnostics is not None:
+            diagnostics.mark("reward_before", message=message)
         old_rewards=await get_stack_reward(self, agent)
         old_reward=old_rewards["reward"]
         info_index=len(self.game_recorder[agent.name].datas)
+        if diagnostics is not None:
+            diagnostics.mark("apply_action", message=message)
         result=await self.message_process_dict[action_type](username,content)
+        if diagnostics is not None:
+            diagnostics.mark("check_death", message=message)
         await self.check_death()
         success=result is None or result[0]
 
         async def next_state_function(next_state,terminal=False):
+            if diagnostics is not None:
+                diagnostics.mark("reward_after", agent=agent.name, action=action, message=message)
             current_rewards=await get_stack_reward(self, agent)
             current_reward=current_rewards["reward"]
             gamma = agent.agent.config["ppo"]["gamma"]
