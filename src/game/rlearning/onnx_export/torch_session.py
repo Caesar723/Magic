@@ -4,7 +4,12 @@ import threading
 import numpy as np
 import onnxruntime as ort
 import torch
+import json
 
+from game.rlearning.onnx_export.base import replace_rms_norm
+from game.rlearning.onnx_export.exporter import load_checkpoint,load_models,normalize_outputs
+from game.rlearning.utils.file import read_yaml
+from game.rlearning.utils.model import get_class_by_name
 
 class TorchONNXSession:
     dtype_map={
@@ -18,7 +23,7 @@ class TorchONNXSession:
     _session_lock=threading.Lock()
 
     @classmethod
-    def get(cls,path,device,providers):
+    def get(cls,path,device,providers,backend="onnx"):
         path=str(Path(path).resolve())
         device=torch.device(device)
         stream=None
@@ -27,19 +32,24 @@ class TorchONNXSession:
                 device=torch.device("cuda",torch.cuda.current_device())
             stream=torch.cuda.current_stream(device).cuda_stream
 
-        key=(os.getpid(),path,device,tuple(providers),stream)
+        key=(os.getpid(),path,device,tuple(providers),stream,backend)
         with cls._session_lock:
             if key not in cls._sessions:
-                cls._sessions[key]=cls(path,device,providers)
+                cls._sessions[key]=cls(path,device,providers,backend)
             return cls._sessions[key]
 
-    def __init__(self,path,device,providers):
+    def __init__(self,path,device,providers,backend="onnx"):
         self.path=str(Path(path).resolve())
         self.device=torch.device(device)
 
         if not Path(self.path).exists():
             raise FileNotFoundError(f"ONNX file not found: {self.path}")
-
+        if backend not in ("onnx","torch"):
+            raise ValueError(f"Unknown embedding backend: {backend}")
+        self.backend=backend
+        if backend=="torch":
+            self._init_torch()
+            return
         available=set(ort.get_available_providers())
         session_options=ort.SessionOptions()
         session_options.graph_optimization_level=ort.GraphOptimizationLevel.ORT_ENABLE_ALL
@@ -72,7 +82,30 @@ class TorchONNXSession:
         )
         self.input_names={item.name for item in self.session.get_inputs()}
         self.output_names={item.name for item in self.session.get_outputs()}
+    def _init_torch(self):
+        metadata=json.loads(Path(self.path).with_suffix(".json").read_text())
+        config=read_yaml(metadata["training_config_path"])
+        checkpoint=load_checkpoint(metadata["checkpoint_path"])
+        models=load_models(config,metadata,checkpoint,self.device)
+        wrapper=get_class_by_name(metadata["wrapper_class_name"])
+        self.model=wrapper(models,config,metadata)
+        self.model=replace_rms_norm(self.model).to(self.device).eval()
+        self.model.requires_grad_(False)
+        self.input_names=set(self.model.input_names)
+        self.output_names=set(self.model.output_names)
 
+    @torch.no_grad()
+    def _run_torch(self,inputs,output_specs):
+        inputs={name:self._prepare_tensor(name,value) for name,value in inputs.items()}
+        values=normalize_outputs(self.model(**inputs),self.model.output_names)
+        outputs=dict(zip(self.model.output_names,values))
+        result={}
+        for name,(shape,dtype) in output_specs.items():
+            value=outputs[name]
+            if tuple(value.shape)!=tuple(shape) or value.dtype!=dtype or value.device!=self.device:
+                raise ValueError(f"Unexpected output for {name}: {value.shape}, {value.dtype}, {value.device}")
+            result[name]=value
+        return result
     def _prepare_tensor(self,name,tensor):
         if not torch.is_tensor(tensor):
             raise TypeError(f"{name} must be a torch.Tensor")
@@ -93,7 +126,8 @@ class TorchONNXSession:
         unknown_outputs=set(output_specs)-self.output_names
         if unknown_outputs:
             raise KeyError(f"Unknown ONNX outputs: {sorted(unknown_outputs)}")
-
+        if self.backend=="torch":
+            return self._run_torch(inputs,output_specs)
         io_binding=self.session.io_binding()
         bound_inputs={
             name:self._prepare_tensor(name,inputs[name])

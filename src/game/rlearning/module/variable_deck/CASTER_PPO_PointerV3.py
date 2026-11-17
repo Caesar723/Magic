@@ -50,11 +50,13 @@ class CASTER_PPO_Pointer(BaseTrainer):
                 root/config["action_embedding"]["path"],
                 device,
                 config["providers"],
+                backend=config["action_embedding"].get("backend","onnx")
             ),
             "card_embedding":TorchONNXSession.get(
                 root/config["card_embedding"]["path"],
                 device,
                 config["providers"],
+                backend=config["card_embedding"].get("backend","onnx")
             )
         }
     def _trace_stage(self, stage, **details):
@@ -212,6 +214,21 @@ class CASTER_PPO_Pointer(BaseTrainer):
         entity_mask=self._restore_time(card_mask,valid_indices,batch_size,time_steps)
         return entity_features,entity_mask
 
+    @staticmethod
+    def _build_candidate_layout(candidates):
+        encoded=candidates["mask"][:,0].bool() & candidates["has_card"][:,0].bool() & (candidates["actions"][:,0]>=0)
+        rows,cols=encoded.nonzero(as_tuple=True)
+        count=rows.numel()
+        capacity=1 << max(0,count-1).bit_length()
+        layout={
+            "state_ids":torch.zeros(capacity,dtype=torch.long),
+            "candidate_ids":torch.zeros(capacity,dtype=torch.long),
+            "valid":torch.arange(capacity)<count,
+            "count":count
+        }
+        layout["state_ids"][:count]=rows
+        layout["candidate_ids"][:count]=cols
+        return layout
 
     def _build_candidate_features(self,batch,models,flat_time_mask,valid_indices,batch_size,time_steps):
         state=batch["action_embedding_state"]
@@ -276,9 +293,13 @@ class CASTER_PPO_Pointer(BaseTrainer):
             "std_p":((num_states,num_candidates,self.q_dim),torch.float32)
         }
         encode_mask=candidate_mask & candidate_has_card & (candidate_actions>=0)
-        if encode_mask.any().item():
-            self._trace_stage("action_onnx", inputs={name: tuple(value.shape) for name, value in onnx_inputs.items()})
-            onnx_outputs=self.extra["action_embedding"].run(onnx_inputs,output_specs)
+        layout=batch.get("_candidate_layout")
+        has_candidates=layout["count"]>0 if layout is not None else encode_mask.any().item()
+        if has_candidates:
+            self._trace_stage("action_onnx",inputs={name:tuple(value.shape) for name,value in onnx_inputs.items()})
+            onnx_outputs=self.extra["action_embedding"].run(
+                onnx_inputs,output_specs,candidate_layout=layout
+            )
         else:
             onnx_outputs={
                 name:torch.zeros(shape,dtype=dtype,device=device)
@@ -433,6 +454,8 @@ class CASTER_PPO_Pointer(BaseTrainer):
             and batch["rl_state"]["global_scalars"].shape[1]==1
             and bool((batch["lengths"]==1).all().item())
         )
+        if batch["_single_step"] and self.extra["action_embedding"].backend=="torch":
+            batch["_candidate_layout"]=self._build_candidate_layout(batch["candidates"])
         self._trace_stage("transfer_inputs",device=str(self.rank))
         batch=batch_to_cuda(batch,self.rank)
         return self.predict(batch,models,isTrain,self.step,self.epoch)

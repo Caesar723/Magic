@@ -96,9 +96,11 @@ extra:
 
     action_embedding:
       path: "checkpoints/onnx/action_embedding/specific_entity_birth_plan_support_v04_step_194806.onnx"
+      backend: "torch"
 
     card_embedding:
       path: "checkpoints/onnx/card_embedding/specific_entity_birth_plan_support_v04_step_194806.onnx"
+      backend: "torch"
 
 ###########################
 # PPO
