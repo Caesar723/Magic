@@ -6,7 +6,7 @@ COPY requirements-inference.txt /app/requirements-inference.txt
 RUN --mount=type=cache,target=/root/.cache/pip python -m pip install pip==25.3 \
     && python -m pip install torch==2.7.1+cu126 torchvision==0.22.1+cu126 --index-url https://download.pytorch.org/whl/cu126 --extra-index-url https://pypi.org/simple \
     && python -m pip install -r /app/requirements-inference.txt \
-    && python -c "import torch, onnxruntime, transformers, peft, onnx; from transformers.models.qwen3 import Qwen3Model; assert torch.version.cuda is not None; assert 'CUDAExecutionProvider' in onnxruntime.get_available_providers()"
+    && python -c "import torch, transformers, peft; from transformers.models.qwen3 import Qwen3Model; assert torch.version.cuda is not None"
 
 COPY . /app/
 

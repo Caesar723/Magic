@@ -89,16 +89,10 @@ add_opponent_history_function: "game.rlearning.actions.variable_deck.vector_base
 ###########################
 
 extra:
-  onnx:
-    providers:
-      - CUDAExecutionProvider
-    cuda_device_from_rank: true
-
-    action_embedding:
-      path: "checkpoints/onnx/action_embedding/specific_entity_birth_plan_support_v04_step_194806.onnx"
-
-    card_embedding:
-      path: "checkpoints/onnx/card_embedding/specific_entity_birth_plan_support_v04_step_194806.onnx"
+  pretrained:
+    class_name: "game.rlearning.pretrained.entity_transition.EntityTransitionFeatures"
+    config_path: "/mnt/data/trainData/checkpoints/logs/specific/specific_entity_birth_plan_support_v04/ckpt/config_194806.yaml"
+    checkpoint: "/mnt/data/trainData/checkpoints/logs/specific/specific_entity_birth_plan_support_v04/ckpt/g_194806"
 
 ###########################
 # PPO

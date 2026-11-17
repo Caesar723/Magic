@@ -1,11 +1,10 @@
 from pathlib import Path
 
-import onnxruntime as ort
 import torch
 import torch.nn.functional as F
 
 from game.game_function_tool import ORGPATH
-from game.rlearning.onnx_export.torch_session import TorchONNXSession
+from game.rlearning.pretrained.loader import PretrainedLoader
 from game.rlearning.utils.diagnostics import validate_cpu_batch
 from game.rlearning.utils.baseAgent import BaseTrainer
 from game.rlearning.utils.data import batch_to_cuda,detach_cuda,to_cpu
@@ -39,25 +38,13 @@ class CASTER_PPO_Pointer(BaseTrainer):
         )
     def _init_extra(self):
         super()._init_extra()
-
-        config=self.config["extra"]["onnx"]
-        root=Path(ORGPATH).resolve().parent
         device=torch.device(f"cuda:{self.rank}" if torch.cuda.is_available() else "cpu")
-
+        root=Path(ORGPATH).resolve().parent
+        pretrained=PretrainedLoader.get(self.config["extra"]["pretrained"],device,root)
         self.extra={
             "device":device,
-            "action_embedding":TorchONNXSession.get(
-                root/config["action_embedding"]["path"],
-                device,
-                config["providers"],
-                backend=config["action_embedding"].get("backend","onnx")
-            ),
-            "card_embedding":TorchONNXSession.get(
-                root/config["card_embedding"]["path"],
-                device,
-                config["providers"],
-                backend=config["card_embedding"].get("backend","onnx")
-            )
+            "card_embedding":pretrained.session("card_embedding"),
+            "action_embedding":pretrained.session("action_embedding")
         }
     def _trace_stage(self, stage, **details):
         diagnostics = getattr(self, "diagnostics", None)
@@ -180,7 +167,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
         if slots.numel()>0:
             descriptions=self._flatten_zone_descriptions(state,self.rl_zone_paths,valid_indices,time_steps)
             descriptions=[descriptions[index] for index in slots.detach().cpu().tolist()]
-            onnx_inputs={
+            feature_inputs={
                 "text_embeddings":models["TextEncoder"](descriptions,device=device),
                 "card_mask":flat_mask.index_select(0,slots)
             }
@@ -195,11 +182,11 @@ class CASTER_PPO_Pointer(BaseTrainer):
             }
             for name,(field,dtype) in fields.items():
                 value=self._select_zone_field(state,self.rl_zone_paths,field,flat_time_mask)
-                onnx_inputs[name]=value.flatten(0,1).index_select(0,slots).to(dtype=dtype)
+                feature_inputs[name]=value.flatten(0,1).index_select(0,slots).to(dtype=dtype)
 
             output_specs={"card_embeddings":((slots.numel(),self.embed_dim),torch.float32)}
-            self._trace_stage("card_onnx", inputs={name: tuple(value.shape) for name, value in onnx_inputs.items()})
-            encoded=self.extra["card_embedding"].run(onnx_inputs,output_specs)["card_embeddings"]
+            self._trace_stage("card_features", inputs={name: tuple(value.shape) for name, value in feature_inputs.items()})
+            encoded=self.extra["card_embedding"].run(feature_inputs,output_specs)["card_embeddings"]
             card_embeddings.index_copy_(0,slots,encoded)
 
         card_embeddings=card_embeddings.view(num_states,num_entities,self.embed_dim)
@@ -263,7 +250,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
         descriptions=self._flatten_candidate_descriptions(candidates,valid_indices,time_steps)
         candidate_text_embeddings=models["TextEncoder"](descriptions,device=device).view(num_states,num_candidates,-1)
 
-        onnx_inputs={
+        feature_inputs={
             "global_state":global_state.float(),
             "entity_card_types":entity_card_types.long(),
             "entity_card_costs":entity_card_costs.float(),
@@ -296,19 +283,19 @@ class CASTER_PPO_Pointer(BaseTrainer):
         layout=batch.get("_candidate_layout")
         has_candidates=layout["count"]>0 if layout is not None else encode_mask.any().item()
         if has_candidates:
-            self._trace_stage("action_onnx",inputs={name:tuple(value.shape) for name,value in onnx_inputs.items()})
-            onnx_outputs=self.extra["action_embedding"].run(
-                onnx_inputs,output_specs,candidate_layout=layout
+            self._trace_stage("action_features",inputs={name:tuple(value.shape) for name,value in feature_inputs.items()})
+            feature_outputs=self.extra["action_embedding"].run(
+                feature_inputs,output_specs,candidate_layout=layout
             )
         else:
-            onnx_outputs={
+            feature_outputs={
                 name:torch.zeros(shape,dtype=dtype,device=device)
                 for name,(shape,dtype) in output_specs.items()
             }
 
-        planner=onnx_outputs["planner"]
-        mean_p=onnx_outputs["mean_p"]
-        std_p=onnx_outputs["std_p"]
+        planner=feature_outputs["planner"]
+        mean_p=feature_outputs["mean_p"]
+        std_p=feature_outputs["std_p"]
 
         special_action_ids=torch.where(candidate_indices<=1,candidate_indices,torch.full_like(candidate_indices,-1))
 
@@ -454,7 +441,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
             and batch["rl_state"]["global_scalars"].shape[1]==1
             and bool((batch["lengths"]==1).all().item())
         )
-        if batch["_single_step"] and self.extra["action_embedding"].backend=="torch":
+        if batch["_single_step"]:
             batch["_candidate_layout"]=self._build_candidate_layout(batch["candidates"])
         self._trace_stage("transfer_inputs",device=str(self.rank))
         batch=batch_to_cuda(batch,self.rank)
