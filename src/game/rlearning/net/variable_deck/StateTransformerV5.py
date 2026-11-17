@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from game.rlearning.net.variable_deck.StateTransformerV4 import StateTransformer as StateTransformerV4
 
@@ -94,24 +95,37 @@ class StateTransformer(StateTransformerV4):
 
 
 
+    @staticmethod
+    def select_time(x,flat_time_mask):
+        if flat_time_mask is None:
+            return x[:,0]
+        return x.flatten(0,1)[flat_time_mask]
 
+    def forward_step(self,**inputs):
+        return self(**inputs,single_step=True)
 
     def forward(
         self,global_scalars,entity_features,candidate_features,
         planner,mean_p,std_p,
         lengths,six_available,special_action_ids,
         stack_owner, stack_action,
-        entity_mask=None,candidate_mask=None,
+        entity_mask=None,candidate_mask=None,single_step=False
     ):
         batch_size, time_steps, num_scalars = global_scalars.shape
         device = global_scalars.device
         num_entities = entity_features.shape[2]
         num_candidates = candidate_features.shape[2]
 
-        lengths = torch.as_tensor(lengths, dtype=torch.long, device=device)
-        time_mask = torch.arange(time_steps, device=device)[None] < lengths[:, None]
-        flat_time_mask = time_mask.reshape(-1)
-        valid_indices = flat_time_mask.nonzero(as_tuple=False).squeeze(-1)
+        lengths=torch.as_tensor(lengths,dtype=torch.long,device=device)
+        single_step=single_step and not self.training and time_steps==1
+        if single_step:
+            time_mask=torch.ones((batch_size,1),dtype=torch.bool,device=device)
+            flat_time_mask=None
+            valid_indices=None
+        else:
+            time_mask=torch.arange(time_steps,device=device)[None]<lengths[:,None]
+            flat_time_mask=time_mask.reshape(-1)
+            valid_indices=flat_time_mask.nonzero(as_tuple=False).squeeze(-1)
 
         if entity_mask is None:
             entity_mask = torch.ones(
@@ -220,6 +234,16 @@ class StateTransformer(StateTransformerV4):
         top = stack[rows, top_index]* stack_mask.any(dim=1, keepdim=True).to(stack.dtype)
         valid_features = torch.cat([cls, action, top], dim=-1)
 
+        if single_step:
+            return {
+                "state_features":valid_features.unsqueeze(1),
+                "all_candidates":candidate_tokens.unsqueeze(1),
+                "last_state_feature":valid_features,
+                "last_candidates":candidate_tokens,
+                "last_candidate_mask":candidate_mask_valid,
+                "time_mask":time_mask
+            }
+
 
 
         flat_features = valid_features.new_zeros(batch_size * time_steps,valid_features.shape[-1])
@@ -245,3 +269,29 @@ class StateTransformer(StateTransformerV4):
             "last_candidate_mask": candidate_mask[batch_indices, last_indices],
             "time_mask": time_mask,
         }
+    def build_stack_relation(self,action,owner_id,stack_mask,num_entities):
+        swapped=torch.where((action>=6)&(action<=15),action+10,action)
+        swapped=torch.where((action>=16)&(action<=25),action-10,swapped)
+        swapped=torch.where(action==26,torch.full_like(action,27),swapped)
+        swapped=torch.where(action==27,torch.full_like(action,26),swapped)
+        action=torch.where(owner_id==2,swapped,action)
+
+        offset=1+6+self.num_scalars
+        length=offset+num_entities
+        self_board=self.stack_start+self.max_stack_size
+        oppo_board=self_board+10
+        self_life=1+6
+        oppo_life=self_life+1
+
+        target=torch.zeros_like(action)
+        target=torch.where((action>=6)&(action<=15),offset+oppo_board+(action-6).clamp(0,9),target)
+        target=torch.where((action>=16)&(action<=25),offset+self_board+(action-16).clamp(0,9),target)
+        target=torch.where(action==26,torch.full_like(action,oppo_life),target)
+        target=torch.where(action==27,torch.full_like(action,self_life),target)
+
+        valid=stack_mask&(action>=6)&(action<=27)
+        links=F.one_hot(target,num_classes=length)*valid.unsqueeze(-1)
+        query=torch.arange(self.max_stack_size,device=action.device)+offset+self.stack_start
+        indices=query.view(1,-1,1).expand(action.shape[0],-1,length)
+        relation=action.new_zeros((action.shape[0],length,length))
+        return relation.scatter(1,indices,links)

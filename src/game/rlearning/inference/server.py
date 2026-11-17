@@ -6,7 +6,9 @@ from copy import deepcopy
 import torch
 import random
 import math
+import json
 
+from game.rlearning.net.state_space.jina_text_encoder import JinaTextEncoder
 from game.rlearning.utils.diagnostics import FailureRecorder, describe_state, fatal_cuda_error
 from initinal_file import ORGPATH
 from game.rlearning.utils.common import CHECKPOINT_ROOT_PATH
@@ -26,6 +28,7 @@ class BatchedInferenceServer:
         self.policies = {}
         self.running = True
         self.diagnostics = None
+        self.text_encoders={}
 
     def _load_policy(self, config_path, restore_step, force=False, policy_key=None):
         if self.diagnostics is not None:
@@ -46,7 +49,8 @@ class BatchedInferenceServer:
             trainer = trainer_class(
                 config, 0, name="inference:shared"
             )
-            trainer.pbar = None
+            trainer.pbar=None
+            self._share_text_encoder(trainer)
 
             initial_weights = {
                 name: deepcopy({
@@ -90,6 +94,17 @@ class BatchedInferenceServer:
 
         current["restore_step"] = version
         return trainer
+
+    def _share_text_encoder(self,trainer):
+        encoder=trainer.models.get("TextEncoder")
+        if type(encoder) is not JinaTextEncoder:
+            return
+
+        config=trainer.config["model"]["TextEncoder"]
+        key=(trainer.rank,json.dumps(config,sort_keys=True))
+        shared=self.text_encoders.setdefault(key,encoder)
+        for models in (trainer.models,trainer._models,trainer.models_test):
+            models["TextEncoder"]=shared
 
     def _apply_controls(self):
         while True:
@@ -139,13 +154,19 @@ class BatchedInferenceServer:
             except queue.Empty:
                 continue
 
-            requests = [first]
-            deadline = time.monotonic() + self.max_wait_seconds
-            while len(requests) < self.max_batch_size:
-                self._apply_controls()
-                remaining = deadline - time.monotonic()
-                if remaining <= 0:
+            requests=[first]
+            deadline=time.monotonic()+self.max_wait_seconds
+            while len(requests)<self.max_batch_size:
+                try:
+                    requests.append(self.communication.request_queue.get_nowait())
+                    continue
+                except queue.Empty:
+                    pass
+
+                remaining=deadline-time.monotonic()
+                if remaining<=0:
                     break
+
                 try:
                     requests.append(self.communication.request_queue.get(timeout=remaining))
                 except queue.Empty:

@@ -106,17 +106,25 @@ class CASTER_PPO_Pointer(BaseTrainer):
 
     @staticmethod
     def _select_time(x,flat_time_mask):
+        if flat_time_mask is None:
+            return x[:,0]
         return x.flatten(0,1)[flat_time_mask]
 
     @staticmethod
     def _restore_time(x,valid_indices,batch_size,time_steps):
+        if valid_indices is None:
+            return x.unsqueeze(1)
         flat=x.new_zeros((batch_size*time_steps,)+x.shape[1:])
         flat=flat.index_copy(0,valid_indices,x)
         return flat.view(batch_size,time_steps,*x.shape[1:])
 
     @staticmethod
-    def _build_time_layout(lengths,time_steps,device):
+    def _build_time_layout(lengths,time_steps,device,single_step=False):
         lengths=lengths.to(device=device,dtype=torch.long)
+        if single_step and time_steps==1:
+            time_mask=torch.ones((lengths.shape[0],1),dtype=torch.bool,device=device)
+            return lengths,time_mask,None,None
+
         time_mask=torch.arange(time_steps,device=device).unsqueeze(0)<lengths.unsqueeze(1)
         flat_time_mask=time_mask.reshape(-1)
         valid_indices=flat_time_mask.nonzero(as_tuple=False).squeeze(-1)
@@ -131,7 +139,13 @@ class CASTER_PPO_Pointer(BaseTrainer):
 
     def _flatten_zone_descriptions(self,state,zone_paths,valid_indices,time_steps):
         descriptions=[]
-        for flat_index in valid_indices.detach().cpu().tolist():
+        if valid_indices is None:
+            group,zone=zone_paths[0]
+            indices=range(len(state[group][zone]["descriptions"]))
+        else:
+            indices=valid_indices.detach().cpu().tolist()
+
+        for flat_index in indices:
             batch_index=flat_index//time_steps
             time_index=flat_index%time_steps
             for group,zone in zone_paths:
@@ -141,7 +155,12 @@ class CASTER_PPO_Pointer(BaseTrainer):
     @staticmethod
     def _flatten_candidate_descriptions(candidates,valid_indices,time_steps):
         descriptions=[]
-        for flat_index in valid_indices.detach().cpu().tolist():
+        if valid_indices is None:
+            indices=range(len(candidates["descriptions"]))
+        else:
+            indices=valid_indices.detach().cpu().tolist()
+
+        for flat_index in indices:
             batch_index=flat_index//time_steps
             time_index=flat_index%time_steps
             descriptions.extend(candidates["descriptions"][batch_index][time_index])
@@ -296,14 +315,19 @@ class CASTER_PPO_Pointer(BaseTrainer):
         batch_size,time_steps=global_scalars.shape[:2]
         device=global_scalars.device
 
-        lengths,time_mask,flat_time_mask,valid_indices=self._build_time_layout(batch["lengths"],time_steps,device)
+        single_step=batch.get("_single_step",False) and not isTrain
+        lengths,time_mask,flat_time_mask,valid_indices=self._build_time_layout(batch["lengths"],time_steps,device,single_step=single_step)
         entity_features,entity_mask=self._build_entity_features(batch,models,flat_time_mask,valid_indices,batch_size,time_steps)
         candidates=self._build_candidate_features(batch,models,flat_time_mask,valid_indices,batch_size,time_steps)
 
         stack_extra = batch["rl_state"]["stack_extra"]
 
         self._trace_stage("state_transformer")
-        state_result=models["StateTransformer"](
+        state_transformer=models["StateTransformer"]
+        if batch.get("_single_step",False):
+            state_transformer=getattr(state_transformer,"forward_step",state_transformer)
+
+        state_result=state_transformer(
             global_scalars=global_scalars,
             entity_features=entity_features,
             candidate_features=candidates["features"],
@@ -404,7 +428,12 @@ class CASTER_PPO_Pointer(BaseTrainer):
         self._trace_stage("collate_state")
         batch=self.dataset.collate_state(batch,extra_keys)
         validate_cpu_batch(batch)
-        self._trace_stage("transfer_inputs", device=str(self.rank))
+        batch["_single_step"]=(
+            not isTrain
+            and batch["rl_state"]["global_scalars"].shape[1]==1
+            and bool((batch["lengths"]==1).all().item())
+        )
+        self._trace_stage("transfer_inputs",device=str(self.rank))
         batch=batch_to_cuda(batch,self.rank)
         return self.predict(batch,models,isTrain,self.step,self.epoch)
 
