@@ -93,7 +93,10 @@ extra:
     class_name: "game.rlearning.pretrained.entity_transition.EntityTransitionFeatures"
     config_path: "/mnt/data/trainData/checkpoints/logs/specific/specific_entity_birth_plan_support_v04/ckpt/config_194806.yaml"
     checkpoint: "/mnt/data/trainData/checkpoints/logs/specific/specific_entity_birth_plan_support_v04/ckpt/g_194806"
-
+  cuda_graph:
+    enabled: true
+    max_graphs: 2
+    capture_after: 3
 ###########################
 # PPO
 ###########################

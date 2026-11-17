@@ -74,6 +74,9 @@ class BatchedInferenceServer:
         if not force and current["restore_step"] == version:
             return trainer
 
+        if hasattr(trainer,"clear_policy_graphs"):
+            trainer.clear_policy_graphs()
+
         current["restore_step"] = None
 
         if step == 0:

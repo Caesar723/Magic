@@ -8,7 +8,7 @@ from game.rlearning.pretrained.loader import PretrainedLoader
 from game.rlearning.utils.diagnostics import validate_cpu_batch
 from game.rlearning.utils.baseAgent import BaseTrainer
 from game.rlearning.utils.data import batch_to_cuda,detach_cuda,to_cpu
-
+from game.rlearning.utils.cuda_graph import CudaGraphRunner
 
 class CASTER_PPO_Pointer(BaseTrainer):
     def __init__(self, config,restore_step, rank=0, n_gpus=1,name="main"):
@@ -316,6 +316,84 @@ class CASTER_PPO_Pointer(BaseTrainer):
             "mean_p":mean_p,
             "std_p":std_p
         }
+        
+    def _policy_forward(self,inputs,models,single_step=False):
+        state_transformer=models["StateTransformer"]
+        if single_step:
+            state_transformer=getattr(state_transformer,"forward_step",state_transformer)
+
+        state_keys=(
+            "global_scalars","entity_features","candidate_features",
+            "planner","mean_p","std_p","lengths","six_available",
+            "special_action_ids","entity_mask","candidate_mask",
+            "stack_owner","stack_action"
+        )
+        state_result=state_transformer(**{
+            key:inputs[key] for key in state_keys
+        })
+
+        actor_state=(inputs["actor_h"],inputs["actor_c"])
+        critic_state=(inputs["critic_h"],inputs["critic_c"])
+
+        actor_output,actor_state_out=models["TemporalBlockActor"](
+            state_result["state_features"],inputs["lengths"],actor_state
+        )
+        critic_output,critic_state_out=models["TemporalBlockCritic"](
+            state_result["state_features"],inputs["lengths"],critic_state
+        )
+
+        flat_time_mask=None if single_step else inputs["time_mask"].reshape(-1)
+
+        actor_features=self._select_time(actor_output,flat_time_mask)
+        critic_features=self._select_time(critic_output,flat_time_mask)
+        candidate_features=self._select_time(state_result["all_candidates"],flat_time_mask)
+        candidate_mask=self._select_time(inputs["candidate_mask"],flat_time_mask)
+
+        logits=models["Actor"](actor_features,candidate_features,candidate_mask)
+        value=models["Critic"](critic_features)
+
+        return state_result,actor_output,actor_state_out,critic_output,critic_state_out,logits,value
+
+    def clear_policy_graphs(self):
+        self._policy_graph_runner=None
+        self._policy_graph_models=None
+
+    def _run_policy_forward(self,inputs,models,single_step=False):
+        settings=self.config.get("extra",{}).get("cuda_graph",{})
+        names=(
+            "StateTransformer","TemporalBlockActor",
+            "TemporalBlockCritic","Actor","Critic"
+        )
+
+        enabled=(
+            settings.get("enabled",False)
+            and single_step
+            and not torch.is_grad_enabled()
+            and inputs["global_scalars"].is_cuda
+            and all(not models[name].training for name in names)
+            and hasattr(models["StateTransformer"],"forward_step")
+            and hasattr(models["TemporalBlockActor"],"forward_step")
+            and hasattr(models["TemporalBlockCritic"],"forward_step")
+        )
+        if not enabled:
+            return self._policy_forward(inputs,models,single_step=single_step)
+
+        identity=tuple(id(models[name]) for name in names)
+        if getattr(self,"_policy_graph_models",None)!=identity:
+            self.clear_policy_graphs()
+            self._policy_graph_models=identity
+
+        if getattr(self,"_policy_graph_runner",None) is None:
+            self._policy_graph_runner=CudaGraphRunner(
+                max_graphs=settings.get("max_graphs",2),
+                capture_after=settings.get("capture_after",3)
+            )
+
+        def forward(static_inputs):
+            return self._policy_forward(static_inputs,models,single_step=True)
+
+        return self._policy_graph_runner.run(forward,inputs)
+
 
 
     def predict(self,batch,models,isTrain,step,epoch):
@@ -328,45 +406,36 @@ class CASTER_PPO_Pointer(BaseTrainer):
         entity_features,entity_mask=self._build_entity_features(batch,models,flat_time_mask,valid_indices,batch_size,time_steps)
         candidates=self._build_candidate_features(batch,models,flat_time_mask,valid_indices,batch_size,time_steps)
 
-        stack_extra = batch["rl_state"]["stack_extra"]
+        stack_extra=batch["rl_state"]["stack_extra"]
 
-        self._trace_stage("state_transformer")
-        state_transformer=models["StateTransformer"]
-        if batch.get("_single_step",False):
-            state_transformer=getattr(state_transformer,"forward_step",state_transformer)
+        policy_inputs={
+            "global_scalars":global_scalars,
+            "entity_features":entity_features,
+            "candidate_features":candidates["features"],
+            "planner":batch["planner"],
+            "mean_p":batch["mean_p"],
+            "std_p":batch["std_p"],
+            "lengths":lengths,
+            "six_available":batch["six_available"],
+            "special_action_ids":batch["special_action_ids"],
+            "entity_mask":entity_mask,
+            "candidate_mask":candidates["mask"],
+            "stack_owner":stack_extra["player_one_hot"],
+            "stack_action":stack_extra["action_number"],
+            "actor_h":batch["actor_state_in"]["h"],
+            "actor_c":batch["actor_state_in"]["c"],
+            "critic_h":batch["critic_state_in"]["h"],
+            "critic_c":batch["critic_state_in"]["c"],
+            "time_mask":time_mask
+        }
 
-        state_result=state_transformer(
-            global_scalars=global_scalars,
-            entity_features=entity_features,
-            candidate_features=candidates["features"],
-            planner=batch["planner"],
-            mean_p=batch["mean_p"],
-            std_p=batch["std_p"],
-            lengths=lengths,
-            six_available=batch["six_available"],
-            special_action_ids=batch["special_action_ids"],
-            entity_mask=entity_mask,
-            candidate_mask=candidates["mask"],
-            stack_owner=stack_extra["player_one_hot"],
-            stack_action=stack_extra["action_number"]
+        self._trace_stage("policy_forward")
+        state_result,actor_output,actor_state_out,critic_output,critic_state_out,logits,value=self._run_policy_forward(
+            policy_inputs,models,single_step=single_step
         )
 
-        actor_state_in=(batch["actor_state_in"]["h"],batch["actor_state_in"]["c"])
-        critic_state_in=(batch["critic_state_in"]["h"],batch["critic_state_in"]["c"])
-
-        self._trace_stage("temporal_blocks")
-        actor_output,actor_state_out=models["TemporalBlockActor"](state_result["state_features"],lengths,actor_state_in)
-        critic_output,critic_state_out=models["TemporalBlockCritic"](state_result["state_features"],lengths,critic_state_in)
-
-        actor_features=self._select_time(actor_output,flat_time_mask)
-        critic_features=self._select_time(critic_output,flat_time_mask)
-        candidate_features=self._select_time(state_result["all_candidates"],flat_time_mask)
-        candidate_mask=self._select_time(candidates["mask"],flat_time_mask)
-
         self._trace_stage("actor_distribution")
-        logits=models["Actor"](actor_features,candidate_features,candidate_mask)
         dist=torch.distributions.Categorical(logits=logits)
-        value=models["Critic"](critic_features)
 
         training_action = "action" in batch
 
