@@ -25,13 +25,15 @@ class InferenceClient:
     def choose_action(self, state: dict) -> dict:
         request_id = self._request_id
         self._request_id += 1
+        pack_state=getattr(self.communication,"pack_state",None)
+        request_state=pack_state(state,self.config_path) if pack_state is not None else state
         self.communication.request_queue.put(InferenceRequest(
             worker_id=self.worker_id,
             request_id=request_id,
             policy_id=self.policy_id,
             config_path=self.config_path,
             restore_step=self.restore_step,
-            state=state,
+            state=request_state,
         ))
         while True:
             response = self.communication.response_queues[self.worker_id].get()

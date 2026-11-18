@@ -53,6 +53,7 @@ class BatchedInferenceServer:
             )
             trainer.pbar=None
             self._share_text_encoder(trainer)
+            trainer.dataset.inference_packer=getattr(self.communication,"state_packer",None)
 
             initial_weights = {
                 name: deepcopy({

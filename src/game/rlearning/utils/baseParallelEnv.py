@@ -52,7 +52,10 @@ class BaseParallelEnv:
                 **self.env_config["inference"],
                 "opponent_config": self.env_config["opponent_config"],
             }
-            self.inference_communication = InferenceCommunication(self.num_worker)
+            self.inference_communication=InferenceCommunication(
+                self.num_worker,
+                self.env_config["inference"].get("input_packing")
+            )
             self.inference_process = Process(
                 target=inference_server_process,
                 args=(self.inference_communication, inference_config),

@@ -636,6 +636,15 @@ class PPOAgentDataset(BaseDataset):
 
     def collate_inference(self,batch,extra_keys=None,compact=False):
         states=self.select_states(batch,extra_keys or [])
+        if states and "_prepared_inference" in states[0]:
+            if not compact:
+                raise ValueError("Prepared input requires compact inference")
+
+            packer=getattr(self,"inference_packer",None)
+            if packer is None:
+                raise RuntimeError("Inference packer has not been configured")
+
+            return packer.combine([state["_prepared_inference"] for state in states])
         batch_size=len(states)
         planner=np.zeros((batch_size,1,4,self.planner_dim),dtype=np.float32)
         mean_p=np.zeros((batch_size,1,self.q_dim),dtype=np.float32)

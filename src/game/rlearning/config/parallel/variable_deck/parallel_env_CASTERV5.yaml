@@ -10,6 +10,9 @@ info_communication: "game.rlearning.communicate.training_parallel_room.Info_Comm
 room: "game.rlearning.trainingRoom.training_parallel_variable_deck_room.Multi_Agent_Parallel_Variable_Deck_Room"
 
 inference:
+  input_packing:
+    enabled: true
+    class_name: game.rlearning.inference.packing.caster_policy_batch.PreparedPolicyBatch
   max_batch_size: 32
   max_wait_ms: 5
 
@@ -35,7 +38,7 @@ inference:
 
 rollout_torch_threads: 1
 
-num_worker: 25
+num_worker: 64
 
 evaluation_config: game/rlearning/config/evaluation/standard_v2.yaml
 evaluation_interval: 2000
