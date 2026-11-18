@@ -1,4 +1,4 @@
-from torch.multiprocessing import Queue
+from multiprocessing import Queue
 from queue import Full, Empty
 import random
 from initinal_file import ORGPATH

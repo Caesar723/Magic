@@ -1,4 +1,4 @@
-from torch.multiprocessing import Queue
+from multiprocessing import Queue
 
 from game.rlearning.utils.model import get_class_by_name
 

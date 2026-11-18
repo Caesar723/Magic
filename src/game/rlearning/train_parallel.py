@@ -5,7 +5,7 @@ if __name__=="__main__":
     if str(src_root) not in sys.path:
         sys.path.append(str(src_root))
 import argparse
-import torch.multiprocessing as mp
+import multiprocessing as mp
 from initinal_file import ORGPATH
 from game.rlearning.utils.model import get_class_by_name
 from game.rlearning.utils.file import read_yaml

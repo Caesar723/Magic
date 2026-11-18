@@ -1,5 +1,5 @@
 import numpy as np
-import torch
+
 
 
 class PreparedPolicyBatch:
@@ -13,33 +13,24 @@ class PreparedPolicyBatch:
         if config_path not in self.datasets:
             config=read_yaml(config_path)
             enabled=config.get("extra",{}).get("cuda_graph",{}).get("frozen_features",False)
-            self.datasets[config_path]=get_class_by_name(
-                config["dataset_class_name"]
-            )(config) if enabled else None
+            class_name=config.get(
+                "inference_input_class",
+                "game.rlearning.inference.packing.caster_policy_inputs.CasterPolicyInputs"
+            )
+            self.datasets[config_path]=get_class_by_name(class_name)(config) if enabled else None
 
-        dataset=self.datasets[config_path]
-        if dataset is None:
+        preparer=self.datasets[config_path]
+        if preparer is None:
             return state
 
-        batch=dataset.collate_inference([state],compact=True)
-
-        def numpy(value):
-            if torch.is_tensor(value):
-                return value.numpy()
-            if isinstance(value,dict):
-                return {
-                    name:numpy(item)
-                    for name,item in value.items()
-                }
-            return value
-
         return {
-            "_prepared_inference":numpy(batch),
+            "_prepared_inference":preparer([state]),
             "_candidate_count":len(state["candidate_actions"])
         }
 
     @staticmethod
     def combine(values):
+        import torch
         def join(items,path=()):
             first=items[0]
 
@@ -122,6 +113,7 @@ class PreparedPolicyBatch:
             result["candidates"][name]=output
 
         def tensor(value):
+            
             if isinstance(value,np.ndarray):
                 return torch.from_numpy(value)
             if isinstance(value,dict):

@@ -1,9 +1,7 @@
 import random
-import torch
 import os
 from typing import TYPE_CHECKING
 from pathlib import Path
-from torch._inductor.config import batch_fusion
 if TYPE_CHECKING:
     from game.room import Room
     from game.rlearning.utils.baseAgent import BaseTrainer

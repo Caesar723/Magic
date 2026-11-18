@@ -1,9 +1,6 @@
 import os
 import importlib
 
-import torch   
-import torch.nn as nn
-import torch.nn.functional as F
 
 from game.rlearning.utils.file import read_symbol_link
 
@@ -44,7 +41,7 @@ def set_symbol_link(link_file, symbol, overwrite=True):
     os.symlink(fn, link_path)
     
 def load_model(checkpoint, config, rank, strict=False, debug=False):
- 
+    import torch
     if checkpoint is not None and os.path.islink(checkpoint):
         checkpoint = read_symbol_link(checkpoint)
     
@@ -85,6 +82,7 @@ def load_model(checkpoint, config, rank, strict=False, debug=False):
 
 
 def load_ckpt(model, ckpt_path):
+    import torch
     if not os.path.exists(ckpt_path):
         print(f"Checkpoint {ckpt_path} doesn't exist")
         return
@@ -112,7 +110,7 @@ def load_ckpt(model, ckpt_path):
 
 
 def update_model(base_checkpoint, updated_checkpoint, model_names):
-
+    import torch
     state_dict_base = torch.load(base_checkpoint, map_location="cpu")
     print("base_checkpoint: ", state_dict_base.keys())
     state_dict_update = torch.load(updated_checkpoint, map_location="cpu")
@@ -139,7 +137,7 @@ def update_model(base_checkpoint, updated_checkpoint, model_names):
 
 
 def rename_model(checkpoint, renames):
-
+    import torch
     state_dict_base = torch.load(checkpoint, map_location="cpu")
     for m in renames:
         if m in state_dict_base:
@@ -155,7 +153,7 @@ def rename_model(checkpoint, renames):
 
 
 def merge_model(checkpoint1, checkpoint2, rename_list1, rename_list2, save_file):
-
+    import torch
     if type(checkpoint1) is str:
         state_dict1 = torch.load(checkpoint1, map_location="cpu")
     else:
@@ -186,7 +184,7 @@ def merge_model(checkpoint1, checkpoint2, rename_list1, rename_list2, save_file)
 
     
 
-def whether_contain_parameters(model: torch.nn.Module):
+def whether_contain_parameters(model):
     p = model.parameters()
     try:
         next(p) 
@@ -196,6 +194,7 @@ def whether_contain_parameters(model: torch.nn.Module):
 
 
 def sequence_mask(length, max_length=None):
+    import torch
     if max_length is None:
         max_length = length.max()
     x = torch.arange(max_length, dtype=length.dtype, device=length.device)
@@ -203,6 +202,7 @@ def sequence_mask(length, max_length=None):
 
 
 def padding_mask(length, max_length=None):
+    import torch
     if max_length is None:
         max_length = length.max()
     x = torch.arange(max_length, dtype=length.dtype, device=length.device)

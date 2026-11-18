@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING
 import numpy as np
-import torch
 from game.type_cards.creature import Creature
 from game.type_cards.instant import Instant,Instant_Undo
 from game.type_cards.land import Land
@@ -30,24 +29,27 @@ def append_history(state:dict,history:list,history_length:int=10):
         history.pop(0)
 
 def first_numpy(value):
-    if torch.is_tensor(value):
-        value = value.detach().cpu().numpy()
+    if hasattr(value,"detach"):
+        value=value.detach().cpu().numpy()
     return np.asarray(value[0]).copy()
 
 
 def first_int(value):
-    if torch.is_tensor(value):
-        value = value.detach().cpu().numpy()
+    if hasattr(value,"detach"):
+        value=value.detach().cpu().numpy()
     return int(np.asarray(value).reshape(-1)[0])
-    
+
+
 def first_lstm_state(state):
     if state is None:
         return None
+
     result=[]
     for value in state:
-        if torch.is_tensor(value):
+        if hasattr(value,"detach"):
             value=value.detach().cpu().numpy()
         result.append(np.asarray(value)[:,0:1].copy())
+
     return tuple(result)
 
 

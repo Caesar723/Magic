@@ -18,7 +18,7 @@ from game.rlearning.utils.model import get_class_by_name
 from game.rlearning.utils.file import read_yaml
 from game.rlearning.inference.communication import InferenceCommunication
 from initinal_file import ORGPATH
-from torch.multiprocessing import Queue,Manager,Process
+from multiprocessing import Queue,Manager,Process
 from queue import Full, Empty
 from typing import TYPE_CHECKING
 
@@ -154,8 +154,9 @@ def worker_process(
     room_class:type):
     os.environ["RL_ROLLOUT_WORKER"] = "1"
     signal.signal(signal.SIGINT, signal.SIG_IGN)
-    import torch
-    torch.set_num_threads(env_config.get("rollout_torch_threads", 1))
+    if inference_communication is None:
+        import torch
+        torch.set_num_threads(env_config.get("rollout_torch_threads",1))
     try:
         asyncio.run(run_parallel_room(
             env_config,

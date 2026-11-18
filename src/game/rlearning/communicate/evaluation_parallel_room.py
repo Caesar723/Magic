@@ -1,4 +1,4 @@
-from torch.multiprocessing import Queue
+from multiprocessing import Queue
 from initinal_file import ORGPATH
 
 
