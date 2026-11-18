@@ -1,11 +1,7 @@
 
 import os 
 from loguru import logger 
-import matplotlib
-matplotlib.use("Agg")
-from matplotlib import pyplot as plt
 
-from torch.utils.tensorboard import SummaryWriter 
 
 
 SW = None 
@@ -19,6 +15,7 @@ def init(logdir, use_tensorboard=True):
         INIT_STATE = True
 
     if use_tensorboard and SW is None:
+        from torch.utils.tensorboard import SummaryWriter
         SW = SummaryWriter(logdir) 
 
 def sw_loss(tag, loss_dict, global_step,name=""):
@@ -35,6 +32,9 @@ def sw_scalar(tag, value, global_step):
 def sw_curve(tag, x, y, global_step, xlabel=None, ylabel=None):
     if SW is None:
         return
+    import matplotlib
+    matplotlib.use("Agg")
+    from matplotlib import pyplot as plt
     fig, axis = plt.subplots()
     axis.plot(x, y)
     if xlabel:
@@ -50,6 +50,9 @@ def sw_audio(tag, audio, sample_rate, global_step=None):
                         global_step=global_step) 
 
 def sw_figure_lines(tag, datas, labels, global_step):
+    import matplotlib
+    matplotlib.use("Agg")
+    from matplotlib import pyplot as plt
     fig = plt.figure()
     for data, lab in zip(datas, labels):
         plt.plot(data, label=lab) 
@@ -61,6 +64,9 @@ def sw_add_embedding(tag, data, label, global_step):
     SW.add_embedding(data, tag=tag, metadata=label, global_step=global_step)
 
 def sw_figure(tag, data, global_step):
+    import matplotlib
+    matplotlib.use("Agg")
+    from matplotlib import pyplot as plt
     if type(data) is matplotlib.figure.Figure:
         fig = data 
     else:

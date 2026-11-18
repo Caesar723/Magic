@@ -2,7 +2,7 @@ import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from transformers import AutoModel
+
 
 
 class JinaTextEncoder(nn.Module):
@@ -34,28 +34,34 @@ class JinaTextEncoder(nn.Module):
     def clear_cache(self):
         self._embedding_cache.clear()
 
-    def _load_encoder(self,device=None):
+    def _load_encoder(self, device=None):
         if device is not None:
-            device=torch.device(device)
-            if device.type=="cuda" and device.index is None:
-                device=torch.device("cuda",torch.cuda.current_device())
+            device = torch.device(device)
+            if device.type == "cuda" and device.index is None:
+                device = torch.device("cuda", torch.cuda.current_device())
 
         if self._encoder is None:
-            model_path=self.local_model_path
+            from transformers import AutoModel
+
+            model_path = self.local_model_path
             if not model_path or not os.path.isdir(model_path):
-                model_path=self.model_name
-            encoder=AutoModel.from_pretrained(
-                model_path,cache_dir=self.cache_dir,trust_remote_code=self.trust_remote_code,
+                model_path = self.model_name
+
+            encoder = AutoModel.from_pretrained(
+                model_path,
+                cache_dir=self.cache_dir,
+                trust_remote_code=self.trust_remote_code,
                 local_files_only=self.local_files_only
             )
             encoder.requires_grad_(False)
             encoder.eval()
-            object.__setattr__(self,"_encoder",encoder)
-            self._encoder_device=next(encoder.parameters()).device
+            object.__setattr__(self, "_encoder", encoder)
+            self._encoder_device = next(encoder.parameters()).device
 
-        if device is not None and self._encoder_device!=device:
+        if device is not None and self._encoder_device != device:
             self._encoder.to(device)
-            self._encoder_device=device
+            self._encoder_device = device
+
         return self._encoder
 
     def _encode_texts(self,texts,device,prompt_name):

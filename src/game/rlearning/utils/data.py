@@ -1,7 +1,6 @@
 import time
 import os, random, pickle
 import numpy as np 
-import matplotlib.pyplot as plt
 import torch 
 import torch.nn.functional as F
 
@@ -137,50 +136,3 @@ def get_random_crop_range(length, crop_range):
     start = random.randint(0, length-L)
     end = start+L
     return start, end
-
-def visualize_grid(images, row_names, col_names):
-    '''
-    此函数功能为将多张图片拼接成一张大图
-    images: 二维数组，有横向与纵向
-    row_names: 横向的文字标签
-    col_names: 纵向的文字标签
-    返回为matplotlib的figure对象
-    '''
-    assert len(images) == len(row_names)
-    assert all(len(row) == len(col_names) for row in images)
-
-    h, w, c = images[0][0].shape
-    grid_rows = len(images)
-    grid_cols = len(images[0])
-
-    # 创建一张大图拼接所有图像
-    grid_img = np.ones((h * grid_rows, w * grid_cols, 3), dtype=np.uint8) * 255
-
-    for i in range(grid_rows):
-        for j in range(grid_cols):
-            y_start = i * h
-            y_end = y_start + h
-            x_start = j * w
-            x_end = x_start + w
-            grid_img[y_start:y_end, x_start:x_end] = images[i][j]
-
-    # 使用 matplotlib 绘制图像和文字标签
-    fig, ax = plt.subplots()
-    ax.imshow(grid_img)
-    ax.axis('off')
-
-    for j, name in enumerate(col_names):
-        x = j * w + w // 2
-        ax.text(x, -10, name, ha='center', va='bottom', fontsize=12)
-
-    for i, name in enumerate(row_names):
-        y = i * h + h // 2
-        ax.text(-10, y, name, ha='right', va='center', fontsize=12)
-
-    plt.tight_layout()
-
-    
-    fig.canvas.draw()
-    
-    
-    return fig

@@ -17,7 +17,6 @@ from copy import deepcopy
 from game.rlearning.utils.model import get_class_by_name
 from game.rlearning.utils.file import read_yaml
 from game.rlearning.inference.communication import InferenceCommunication
-from game.rlearning.inference.server import inference_server_process
 from initinal_file import ORGPATH
 from torch.multiprocessing import Queue,Manager,Process
 from queue import Full, Empty
@@ -48,6 +47,7 @@ class BaseParallelEnv:
         self.inference_communication = None
         self.inference_process = None
         if "inference" in self.env_config:
+            from game.rlearning.inference.server import inference_server_process
             inference_config = {
                 **self.env_config["inference"],
                 "opponent_config": self.env_config["opponent_config"],
