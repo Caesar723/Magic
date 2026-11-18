@@ -14,7 +14,6 @@ import signal
 from os import PathLike
 from copy import deepcopy
 
-from game.rlearning.utils.diagnostics import FailureRecorder, describe_room, failure_directory
 from game.rlearning.utils.model import get_class_by_name
 from game.rlearning.utils.file import read_yaml
 from game.rlearning.inference.communication import InferenceCommunication
@@ -37,29 +36,21 @@ class BaseParallelEnv:
         else:
             self.env_config = read_yaml(str(config_path))
 
-        self.failure_dir = failure_directory(self.env_config)
-        self.env_config["diagnostics_dir"] = self.failure_dir
-        self.diagnostics = FailureRecorder(self.failure_dir, "main")
-        self.diagnostics.mark("initialize_environment", config_path=str(config_path), restore_step=restore_step)
         self.restore_step_override = restore_step
         self.num_worker=self.env_config["num_worker"]
         self.manager=Manager()
         try:
             self.initinal_config(self.env_config)
-        except Exception as error:
-            self.diagnostics.capture(error)
+        except Exception:
             self.manager.shutdown()
             raise
-        trainer = getattr(self, "agent1", None)
-        if trainer is not None:
-            trainer.diagnostics = self.diagnostics
+
         self.inference_communication = None
         self.inference_process = None
         if "inference" in self.env_config:
             inference_config = {
                 **self.env_config["inference"],
                 "opponent_config": self.env_config["opponent_config"],
-                "diagnostics_dir": self.failure_dir,
             }
             self.inference_communication = InferenceCommunication(self.num_worker)
             self.inference_process = Process(
@@ -129,73 +120,48 @@ class BaseParallelEnv:
     def check_workers(self):
         if self.inference_process is not None and not self.inference_process.is_alive():
             process = self.inference_process
-            hint = FailureRecorder.failure_hint(self.failure_dir, "inference", process.pid)
-            raise RuntimeError(f"Inference server exited: {process.exitcode}\n{hint}")
+            raise RuntimeError(f"Inference server exited: {process.exitcode} (pid={process.pid})")
 
         for worker_id, process in enumerate(self.worker_process):
             if not process.is_alive():
                 registration = self.env_config.get("inference", {}).get("opponent_registration")
-
                 if registration is not None and self.inference_communication is not None:
                     self.inference_communication.control_queue.put(("release", worker_id))
-
-                hint = FailureRecorder.failure_hint(self.failure_dir, f"worker-{worker_id}", process.pid)
-                raise RuntimeError(f"Worker {worker_id} exited: {process.exitcode}\n{hint}")
+                raise RuntimeError(f"Worker {worker_id} exited: {process.exitcode} (pid={process.pid})")
 
 async def run_parallel_room(
     env_config,
     info_communication,
     inference_communication,
     worker_id:int,
-    room_class:type, diagnostics=None):
+    room_class:type):
     if inference_communication is None:
         room = room_class(env_config, info_communication, worker_id)
     else:
         room = room_class(env_config, info_communication, worker_id, inference_communication)
-    
-    room.diagnostics = diagnostics
-    try:
-        if diagnostics is not None:
-            diagnostics.mark("game_start", worker_id=worker_id)
-        await room.game_start()
-        await room.action_process_system()
-    except Exception:
-        if diagnostics is not None:
-            try:
-                diagnostics.inputs = {"last_inputs": diagnostics.inputs, "room": describe_room(room)}
-            except Exception as snapshot_error:
-                diagnostics.mark("room_snapshot_failed", snapshot_error=repr(snapshot_error))
-        raise
+
+    await room.game_start()
+    await room.action_process_system()
 
 def worker_process(
-    env_config, 
-    info_communication, 
+    env_config,
+    info_communication,
     inference_communication,
     worker_id:int,
     room_class:type):
-    # sys.stdout = open(os.devnull, 'w')
-    # sys.stderr = open(os.devnull, 'w')
     os.environ["RL_ROLLOUT_WORKER"] = "1"
-    # The parent process owns Ctrl+C and performs coordinated shutdown.
     signal.signal(signal.SIGINT, signal.SIG_IGN)
-    # Each rollout is Python/CPU bound.  One torch thread per process avoids
-    # OpenMP oversubscription when many environments run together.
     import torch
     torch.set_num_threads(env_config.get("rollout_torch_threads", 1))
-    diagnostics = FailureRecorder(env_config.get("diagnostics_dir"), f"worker-{worker_id}")
     try:
         asyncio.run(run_parallel_room(
             env_config,
             info_communication,
             inference_communication,
             worker_id,
-            room_class, diagnostics,
+            room_class,
         ))
-    except Exception as error:
-        diagnostics.capture(error)
-        raise
     finally:
         registration = env_config.get("inference", {}).get("opponent_registration")
-
         if registration is not None and inference_communication is not None:
             inference_communication.control_queue.put(("release", worker_id))

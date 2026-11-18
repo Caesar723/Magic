@@ -54,11 +54,8 @@ class Parallel_Env(BaseParallelEnv):
                 data = self.info_communication.get_game_data(timeout=1.0)
             except Empty:
                 continue
-            self.diagnostics.inputs = {"rollout_data": data}
-            self.diagnostics.mark("store_round_data", samples=len(data), step=self.agent1.step)
             self.agent1.store_round_data(data)
 
-            self.diagnostics.mark("update_policy", step=self.agent1.step)
             is_update=self.agent1.update()
             if is_update:
                 step = self.agent1.step

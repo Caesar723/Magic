@@ -9,7 +9,6 @@ import math
 import json
 
 from game.rlearning.net.state_space.jina_text_encoder import JinaTextEncoder
-from game.rlearning.utils.diagnostics import FailureRecorder, describe_state, fatal_cuda_error
 from initinal_file import ORGPATH
 from game.rlearning.utils.common import CHECKPOINT_ROOT_PATH
 from game.rlearning.utils.agentSchedule import AgentSchedule
@@ -27,12 +26,15 @@ class BatchedInferenceServer:
         self.max_wait_seconds=config.get("max_wait_ms",5)/1000
         self.policies={}
         self.running=True
-        self.diagnostics=None
         self.text_encoders={}
 
+    @staticmethod
+    def _fatal_cuda_error(error):
+        message = str(error).lower()
+        markers = ("unspecified launch failure", "illegal memory access", "device-side assert", "context is destroyed", "cuda error: unknown error", "cuda failure 719", "cuda failure 700", "cuda failure 710")
+        return any(marker in message for marker in markers)
+
     def _load_policy(self, config_path, restore_step, force=False, policy_key=None):
-        if self.diagnostics is not None:
-            self.diagnostics.mark("load_policy", config_path=config_path, restore_step=restore_step, policy_key=policy_key)
         try:
             step = int(restore_step)
         except (TypeError, ValueError):
@@ -69,7 +71,6 @@ class BatchedInferenceServer:
             self.policies[key] = current
 
         trainer = current["trainer"]
-        trainer.diagnostics = self.diagnostics
 
         if not force and current["restore_step"] == version:
             return trainer
@@ -115,9 +116,6 @@ class BatchedInferenceServer:
                 command = self.communication.control_queue.get_nowait()
             except queue.Empty:
                 return
-            if self.diagnostics is not None:
-                self.diagnostics.inputs = {"control": vars(command).copy() if hasattr(command, "__dict__") else command}
-                self.diagnostics.mark("apply_control", command=repr(command))
             if command == "stop":
                 self.running = False
                 return
@@ -130,13 +128,9 @@ class BatchedInferenceServer:
         trainer=self._load_policy(first.config_path,first.restore_step)
         trainer.deterministic_actions = getattr(self, "deterministic_actions", False) or first.policy_id == "pve"
         states=[request.state for request in requests]
-        self._trace_policy(trainer)
         results=trainer.inference(states,isTrain=False)
         return results,first.restore_step
 
-    def _trace_policy(self, trainer):
-        if self.diagnostics is not None:
-            self.diagnostics.mark("policy_inference", model_step=trainer.step)
 
     def _respond_error(self,request,error):
         response=InferenceResponse(
@@ -184,10 +178,6 @@ class BatchedInferenceServer:
                 )
                 groups.setdefault(key, []).append(request)
             for group in groups.values():
-                if self.diagnostics is not None:
-                    self.diagnostics.inputs = {"requests": [vars(request).copy() for request in group]}
-                    summaries = [{"worker_id": request.worker_id, "request_id": request.request_id, "policy_id": request.policy_id, "config_path": request.config_path, "restore_step": request.restore_step, **describe_state(request.state)} for request in group]
-                    self.diagnostics.mark("infer_group", requests=summaries)
                 try:
                     results,version=self._infer_group(group)
 
@@ -203,12 +193,9 @@ class BatchedInferenceServer:
                         self.communication.response_queues[request.worker_id].put(response)
                 except Exception as exception:
                     error=traceback.format_exc()
-                    if self.diagnostics is not None:
-                        report = self.diagnostics.capture(exception)
-                        error += f"\nFailure report: {report}"
                     for request in group:
                         self._respond_error(request,error)
-                    if fatal_cuda_error(exception):
+                    if self._fatal_cuda_error(exception):
                         raise
 
 
@@ -307,9 +294,6 @@ class TrainingInferenceServer(BatchedInferenceServer):
             except queue.Empty:
                 break
 
-            if self.diagnostics is not None:
-                self.diagnostics.inputs = {"control": vars(command).copy() if hasattr(command, "__dict__") else command}
-                self.diagnostics.mark("apply_control", command=repr(command))
             if command == "stop":
                 self.running = False
                 return
@@ -351,7 +335,6 @@ class TrainingInferenceServer(BatchedInferenceServer):
                 self._load_policy(first.config_path, first.restore_step)
             trainer = self.policies[first.config_path]["trainer"]
 
-            self._trace_policy(trainer)
             results = trainer.inference(
                 [request.state for request in requests],isTrain=False
             )
@@ -366,7 +349,6 @@ class TrainingInferenceServer(BatchedInferenceServer):
                 raise RuntimeError("Opponent checkpoint does not match")
 
         trainer = self.policies[("opponent", first.config_path)]["trainer"]
-        self._trace_policy(trainer)
         results = trainer.inference(
             [request.state for request in requests], isTrain=False
         )
@@ -374,18 +356,10 @@ class TrainingInferenceServer(BatchedInferenceServer):
 
 def inference_server_process(communication, config):
     signal.signal(signal.SIGINT, signal.SIG_IGN)
-
     server_class = (
         TrainingInferenceServer
         if config.get("opponent_registration") is not None
         else BatchedInferenceServer
     )
-
-    diagnostics = FailureRecorder(config.get("diagnostics_dir"), "inference")
-    try:
-        server = server_class(communication, config)
-        server.diagnostics = diagnostics
-        server.run()
-    except Exception as error:
-        diagnostics.capture(error)
-        raise
+    server = server_class(communication, config)
+    server.run()

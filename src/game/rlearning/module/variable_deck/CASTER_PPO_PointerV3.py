@@ -5,7 +5,6 @@ import torch.nn.functional as F
 
 from game.game_function_tool import ORGPATH
 from game.rlearning.pretrained.loader import PretrainedLoader
-from game.rlearning.utils.diagnostics import validate_cpu_batch
 from game.rlearning.utils.baseAgent import BaseTrainer
 from game.rlearning.utils.data import batch_to_cuda,detach_cuda,to_cpu
 from game.rlearning.utils.cuda_graph import CudaGraphRunner
@@ -47,10 +46,6 @@ class CASTER_PPO_Pointer(BaseTrainer):
             "card_embedding":pretrained.session("card_embedding"),
             "action_embedding":pretrained.session("action_embedding")
         }
-    def _trace_stage(self, stage, **details):
-        diagnostics = getattr(self, "diagnostics", None)
-        if diagnostics is not None:
-            diagnostics.mark(stage, **details)
 
     def _forward(self,batch,models,isTrain,step,epoch):
         batch=self.predict(batch,models,isTrain,step,epoch)
@@ -186,7 +181,6 @@ class CASTER_PPO_Pointer(BaseTrainer):
                 feature_inputs[name]=value.flatten(0,1).index_select(0,slots).to(dtype=dtype)
 
             output_specs={"card_embeddings":((slots.numel(),self.embed_dim),torch.float32)}
-            self._trace_stage("card_features", inputs={name: tuple(value.shape) for name, value in feature_inputs.items()})
             encoded=self.extra["card_embedding"].run(feature_inputs,output_specs)["card_embeddings"]
             card_embeddings.index_copy_(0,slots,encoded)
 
@@ -284,7 +278,6 @@ class CASTER_PPO_Pointer(BaseTrainer):
         layout=batch.get("_candidate_layout")
         has_candidates=layout["count"]>0 if layout is not None else encode_mask.any().item()
         if has_candidates:
-            self._trace_stage("action_features",inputs={name:tuple(value.shape) for name,value in feature_inputs.items()})
             feature_outputs=self.extra["action_embedding"].run(
                 feature_inputs,output_specs,candidate_layout=layout
             )
@@ -300,7 +293,6 @@ class CASTER_PPO_Pointer(BaseTrainer):
 
         special_action_ids=torch.where(candidate_indices<=1,candidate_indices,torch.full_like(candidate_indices,-1))
 
-        self._trace_stage("candidate_encoder")
         candidate_features=models["CandidateEncoder"](
             planner.reshape(num_states*num_candidates,4,self.planner_dim),
             mean_p.reshape(num_states*num_candidates,self.q_dim),
@@ -516,12 +508,10 @@ class CASTER_PPO_Pointer(BaseTrainer):
             "time_mask":time_mask
         }
 
-        self._trace_stage("policy_forward")
         state_result,actor_output,actor_state_out,critic_output,critic_state_out,logits,value=self._run_policy_forward(
             policy_inputs,models,single_step=single_step
         )
 
-        self._trace_stage("actor_distribution")
         dist=torch.distributions.Categorical(logits=logits)
 
         training_action = "action" in batch
@@ -587,15 +577,11 @@ class CASTER_PPO_Pointer(BaseTrainer):
             model.train() if isTrain else model.eval()
 
         if isTrain:
-            self._trace_stage("preprocess_state")
             batch=[self.dataset.get_sample_preprocess(state,extra_keys) for state in batch]
-            self._trace_stage("collate_state")
             batch=self.dataset.collate_state(batch,extra_keys,prepared=True)
         else:
-            self._trace_stage("collate_inference")
             batch=self.dataset.collate_inference(batch,extra_keys)
 
-        validate_cpu_batch(batch)
         batch["_single_step"]=(
             not isTrain
             and batch["rl_state"]["global_scalars"].shape[1]==1
@@ -603,7 +589,6 @@ class CASTER_PPO_Pointer(BaseTrainer):
         )
         if batch["_single_step"]:
             batch["_candidate_layout"]=self._build_candidate_layout(batch["candidates"])
-        self._trace_stage("transfer_inputs",device=str(self.rank))
         batch=batch_to_cuda(batch,self.rank)
         return self.predict(batch,models,isTrain,self.step,self.epoch)
 
