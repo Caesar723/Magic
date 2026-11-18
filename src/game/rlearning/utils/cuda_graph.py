@@ -2,6 +2,8 @@ from collections import OrderedDict
 import torch
 
 
+
+
 class CudaGraphRunner:
     def __init__(self,max_graphs=2,capture_after=3):
         self.max_graphs=max(0,int(max_graphs))
@@ -14,40 +16,62 @@ class CudaGraphRunner:
         if torch.is_tensor(value):
             return value.clone()
         if isinstance(value,dict):
-            return {key:self._copy_outputs(item) for key,item in value.items()}
-        if isinstance(value,tuple):
-            return tuple(self._copy_outputs(item) for item in value)
-        raise TypeError(f"Unsupported graph output: {type(value)}")
+            return {
+                name:self._copy_outputs(item)
+                for name,item in value.items()
+            }
+        if isinstance(value,(tuple,list)):
+            items=[self._copy_outputs(item) for item in value]
+            return tuple(items) if isinstance(value,tuple) else items
+        if value is None or isinstance(value,(bool,int,float,str)):
+            return value
+        raise TypeError(f"Unsupported output type: {type(value)}")
 
-    def _capture(self,function,inputs,device):
-        static_inputs={
-            name:value.detach().clone()
-            for name,value in inputs.items()
-        }
+    def _copy_inputs(self,buffers,inputs,layout):
+        if layout is not None:
+            layout.copy_inputs(buffers,inputs)
+        else:
+            for name,value in inputs.items():
+                buffers[name].copy_(value)
+
+    def _capture(self,function,inputs,device,plan,layout):
+        if layout is None:
+            buffers={
+                name:value.detach().clone()
+                for name,value in inputs.items()
+            }
+        else:
+            buffers={
+                name:value.new_empty(plan["shapes"][name])
+                for name,value in inputs.items()
+            }
+            self._copy_inputs(buffers,inputs,layout)
+
         current=torch.cuda.current_stream(device)
         stream=torch.cuda.Stream(device=device)
         stream.wait_stream(current)
 
         with torch.cuda.stream(stream):
             for _ in range(3):
-                function(static_inputs)
+                function(buffers)
 
         current.wait_stream(stream)
         graph=torch.cuda.CUDAGraph()
 
         with torch.cuda.graph(graph,stream=stream):
-            outputs=function(static_inputs)
+            outputs=function(buffers)
 
         current.wait_stream(stream)
         return {
             "graph":graph,
-            "inputs":static_inputs,
+            "inputs":buffers,
             "outputs":outputs
         }
 
     @torch.no_grad()
-    def run(self,function,inputs):
+    def run(self,function,inputs,layout=None):
         device=next(iter(inputs.values())).device
+
         if device.type!="cuda" or self.max_graphs==0:
             self.stats["eager"]+=1
             return function(inputs)
@@ -55,12 +79,25 @@ class CudaGraphRunner:
         if any(value.device!=device for value in inputs.values()):
             raise ValueError("Graph inputs must be on the same CUDA device")
 
+        plan=layout.plan(inputs) if layout is not None else {
+            "sizes":{},
+            "shapes":{
+                name:tuple(value.shape)
+                for name,value in inputs.items()
+            }
+        }
+
+        if plan is None:
+            self.stats["eager"]+=1
+            return function(inputs)
+
         signature=tuple(
-            (name,tuple(value.shape),value.dtype,value.device)
+            (name,plan["shapes"][name],value.dtype,value.device)
             for name,value in sorted(inputs.items())
         )
         key=(
             signature,
+            id(layout),
             torch.is_autocast_enabled("cuda"),
             torch.get_autocast_dtype("cuda"),
             torch.is_inference_mode_enabled()
@@ -84,18 +121,21 @@ class CudaGraphRunner:
                 return function(inputs)
 
             with torch.cuda.device(device):
-                entry=self._capture(function,inputs,device)
+                entry=self._capture(function,inputs,device,plan,layout)
 
             self.entries[key]=entry
             self.seen.pop(key,None)
             self.stats["captures"]+=1
 
         with torch.cuda.device(device):
-            for name,value in inputs.items():
-                entry["inputs"][name].copy_(value)
-
+            self._copy_inputs(entry["inputs"],inputs,layout)
             entry["graph"].replay()
-            outputs=self._copy_outputs(entry["outputs"])
+
+            outputs=entry["outputs"]
+            if layout is not None:
+                outputs=layout.output_view(outputs,plan["sizes"])
+
+            outputs=self._copy_outputs(outputs)
 
         self.stats["replays"]+=1
         return outputs

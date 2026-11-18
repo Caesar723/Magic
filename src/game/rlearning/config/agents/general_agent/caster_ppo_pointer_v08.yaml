@@ -95,8 +95,11 @@ extra:
     checkpoint: "/mnt/data/trainData/checkpoints/logs/specific/specific_entity_birth_plan_support_v04/ckpt/g_194806"
   cuda_graph:
     enabled: true
-    max_graphs: 2
+    bucketed: true
+    max_graphs: 6
     capture_after: 3
+    batch_buckets: [8, 32]
+    candidate_buckets: [4, 8, 32]
 ###########################
 # PPO
 ###########################

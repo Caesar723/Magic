@@ -21,13 +21,13 @@ from game.rlearning.utils.model import get_class_by_name
 class BatchedInferenceServer:
     """Owns policy models and batches rollout requests on one CUDA device."""
 
-    def __init__(self, communication, config: dict):
-        self.communication = communication
-        self.max_batch_size = config.get("max_batch_size", 32)
-        self.max_wait_seconds = config.get("max_wait_ms", 5) / 1000
-        self.policies = {}
-        self.running = True
-        self.diagnostics = None
+    def __init__(self,communication,config:dict):
+        self.communication=communication
+        self.max_batch_size=config.get("max_batch_size",32)
+        self.max_wait_seconds=config.get("max_wait_ms",5)/1000
+        self.policies={}
+        self.running=True
+        self.diagnostics=None
         self.text_encoders={}
 
     def _load_policy(self, config_path, restore_step, force=False, policy_key=None):

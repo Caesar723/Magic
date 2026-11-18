@@ -9,6 +9,7 @@ from game.rlearning.utils.diagnostics import validate_cpu_batch
 from game.rlearning.utils.baseAgent import BaseTrainer
 from game.rlearning.utils.data import batch_to_cuda,detach_cuda,to_cpu
 from game.rlearning.utils.cuda_graph import CudaGraphRunner
+from game.rlearning.utils.tensor_bucket_layout import TensorBucketLayout
 
 class CASTER_PPO_Pointer(BaseTrainer):
     def __init__(self, config,restore_step, rank=0, n_gpus=1,name="main"):
@@ -316,7 +317,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
             "mean_p":mean_p,
             "std_p":std_p
         }
-        
+
     def _policy_forward(self,inputs,models,single_step=False):
         state_transformer=models["StateTransformer"]
         if single_step:
@@ -354,8 +355,77 @@ class CASTER_PPO_Pointer(BaseTrainer):
 
         return state_result,actor_output,actor_state_out,critic_output,critic_state_out,logits,value
 
+    def _create_policy_graph_layout(self,settings):
+        batch_names=(
+            "global_scalars","entity_features","candidate_features",
+            "planner","mean_p","std_p","lengths","six_available",
+            "special_action_ids","entity_mask","candidate_mask",
+            "stack_owner","stack_action","time_mask"
+        )
+        input_axes={name:{0:"batch"} for name in batch_names}
+
+        for name in ("actor_h","actor_c","critic_h","critic_c"):
+            input_axes[name]={1:"batch"}
+
+        for name in ("candidate_features","candidate_mask"):
+            input_axes[name][2]="candidate"
+
+        state_axes={
+            "state_features":{0:"batch"},
+            "all_candidates":{0:"batch",2:"candidate"},
+            "last_state_feature":{0:"batch"},
+            "last_candidates":{0:"batch",1:"candidate"},
+            "last_candidate_mask":{0:"batch",1:"candidate"},
+            "time_mask":{0:"batch"}
+        }
+        output_axes={
+            "state":state_axes,
+            "actor_output":{0:"batch"},
+            "actor_state":{"h":{1:"batch"},"c":{1:"batch"}},
+            "critic_output":{0:"batch"},
+            "critic_state":{"h":{1:"batch"},"c":{1:"batch"}},
+            "logits":{0:"batch",1:"candidate"},
+            "value":{0:"batch"}
+        }
+
+        return TensorBucketLayout(
+            buckets={
+                "batch":settings.get("batch_buckets",(8,32)),
+                "candidate":settings.get("candidate_buckets",(4,8,32))
+            },
+            input_axes=input_axes,
+            output_axes=output_axes,
+            padding_values={
+                "lengths":1,
+                "time_mask":True,
+                "special_action_ids":-1
+            },
+            padding_hook=self._fill_policy_graph_padding
+        )
+
+    def _fill_policy_graph_padding(self,buffers,inputs):
+        batch=inputs["global_scalars"].shape[0]
+
+        if buffers["global_scalars"].shape[0]>batch:
+            buffers["candidate_mask"][batch:,:,0]=True
+
+    def _policy_graph_forward(self,inputs,models):
+        state,actor,actor_state,critic,critic_state,logits,value=self._policy_forward(
+            inputs,models,single_step=True
+        )
+        return {
+            "state":state,
+            "actor_output":actor,
+            "actor_state":{"h":actor_state[0],"c":actor_state[1]},
+            "critic_output":critic,
+            "critic_state":{"h":critic_state[0],"c":critic_state[1]},
+            "logits":logits,
+            "value":value
+        }
+
     def clear_policy_graphs(self):
         self._policy_graph_runner=None
+        self._policy_graph_layout=None
         self._policy_graph_models=None
 
     def _run_policy_forward(self,inputs,models,single_step=False):
@@ -364,7 +434,6 @@ class CASTER_PPO_Pointer(BaseTrainer):
             "StateTransformer","TemporalBlockActor",
             "TemporalBlockCritic","Actor","Critic"
         )
-
         enabled=(
             settings.get("enabled",False)
             and single_step
@@ -375,26 +444,44 @@ class CASTER_PPO_Pointer(BaseTrainer):
             and hasattr(models["TemporalBlockActor"],"forward_step")
             and hasattr(models["TemporalBlockCritic"],"forward_step")
         )
+
         if not enabled:
             return self._policy_forward(inputs,models,single_step=single_step)
 
         identity=tuple(id(models[name]) for name in names)
+
         if getattr(self,"_policy_graph_models",None)!=identity:
             self.clear_policy_graphs()
             self._policy_graph_models=identity
 
         if getattr(self,"_policy_graph_runner",None) is None:
+            bucketed=settings.get("bucketed",False)
+            self._policy_graph_layout=None
+
+            if bucketed:
+                self._policy_graph_layout=self._create_policy_graph_layout(settings)
+
             self._policy_graph_runner=CudaGraphRunner(
-                max_graphs=settings.get("max_graphs",2),
+                max_graphs=settings.get("max_graphs",6 if bucketed else 2),
                 capture_after=settings.get("capture_after",3)
             )
 
         def forward(static_inputs):
-            return self._policy_forward(static_inputs,models,single_step=True)
+            return self._policy_graph_forward(static_inputs,models)
 
-        return self._policy_graph_runner.run(forward,inputs)
+        result=self._policy_graph_runner.run(
+            forward,inputs,layout=self._policy_graph_layout
+        )
 
-
+        return (
+            result["state"],
+            result["actor_output"],
+            (result["actor_state"]["h"],result["actor_state"]["c"]),
+            result["critic_output"],
+            (result["critic_state"]["h"],result["critic_state"]["c"]),
+            result["logits"],
+            result["value"]
+        )
 
     def predict(self,batch,models,isTrain,step,epoch):
         global_scalars=batch["rl_state"]["global_scalars"]
@@ -499,11 +586,15 @@ class CASTER_PPO_Pointer(BaseTrainer):
         for model in models.values():
             model.train() if isTrain else model.eval()
 
-        self._trace_stage("preprocess_state")
-        batch=[self.dataset.get_sample_preprocess(b,extra_keys) for b in batch]
+        if isTrain:
+            self._trace_stage("preprocess_state")
+            batch=[self.dataset.get_sample_preprocess(state,extra_keys) for state in batch]
+            self._trace_stage("collate_state")
+            batch=self.dataset.collate_state(batch,extra_keys,prepared=True)
+        else:
+            self._trace_stage("collate_inference")
+            batch=self.dataset.collate_inference(batch,extra_keys)
 
-        self._trace_stage("collate_state")
-        batch=self.dataset.collate_state(batch,extra_keys)
         validate_cpu_batch(batch)
         batch["_single_step"]=(
             not isTrain
@@ -516,22 +607,33 @@ class CASTER_PPO_Pointer(BaseTrainer):
         batch=batch_to_cuda(batch,self.rank)
         return self.predict(batch,models,isTrain,self.step,self.epoch)
 
-    def build_inference_result(self,batch,index):
-        def get_lstm_state(key):
-            state=batch[key]
-            return tuple(state[name][:,index:index+1].detach().cpu().numpy().copy() for name in ("h","c"))
+    def prepare_inference_results(self,batch):
+        fields=(
+            "environment_action","candidate_slot","selected_planner",
+            "selected_mean","selected_std","sampled_log_prob","value"
+        )
+        result={name:batch[name].detach().cpu().numpy().copy() for name in fields}
+        for name in ("actor_state_in","critic_state_in","actor_state_out","critic_state_out"):
+            result[name]={
+                key:batch[name][key].detach().cpu().numpy().copy()
+                for key in ("h","c")
+            }
+        return result
 
-        action=batch["environment_action"][index,0]
-        return {
-            "action":int(action.detach().cpu().item()),
-            "candidate_slot":batch["candidate_slot"][index,0:1].detach().cpu().numpy(),
-            "selected_planner":batch["selected_planner"][index,0:1].detach().cpu().numpy(),
-            "selected_mean":batch["selected_mean"][index,0:1].detach().cpu().numpy(),
-            "selected_std":batch["selected_std"][index,0:1].detach().cpu().numpy(),
-            "sampled_log_prob":batch["sampled_log_prob"][index,0:1].detach().cpu().numpy(),
-            "value":batch["value"][index,0:1].detach().cpu().numpy(),
-            "actor_state_in":get_lstm_state("actor_state_in"),
-            "critic_state_in":get_lstm_state("critic_state_in"),
-            "actor_state_out":get_lstm_state("actor_state_out"),
-            "critic_state_out":get_lstm_state("critic_state_out")
-        }
+    def build_inference_result(self,batch,index):
+        if torch.is_tensor(batch["environment_action"]):
+            batch=self.prepare_inference_results(batch)
+
+        def get_lstm_state(key):
+            return tuple(batch[key][name][:,index:index+1].copy() for name in ("h","c"))
+
+        result={"action":int(batch["environment_action"][index,0])}
+        fields=(
+            "candidate_slot","selected_planner","selected_mean",
+            "selected_std","sampled_log_prob","value"
+        )
+        for name in fields:
+            result[name]=batch[name][index,0:1]
+        for name in ("actor_state_in","critic_state_in","actor_state_out","critic_state_out"):
+            result[name]=get_lstm_state(name)
+        return result

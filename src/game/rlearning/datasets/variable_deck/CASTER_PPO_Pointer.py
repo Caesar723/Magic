@@ -396,15 +396,18 @@ class PPOAgentDataset(BaseDataset):
             states=[item[key] for item in states]
         return states
 
-    def collate_state(self,batch,extra_keys=None):
+    def collate_state(self,batch,extra_keys=None,prepared=False):
         states=self.select_states(batch,extra_keys or [])
 
-        for state in states:
-            self.get_sample(state)
+        if not prepared:
+            for state in states:
+                self.get_sample(state)
 
         result=pad_temporal([state["sequence"] for state in states])
-        result["actor_state_in"]=collate_lstm_states([state["actor_state_in"] for state in states],self.actor_hidden_dim)
-        result["critic_state_in"]=collate_lstm_states([state["critic_state_in"] for state in states],self.critic_hidden_dim)
+        actor_states=[state["actor_state_in"] for state in states]
+        critic_states=[state["critic_state_in"] for state in states]
+        result["actor_state_in"]=collate_lstm_states(actor_states,self.actor_hidden_dim)
+        result["critic_state_in"]=collate_lstm_states(critic_states,self.critic_hidden_dim)
         return result
 
 
@@ -530,4 +533,129 @@ class PPOAgentDataset(BaseDataset):
                 values[index,:len(items)]=torch.tensor([scalar_value(item[source]) for item in items],dtype=dtype)
             result[target]=values
 
+        return result
+
+    @staticmethod
+    def _inference_tensor(values,dtype):
+        return torch.from_numpy(np.asarray(values,dtype=dtype)).unsqueeze(1)
+
+    def _inference_zone(self,zones,descriptions=None,base_stats=False):
+        result={
+            name:self._inference_tensor([zone[name] for zone in zones],dtype)
+            for name,dtype in ENTITY_FIELDS.items()
+        }
+        if descriptions is not None:
+            result["descriptions"]=[[list(texts)] for texts in descriptions]
+        if base_stats:
+            for name in ("card_base_atks","card_base_hps"):
+                result[name]=self._inference_tensor([zone[name] for zone in zones],np.float32)
+        return result
+
+    def _inference_state(self,states,action=False):
+        values=[state["action_embedding_state"] for state in states] if action else states
+        card_zones=ACTION_CARD_ZONES if action else RL_CARD_ZONES
+        global_key="global_state" if action else "global_scalars"
+        result={global_key:self._inference_tensor([process_global_state(state) for state in values],np.float32)}
+
+        for group,names in (("card_zones",card_zones),("board_zones",BOARD_ZONES)):
+            result[group]={}
+            for name in names:
+                zones=[state[group][name] for state in values]
+                descriptions=None
+                if not action:
+                    descriptions=[state["action_embedding_state"][group][name]["card_descriptions"] for state in states]
+                result[group][name]=self._inference_zone(zones,descriptions,base_stats=not action)
+
+        fields=(("player_one_hot",np.float32),("action_number",np.int64))
+        result["stack_extra"]={
+            name:self._inference_tensor([state["stack_extra"][name] for state in values],dtype)
+            for name,dtype in fields
+        }
+        return result
+
+    def _inference_candidates(self,states):
+        batch_size=len(states)
+        capacity=max(len(state["candidate_actions"]) for state in states)
+        specs={
+            "indices":((),np.int64,-1),
+            "actions":((),np.int64,-1),
+            "card_types":((),np.int64,0),
+            "special_types":((20,),np.float32,0),
+            "mana_costs":((6,),np.float32,0),
+            "color_identity":((5,),np.float32,0),
+            "attacks":((),np.float32,0),
+            "defends":((),np.float32,0),
+            "has_state":((),np.float32,0),
+            "has_card":((),np.bool_,False),
+            "mask":((),np.bool_,False)
+        }
+        arrays={
+            name:np.full((batch_size,1,capacity)+shape,fill,dtype=dtype)
+            for name,(shape,dtype,fill) in specs.items()
+        }
+        descriptions=[[[""]*capacity] for state in states]
+        card_fields={
+            "card_types":"card_type",
+            "special_types":"special_type",
+            "mana_costs":"mana_cost",
+            "color_identity":"color_identity",
+            "attacks":"attack",
+            "defends":"defend",
+            "has_state":"has_state"
+        }
+
+        for row,state in enumerate(states):
+            for slot,candidate in enumerate(state["candidate_actions"]):
+                arrays["indices"][row,0,slot]=candidate["index"]
+                if candidate["action"] is not None:
+                    arrays["actions"][row,0,slot]=candidate["action"]
+                arrays["mask"][row,0,slot]=True
+                card=candidate["card_info"]
+                if card is None:
+                    continue
+                arrays["has_card"][row,0,slot]=True
+                descriptions[row][0][slot]=card["description"]
+                for name,source in card_fields.items():
+                    arrays[name][row,0,slot]=card[source]
+
+        result={name:torch.from_numpy(value) for name,value in arrays.items()}
+        result["descriptions"]=descriptions
+        return result
+
+    def collate_inference(self,batch,extra_keys=None):
+        states=self.select_states(batch,extra_keys or [])
+        batch_size=len(states)
+        planner=np.zeros((batch_size,1,4,self.planner_dim),dtype=np.float32)
+        mean_p=np.zeros((batch_size,1,self.q_dim),dtype=np.float32)
+        std_p=np.zeros_like(mean_p)
+        six_available=np.zeros((batch_size,1),dtype=np.bool_)
+        special_action_ids=np.full((batch_size,1),-1,dtype=np.int64)
+
+        for index,state in enumerate(states):
+            history=state.get("history",[])
+            record=history[-1] if history and isinstance(history[-1],dict) else None
+            if record is None:
+                continue
+            planner[index,0]=record["planner"]
+            mean_p[index,0]=record["mean_p"]
+            std_p[index,0]=record["std_p"]
+            six_available[index,0]=True
+            if int(record["action"]) in (0,1):
+                special_action_ids[index,0]=int(record["action"])
+
+        result={
+            "rl_state":self._inference_state(states),
+            "action_embedding_state":self._inference_state(states,action=True),
+            "candidates":self._inference_candidates(states),
+            "planner":torch.from_numpy(planner),
+            "mean_p":torch.from_numpy(mean_p),
+            "std_p":torch.from_numpy(std_p),
+            "six_available":torch.from_numpy(six_available),
+            "special_action_ids":torch.from_numpy(special_action_ids),
+            "lengths":torch.ones(batch_size,dtype=torch.long)
+        }
+        actor_states=[state["actor_state_in"] for state in states]
+        critic_states=[state["critic_state_in"] for state in states]
+        result["actor_state_in"]=collate_lstm_states(actor_states,self.actor_hidden_dim)
+        result["critic_state_in"]=collate_lstm_states(critic_states,self.critic_hidden_dim)
         return result

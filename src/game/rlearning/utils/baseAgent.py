@@ -712,11 +712,15 @@ class BaseTrainer:
             if hasattr(layer, 'reset_parameters'):
                 layer.reset_parameters()
 
+    def prepare_inference_results(self,batch):
+        return batch
+
     @torch.no_grad()
     def inference(self,states,isTrain=False):
         batch=self.choose_action(states,isTrain=isTrain)
+        batch=self.prepare_inference_results(batch)
         return [self.build_inference_result(batch,index) for index in range(len(states))]
-
+        
     def build_inference_result(self,batch,index):
         actions=batch["action"]
         action=actions[index] if torch.is_tensor(actions) and actions.ndim>0 else actions
