@@ -13,6 +13,7 @@ import numpy as np
 import asyncio
 import importlib
 from functools import partial
+from inspect import signature,Parameter
 
 from game.agent import Agent_Player as Agent
 from game.room import Room
@@ -58,14 +59,14 @@ class Base_Agent_Room(Room):
         result["action2num"]=partial(action2num,self)
 
         add_history_path=config.get("add_history_function","game.rlearning.actions.fixed_deck.single_deck.add_history")
-        add_history=get_class_by_name(add_history_path)
+        add_history=self._history_handler(get_class_by_name(add_history_path))
         result["add_history"]=add_history
 
         add_opponent_history_path = config.get(
             "add_opponent_history_function",
             "game.rlearning.actions.fixed_deck.single_deck.add_opponent_history",
         )
-        add_opponent_history = get_class_by_name(add_opponent_history_path)
+        add_opponent_history = self._history_handler(get_class_by_name(add_opponent_history_path))
         result["add_opponent_history"] = add_opponent_history
 
         create_action_mask=get_class_by_name(config.get("action_mask_function","game.rlearning.actions.fixed_deck.single_deck.create_action_mask"))
@@ -224,3 +225,18 @@ class Base_Agent_Room(Room):
             if card.get_flag(flag):
                 r_state*=1.1
         return r_state+0.05
+
+    @staticmethod
+    def _history_handler(function):
+        parameters=signature(function).parameters
+        accepts_state="state" in parameters or any(
+            value.kind==Parameter.VAR_KEYWORD
+            for value in parameters.values()
+        )
+        if accepts_state:
+            return function
+
+        def call(*args,state=None):
+            return function(*args)
+
+        return call

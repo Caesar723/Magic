@@ -50,10 +50,10 @@ class Multi_Agent_Parallel_Variable_Deck_Room(Multi_Agent_Parallel_Room):
 
         await agent.store_data(state,action,collect_transition)
 
-    async def execute_action(self,agent,action,reset_response=False):
+    async def execute_action(self,agent,action,reset_response=False,state=None):
         action=int(action)
         message=await self.basic_func[agent.name]["num2action"](agent,action)
-        self.basic_func[agent.opponent.name]["add_opponent_history"](agent.opponent,agent,message)
+        self.basic_func[agent.opponent.name]["add_opponent_history"](agent.opponent,agent,message,state=state)
         username,action_type,content=message.split("|",2)
 
         if reset_response and self.get_flag("bullet_time") and self.trigger_bullet_response(action_type):
@@ -107,7 +107,7 @@ class Multi_Agent_Parallel_Variable_Deck_Room(Multi_Agent_Parallel_Room):
             force_model=first_response and trigger_action_type=="select_attacker"
             use_model=force_model or self.enable_bullet_response(current_agent)
             state,mask,action=await self.get_agent_state_action(current_agent,use_model)
-            action_type,success,reward_func=await self.execute_action(current_agent,action,reset_response=True)
+            action_type,success,reward_func=await self.execute_action(current_agent,action,reset_response=True,state=state)
 
             if current_agent==self.player_1 and use_model:
                 self.pending_transitions[current_agent.name]=(state,action,reward_func)
@@ -125,7 +125,7 @@ class Multi_Agent_Parallel_Variable_Deck_Room(Multi_Agent_Parallel_Room):
         raise RuntimeError(f"bullet response exceeded max_bullet_actions={max_bullet_actions}")
 
     async def process_action(self,agent,action,state):
-        action_type,success,reward_func=await self.execute_action(agent,action)
+        action_type,success,reward_func=await self.execute_action(agent,action,state=state)
 
         if agent==self.player_1:
             self.pending_transitions[agent.name]=(state,action,reward_func)

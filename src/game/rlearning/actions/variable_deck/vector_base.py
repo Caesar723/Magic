@@ -50,34 +50,41 @@ def first_lstm_state(state):
         result.append(np.asarray(value)[:,0:1].copy())
     return tuple(result)
 
-def add_history(agent:"Agent",batch):
-    required = ("selected_planner", "selected_mean", "selected_std")
-    missing = [key for key in required if key not in batch]
+
+def _history_state(state):
+    fields=(
+        "self_life","oppo_life","self_mana","card_zones","board_zones",
+        "stack_extra","candidate_actions","action_embedding_state"
+    )
+    return {name:state[name] for name in fields}
+def add_history(agent:"Agent",batch,state=None):
+    required=("selected_planner","selected_mean","selected_std")
+    missing=[key for key in required if key not in batch]
     if missing:
         raise KeyError(f"add_history missing model outputs: {missing}")
-    action = first_int(batch["action"])
-    record = {
-        "state": get_current_state(agent.room, agent),
-        "action": action,
-        "sampled_log_prob": first_numpy(batch["sampled_log_prob"]),
-        "value": first_numpy(batch["value"]),
-        "candidate_slot": first_int(batch["candidate_slot"]),
-        "planner": first_numpy(batch["selected_planner"]),
-        "mean_p": first_numpy(batch["selected_mean"]),
-        "std_p": first_numpy(batch["selected_std"]),
-        "actor_state_in": first_lstm_state(batch["actor_state_in"]),
-        "critic_state_in": first_lstm_state(batch["critic_state_in"]),
-    }
 
-    max_seq_len = agent.config.get("max_seq_len", agent.action_history_length)
-    append_history(record, agent.action_history, max_seq_len)
+    action=first_int(batch["action"])
+    record={
+        "state":get_current_state(agent.room,agent) if state is None else _history_state(state),
+        "action":action,
+        "sampled_log_prob":first_numpy(batch["sampled_log_prob"]),
+        "value":first_numpy(batch["value"]),
+        "candidate_slot":first_int(batch["candidate_slot"]),
+        "planner":first_numpy(batch["selected_planner"]),
+        "mean_p":first_numpy(batch["selected_mean"]),
+        "std_p":first_numpy(batch["selected_std"]),
+        "actor_state_in":first_lstm_state(batch["actor_state_in"]),
+        "critic_state_in":first_lstm_state(batch["critic_state_in"])
+    }
+    max_seq_len=agent.config.get("max_seq_len",agent.action_history_length)
+    append_history(record,agent.action_history,max_seq_len)
     return record
 
 
-def add_opponent_history(agent:"Agent",opponent_agent:"Agent",message:str):
+def add_opponent_history(agent:"Agent",opponent_agent:"Agent",message:str,state=None):
     index=action2num(agent.room,opponent_agent,message)
     info={
-        "state":get_state_from_player(agent.room,opponent_agent),
+        "state":get_state_from_player(agent.room,opponent_agent) if state is None else state["action_embedding_state"],
         "message":message,
         "index":index,
         "action":index_to_action(index)

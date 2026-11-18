@@ -53,11 +53,10 @@ class Agent_Player(Player):
     def choose_action(self,state,isTrain=False):
         batch=self.agent.choose_action([state],isTrain=isTrain)
 
-        record = self.room.basic_func[self.name]["add_history"](self,batch)
+        record=self.room.basic_func[self.name]["add_history"](self,batch,state=state)
         if record is not None:
-            state["decision_record"] = record
-        action=batch["action"]
-        return action
+            state["decision_record"]=record
+        return batch["action"]
     #     if self.agent.name=="main":
     #         pass
     #         #self.agent.embedding_store(state,batch)
