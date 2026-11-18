@@ -2,6 +2,7 @@ from pathlib import Path
 
 import torch
 import torch.nn.functional as F
+import numpy as np
 
 from game.game_function_tool import ORGPATH
 from game.rlearning.pretrained.loader import PretrainedLoader
@@ -152,6 +153,9 @@ class CASTER_PPO_Pointer(BaseTrainer):
         return descriptions
 
     def _build_entity_features(self,batch,models,flat_time_mask,valid_indices,batch_size,time_steps):
+        if "_packed_entities" in batch:
+            return self._build_packed_entity_features(batch,models,valid_indices,batch_size,time_steps)
+
         state=batch["rl_state"]
         device=self.extra["device"]
         card_mask=self._select_zone_field(state,self.rl_zone_paths,"card_mask",flat_time_mask).bool()
@@ -218,15 +222,27 @@ class CASTER_PPO_Pointer(BaseTrainer):
         device=self.extra["device"]
 
         global_state=self._select_time(state["global_state"],flat_time_mask)
-        entity_card_types=self._select_zone_field(state,self.action_zone_paths,"card_types",flat_time_mask)
-        entity_card_costs=self._select_zone_field(state,self.action_zone_paths,"card_costs",flat_time_mask)
-        entity_card_color_identity=self._select_zone_field(state,self.action_zone_paths,"card_color_identity",flat_time_mask)
-        entity_card_special_types=self._select_zone_field(state,self.action_zone_paths,"card_special_types",flat_time_mask)
-        entity_card_atks=self._select_zone_field(state,self.action_zone_paths,"card_atks",flat_time_mask)
-        entity_card_hps=self._select_zone_field(state,self.action_zone_paths,"card_hps",flat_time_mask)
-        entity_card_has_state=self._select_zone_field(state,self.action_zone_paths,"card_has_state",flat_time_mask)
-        entity_card_is_attacker=self._select_zone_field(state,self.action_zone_paths,"card_is_attacker",flat_time_mask)
-        entity_card_mask=self._select_zone_field(state,self.action_zone_paths,"card_mask",flat_time_mask).bool()
+        fields=batch.get("_packed_action")
+
+        if fields is None:
+            names=(
+                "card_types","card_costs","card_color_identity","card_special_types",
+                "card_atks","card_hps","card_has_state","card_is_attacker","card_mask"
+            )
+            fields={
+                name:self._select_zone_field(state,self.action_zone_paths,name,flat_time_mask)
+                for name in names
+            }
+
+        entity_card_types=fields["card_types"]
+        entity_card_costs=fields["card_costs"]
+        entity_card_color_identity=fields["card_color_identity"]
+        entity_card_special_types=fields["card_special_types"]
+        entity_card_atks=fields["card_atks"]
+        entity_card_hps=fields["card_hps"]
+        entity_card_has_state=fields["card_has_state"]
+        entity_card_is_attacker=fields["card_is_attacker"]
+        entity_card_mask=fields["card_mask"].bool()
         stack_player_one_hot=self._select_time(state["stack_extra"]["player_one_hot"],flat_time_mask)
 
         candidate_actions=self._select_time(candidates["actions"],flat_time_mask).long()
@@ -589,6 +605,8 @@ class CASTER_PPO_Pointer(BaseTrainer):
         )
         if batch["_single_step"]:
             batch["_candidate_layout"]=self._build_candidate_layout(batch["candidates"])
+            batch=self._pack_inference_features(batch)
+
         batch=batch_to_cuda(batch,self.rank)
         return self.predict(batch,models,isTrain,self.step,self.epoch)
 
@@ -622,3 +640,89 @@ class CASTER_PPO_Pointer(BaseTrainer):
         for name in ("actor_state_in","critic_state_in","actor_state_out","critic_state_out"):
             result[name]=get_lstm_state(name)
         return result
+
+
+    @staticmethod
+    def _cpu_zone_field(state,paths,field):
+        values=[state[group][zone][field][:,0].detach().numpy() for group,zone in paths]
+        return np.concatenate(values,axis=1)
+
+    def _pack_inference_features(self,batch):
+        state=batch["rl_state"]
+        action_state=batch["action_embedding_state"]
+        card_mask=self._cpu_zone_field(state,self.rl_zone_paths,"card_mask").astype(np.bool_)
+        slots=np.flatnonzero(card_mask.reshape(-1))
+        descriptions=[]
+
+        for row in range(card_mask.shape[0]):
+            for group,zone in self.rl_zone_paths:
+                descriptions.extend(state[group][zone]["descriptions"][row][0])
+
+        fields={
+            "card_types":("card_types",np.int64),
+            "card_special_types":("card_special_types",np.float32),
+            "card_mana_costs":("card_costs",np.float32),
+            "card_color_identity":("card_color_identity",np.float32),
+            "card_attacks":("card_atks",np.float32),
+            "card_defends":("card_hps",np.float32),
+            "card_has_state":("card_has_state",np.float32)
+        }
+        inputs={"card_mask":torch.ones(len(slots),dtype=torch.bool)}
+
+        for name,(field,dtype) in fields.items():
+            value=self._cpu_zone_field(state,self.rl_zone_paths,field)
+            value=value.reshape((-1,)+value.shape[2:])[slots].astype(dtype,copy=False)
+            inputs[name]=torch.from_numpy(value)
+
+        dynamic_fields=("card_base_atks","card_base_hps","card_tapped","card_tapped_valid","card_is_attacker")
+        dynamic=np.stack([
+            self._cpu_zone_field(state,self.rl_zone_paths,field)
+            for field in dynamic_fields
+        ],axis=-1)
+
+        batch["_packed_entities"]={
+            "inputs":inputs,
+            "slots":torch.from_numpy(slots),
+            "count":len(slots),
+            "descriptions":[descriptions[index] for index in slots],
+            "mask":torch.from_numpy(card_mask),
+            "dynamic":torch.from_numpy(dynamic)
+        }
+
+        action_fields=(
+            "card_types","card_costs","card_color_identity","card_special_types",
+            "card_atks","card_hps","card_has_state","card_is_attacker","card_mask"
+        )
+        batch["_packed_action"]={
+            field:torch.from_numpy(self._cpu_zone_field(action_state,self.action_zone_paths,field))
+            for field in action_fields
+        }
+
+        for value in (state,action_state):
+            value.pop("card_zones")
+            value.pop("board_zones")
+        return batch
+
+    def _build_packed_entity_features(self,batch,models,valid_indices,batch_size,time_steps):
+        packed=batch["_packed_entities"]
+        card_mask=packed["mask"]
+        num_states,num_entities=card_mask.shape
+        count=packed["count"]
+        card_embeddings=torch.zeros(
+            (num_states*num_entities,self.embed_dim),
+            dtype=torch.float32,device=self.extra["device"]
+        )
+
+        if count:
+            inputs=dict(packed["inputs"])
+            inputs["text_embeddings"]=models["TextEncoder"](packed["descriptions"],device=self.extra["device"])
+            output_specs={"card_embeddings":((count,self.embed_dim),torch.float32)}
+            encoded=self.extra["card_embedding"].run(inputs,output_specs)["card_embeddings"]
+            card_embeddings.index_copy_(0,packed["slots"],encoded)
+
+        card_embeddings=card_embeddings.view(num_states,num_entities,self.embed_dim)
+        entity_features=torch.cat([card_embeddings,packed["dynamic"].float()],dim=-1)
+        entity_features=entity_features.masked_fill(~card_mask.unsqueeze(-1),0.0)
+        entity_features=self._restore_time(entity_features,valid_indices,batch_size,time_steps)
+        entity_mask=self._restore_time(card_mask,valid_indices,batch_size,time_steps)
+        return entity_features,entity_mask
