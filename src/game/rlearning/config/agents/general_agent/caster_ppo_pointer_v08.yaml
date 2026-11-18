@@ -90,9 +90,9 @@ add_opponent_history_function: "game.rlearning.actions.variable_deck.vector_base
 
 extra:
   pretrained:
-    class_name: "game.rlearning.pretrained.entity_transition.EntityTransitionFeatures"
-    config_path: "/mnt/data/trainData/checkpoints/logs/specific/specific_entity_birth_plan_support_v04/ckpt/config_194806.yaml"
-    checkpoint: "/mnt/data/trainData/checkpoints/logs/specific/specific_entity_birth_plan_support_v04/ckpt/g_194806"
+    class_name: game.rlearning.pretrained.entity_transition_graph.EntityTransitionGraphFeatures
+    config_path: /mnt/data/trainData/checkpoints/logs/specific/specific_entity_birth_plan_support_v04/ckpt/config_194806.yaml
+    checkpoint: /mnt/data/trainData/checkpoints/logs/specific/specific_entity_birth_plan_support_v04/ckpt/g_194806
   cuda_graph:
     enabled: true
     bucketed: true
@@ -100,6 +100,7 @@ extra:
     capture_after: 3
     batch_buckets: [8, 32]
     candidate_buckets: [4, 8, 32]
+    frozen_features: true
 ###########################
 # PPO
 ###########################

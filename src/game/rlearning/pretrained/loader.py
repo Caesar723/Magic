@@ -10,12 +10,13 @@ from game.rlearning.utils.model import get_class_by_name,init_model
 class PretrainedSession:
     def __init__(self,model,operation,device):
         self.model=model
+        self.operation=operation
         method,self.output_names=model.operations[operation]
         self.function=getattr(model,method)
         self.device=torch.device(device)
 
     @torch.no_grad()
-    def run(self,inputs,output_specs,**kwargs):
+    def run(self,inputs,output_specs,use_cuda_graph=False,**kwargs):
         unknown=set(output_specs)-set(self.output_names)
         if unknown:
             raise KeyError(f"Unknown outputs: {sorted(unknown)}")
@@ -27,7 +28,11 @@ class PretrainedSession:
                 raise ValueError(f"{name} is on {value.device}, expected {self.device}")
             prepared[name]=value.detach().contiguous()
 
-        values=self.function(**prepared,**kwargs)
+        inference=getattr(self.model,"run_inference",None)
+        if use_cuda_graph and inference is not None:
+            values=inference(self.operation,prepared,**kwargs)
+        else:
+            values=self.function(**prepared,**kwargs)
         if isinstance(values,dict):
             outputs=values
         else:

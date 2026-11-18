@@ -418,52 +418,24 @@ class StateTransformerEncoder(nn.Module):
             dtype=torch.long,
             device=device,
         )
-    def owner_ids_from_player_one_hot(self, player_one_hot, num_slots=None):
-        """
-        支持：
-        [B, 2]    -> [B] 或扩展为 [B, N]
-        [B, N, 2] -> [B, N]
-        """
-        player_one_hot = player_one_hot.float()
+    def owner_ids_from_player_one_hot(self,player_one_hot,num_slots=None):
+        if player_one_hot.ndim not in (2,3):
+            return None
 
-        if player_one_hot.ndim == 2:
-            B, _ = player_one_hot.shape
+        player_one_hot=player_one_hot.float()
+        owner_ids=torch.full_like(
+            player_one_hot[...,0],self.owner_to_id["none"],dtype=torch.long
+        )
+        owner_ids=torch.where(
+            player_one_hot[...,0]>0.5,self.owner_to_id["self"],owner_ids
+        )
+        owner_ids=torch.where(
+            player_one_hot[...,1]>0.5,self.owner_to_id["oppo"],owner_ids
+        )
 
-            owner_ids = torch.full(
-                (B,),
-                self.owner_to_id["none"],
-                dtype=torch.long,
-                device=player_one_hot.device,
-            )
-
-            self_mask = player_one_hot[:, 0] > 0.5
-            oppo_mask = player_one_hot[:, 1] > 0.5
-
-            owner_ids[self_mask] = self.owner_to_id["self"]
-            owner_ids[oppo_mask] = self.owner_to_id["oppo"]
-
-            if num_slots is not None:
-                owner_ids = owner_ids.unsqueeze(1).expand(B, num_slots)
-
-            return owner_ids
-
-        if player_one_hot.ndim == 3:
-            B, N, _ = player_one_hot.shape
-
-            owner_ids = torch.full(
-                (B, N),
-                self.owner_to_id["none"],
-                dtype=torch.long,
-                device=player_one_hot.device,
-            )
-
-            self_mask = player_one_hot[..., 0] > 0.5
-            oppo_mask = player_one_hot[..., 1] > 0.5
-
-            owner_ids[self_mask] = self.owner_to_id["self"]
-            owner_ids[oppo_mask] = self.owner_to_id["oppo"]
-
-            return owner_ids
+        if player_one_hot.ndim==2 and num_slots is not None:
+            owner_ids=owner_ids.unsqueeze(1).expand(-1,num_slots)
+        return owner_ids
 
         
 
@@ -510,13 +482,11 @@ class StateTransformerEncoder(nn.Module):
             device,
         )
 
-        one_hot=torch.zeros(G, 2, device=device)
-        one_hot[0, 0] = 1
-        one_hot[1, 1] = 1
-        one_hot[2, 0] = 1
-        owner_ids = self.owner_ids_from_player_one_hot(
-            one_hot,
-            
+        owner_ids=torch.full_like(scalar_ids[0],self.owner_to_id["none"])
+        self_mask=(scalar_ids[0]==0) | (scalar_ids[0]==2)
+        owner_ids=torch.where(self_mask,self.owner_to_id["self"],owner_ids)
+        owner_ids=torch.where(
+            scalar_ids[0]==1,self.owner_to_id["oppo"],owner_ids
         )
 
         # print(value_emb.shape, name_emb.shape, zone_ids.shape, kind_ids.shape, owner_ids.shape)

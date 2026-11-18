@@ -551,24 +551,36 @@ class PPOAgentDataset(BaseDataset):
                 result[name]=self._inference_tensor([zone[name] for zone in zones],np.float32)
         return result
 
-    def _inference_state(self,states,action=False):
+    def _inference_state(self,states,action=False,include_entities=True):
         values=[state["action_embedding_state"] for state in states] if action else states
         card_zones=ACTION_CARD_ZONES if action else RL_CARD_ZONES
         global_key="global_state" if action else "global_scalars"
-        result={global_key:self._inference_tensor([process_global_state(state) for state in values],np.float32)}
+        result={
+            global_key:self._inference_tensor(
+                [process_global_state(state) for state in values],np.float32
+            )
+        }
 
-        for group,names in (("card_zones",card_zones),("board_zones",BOARD_ZONES)):
-            result[group]={}
-            for name in names:
-                zones=[state[group][name] for state in values]
-                descriptions=None
-                if not action:
-                    descriptions=[state["action_embedding_state"][group][name]["card_descriptions"] for state in states]
-                result[group][name]=self._inference_zone(zones,descriptions,base_stats=not action)
+        if include_entities:
+            for group,names in (("card_zones",card_zones),("board_zones",BOARD_ZONES)):
+                result[group]={}
+                for name in names:
+                    zones=[state[group][name] for state in values]
+                    descriptions=None
+                    if not action:
+                        descriptions=[
+                            state["action_embedding_state"][group][name]["card_descriptions"]
+                            for state in states
+                        ]
+                    result[group][name]=self._inference_zone(
+                        zones,descriptions,base_stats=not action
+                    )
 
         fields=(("player_one_hot",np.float32),("action_number",np.int64))
         result["stack_extra"]={
-            name:self._inference_tensor([state["stack_extra"][name] for state in values],dtype)
+            name:self._inference_tensor(
+                [state["stack_extra"][name] for state in values],dtype
+            )
             for name,dtype in fields
         }
         return result
@@ -622,7 +634,7 @@ class PPOAgentDataset(BaseDataset):
         result["descriptions"]=descriptions
         return result
 
-    def collate_inference(self,batch,extra_keys=None):
+    def collate_inference(self,batch,extra_keys=None,compact=False):
         states=self.select_states(batch,extra_keys or [])
         batch_size=len(states)
         planner=np.zeros((batch_size,1,4,self.planner_dim),dtype=np.float32)
@@ -644,8 +656,10 @@ class PPOAgentDataset(BaseDataset):
                 special_action_ids[index,0]=int(record["action"])
 
         result={
-            "rl_state":self._inference_state(states),
-            "action_embedding_state":self._inference_state(states,action=True),
+            "rl_state":self._inference_state(states,include_entities=not compact),
+            "action_embedding_state":self._inference_state(
+                states,action=True,include_entities=not compact
+            ),
             "candidates":self._inference_candidates(states),
             "planner":torch.from_numpy(planner),
             "mean_p":torch.from_numpy(mean_p),
@@ -658,4 +672,82 @@ class PPOAgentDataset(BaseDataset):
         critic_states=[state["critic_state_in"] for state in states]
         result["actor_state_in"]=collate_lstm_states(actor_states,self.actor_hidden_dim)
         result["critic_state_in"]=collate_lstm_states(critic_states,self.critic_hidden_dim)
+        if compact:
+            result.update(self._inference_features(states))
         return result
+
+    @staticmethod
+    def _raw_inference_field(states,paths,field,dtype):
+        values=[
+            np.asarray(
+                [state[group][zone][field] for state in states],dtype=dtype
+            )
+            for group,zone in paths
+        ]
+        return np.concatenate(values,axis=1)
+
+    def _inference_features(self,states):
+        rl_paths=tuple(("card_zones",name) for name in RL_CARD_ZONES)
+        rl_paths+=tuple(("board_zones",name) for name in BOARD_ZONES)
+        action_paths=tuple(("card_zones",name) for name in ACTION_CARD_ZONES)
+        action_paths+=tuple(("board_zones",name) for name in BOARD_ZONES)
+
+        mask=self._raw_inference_field(states,rl_paths,"card_mask",np.bool_)
+        slots=np.flatnonzero(mask.reshape(-1))
+        descriptions=[]
+
+        for state in states:
+            for group,zone in rl_paths:
+                descriptions.extend(
+                    state["action_embedding_state"][group][zone]["card_descriptions"]
+                )
+
+        fields={
+            "card_types":("card_types",np.int64),
+            "card_special_types":("card_special_types",np.float32),
+            "card_mana_costs":("card_costs",np.float32),
+            "card_color_identity":("card_color_identity",np.float32),
+            "card_attacks":("card_atks",np.float32),
+            "card_defends":("card_hps",np.float32),
+            "card_has_state":("card_has_state",np.float32)
+        }
+        inputs={"card_mask":torch.ones(len(slots),dtype=torch.bool)}
+
+        for name,(field,dtype) in fields.items():
+            value=self._raw_inference_field(states,rl_paths,field,dtype)
+            value=value.reshape((-1,)+value.shape[2:])[slots]
+            inputs[name]=torch.from_numpy(value)
+
+        dynamic_fields=(
+            "card_base_atks","card_base_hps","card_tapped",
+            "card_tapped_valid","card_is_attacker"
+        )
+        dynamic=np.stack([
+            self._raw_inference_field(states,rl_paths,name,np.float32)
+            for name in dynamic_fields
+        ],axis=-1)
+
+        action_states=[state["action_embedding_state"] for state in states]
+        action_fields=(
+            "card_types","card_costs","card_color_identity","card_special_types",
+            "card_atks","card_hps","card_has_state","card_is_attacker","card_mask"
+        )
+
+        return {
+            "_packed_entities":{
+                "inputs":inputs,
+                "slots":torch.from_numpy(slots),
+                "count":len(slots),
+                "descriptions":[descriptions[index] for index in slots],
+                "mask":torch.from_numpy(mask),
+                "dynamic":torch.from_numpy(dynamic)
+            },
+            "_packed_action":{
+                name:torch.from_numpy(
+                    self._raw_inference_field(
+                        action_states,action_paths,name,ENTITY_FIELDS[name]
+                    )
+                )
+                for name in action_fields
+            }
+        }

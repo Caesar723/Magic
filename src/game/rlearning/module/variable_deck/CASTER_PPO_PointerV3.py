@@ -10,6 +10,8 @@ from game.rlearning.utils.baseAgent import BaseTrainer
 from game.rlearning.utils.data import batch_to_cuda,detach_cuda,to_cpu
 from game.rlearning.utils.cuda_graph import CudaGraphRunner
 from game.rlearning.utils.tensor_bucket_layout import TensorBucketLayout
+from game.rlearning.utils.cuda_input_buffer import CudaInputBuffer
+
 
 class CASTER_PPO_Pointer(BaseTrainer):
     def __init__(self, config,restore_step, rank=0, n_gpus=1,name="main"):
@@ -185,7 +187,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
                 feature_inputs[name]=value.flatten(0,1).index_select(0,slots).to(dtype=dtype)
 
             output_specs={"card_embeddings":((slots.numel(),self.embed_dim),torch.float32)}
-            encoded=self.extra["card_embedding"].run(feature_inputs,output_specs)["card_embeddings"]
+            encoded=self.extra["card_embedding"].run(feature_inputs,output_specs,use_cuda_graph=batch.get("_feature_graph",False))["card_embeddings"]
             card_embeddings.index_copy_(0,slots,encoded)
 
         card_embeddings=card_embeddings.view(num_states,num_entities,self.embed_dim)
@@ -295,7 +297,8 @@ class CASTER_PPO_Pointer(BaseTrainer):
         has_candidates=layout["count"]>0 if layout is not None else encode_mask.any().item()
         if has_candidates:
             feature_outputs=self.extra["action_embedding"].run(
-                feature_inputs,output_specs,candidate_layout=layout
+                feature_inputs,output_specs,candidate_layout=layout,
+                use_cuda_graph=batch.get("_feature_graph",False)
             )
         else:
             feature_outputs={
@@ -386,6 +389,12 @@ class CASTER_PPO_Pointer(BaseTrainer):
             "last_candidate_mask":{0:"batch",1:"candidate"},
             "time_mask":{0:"batch"}
         }
+        state_axes["_graph_distribution"]={
+            "slot":{0:"batch"},
+            "log_prob":{0:"batch"},
+            "probs":{0:"batch",1:"candidate"},
+            "entropy":{0:"batch"}
+        }
         output_axes={
             "state":state_axes,
             "actor_output":{0:"batch"},
@@ -421,6 +430,20 @@ class CASTER_PPO_Pointer(BaseTrainer):
         state,actor,actor_state,critic,critic_state,logits,value=self._policy_forward(
             inputs,models,single_step=True
         )
+
+        dist=torch.distributions.Categorical(logits=logits,validate_args=False)
+        slot=(
+            logits.argmax(dim=-1)
+            if getattr(self,"deterministic_actions",False)
+            else dist.sample()
+        )
+        state=dict(state,_graph_distribution={
+            "slot":slot,
+            "log_prob":dist.log_prob(slot),
+            "probs":dist.probs,
+            "entropy":dist.entropy()
+        })
+
         return {
             "state":state,
             "actor_output":actor,
@@ -456,7 +479,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
         if not enabled:
             return self._policy_forward(inputs,models,single_step=single_step)
 
-        identity=tuple(id(models[name]) for name in names)
+        identity=tuple(id(models[name]) for name in names)+(bool(getattr(self,"deterministic_actions",False)),)
 
         if getattr(self,"_policy_graph_models",None)!=identity:
             self.clear_policy_graphs()
@@ -528,25 +551,24 @@ class CASTER_PPO_Pointer(BaseTrainer):
             policy_inputs,models,single_step=single_step
         )
 
-        dist=torch.distributions.Categorical(logits=logits)
-
-        training_action = "action" in batch
+        training_action="action" in batch
+        sampled=state_result.pop("_graph_distribution",None)
+        dist=None if sampled is not None else torch.distributions.Categorical(logits=logits)
 
         if training_action:
-            # when PPO is updating, calculate the probability of the action in the sampled record
-            candidate_slot = self._select_time(
-                batch["action"], flat_time_mask
-            ).long()
-
-        elif getattr(self, "deterministic_actions", False):
-            # official evaluation / player battle: select the action with the highest probability
-            candidate_slot = logits.argmax(dim=-1)
-
+            candidate_slot=self._select_time(batch["action"],flat_time_mask).long()
+        elif sampled is not None:
+            candidate_slot=sampled["slot"]
+        elif getattr(self,"deterministic_actions",False):
+            candidate_slot=logits.argmax(dim=-1)
         else:
-            # training rollout：still use the distribution to sample the action
-            candidate_slot = dist.sample()
+            candidate_slot=dist.sample()
 
-        action_log_prob = dist.log_prob(candidate_slot)
+        action_log_prob=(
+            sampled["log_prob"]
+            if sampled is not None
+            else dist.log_prob(candidate_slot)
+        )
 
         batch.update(state_result)
         batch["temporal_feature_actor"]=actor_output
@@ -556,9 +578,13 @@ class CASTER_PPO_Pointer(BaseTrainer):
         batch["time_mask"]=time_mask
         batch["dist"]=dist
 
+        probabilities=sampled["probs"] if sampled is not None else dist.probs
+        entropy=sampled["entropy"] if sampled is not None else dist.entropy()
+
+
         batch["logits"]=self._restore_time(logits,valid_indices,batch_size,time_steps)
-        batch["actions"]=self._restore_time(dist.probs,valid_indices,batch_size,time_steps)
-        batch["entropy"]=self._restore_time(dist.entropy(),valid_indices,batch_size,time_steps)
+        batch["actions"]=self._restore_time(probabilities,valid_indices,batch_size,time_steps)
+        batch["entropy"]=self._restore_time(entropy,valid_indices,batch_size,time_steps)
         batch["value"]=self._restore_time(value,valid_indices,batch_size,time_steps)
         batch["candidate_slot"]=self._restore_time(candidate_slot,valid_indices,batch_size,time_steps)
         batch["new_prob_log"]=self._restore_time(action_log_prob,valid_indices,batch_size,time_steps)
@@ -593,21 +619,39 @@ class CASTER_PPO_Pointer(BaseTrainer):
             model.train() if isTrain else model.eval()
 
         if isTrain:
-            batch=[self.dataset.get_sample_preprocess(state,extra_keys) for state in batch]
+            batch=[
+                self.dataset.get_sample_preprocess(state,extra_keys)
+                for state in batch
+            ]
             batch=self.dataset.collate_state(batch,extra_keys,prepared=True)
         else:
-            batch=self.dataset.collate_inference(batch,extra_keys)
+            compact=self.config.get("extra",{}).get("cuda_graph",{}).get("frozen_features",False)
+            batch=self.dataset.collate_inference(
+                batch,extra_keys,compact=compact
+            )
 
         batch["_single_step"]=(
             not isTrain
             and batch["rl_state"]["global_scalars"].shape[1]==1
             and bool((batch["lengths"]==1).all().item())
         )
+        batch["_feature_graph"]=(
+            batch["_single_step"]
+            and self.config.get("extra",{}).get("cuda_graph",{}).get("frozen_features",False)
+        )
+
         if batch["_single_step"]:
             batch["_candidate_layout"]=self._build_candidate_layout(batch["candidates"])
-            batch=self._pack_inference_features(batch)
+            if "_packed_entities" not in batch:
+                batch=self._pack_inference_features(batch)
 
-        batch=batch_to_cuda(batch,self.rank)
+        if batch["_feature_graph"] and self.extra["device"].type=="cuda":
+            if getattr(self,"_inference_input_buffer",None) is None:
+                self._inference_input_buffer=CudaInputBuffer()
+            batch=self._inference_input_buffer.run(batch,self.extra["device"])
+        else:
+            batch=batch_to_cuda(batch,self.rank)
+
         return self.predict(batch,models,isTrain,self.step,self.epoch)
 
     def prepare_inference_results(self,batch):
@@ -717,7 +761,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
             inputs=dict(packed["inputs"])
             inputs["text_embeddings"]=models["TextEncoder"](packed["descriptions"],device=self.extra["device"])
             output_specs={"card_embeddings":((count,self.embed_dim),torch.float32)}
-            encoded=self.extra["card_embedding"].run(inputs,output_specs)["card_embeddings"]
+            encoded=self.extra["card_embedding"].run(inputs,output_specs,use_cuda_graph=batch.get("_feature_graph",False))["card_embeddings"]
             card_embeddings.index_copy_(0,packed["slots"],encoded)
 
         card_embeddings=card_embeddings.view(num_states,num_entities,self.embed_dim)
