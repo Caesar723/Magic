@@ -3,14 +3,18 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from game.rlearning.utils.paths import ProjectPaths
+
 
 
 class JinaTextEncoder(nn.Module):
     def __init__(self,config):
         super().__init__()
         self.model_name=config.get("model_name","jinaai/jina-embeddings-v5-text-small")
-        self.local_model_path=config.get("local_model_path")
-        self.cache_dir=config.get("cache_dir")
+        paths=ProjectPaths.get()
+        local_path=paths.model_path(config.get("local_model_path"))
+        self.local_model_path=str(local_path) if local_path is not None else None
+        self.cache_dir=str(paths.cache_path(config.get("cache_dir")))
         self.task=config.get("task","text-matching")
         self.truncate_dim=config.get("truncate_dim",128)
         self.max_length=config.get("max_length")

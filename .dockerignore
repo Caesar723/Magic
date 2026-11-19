@@ -7,3 +7,4 @@
 /.codex
 /.tmux-magic.sock
 /local-tls
+/cache/

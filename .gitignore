@@ -37,3 +37,4 @@ tmp/
 .tmux-magic.conf
 .tmux-magic-zdotdir
 local-tls/
+/cache/

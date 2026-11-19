@@ -3,6 +3,7 @@ import os
 import threading
 import torch
 
+from game.rlearning.utils.paths import ProjectPaths
 from game.rlearning.utils.file import read_yaml
 from game.rlearning.utils.model import get_class_by_name,init_model
 
@@ -54,8 +55,10 @@ class PretrainedLoader:
     @classmethod
     def get(cls,settings,device,root="."):
         root=Path(root).expanduser()
+        project_paths=ProjectPaths.get()
+
         def resolve(value):
-            return str((root/Path(value).expanduser()).resolve())
+            return str(project_paths.checkpoint_path(value,root=root))
 
         config_path=resolve(settings["config_path"])
         paths=settings["checkpoint"]
