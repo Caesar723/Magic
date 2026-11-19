@@ -26,8 +26,12 @@ def main(args):
         if agent is not None and agent.rank==0:
             agent.save_checkpoint()
     finally:
-        if env is not None:
-            env.shutdown()
+        try:
+            if env is not None:
+                env.shutdown()
+        finally:
+            from game.rlearning.utils import log
+            log.close()
 
 
 def get_args():

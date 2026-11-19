@@ -1,5 +1,6 @@
 
-import os 
+import os
+import sys
 from loguru import logger 
 
 
@@ -15,8 +16,24 @@ def init(logdir, use_tensorboard=True):
         INIT_STATE = True
 
     if use_tensorboard and SW is None:
+        if os.environ.get("WANDB_MODE", "disabled") in ("online", "offline") and os.environ.get("RL_ROLLOUT_WORKER") != "1":
+            try:
+                import wandb
+                wandb.init(
+                    project=os.environ.get("WANDB_PROJECT", "magic"),
+                    name=os.environ.get("WANDB_NAME") or os.path.basename(os.path.normpath(logdir)),
+                    dir=logdir,
+                    sync_tensorboard=True,
+                    save_code=False,
+                    settings=wandb.Settings(init_timeout=15, console="off", _disable_stats=True),
+                )
+                wandb.define_metric("global_step")
+                wandb.define_metric("*", step_metric="global_step")
+            except Exception as error:
+                logger.warning("W&B unavailable; TensorBoard logging continues: {}", error)
+
         from torch.utils.tensorboard import SummaryWriter
-        SW = SummaryWriter(logdir) 
+        SW = SummaryWriter(logdir)
 
 def sw_loss(tag, loss_dict, global_step,name=""):
     for k in loss_dict:
@@ -76,6 +93,16 @@ def sw_figure(tag, data, global_step):
 
 def sw_video(tag, video, global_step):
     SW.add_video(tag, video, global_step=global_step, fps=30)
+
+def close():
+    if SW is not None:
+        SW.close()
+    if "wandb" in sys.modules:
+        try:
+            sys.modules["wandb"].finish(exit_code=int(sys.exc_info()[0] is not None))
+        except Exception as error:
+            logger.warning("W&B finish failed: {}", error)
+
 
 debug = logger.debug
 info = logger.info 
