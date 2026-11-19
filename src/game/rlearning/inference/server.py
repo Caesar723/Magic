@@ -22,6 +22,7 @@ class BatchedInferenceServer:
 
     def __init__(self,communication,config:dict):
         self.communication=communication
+        self.device_index = config.get("device_index", 0)
         self.max_batch_size=config.get("max_batch_size",32)
         self.max_wait_seconds=config.get("max_wait_ms",5)/1000
         self.policies={}
@@ -45,7 +46,8 @@ class BatchedInferenceServer:
         current = self.policies.get(key)
 
         if current is None:
-            config = read_yaml(config_path)
+            config = deepcopy(read_yaml(config_path))
+            config.setdefault("runtime", {})["device_index"] = self.device_index
             trainer_class = get_class_by_name(config["trainer"])
 
             trainer = trainer_class(
@@ -106,7 +108,7 @@ class BatchedInferenceServer:
             return
 
         config=trainer.config["model"]["TextEncoder"]
-        key=(trainer.rank,json.dumps(config,sort_keys=True))
+        key = (str(trainer.device), json.dumps(config, sort_keys=True))
         shared=self.text_encoders.setdefault(key,encoder)
         for models in (trainer.models,trainer._models,trainer.models_test):
             models["TextEncoder"]=shared

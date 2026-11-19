@@ -81,17 +81,37 @@ class BaseTrainer:
 
     def __init__(self, config,restore_step, rank=0, n_gpus=1,name="main"):
         self.config = config
-        self.n_gpus = n_gpus 
-        self.rank = rank 
-        self.name=name
+        self.n_gpus = n_gpus
+        self.rank = rank
+        self.name = name
+
+        self.device_index = config.get("runtime", {}).get("device_index", rank)
+
+        if type(self.device_index) is not int or self.device_index < 0:
+            raise ValueError("runtime.device_index must be a non-negative integer")
+
+        if n_gpus != 1 and self.device_index != rank:
+            raise ValueError("A separate runtime device requires n_gpus=1")
+
+        if torch.cuda.is_available():
+            count = torch.cuda.device_count()
+
+            if self.device_index >= count:
+                raise ValueError(f"GPU {self.device_index} is unavailable; visible GPU count: {count}")
+
+            self.device = torch.device("cuda", self.device_index)
+            torch.cuda.set_device(self.device)
+        else:
+            if self.device_index != 0:
+                raise RuntimeError(f"GPU {self.device_index} was requested, but CUDA is unavailable")
+
+            self.device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
         # random.seed(config["seed"]) 
         # np.random.seed(config["seed"]) 
         # torch.manual_seed(config["seed"])
         # torch.cuda.manual_seed(config["seed"]) 
-        if torch.cuda.is_available():
-            torch.cuda.init()
-            torch.cuda.set_device(rank) 
+
             #torch.cuda.synchronize()
         
 
@@ -115,7 +135,7 @@ class BaseTrainer:
         cached = None
 
         if self._cache_opponent_models:
-            cache_key = model_key(config,rank)
+            cache_key = (model_key(config, rank), str(self.device))
             cached = self._agent_model_cache.get(cache_key)
             
         if cached is not None:
@@ -127,12 +147,7 @@ class BaseTrainer:
         else:
 
             for k, cfg in config["model"].items():
-                if torch.cuda.is_available():
-                    model = init_model(cfg).cuda(rank)  
-                elif torch.backends.mps.is_available():
-                    model = init_model(cfg).to(torch.device("mps"))
-                else:
-                    model = init_model(cfg)
+                model = init_model(cfg).to(self.device)
                 if whether_contain_parameters(model):
                     if self.n_gpus > 1:
                         #  DistributedDataParallel
@@ -177,12 +192,7 @@ class BaseTrainer:
                     self._models[k] = model.module
                 else:
                     self._models[k] = model
-                if torch.cuda.is_available():
-                    self.models_test[k] = init_model(cfg).cuda(rank) 
-                elif torch.backends.mps.is_available():
-                    self.models_test[k] = init_model(cfg).to(torch.device("mps"))
-                else:
-                    self.models_test[k] = init_model(cfg)
+                self.models_test[k] = init_model(cfg).to(self.device)
                 self.models_test[k].load_state_dict(self._models[k].state_dict())  
             if self._cache_opponent_models:
                 BaseTrainer._agent_model_cache[cache_key] = {
@@ -307,7 +317,7 @@ class BaseTrainer:
         for _ in range(self.config["n_epoch"]):
             for batch in self.dataloader:
 
-                batch = batch_to_cuda(batch, self.rank)
+                batch = batch_to_cuda(batch, getattr(self, "device_index", self.rank))
                 
                 [self.models[k].requires_grad_(True if train_mode==0 or train_mode==2 else False) for k in self.g_keys]#把g的参数设置为可训练
                 [self.models[k].requires_grad_(False) for k in self.i_keys]#把d的参数设置为不可训练
@@ -661,7 +671,7 @@ class BaseTrainer:
 
         batch=[self.dataset.get_sample_preprocess(b,extra_keys) for b in batch]
         batch=self.dataset.collate_state(batch,extra_keys)
-        batch=batch_to_cuda(batch,self.rank)
+        batch = batch_to_cuda(batch, getattr(self, "device_index", self.rank))
         batch=self.predict(batch,models,False,self.step,self.epoch)
         actions=batch["actions"]
 

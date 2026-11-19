@@ -37,7 +37,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
         )
     def _init_extra(self):
         super()._init_extra()
-        device=torch.device(f"cuda:{self.rank}" if torch.cuda.is_available() else "cpu")
+        device = self.device
         root=Path(ORGPATH).resolve().parent
         pretrained=PretrainedLoader.get(self.config["extra"]["pretrained"],device,root)
         self.extra={
@@ -356,7 +356,7 @@ class CASTER_PPO_Pointer(BaseTrainer):
         batch=[self.dataset.get_sample_preprocess(b,extra_keys) for b in batch]
 
         batch=self.dataset.collate_state(batch,extra_keys)
-        batch=batch_to_cuda(batch,self.rank)
+        batch = batch_to_cuda(batch, self.device_index)
         return self.predict(batch,models,isTrain,self.step,self.epoch)
 
     def build_inference_result(self,batch,index):

@@ -37,6 +37,7 @@ class BaseParallelEnv:
 
         self.restore_step_override = restore_step
         self.num_worker=self.env_config["num_worker"]
+        self._init_runtime()
         self.manager=Manager()
         try:
             self.initinal_config(self.env_config)
@@ -50,6 +51,7 @@ class BaseParallelEnv:
             from game.rlearning.inference.server import inference_server_process
             inference_config = {
                 **self.env_config["inference"],
+                "device_index": self.inference_device,
                 "opponent_config": self.env_config["opponent_config"],
             }
             self.inference_communication=InferenceCommunication(
@@ -77,12 +79,46 @@ class BaseParallelEnv:
             restore_step = self.restore_step_override
             self.config["restore_step"] = restore_step
 
+        self.config.setdefault("runtime", {})["device_index"] = self.training_device
         trainer1=get_class_by_name(self.config["trainer"])
 
         self.agent1:"BaseTrainer"=trainer1(self.config, restore_step, name="main")
         # Workers receive their initial model version through this channel.
         # Keep them aligned with `-r`, including the special latest value -1.
         self.info_communication.update_model(restore_step, restore_step)
+
+    def _init_runtime(self):
+        runtime = self.env_config.get("runtime", {})
+        hosts = runtime.get("learner_hosts", {"training": {"device": 0, "policies": ["main"]}})
+        services = runtime.get("inference_services", {"rollout": {}})
+
+        if not isinstance(hosts, dict) or len(hosts) != 1:
+            raise ValueError("This stage supports exactly one learner host")
+
+        if not isinstance(services, dict) or len(services) != 1:
+            raise ValueError("This stage supports exactly one inference service")
+
+        host = next(iter(hosts.values()))
+        service = next(iter(services.values()))
+
+        if not isinstance(host, dict) or not isinstance(service, dict):
+            raise ValueError("Runtime host and service settings must be mappings")
+
+        if host.get("policies", ["main"]) != ["main"]:
+            raise ValueError("This stage supports only the main learner")
+
+        evaluation = runtime.get("evaluation", {})
+        if not isinstance(evaluation, dict):
+            raise ValueError("runtime.evaluation must be a mapping")
+
+        self.training_device = host.get("device", 0)
+        self.inference_device = service.get("device", self.training_device)
+        self.evaluation_device = evaluation.get("device", self.training_device)
+
+        for name in ("training_device", "inference_device", "evaluation_device"):
+            index = getattr(self, name)
+            if type(index) is not int or index < 0:
+                raise ValueError(f"{name} must be a non-negative integer")
 
     def start_worker(self):
         if self.inference_process is not None:

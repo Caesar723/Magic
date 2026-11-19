@@ -122,10 +122,14 @@ class Parallel_Env(BaseParallelEnv):
         self.evaluator = None
         self.last_evaluation_step = self.agent1.step
         super().start_worker()
+
         path = self.env_config.get("evaluation_config")
         if path is None:
             return
+
         config = read_yaml(f"{ORGPATH}/{path}")
+        config.setdefault("runtime", {})["inference_services"] = {"evaluation": {"device": self.evaluation_device}}
+
         self.evaluator = get_class_by_name(config["env"])(config, agent_config=self.env_config["agent_config"])
         self.evaluator.start_worker()
 

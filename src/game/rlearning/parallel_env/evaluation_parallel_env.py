@@ -235,11 +235,15 @@ class Parallel_Env(BaseParallelEnv):
         raise TimeoutError("Evaluation model load timeout")
 
     def start_worker(self):
+        inference_config = {
+            **self.env_config["inference"],
+            "device_index": self.inference_device,
+        }
         self.inference_process = Process(
             target=evaluation_server_process,
             args=(
                 self.inference_communication,
-                self.env_config["inference"],
+                inference_config,
                 self.info_communication.load_queue,
             ),
         )
