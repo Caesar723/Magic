@@ -273,7 +273,7 @@ class BaseTrainer:
                                 batch_size=batch_size, 
                                 collate_fn=self.dataset.collate_fn, 
                                 num_workers=config["dataloader"]["num_workers"],
-                                drop_last=True,
+                                drop_last=config["dataloader"].get("drop_last",True),
                                 shuffle=config["dataloader"].get("shuffle",True)) 
 
     def store(self,data):

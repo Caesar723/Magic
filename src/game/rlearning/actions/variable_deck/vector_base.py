@@ -79,6 +79,8 @@ def add_history(agent:"Agent",batch,state=None):
         "critic_state_in":first_lstm_state(batch["critic_state_in"])
     }
     max_seq_len=agent.config.get("max_seq_len",agent.action_history_length)
+    if "policy_version" in batch:
+        record["policy_version"] = int(batch["policy_version"])
     append_history(record,agent.action_history,max_seq_len)
     return record
 

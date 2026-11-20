@@ -46,7 +46,10 @@ class Parallel_Env(BaseParallelEnv):
 
     def run(self):
 
+        register_version = getattr(self.agent1.dataset, "register_policy_version", None)
 
+        if register_version is not None:
+            register_version(self.agent1.step)
         while True:
             self.check_workers()
 
@@ -59,13 +62,15 @@ class Parallel_Env(BaseParallelEnv):
             is_update=self.agent1.update()
             if is_update:
                 step = self.agent1.step
-                self.info_communication.update_model(step,step)
+
+                if register_version is not None:
+                    register_version(step)
+
+                self.info_communication.update_model(step, step)
+
                 if self.inference_communication is not None:
-                    self.inference_communication.control_queue.put(PolicyUpdate(
-                        policy_id="main",
-                        config_path=self.config_path,
-                        restore_step=step,
-                    ))
+                    message = PolicyUpdate(policy_id="main", config_path=self.config_path, restore_step=step)
+                    self.inference_communication.control_queue.put(message)
             if self.evaluator is not None:
                 report = self.evaluator.poll_evaluation()
 
